@@ -1,0 +1,134 @@
+.header{
+    position: fixed;
+    width: 100%;
+    top: 0;
+     left: 200px; 
+  width: calc(100% - 200px);
+    z-index: 1;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 2px 4px;
+     background-color: white;   
+    border-radius: 5px 5px 5px 5px;
+    padding-bottom: 10px;
+} 
+
+
+.headerNew{
+    position: fixed;
+    width: 100%; 
+    top: 0; 
+    z-index: 100;
+     background-color: white;    
+}  
+
+.css-fiwfil-MuiStepLabel-label{
+    font-size: 11px !important;
+}
+.css-fiwfil-MuiStepLabel-label.MuiStepLabel-alternativeLabel {
+    margin-top: 3px !important;
+}
+.css-g7qad9.MuiStepLabel-alternativeLabel{
+    margin-top:  3px !important;
+}
+
+.css-g7qad9 {
+    font-size: 11px !important;
+}
+.advanceSearch{
+    border-radius: 50%;
+    height: 20px;
+    width: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+}
+.advanceSearchCollapsed{
+    display: flex;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background-color: var(--vz-primary-color);
+    rotate: 90deg;
+    top: 2px;
+    border-radius: 5px 0px;
+    left: 20px;
+}
+
+.sideSearch{
+    rotate:  180deg;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    padding: 5px;
+
+}
+
+.approver{
+    border-radius: 50%;
+    height: 20px;
+    width: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+}
+.approverCollapsed{
+    display: flex;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background-color: var(--vz-primary-color);
+    rotate: 90deg;
+    top: 20px;
+    border-radius: 5px 0px;
+    left: 22px;
+}
+.approverPlace{
+    position: relative;
+    top: -20px;
+    left: 20px;
+}
+.approverPlaceNew{
+    position: relative;
+    top: -15px;
+    left: 15px;
+}
+.pointer:hover{
+    background-color: inherit !important;
+}
+
+.chatPlaceNew{
+    position: relative;
+    top: -20px;
+    left: -45px;
+}
+.chat{
+    border-radius: 50%;
+    height: 20px;
+    width: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    position: relative;
+    cursor: pointer;
+}
+
+.dropBtn{ 
+    color: rgba(0, 0, 0, 0.26) !important;
+    box-shadow: none;
+    background-color: rgba(0, 0, 0, 0.12) !important;
+}
+.form-control::placeholder {
+    font-size: 0.8rem; /* Adjust font size as needed */
+  }
+  .formulaEditor::placeholder { 
+    font-size: 0.8rem; /* Adjust font size as needed */
+  }
+ .custom-field{
+    position: relative;
+    width: 260px !important;
+ }

@@ -1,0 +1,381 @@
+/* General container for each cell */
+.cell-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  /* Remove any default gap between elements */
+  padding: 0;
+  /* Remove padding if necessary */
+}
+
+/* Style for serial count */
+.serial-count {
+  margin-right: 8px;
+  /* Adjust spacing as needed */
+  white-space: nowrap;
+  /* Prevent wrapping */
+  color: rgb(165, 159, 159);
+  /* Default color */
+  font-size: 14px;
+  position: relative;
+  top: -12px;
+}
+
+.serial-count.Approved {
+  color: green;
+  /* Color for approved items */
+  position: relative;
+  top: -12px;
+  font-weight: 600;
+}
+
+.serial-count.Pending {
+  color: #cac9c9;
+  /* Color for pending items */
+  position: relative;
+  top: -12px;
+  font-weight: 600;
+}
+
+.serial-count.Rejected {
+  color: red;
+  /* Color for rejected items */
+  position: relative;
+  top: -12px;
+  font-weight: 600;
+}
+
+.serial-count.Completed {
+  color: blue;
+  /* Color for completed items */
+  position: relative;
+  top: -12px;
+  font-weight: 600;
+}
+
+.circleNew.Approved {
+  background-color: green !important;
+  color: white !important;
+  /* Color for approved items */
+}
+
+.circleNew.Pending {
+  /* background-color:#cac9c9 !important;
+  color: white !important; */
+  background-color: #dededede;
+  color: black !important;
+}
+
+.circleNew.Rejected {
+  background-color: #dc3545 !important;
+  /* Color for rejected items */
+  color: white !important;
+}
+
+.circleNew.Completed {
+  background-color: blue !important;
+  /* Color for completed items */
+  color: white !important;
+}
+
+
+/* Specific styles based on actionType */
+.cell-text.Approved {
+  color: green;
+}
+
+.cell-text.Pending {
+  color: #cac9c9;
+  /* Color for pending items */
+}
+
+.cell-text.Rejected {
+  color: red;
+  /* Color for rejected items */
+}
+
+.cell-text.Completed {
+  position: relative;
+  left: -12px;
+  color: blue;
+  /* Color for completed items */
+}
+
+/* Container for cell content */
+.cell-container .cell-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  /* Ensure full width */
+}
+
+/* Styling for cell text */
+.cell-text {
+  white-space: nowrap;
+  /* Prevent wrapping */
+  color: rgb(165, 159, 159);
+  /* Default color */
+  font-size: 14px;
+}
+
+/* Delete button styling */
+.delete-tooltip {
+  margin-left: auto;
+  /* Align to the right if needed */
+}
+
+.delete-button {
+  margin: 0;
+  /* Remove any default margin */
+}
+
+.delete-icon {
+  font-size: 16px;
+  /* Adjust icon size */
+  margin-left: 45px;
+}
+
+/* Add additional styling for rows based on status, if needed */
+.row.Approved {
+  background-color: #e6ffed;
+  /* Light green background for approved rows */
+}
+
+.row.Pending {
+  background-color: #ffe6e6;
+  /* Light coral background for pending rows */
+}
+
+.row.Rejected {
+  background-color: #ffe6e6;
+  /* Light red background for rejected rows */
+}
+
+.row.Completed {
+  background-color: #e6f0ff;
+  /* Light blue background for completed rows */
+}
+
+/* Additional styles for dragging */
+.dragging {
+  opacity: 0.5;
+  /* Visual feedback for dragging */
+  border: 2px dashed #ccc;
+  /* Dashed border while dragging */
+}
+
+/* Ensures proper layout for the table */
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-header {
+  display: flex;
+  background-color: #f0f0f0;
+}
+
+.header-cell {
+  flex: 1;
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  font-weight: bold;
+}
+
+.table-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.table-row {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  transition: background-color 0.3s;
+}
+
+.table-row.dragging {
+  opacity: 0.5;
+}
+
+/* Handle hover effect for drag-and-drop */
+.table-row.drag-over {
+  background-color: #f0f0f0;
+  /* Highlight the row where the item is dragged over */
+}
+
+
+/* CustomTable.css */
+.approver-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.new-delete-button {
+  position: absolute;
+  top: -21px;
+  right: 3px;
+  display: none !important;
+}
+
+.approver-container:hover .new-delete-button.null {
+  display: block !important;
+}
+
+.approver-container:hover .new-delete-button.Approved {
+  display: none !important;
+}
+
+.approver-container:hover .new-delete-button.Pending {
+  display: none !important;
+}
+
+.approver-container:hover .new-delete-button.Rejected {
+  display: none !important;
+}
+
+.circleNew {
+
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-color: #dededede;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: black !important;
+  position: relative;
+  top: -12px;
+}
+
+.approvalCard {
+  background-color: #f4f6f9 !important;
+  border-radius: 0px;
+}
+
+.approvalAcordion {
+  background-color: #f4f6f9 !important;
+}
+
+.approvalAcordionDetails {
+  padding: 0px 16px 0px !important;
+}
+
+.approvalType {
+  margin-right: 8px;
+  /* Adjust spacing as needed */
+  white-space: nowrap;
+  /* Prevent wrapping */
+  color: rgb(165, 159, 159);
+  /* Default color */
+  font-size: 14px;
+}
+
+.approverAction.Approved {
+  background-color: #198754;
+  /* Color for approved items */
+  font-size: 10px !important;
+  color: white;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 10px;
+}
+
+.approverAction.Pending {
+  /* background-color: #cac9c9; */
+  background-color: #dededede;
+  /* Color for pending items */
+  font-size: 12px !important;
+  /* color: white; */
+  color: black !important;
+  /* font-weight: 700; */
+  padding: 3px 6px;
+  border-radius: 10px;
+}
+
+.approverAction.Rejected {
+  background-color: #dc3545;
+  /* Color for rejected items */
+  font-size: 10px !important;
+  color: white;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 10px;
+}
+
+.delete-button:hover {
+  background-color: inherit !important;
+}
+
+@media screen and (min-width: 1024px) and (max-width: 1279px) {
+  .delete-icon {
+    font-size: 16px;
+    /* Adjust icon size */
+    margin-left: 23px;
+  }
+}
+
+@media screen and (min-width: 1250px) and (max-width: 1280px) {
+  .delete-icon {
+    font-size: 16px;
+    /* Adjust icon size */
+    margin-left: 23px;
+  }
+}
+
+@media screen and (min-width: 1280px) and (max-width: 1300px) {
+  .delete-icon {
+    font-size: 16px;
+    /* Adjust icon size */
+    margin-left: 25px;
+  }
+}
+
+@media screen and (min-width: 1300px) and (max-width: 1350px) {
+  .delete-icon {
+    font-size: 16px;
+    /* Adjust icon size */
+    margin-left: 27px;
+  }
+}
+
+@media screen and (min-width: 1150px) and (max-width: 1050px) {}
+
+/* 1024px width */
+@media screen and (min-width: 728px) and (max-width: 1024px) {}
+
+@media screen and (min-width: 1024px) and (max-width: 1440px) {}
+
+@media screen and (min-width: 1350px) and (max-width: 1400px) {
+  .delete-icon {
+    font-size: 16px;
+    /* Adjust icon size */
+    margin-left: 30px;
+  }
+}
+
+@media screen and (min-width: 1400px) and (max-width: 1450px) {
+  .delete-icon {
+    font-size: 16px;
+    /* Adjust icon size */
+    margin-left: 33px;
+  }
+}
+
+@media screen and (min-width: 1450px) and (max-width: 1500px) {
+  .delete-icon {
+    font-size: 16px;
+    /* Adjust icon size */
+    margin-left: 36px;
+  }
+}
+
+@media screen and (min-width: 1500px) and (max-width: 1550px) {
+  .delete-icon {
+    font-size: 16px;
+    /* Adjust icon size */
+    margin-left: 39px;
+  }
+}

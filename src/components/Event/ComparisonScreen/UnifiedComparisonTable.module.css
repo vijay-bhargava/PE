@@ -1,0 +1,733 @@
+/* Unified Comparison Table Styles */
+.unifiedComparisonTable {
+  padding: 8px;
+  background-color: transparent;
+  overflow: visible;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+/* Table Container */
+.tableContainer {
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  position: relative;
+  max-height: 70vh;
+  contain: layout style paint;
+  will-change: scroll-position;
+}
+
+/* Override MUI Table sticky behavior */
+.tableContainer table {
+  position: relative !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+/* Custom Scrollbar */
+.tableContainer::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.tableContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.tableContainer::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Table Header Styles */
+.tableHeader {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1002 !important;
+  background: #f8f9fa !important;
+}
+
+.headerRow {
+  height: 48px;
+}
+
+.headerCell {
+  padding: 8px 12px !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  color: #555555 !important;
+  background: #f8f9fa !important;
+  border-right: 2px solid #e0e0e0 !important;
+  text-align: center !important;
+  min-width: 280px;
+  width: 280px;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+}
+
+.headerCellFirst {
+  min-width: 280px !important;
+  width: 280px !important;
+  max-width: 280px !important;
+  text-align: left !important;
+  background: #f8f9fa !important;
+  border-right: 2px solid #e0e0e0 !important;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 0 !important;
+  top: 0 !important;
+  z-index: 1001 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1) !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+}
+
+/* Vendor Header Cells */
+.vendorHeader {
+  position: relative;
+}
+
+.vendorName {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #2196f3 !important;
+  margin-bottom: 2px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.vendorNameContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.vendorSubmission {
+  font-size: 10px !important;
+  color: #888888 !important;
+  font-weight: 400 !important;
+}
+
+.summaryHeader {
+  background: #f8f9fa !important;
+  min-width: 120px !important;
+  width: 120px !important;
+}
+
+/* Sticky Target Columns */
+.stickyTargetHeader {
+  width: 93px !important;
+  min-width: 93px !important;
+  max-width: 93px !important;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 280px !important;
+  top: 0 !important;
+  z-index: 1001 !important;
+  background-color: #f8f9fa !important;
+  padding: 8px 12px !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  color: #555555 !important;
+  border-right: 2px solid #e0e0e0 !important;
+  text-align: center !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1) !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+}
+
+.stickyQuantityHeader {
+  width: 93px !important;
+  min-width: 93px !important;
+  max-width: 93px !important;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 373px !important;
+  top: 0 !important;
+  z-index: 1001 !important;
+  background-color: #f8f9fa !important;
+  padding: 8px 12px !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  color: #555555 !important;
+  border-right: 2px solid #e0e0e0 !important;
+  text-align: center !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1) !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+}
+
+.stickyTargetCell {
+  width: 93px !important;
+  min-width: 93px !important;
+  max-width: 93px !important;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 280px !important;
+  top: 0 !important;
+  z-index: 999 !important;
+  background-color: #ffffff !important;
+  padding: 8px 12px !important;
+  text-align: center !important;
+  border-right: 1px solid #e0e0e0 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1) !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+}
+
+.stickyQuantityCell {
+  width: 93px !important;
+  min-width: 93px !important;
+  max-width: 93px !important;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 373px !important;
+  top: 0 !important;
+  z-index: 999 !important;
+  background-color: #ffffff !important;
+  padding: 8px 12px !important;
+  text-align: center !important;
+  border-right: 1px solid #e0e0e0 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1) !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+}
+
+.stickyDeliveryLocationHeader {
+  width: 93px !important;
+  min-width: 93px !important;
+  max-width: 93px !important;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 466px !important;
+  top: 0 !important;
+  z-index: 1001 !important;
+  background-color: #f8f9fa !important;
+  padding: 8px 12px !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  color: #555555 !important;
+  border-right: 2px solid #e0e0e0 !important;
+  text-align: center !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1) !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+}
+
+.stickyUnitRateHeader {
+  width: 93px !important;
+  min-width: 93px !important;
+  max-width: 93px !important;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 559px !important;
+  top: 0 !important;
+  z-index: 1001 !important;
+  background-color: #f8f9fa !important;
+  padding: 8px 12px !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  color: #555555 !important;
+  border-right: 2px solid #e0e0e0 !important;
+  text-align: center !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1) !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+}
+
+.stickyDeliveryLocationCell {
+  width: 93px !important;
+  min-width: 93px !important;
+  max-width: 93px !important;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 466px !important;
+  top: 0 !important;
+  z-index: 999 !important;
+  background-color: #ffffff !important;
+  padding: 8px 12px !important;
+  text-align: center !important;
+  border-right: 1px solid #e0e0e0 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1) !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+}
+
+.stickyUnitRateCell {
+  width: 93px !important;
+  min-width: 93px !important;
+  max-width: 93px !important;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 559px !important;
+  top: 0 !important;
+  z-index: 999 !important;
+  background-color: #ffffff !important;
+  padding: 8px 12px !important;
+  text-align: center !important;
+  border-right: 1px solid #e0e0e0 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1) !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+}
+
+/* Comparison Details Clickable Link */
+.comparisonDetailsLink {
+  color: #1976d2 !important;
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.comparisonDetailsLink:hover {
+  color: #1565c0 !important;
+  text-decoration: underline;
+}
+
+/* Section Row Styles */
+.sectionRow {
+  background-color: #f5f5f5 !important;
+}
+
+.sectionHeader {
+  padding: 12px 16px !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  color: #333333 !important;
+  background: #f5f5f5 !important;
+  border-right: 2px solid #e0e0e0 !important;
+  cursor: pointer;
+  user-select: none;
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 101 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.sectionHeaderContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.2s ease;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.sectionHeaderContent:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.sectionFiller {
+  background: #f5f5f5 !important;
+  border: none !important;
+}
+
+/* Sub Row Styles - Base styles for first column */
+.subRowCell {
+  padding: 8px 16px 8px 24px !important;
+  font-size: 11px !important;
+  color: #666666 !important;
+  border-right: 2px solid #e0e0e0 !important;
+  border-bottom: 2px solid #e0e0e0 !important;
+  min-width: 280px;
+  width: 280px;
+  max-width: 280px;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 0 !important;
+  top: 0 !important;
+  z-index: 100 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05) !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+}
+
+/* Package Row Styles */
+.packageRow {
+  background-color: #fafafa;
+}
+
+.packageRow .subRowCell {
+  background: #fafafa !important;
+}
+
+.packageInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.packageLabel {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #333333 !important;
+}
+
+.termSpacer {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+}
+
+.termName {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #666666 !important;
+}
+
+.packageSpacer {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+}
+
+/* Item Row Styles */
+.itemRow {
+  background-color: #ffffff;
+}
+
+.itemRow .subRowCell {
+  background: #ffffff !important;
+}
+
+.itemInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expandButton {
+  padding: 2px !important;
+  margin-right: 4px !important;
+}
+
+.itemCode {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #1976d2 !important;
+  margin-bottom: 2px !important;
+}
+
+.itemName {
+  font-size: 10px !important;
+  color: #333333 !important;
+  margin-bottom: 1px !important;
+  font-weight: 500 !important;
+}
+
+.itemQuantity {
+  font-size: 9px !important;
+  color: #666666 !important;
+  font-style: italic !important;
+}
+
+/* Data Cell Styles */
+.dataCell {
+  padding: 8px 12px !important;
+  text-align: center !important;
+  border-right: 2px solid #e0e0e0 !important;
+  border-bottom: 2px solid #e0e0e0 !important;
+  font-size: 11px !important;
+  min-width: 280px;
+  width: 280px;
+  vertical-align: middle !important;
+}
+
+.priceContainer {
+  display: flex;
+  flex-direction: column; 
+  align-items: center;
+  gap: 4px;
+}
+.newPriceContainer{
+  display: flex;
+  align-items: center;   /* vertical alignment */
+  gap: 8px;              /* space between price & icon */
+  white-space: nowrap;  /* prevents wrapping */
+}
+.infoIcon {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.infoIcon svg {
+  font-size: 14px;
+}
+
+.price {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #333333 !important;
+}
+
+.summaryPrice {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #333333 !important;
+}
+
+/* Badge Styles */
+.l1Badge {
+  background: #e8f5e8 !important;
+  color: #2e7d32 !important;
+  font-weight: 600 !important;
+  font-size: 9px !important;
+  height: 18px !important;
+  border-radius: 3px !important;
+}
+
+.l2Badge {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
+  font-weight: 600 !important;
+  font-size: 9px !important;
+  height: 18px !important;
+  border-radius: 3px !important;
+}
+
+.l3Badge {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
+  font-weight: 600 !important;
+  font-size: 9px !important;
+  height: 18px !important;
+  border-radius: 3px !important;
+}
+
+.winnerBadge {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
+  font-weight: 600 !important;
+  font-size: 9px !important;
+  height: 18px !important;
+  border-radius: 3px !important;
+}
+
+/* Expanded Row Styles */
+.expandedRow {
+  background-color: #f9f9f9 !important;
+}
+
+.expandedRow .firstColumn {
+  background-color: #f8f9fa !important;
+  padding-left: 48px !important;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 0 !important;
+  top: 0 !important;
+  z-index: 100 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.08) !important;
+  border-right: 2px solid #e0e0e0 !important;
+  border-bottom: 2px solid #e0e0e0 !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+}
+
+.expandedRow .dataCell {
+  background-color: #f9f9f9 !important;
+  border-right: 2px solid #e0e0e0 !important;
+  border-bottom: 2px solid #e0e0e0 !important;
+}
+
+.expandedRow:hover {
+  background-color: #f0f0f0 !important;
+}
+
+.expandedRow:hover .firstColumn {
+  background-color: #f0f0f0 !important;
+}
+
+.expandedRow:hover .dataCell {
+  background-color: #f0f0f0 !important;
+}
+
+.expandedContent {
+  padding: 16px !important;
+}
+
+.commercialTermsContainer {
+  background: #ffffff;
+  border-radius: 4px;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+}
+
+.commercialTermsTitle {
+  font-weight: 600 !important;
+  color: #333333 !important;
+  margin-bottom: 8px !important;
+}
+
+/* Pagination Styles */
+.pagination {
+  border-top: 2px solid #e0e0e0;
+  background: #fafafa;
+  border-radius: 0 0 6px 6px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .headerCell,
+  .dataCell {
+    min-width: 200px;
+    width: 200px;
+  }
+}
+
+/* Commercial Terms Styles */
+.termLabel {
+  padding: 4px 0;
+}
+
+.termName {
+  font-size: 11px !important;
+  color: #666666 !important;
+  font-weight: 500 !important;
+}
+
+.termValue {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #1a1a1a !important;
+}
+
+/* Commercial Terms Color Coding */
+.positiveAmount {
+  color: #d32f2f !important;
+}
+
+.negativeAmount {
+  color: #2e7d32 !important;
+}
+
+/* Price Color Coding - Higher specificity to override other color classes */
+.lowestPrice {
+  color: #2e7d32 !important; /* Green for lowest price */
+  font-weight: 600 !important;
+}
+
+.highestPrice {
+  color: #d32f2f !important; /* Red for highest price */
+  font-weight: 600 !important;
+}
+
+/* Override commercial term colors when price colors are applied */
+.termValue.lowestPrice,
+.price.lowestPrice {
+  color: #2e7d32 !important;
+}
+
+.termValue.highestPrice,
+.price.highestPrice {
+  color: #d32f2f !important;
+}
+
+/* Ensure summary columns always keep their original color */
+.summaryPrice {
+  color: #333333 !important;
+}
+
+/* Prevent price color classes from affecting summary columns */
+.summaryPrice.lowestPrice,
+.summaryPrice.highestPrice {
+  color: #333333 !important;
+}
+
+/* Commercial Terms Styles */
+.termInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure commercial terms first column has proper sticky behavior */
+.dataRow .subRowCell {
+  background: #ffffff !important;
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 15 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.08) !important;
+}
+
+.termRemarks {
+  font-size: 9px !important;
+  color: #888888 !important;
+  font-style: italic !important;
+}
+
+.commercialTermContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.commercialValue {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #333333 !important;
+  text-align: center !important;
+}
+
+.scoreContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.scoreValue {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  padding: 2px 6px !important;
+  border-radius: 2px !important;
+  background: #f5f5f5 !important;
+}
+
+/* Score Color Coding */
+.highScore {
+  background: #e8f5e8 !important;
+  color: #2e7d32 !important;
+}
+
+.mediumScore {
+  background: #fff3e0 !important;
+  color: #f57c00 !important;
+}
+
+.lowScore {
+  background: #ffebee !important;
+  color: #d32f2f !important;
+}
+
+@media (max-width: 768px) {
+  .headerCell,
+  .dataCell {
+    min-width: 150px;
+    width: 150px;
+  }
+  
+  .vendorName {
+    font-size: 10px !important;
+  }
+  
+  .vendorSubmission {
+    font-size: 8px !important;
+  }
+}

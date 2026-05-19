@@ -1,0 +1,519 @@
+/* Comparative Analysis Styles */
+.comparativeAnalysis {
+  padding: 8px;
+  background-color: transparent;
+  overflow: visible;
+  position: relative;
+}
+
+.analysisHeader {
+  margin-bottom: 12px;
+}
+
+.analysisTitle {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #1a1a1a !important;
+  margin-bottom: 4px !important;
+}
+
+.analysisSubtitle {
+  font-size: 12px !important;
+  color: #666666 !important;
+}
+
+/* Table Container */
+.tableContainer {
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  position: relative;
+  max-height: 70vh;
+}
+
+/* Custom Scrollbar */
+.tableContainer::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.tableContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.tableContainer::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Table Header */
+.tableHeader {
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.tableHeader th {
+  background: #f8f9fa !important;
+  position: sticky;
+  top: 0;
+  z-index: 101;
+}
+
+.headerRow {
+  height: 48px;
+}
+
+.headerCell {
+  padding: 8px 12px !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  color: #555555 !important;
+  background: #f8f9fa !important;
+  border-right: 1px solid #e0e0e0 !important;
+  text-align: center !important;
+  min-width: 280px;
+  width: 280px;
+}
+
+.headerCellFirst {
+  min-width: 280px;
+  width: 280px;
+  max-width: 280px;
+  text-align: left !important;
+  background: #f8f9fa !important;
+  border-right: 2px solid #e0e0e0 !important;
+}
+
+/* Vendor Header Cells */
+.vendorHeader {
+  background: #f0f4ff !important;
+  color: #1976d2 !important;
+  font-weight: 600 !important;
+}
+
+.vendorSubHeader {
+  background: #f8f9fa !important;
+  color: #666666 !important;
+  font-size: 10px !important;
+  font-weight: 400 !important;
+}
+
+/* Data Rows */
+.dataRow {
+  height: 44px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+}
+
+.dataRow:hover {
+  background-color: #fafafa;
+}
+
+.dataCell {
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  border-right: 1px solid #f0f0f0 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  min-width: 280px;
+  width: 280px;
+  max-width: 280px;
+}
+
+.firstColumn {
+  background: #ffffff !important;
+  border-right: 2px solid #e0e0e0 !important;
+  text-align: left !important;
+  min-width: 280px;
+  width: 280px;
+  max-width: 280px;
+}
+
+.dataRow:hover .firstColumn {
+  background: #fafafa !important;
+}
+
+.itemCode {
+  font-weight: 600 !important;
+  color: #1a1a1a !important;
+  font-size: 12px !important;
+  margin-bottom: 2px;
+}
+
+.itemName {
+  color: #666666 !important;
+  font-size: 11px !important;
+  margin-bottom: 1px;
+}
+
+.itemQuantity {
+  color: #888888 !important;
+  font-size: 10px !important;
+}
+
+/* Price Cells */
+.priceCell {
+  font-weight: 600 !important;
+  color: #1a1a1a !important;
+}
+
+.winnerPrice {
+  color: #2e7d32 !important;
+  font-weight: 700 !important;
+}
+
+.minPrice {
+  font-weight: 700 !important;
+}
+
+.maxPrice {
+  font-weight: 700 !important;
+}
+
+.avgPrice {
+  font-weight: 600 !important;
+}
+
+/* Price Color Coding */
+.lowestPrice {
+  color: #2e7d32 !important;
+  font-weight: 700 !important;
+}
+
+.lowestPrice .termPrice {
+  color: #2e7d32 !important;
+  font-weight: 700 !important;
+}
+
+.highestPrice {
+  color: #d32f2f !important;
+  font-weight: 700 !important;
+}
+
+.highestPrice .termPrice {
+  color: #d32f2f !important;
+  font-weight: 700 !important;
+}
+
+/* Expandable Row Indicator */
+.expandIcon {
+  cursor: pointer;
+  margin-right: 8px;
+  color: #666666;
+  font-size: 16px !important;
+  transition: transform 0.2s ease;
+}
+
+.expandIcon:hover {
+  color: #1976d2;
+}
+
+.expanded {
+  transform: rotate(90deg);
+}
+
+/* Package Level Section */
+.packageSeparator {
+  background: #1976d2 !important;
+}
+
+.packageSeparatorCell {
+  background: #1976d2 !important;
+  padding: 8px 12px !important;
+  border: none !important;
+}
+
+.packageSeparatorText {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  margin: 0 !important;
+  text-align: center !important;
+}
+
+.packageRow {
+  height: 40px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #ffffff !important;
+}
+
+.packageRow:last-child {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.packageCell {
+  padding: 8px 12px !important;
+  font-size: 11px !important;
+  vertical-align: middle !important;
+  text-align: center !important;
+  border-right: 1px solid #f0f0f0 !important;
+}
+
+.packageLabel {
+  background: #f8f9fa !important;
+  font-weight: 600 !important;
+  color: #555555 !important;
+  text-align: left !important;
+  min-width: 280px;
+  border-right: 2px solid #e0e0e0 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.packageData {
+  background: #ffffff !important;
+}
+
+.rankingBadge {
+  padding: 2px 8px !important;
+  border-radius: 12px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+}
+
+.l1Badge {
+  background-color: #e8f5e8 !important;
+  color: #2e7d32 !important;
+}
+
+.l2Badge {
+  background-color: #fff3e0 !important;
+  color: #f57c00 !important;
+}
+
+.l3Badge {
+  background-color: #ffebee !important;
+  color: #d32f2f !important;
+}
+
+.viewLink {
+  color: #1976d2 !important;
+  text-decoration: underline !important;
+  cursor: pointer;
+  font-size: 11px !important;
+}
+
+.viewLink:hover {
+  color: #1565c0 !important;
+}
+
+/* Pagination */
+.paginationContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 0 0 6px 6px;
+  margin-top: 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+.paginationInfo {
+  font-size: 12px !important;
+  color: #666666 !important;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageButton {
+  min-width: 32px !important;
+  height: 32px !important;
+  font-size: 12px !important;
+  padding: 4px 8px !important;
+}
+
+/* Table Layout */
+.tableContainer table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Custom scrollbar for table container */
+.tableContainer::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tableContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.tableContainer::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .comparativeAnalysis {
+    padding: 4px;
+  }
+  
+  .scrollableContent {
+    max-height: 300px;
+  }
+  
+  .headerCell,
+  .dataCell,
+  .packageCell {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+  }
+  
+  .firstColumn {
+    min-width: 220px;
+  }
+  
+  .itemCode {
+    font-size: 11px !important;
+  }
+  
+  .itemName {
+    font-size: 10px !important;
+  }
+  
+  .itemQuantity {
+    font-size: 9px !important;
+  }
+}
+
+/* Expanded Commercial Terms */
+.expandedRow {
+  background-color: #ffffff !important;
+}
+
+.expandedCell {
+  padding: 0 !important;
+  border-top: none !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.commercialTermsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+
+.termRow {
+  height: 36px;
+}
+
+.termRow:last-child {
+  border-bottom: none;
+}
+
+.totalRow {
+  border-top: 2px solid #1976d2 !important;
+  font-weight: 600;
+  background-color: #f8f9fa !important;
+}
+
+.termLabel {
+  font-weight: 500 !important;
+  color: #666666 !important;
+  text-align: left !important;
+  padding: 8px 16px !important;
+  font-size: 13px !important;
+}
+
+.termValue {
+  text-align: center !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+}
+
+.emptySummaryCell {
+  background-color: #fafafa !important;
+  border-left: 2px solid #e0e0e0 !important;
+}
+
+.termPrice {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 13px;
+}
+
+.termPercentage {
+  font-size: 11px;
+  color: #666666;
+  margin-top: 2px;
+}
+
+/* Footer Styles - Integrated into main table */
+.packageLevelRow {
+  background: #3f88c5 !important;
+  height: 48px;
+}
+
+.packageLevelHeader {
+  background: #3f88c5 !important;
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+
+.packageLevelCell {
+  background: #3f88c5 !important;
+  color: white !important;
+  text-align: center !important;
+  font-size: 13px !important;
+}
+
+.packageLevelMinAvg {
+  background: #3f88c5 !important;
+  color: white !important;
+  text-align: center !important;
+  font-size: 13px !important;
+  border-left: none !important;
+}
+
+.footerRow {
+  height: 40px;
+}
+
+.footerLabel {
+  background: #f8f9fa !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  color: #333333 !important;
+  border-right: 1px solid #e0e0e0 !important;
+}
+
+.footerValue {
+  text-align: center !important;
+  font-size: 13px !important;
+  color: #1a1a1a !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.viewLink {
+  color: #1976d2 !important;
+  text-decoration: none !important;
+  font-size: 13px !important;
+}
+
+.viewLink:hover {
+  text-decoration: underline !important;
+}

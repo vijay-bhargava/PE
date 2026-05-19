@@ -1,0 +1,50 @@
+.rfq-modern-shell {
+  gap: 16px;
+}
+
+.rfq-modern-shell .leftContent .rounded-default {
+  border: 1px solid var(--pe-border);
+  border-radius: 16px;
+  box-shadow: none !important;
+  background: #fff;
+}
+
+.rfq-modern-shell .page-heading {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.rfq-modern-shell .tabstheme .MuiTabs-flexContainer {
+  gap: 4px;
+}
+
+.rfq-modern-shell .tabstheme .MuiTab-root {
+  text-transform: none;
+  font-weight: 600;
+  border-radius: 10px 10px 0 0;
+  min-height: 52px;
+}
+
+.rfq-modern-shell .tabstheme .Mui-selected {
+  background: #e9f2fb;
+}
+
+.rfq-modern-shell .tabstheme .MuiTabs-indicator {
+  background: var(--pe-primary);
+  height: 3px;
+}
+
+.rfq-modern-shell .approver-panel {
+  background: #fff;
+  border: 1px solid var(--pe-border);
+  border-radius: 16px;
+}
+
+.rfq-modern-shell .MuiButton-containedSuccess {
+  background: var(--pe-success);
+}
+
+.rfq-modern-shell .MuiButton-outlinedError {
+  color: var(--pe-danger);
+  border-color: var(--pe-danger);
+}

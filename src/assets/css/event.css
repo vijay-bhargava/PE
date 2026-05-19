@@ -1,0 +1,43 @@
+.event-question-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.event-question-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0; /* Important for Firefox */
+  padding: 1rem;
+}
+
+.question-table-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0; /* Important for Firefox */
+}
+
+/* Fix for Material React Table scroll */
+.MuiTable-root {
+  height: 100%;
+}
+
+.MuiTableContainer-root {
+  max-height: none !important;
+  flex: 1;
+}
+
+/* Ensure detail panels don't get cut off */
+.detail-panel {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Fix for mobile responsiveness */
+@media screen and (max-width: 768px) {
+  .event-question-screen {
+    height: calc(100vh - 56px); /* Adjust for mobile header */
+  }
+}

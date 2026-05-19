@@ -1,0 +1,109 @@
+/* CKEditor 5 Toolbar Visibility Fixes */
+ 
+/* Ensure editor container has proper stacking context */
+.ck.ck-editor {
+    position: relative !important;
+    z-index: 1 !important;
+}
+ 
+/* Force toolbar visibility */
+.ck.ck-toolbar {
+    position: static !important;
+    z-index: 10000 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: #fff !important;
+    border: 1px solid #c4c4c4 !important;
+    border-bottom: none !important;
+    border-radius: 4px 4px 0 0 !important;
+    padding: 8px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+}
+ 
+/* Fix toolbar item visibility */
+.ck.ck-toolbar > * {
+    visibility: visible !important;
+}
+ 
+.ck.ck-toolbar__items {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+}
+ 
+/* Style the editor content area */
+.ck.ck-editor__editable_inline {
+    min-height: 300px !important;
+    max-height: none !important;
+    border: 1px solid #c4c4c4 !important;
+    border-top: none !important;
+    border-radius: 0 0 4px 4px !important;
+    padding: 1rem !important;
+    background: #fff !important;
+}
+ 
+/* Fix dropdown positioning */
+.ck.ck-dropdown {
+    position: relative !important;
+    display: inline-block !important;
+}
+ 
+.ck.ck-dropdown__panel {
+    position: absolute !important;
+    z-index: 10001 !important;
+    min-width: 150px !important;
+    background: #fff !important;
+    border: 1px solid #c4c4c4 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+ 
+/* Style buttons */
+.ck.ck-button {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 4px 8px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    border-radius: 4px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+}
+ 
+.ck.ck-button:hover {
+    background: #f0f0f0 !important;
+}
+ 
+.ck.ck-button.ck-on {
+    background: #e6f3ff !important;
+    border-color: #80bdff !important;
+}
+ 
+/* Fix disabled state */
+.ck.ck-editor__editable_inline[contenteditable="false"] {
+    background: #f5f5f5 !important;
+    color: #666 !important;
+}
+ 
+/* Ensure proper stacking in modal contexts */
+.modal .ck.ck-editor,
+.dialog .ck.ck-editor,
+.popup .ck.ck-editor {
+    z-index: auto !important;
+}
+ 
+.modal .ck.ck-toolbar,
+.dialog .ck.ck-toolbar,
+.popup .ck.ck-toolbar {
+    z-index: 10000 !important;
+}
+ 
+/* Fix sticky toolbar positioning */
+.ck.ck-sticky-panel__content {
+    position: relative !important;
+    z-index: 10000 !important;
+}
+ 

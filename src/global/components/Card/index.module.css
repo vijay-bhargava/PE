@@ -1,0 +1,13 @@
+.cxCardRoot {
+  border-radius: var(--radius, 16px);
+  padding-block: 18px;
+  gap: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background-color: #ffffff;
+  width: 100%;
+  box-shadow: 0 0 2px 0 #0000000d;
+}
+
+.cxCardContent {
+  padding-inline: 18px;
+}

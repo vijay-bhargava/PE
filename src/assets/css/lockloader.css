@@ -1,0 +1,83 @@
+.lock-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(18, 18, 18, 0.8); /* semi-transparent dark overlay */
+  backdrop-filter: blur(4px);        /* optional blur effect */
+  z-index: 9999;                     /* on top of everything */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+}
+
+.loader-svg {
+  width: 100px;
+  height: 120px;
+  margin-bottom: 20px;
+}
+
+.lock-body {
+  fill: #f0f0f0;
+}
+
+.shackle {
+  fill: none;
+  stroke: #f0f0f0;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transform-origin: center top;
+  animation: unlockOnce 2s ease-in-out forwards;
+}
+
+@keyframes unlockOnce {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-45deg);
+  }
+  100% {
+    transform: rotate(-45deg);
+  }
+}
+
+.message {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  font-size: 18px;
+  text-align: center;
+}
+
+.message.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+.calendar-body {
+  fill: #f2f2f2;
+  stroke: #555;
+  stroke-width: 2;
+}
+
+.calendar-header {
+  fill: #555;
+}
+
+.clock-face {
+  fill: #fff;
+  stroke: #333;
+  stroke-width: 2;
+}
+
+.clock-hand {
+  stroke: #333;
+  stroke-width: 2;
+  stroke-linecap: round;
+}

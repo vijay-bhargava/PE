@@ -1,0 +1,40 @@
+.scroll-container {
+  position: relative;
+}
+
+.scroll-container .custom-fix {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+.scroll-container .custom-fix::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll-container .custom-fix::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.scroll-container .custom-fix::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.scroll-container .custom-fix::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Ensure scrollbar track is always visible */
+.scroll-container .custom-fix::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}

@@ -1,0 +1,237 @@
+.name {
+    color: var(--vz-primary-color);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+    font-family: 'Montserrat',sans-serif;
+}
+
+.themebg-blue {
+    background-color: #1E74CA;
+    color:#ffffff!important;
+}
+.custom-dashboard-fix {
+    margin:10px;
+}
+/* .btn:active {
+    border-color: white !important;
+}
+
+.btn.show {
+    border-color: white !important;
+} */
+ /* For read-only mode only */
+textarea.formulaEditor[readonly] {
+  border: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  resize: none !important;
+  cursor: default !important;
+}
+
+
+
+.formulaEditor {
+    border: 1px solid #d7d7d7 !important;
+    border-radius: 5px;
+}
+
+.formulaEditor:focus {
+    border: 1px solid #d7d7d7 !important;
+}
+
+.formulaEditor:active {
+    border: 1px solid #d7d7d7 !important;
+}
+
+.formulaEditor.show {
+    border: 1px solid #d7d7d7 !important;
+}
+
+.formulaEditor:focus-visible {
+    outline: 1px solid #d7d7d7 !important;
+}
+
+.auctionEditor {
+    border: none !important;
+    border-radius: 5px;
+}
+
+.auctionEditor:focus {
+    border: none !important;
+}
+
+.auctionEditor:active {
+    border: none !important;
+}
+
+.auctionEditor.show {
+    border: none !important;
+}
+
+.auctionEditor:focus-visible {
+    outline: none !important;
+}
+
+.textarea-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.formulaEditor {
+    box-sizing: border-box;
+}
+
+.position-absolute {
+    position: absolute;
+}
+
+.position-relative {
+    position: relative;
+}
+
+.mt-2 {
+    margin-top: 0.5rem;
+}
+
+.value-display {
+    white-space: pre-wrap;
+    /* Preserve new lines */
+    border: 1px solid #ccc;
+    /* Optional: add border to display area */
+    padding: 10px;
+    /* Optional: add padding for better readability */
+}
+
+.custom-fix {
+    height: 55vh !important;
+    overflow: scroll;
+    overflow-x: hidden;
+}
+.custom-fix::-webkit-scrollbar {
+    width: 8px !important;
+    display: block !important;
+}
+
+.custom-fix::-webkit-scrollbar-track {
+    background: #f1f1f1 !important;
+}
+
+.custom-fix::-webkit-scrollbar-thumb {
+    background: #888 !important;
+    border-radius: 4px !important;
+}
+
+.custom-fix::-webkit-scrollbar-thumb:hover {
+    background: #555 !important;
+}
+
+.main-scroll-container.thin {
+  scrollbar-color: white #f1f1f1;
+}
+/* .custom-table-fix {
+    height: 39vh !important;
+    overflow: auto;
+    overflow-x: hidden;
+} */
+
+.custom-table-fix{
+    height: 45vh !important;
+    overflow: auto;
+    overflow-x: hidden;
+}
+
+.table-fix {
+    height: 95vh !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.table-fix .shadow {
+    overflow: hidden;
+    flex: 1;
+}
+
+/* .thead-sticky {
+    position: sticky;
+    top: 0;
+    background-color: #343a40;
+    z-index: 10;
+} */
+.thead-sticky {
+    position: sticky;
+    top: 0;
+    background-color: #343a40;
+    z-index: 10;
+}
+
+.tbody-scroll {
+    max-height: 400px;
+    /* Adjust height as per your design */
+    overflow-y: auto;
+    width: 100%;
+}
+
+/* .custom-auctionp-fix{
+       height: auto;
+       overflow: auto;
+       overflow-x: hidden;
+   } */
+
+/* .custom-auctionp-fix {
+    height: 95vh;
+    overflow: auto;
+    overflow-x: hidden;
+} */
+
+.auction-table-fix{
+    height: 87vh !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.auction-table-fix .table-fix {
+    overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.auction-table-fix .table-fix .shadow {
+    overflow: hidden;
+    flex: 1;
+}
+
+.auctionControl {
+    height: 70vh;
+    overflow: auto;
+    overflow-x: hidden;
+}
+
+.MuiAccordion-root:before {
+    display: none !important;
+}
+.custom-manage-fix{
+    height: 75vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.custom-manage-fix .table-fix {
+    overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.custom-manage-fix .table-fix .shadow {
+    overflow: hidden;
+    flex: 1;
+}

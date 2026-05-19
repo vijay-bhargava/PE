@@ -1,0 +1,307 @@
+/* Align nested table with main table */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS */
+  max-width: 100%;
+}
+
+.roles-table {
+  border-collapse: collapse; 
+  width: 100%; /* Ensure consistent column widths */
+  overflow: auto;
+}
+
+.roles-table th, .roles-table td {
+  width: 190px;
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: left;
+}
+
+
+
+.sticky-header-new {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 1;
+}
+.roles-table th {
+  width: 190px !important;
+  background-color: transparent; /* Updated background color */
+  color: #000000!important; /* Updated text color */
+  font-weight: 600;
+  z-index: 2; /* Ensure header stays above rows */
+}
+
+
+.nested-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.nested-table td.selects-new{
+  width: 260px !important;
+}
+.custom-select {
+  width: 100%; /* Ensure the select box occupies full width */
+}
+
+
+.custom-select .MuiSelect-select {
+  padding-top: 5.5px;
+  padding-bottom: 5.5px;
+}
+/* Responsive adjustments */
+@media screen and (min-width: 1024px) and (max-width: 1279px) {
+ 
+ .new-container {
+  overflow: auto;
+  margin: 10px 10px 10px 5px;
+ 
+ } 
+}
+@media screen and (min-width: 1150px) and (max-width: 1050px) {
+ 
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+  
+   }
+   .nested-table th.sticky-col-new,
+.nested-table td.sticky-col-new {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  left: 0;
+  width: 123px;
+  background-color: #fff;
+  z-index: 1; /* Ensure it stays above other content */
+}
+
+}
+@media screen and (min-width: 728px) and (max-width: 1024px) {
+  
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+  
+   }
+}
+@media screen and (min-width: 1024px) and (max-width: 1440px) {
+ 
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+   
+   }
+}
+@media screen and (min-width: 1230px) and (max-width: 1280px) {
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+    width: 1170px;
+   }
+   .nested-table th.sticky-col-new,
+.nested-table td.sticky-col-new {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  font-size: 14px;
+  left: 0;
+  width: 150px;
+  background-color: #fff;
+  z-index: 1; /* Ensure it stays above other content */
+}
+.table-wrapper{
+  height: 300px !important;
+}
+}
+@media screen and (min-width: 1280px) and (max-width: 1300px) {
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+     width: 1170px;
+   }
+   .nested-table th.sticky-col-new,
+.nested-table td.sticky-col-new {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  font-size: 14px;
+  left: 0;
+  width: 147px;
+  background-color: #fff;
+  z-index: 1; /* Ensure it stays above other content */
+}
+.table-wrapper{
+  height: 300px !important;
+}
+}
+@media screen and (min-width: 1300px) and (max-width: 1350px) {
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+   width: 1200px !important;
+   }
+   .nested-table th.sticky-col-new,
+.nested-table td.sticky-col-new {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  font-size: 14px;
+  left: 0;
+  width: 145px;
+  background-color: #fff;
+  z-index: 1; /* Ensure it stays above other content */
+}
+.table-wrapper{
+  height: 300px !important;
+}
+
+}
+@media screen and (min-width: 1350px) and (max-width: 1400px) {
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+   width: 1200px !important;
+   }
+   .nested-table th.sticky-col-new,
+.nested-table td.sticky-col-new {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  font-size: 14px;
+  left: 0;
+  width: 142px;
+  background-color: #fff;
+  z-index: 1; /* Ensure it stays above other content */
+}
+.table-wrapper{
+  height: 459px !important;
+}
+}
+@media screen and (min-width: 1400px) and (max-width: 1430px) {
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+    width: 1200px;
+   }
+   .nested-table th.sticky-col-new,
+.nested-table td.sticky-col-new {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  font-size: 14px;
+  left: 0;
+  width: 138px;
+  background-color: #fff;
+  z-index: 1; /* Ensure it stays above other content */
+}
+.table-wrapper{
+  height: 400px !important;
+}
+
+}
+@media screen and (min-width: 1430px) and (max-width: 1470px) {
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+   
+   }
+   .nested-table th.sticky-col-new,
+.nested-table td.sticky-col-new {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  font-size: 14px;
+  left: 0;
+  width: 136px;
+  background-color: #fff;
+  z-index: 1; /* Ensure it stays above other content */
+}
+.table-wrapper{
+  height: 400px !important;
+}
+}
+@media screen and (min-width: 1470px) and (max-width: 1500px) {
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+   
+   }
+   .nested-table th.sticky-col-new,
+.nested-table td.sticky-col-new {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  font-size: 14px;
+  left: 0;
+  width: 136px;
+  background-color: #fff;
+  z-index: 1; /* Ensure it stays above other content */
+}
+.table-wrapper{
+  height: 400px !important;
+}
+}
+@media screen and (min-width: 1100px) and (max-width: 1240px) {
+ 
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+    
+   }
+}
+@media screen and (min-width: 1850px) and (max-width: 1920px) {
+
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;  
+   }
+}
+@media screen and (min-width: 1650px) and (max-width: 1850px) {
+
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+    
+   }
+} 
+@media screen and (min-width: 1450px) and (max-width: 1650px) {
+ 
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+   
+   }
+}
+@media screen and (min-width: 1650px) and (max-width: 1850px) {
+
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+    
+   }
+
+   .table-wrapper{
+    height: 550px !important;
+  }
+} 
+
+@media screen and (min-width: 1550px) and (max-width: 1650px) {
+
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+    
+   }
+
+   .table-wrapper{
+    height: 450px !important;
+  }
+} 
+@media screen and (min-width: 1850px) and (max-width: 1950px) {
+
+  .new-container {
+    overflow: auto;
+    margin: 10px 10px 10px 5px;
+    
+   }
+
+   .table-wrapper{
+    height: 600px !important;
+  }
+} 

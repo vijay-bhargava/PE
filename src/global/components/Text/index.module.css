@@ -1,0 +1,83 @@
+.cxTextBase {
+  font-size: var(--font-base, 14px);
+  margin-bottom: 0;
+}
+
+.cxTextMuted {
+  color: oklch(55.6% 0 0);
+}
+
+.cxTextSuccess {
+  color: var(--color-success, #198754);
+}
+
+.cxTextError {
+  color: var(--color-error, #ff1744);
+}
+
+.cxTransformUppercase {
+  text-transform: uppercase;
+}
+
+.cxTransformLowercase {
+  text-transform: lowercase;
+}
+
+.cxTransformCapitalize {
+  text-transform: capitalize;
+}
+
+.cxAlignCenter {
+  text-align: center;
+}
+
+.cxAlignLeft {
+  text-align: left;
+}
+
+.cxAlignRight {
+  text-align: right;
+}
+
+.cxTextWhite {
+  color: #ffffff;
+}
+
+.cxTextBold {
+  font-weight: 700;
+}
+
+.cxTextH1 {
+  font-size: 84px;
+  margin-bottom: 0;
+}
+
+.cxTextH2 {
+  font-size: 52px;
+  margin-bottom: 0;
+}
+
+.cxTextH3 {
+  font-size: 42px;
+  margin-bottom: 0;
+}
+
+.cxTextH4 {
+  font-size: 30px;
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+.cxTextH5 {
+  font-size: 21px;
+  margin-bottom: 0;
+}
+
+.cxTextH6 {
+  font-size: var(--font-base);
+  margin-bottom: 0;
+}
+
+.cxTextSmall {
+  font-size: var(--font-small);
+}
