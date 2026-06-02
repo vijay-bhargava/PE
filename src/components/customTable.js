@@ -13,10 +13,10 @@ import { useSearchParams } from 'react-router-dom';
 
 // Helper function to get initials from a name
 const getInitials = (name) => {
-
-  const names = name.split(' ');
-
-  return names.length > 1 ? `${names[0][0]} ${names[1][0] ?? ""}` : names[0][0];
+  if (!name || typeof name !== 'string') return '?';
+  const names = name.trim().split(' ').filter(Boolean);
+  if (!names.length) return '?';
+  return names.length > 1 ? `${names[0][0]}${names[1][0] ?? ""}` : names[0][0];
 };
 
 const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventSubject, startDate, endDate }) => {
@@ -97,11 +97,11 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                 : row.actionType === 'Pending'
                   ? row.completionDt
                   : null;
-            
+
             const formattedDate = completionDt
               ? formatDateViaTime(completionDt, 'en-GB', formattimeoption)
               : '';
-              
+
             const newFormattedDate = row.completionDt ? formatDateViaTime(row.completionDt, 'en-GB', formattimeoption) : '';
             const uniqueKey = row.uniqueId || index;
 
@@ -112,144 +112,144 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                 </div> */}
                 <div className="col-12 cell-content ps-0">
                   <div className="row justify-content-between approver-name mx-0">
- <div className="col-12 px-0">
-  <div>
-    {row.approvers.map((approver) => (
-      <div
-        key={approver.uniqueId}
-        className="d-flex align-items-start mb-2"
-        style={{ gap: '8px' }}
-      >
-        <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
+                    <div className="col-12 px-0">
+                      <div>
+                        {row.approvers.map((approver) => (
+                          <div
+                            key={approver.uniqueId}
+                            className="d-flex align-items-start mb-2"
+                            style={{ gap: '8px' }}
+                          >
+                            <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
 
-          {/* Approver Name + Status on same line */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              fontSize: '12px',
-              fontWeight: 500,
-              marginBottom: '4px',
-            }}
-          >
-            <span style={{ whiteSpace: 'nowrap' }}>{row.approverSeq}. {approver.approverName}</span>
-            
-            {/* Status badge right next to name */}
-          {approver.status && (
-  <span
-    className={`${approver.status} f12 fw500 approverAction`}
-    style={{
-      color:
-        approver.status === 'Approved'
-          ? '#fff'
-          : approver.status === 'Rejected'
-          ? '#fff'
-          : undefined,
-      backgroundColor:
-        approver.status === 'Approved'
-          ? 'green'
-          : approver.status === 'Rejected'
-          ? 'red'
-          : undefined,
-      padding: '2px 6px',
-      borderRadius: '4px',
-      lineHeight: 1.2,
-      display: 'inline-block',
-      whiteSpace: 'nowrap',
-    }}
-  >
-    {approver.status}
-  </span>
-)}
+                              {/* Approver Name + Status on same line */}
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                  fontSize: '12px',
+                                  fontWeight: 500,
+                                  marginBottom: '4px',
+                                }}
+                              >
+                                <span style={{ whiteSpace: 'nowrap' }}>{row.approverSeq}. {approver.approverName}</span>
 
-          </div>
+                                {/* Status badge right next to name */}
+                                {approver.status && (
+                                  <span
+                                    className={`${approver.status} f12 fw500 approverAction`}
+                                    style={{
+                                      color:
+                                        approver.status === 'Approved'
+                                          ? '#fff'
+                                          : approver.status === 'Rejected'
+                                            ? '#fff'
+                                            : undefined,
+                                      backgroundColor:
+                                        approver.status === 'Approved'
+                                          ? 'green'
+                                          : approver.status === 'Rejected'
+                                            ? 'red'
+                                            : undefined,
+                                      padding: '2px 6px',
+                                      borderRadius: '4px',
+                                      lineHeight: 1.2,
+                                      display: 'inline-block',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    {approver.status}
+                                  </span>
+                                )}
 
-          {/* Designation + Reminder */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '12px',
-              color: '#999',
-              marginTop: '2px',
-            }}
-          >
-            <span>Designation: {approver.designation}</span>
+                              </div>
 
-            {approver.status === "Pending" && actionType !== 'approval' && (
-              <Tooltip
-                title="Send Reminder"
-                slotProps={{
-                  popper: {
-                    sx: {
-                      '& .MuiTooltip-tooltip': {
-                        fontSize: '10px',
-                        fontWeight: 600,
-                      },
-                    },
-                  },
-                }}
-              >
-                <IconButton
-                  size="small"
-                  onClick={() => handleSendReminder(approver)}
-                  sx={{
-                    padding: '2px',
-                    backgroundColor: '#F7F1FC',
-                    color: 'green',
-                    '&:hover, &:focus, &:active': {
-                      backgroundColor: '#F7F1FC',
-                    },
-                  }}
-                >
-                  <NotificationsActiveIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-          </div>
+                              {/* Designation + Reminder */}
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  fontSize: '12px',
+                                  color: '#999',
+                                  marginTop: '2px',
+                                }}
+                              >
+                                <span>Designation: {approver.designation}</span>
 
-          {/* Remarks row */}
-          {approver.remarks && (
-            <div
-              className="cell-text f12"
-              style={{ color: '#999', marginTop: '2px' }}
-              title={approver.remarks}
-            >
-              <strong>Remarks:</strong>
-              <span className="ms-1 text-truncate">{approver.remarks}</span>
-            </div>
-          )}
+                                {approver.status === "Pending" && actionType !== 'approval' && (
+                                  <Tooltip
+                                    title="Send Reminder"
+                                    slotProps={{
+                                      popper: {
+                                        sx: {
+                                          '& .MuiTooltip-tooltip': {
+                                            fontSize: '10px',
+                                            fontWeight: 600,
+                                          },
+                                        },
+                                      },
+                                    }}
+                                  >
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleSendReminder(approver)}
+                                      sx={{
+                                        padding: '2px',
+                                        backgroundColor: '#F7F1FC',
+                                        color: 'green',
+                                        '&:hover, &:focus, &:active': {
+                                          backgroundColor: '#F7F1FC',
+                                        },
+                                      }}
+                                    >
+                                      <NotificationsActiveIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
+                              </div>
 
-          {/* Last Update */}
-          {approver.completionDt && (
-            <div className="cell-text f12" style={{ color: '#999', marginTop: '2px' }}>
-              Last Update: {approver.completionDt ? formatDateViaTime(approver.completionDt, 'en-GB', formattimeoption) : ''}
-            </div>
-          )}
+                              {/* Remarks row */}
+                              {approver.remarks && (
+                                <div
+                                  className="cell-text f12"
+                                  style={{ color: '#999', marginTop: '2px' }}
+                                  title={approver.remarks}
+                                >
+                                  <strong>Remarks:</strong>
+                                  <span className="ms-1 text-truncate">{approver.remarks}</span>
+                                </div>
+                              )}
 
-        </div>
+                              {/* Last Update */}
+                              {approver.completionDt && (
+                                <div className="cell-text f12" style={{ color: '#999', marginTop: '2px' }}>
+                                  Last Update: {approver.completionDt ? formatDateViaTime(approver.completionDt, 'en-GB', formattimeoption) : ''}
+                                </div>
+                              )}
 
-        {/* Delete button */}
-        {!approver.status && onDelete && (
-          <div style={{ flexShrink: 0 }}>
-            <Tooltip arrow>
-              <IconButton
-                className="delete-button"
-                color="error"
-                size="small"
-                onClick={() => handleDeleteApprover(approver)}
-              >
-                <HiX className="delete-icon" />
-              </IconButton>
-            </Tooltip>
-          </div>
-        )}
-      </div>
-    ))}
-  </div>
-</div>
+                            </div>
+
+                            {/* Delete button */}
+                            {!approver.status && onDelete && (
+                              <div style={{ flexShrink: 0 }}>
+                                <Tooltip arrow>
+                                  <IconButton
+                                    className="delete-button"
+                                    color="error"
+                                    size="small"
+                                    onClick={() => handleDeleteApprover(approver)}
+                                  >
+                                    <HiX className="delete-icon" />
+                                  </IconButton>
+                                </Tooltip>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
 
 

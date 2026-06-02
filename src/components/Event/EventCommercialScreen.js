@@ -76,15 +76,17 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
         const queryparams = buildQueryParams(data);
         const resitemlevel = await apiClient.getres(`/api/RFQCommLibrary/Find?${queryparams}`, atoken);
         const resrfqlevel = await apiClient.getres(`/api/RFQPackageCommercial/Find?${queryparams}`, atoken);
+        const itemLevelResults = Array.isArray(resitemlevel?.data?.result) ? resitemlevel.data.result : [];
+        const rfqLevelResults = Array.isArray(resrfqlevel?.data?.result) ? resrfqlevel.data.result : [];
 
 
-        if (resitemlevel && resitemlevel?.data?.result.length > 0) {
-            libraryid = resitemlevel?.data?.result[0].libraryId;
-            grandTotalTermName = resitemlevel?.data?.result[0].grandTotalTermName;
+        if (itemLevelResults.length > 0) {
+            libraryid = itemLevelResults[0].libraryId;
+            grandTotalTermName = itemLevelResults[0].grandTotalTermName;
         }
-        else if (resrfqlevel && resrfqlevel?.data?.result.length > 0) {
-            libraryid = resrfqlevel?.data?.result[0].libraryId;
-            grandTotalTermName = resrfqlevel?.data?.result[0].grandTotalTermName;
+        else if (rfqLevelResults.length > 0) {
+            libraryid = rfqLevelResults[0].libraryId;
+            grandTotalTermName = rfqLevelResults[0].grandTotalTermName;
         }
         else {
             return
@@ -97,11 +99,11 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
         const CommercialLibdata = [...(Commercialterms?.data?.result || [])].sort((a, b) => a.id - b.id);
 
         let CommercialTermModal = CommercialLibdata.map((item) => {
-            const isSelectedItemlevel = resitemlevel?.data?.result?.some((term) => term?.termsId === item.id);
-            const itemLevelTerm = resitemlevel?.data?.result.find((term) => term?.termsId === item.id);
+            const isSelectedItemlevel = itemLevelResults.some((term) => term?.termsId === item.id);
+            const itemLevelTerm = itemLevelResults.find((term) => term?.termsId === item.id);
             //rfq
-            const isSelectedRFQLevel = resrfqlevel?.data?.result?.some((term) => term?.termsId === item.id);
-            const rfqLevelTerm = resrfqlevel?.data?.result?.find((term) => term?.termsId === item.id);
+            const isSelectedRFQLevel = rfqLevelResults.some((term) => term?.termsId === item.id);
+            const rfqLevelTerm = rfqLevelResults.find((term) => term?.termsId === item.id);
 
             if (isSelectedItemlevel) {
                 return {
@@ -145,10 +147,10 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 
         //other term
 
-        const itemlevelterm = resitemlevel?.data?.result?.some(item => item.termsId == 0)
+        const itemlevelterm = itemLevelResults.some(item => item.termsId == 0)
         let eventitemterm = []
         if (itemlevelterm) {
-            eventitemterm = resitemlevel?.data?.result?.filter(item => item.termsId == 0)
+            eventitemterm = itemLevelResults.filter(item => item.termsId == 0)
             eventitemterm.forEach((item, index) => {
                 eventitemterm[index] = {
                     ...item,
@@ -171,10 +173,10 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 
 
         }
-        const rfqlevelterm = resrfqlevel?.data?.result?.some(item => item.termsId == 0)
+        const rfqlevelterm = rfqLevelResults.some(item => item.termsId == 0)
         let eventrfqterm = []
         if (rfqlevelterm) {
-            eventrfqterm = resrfqlevel?.data?.result?.filter(item => item.termsId == 0)
+            eventrfqterm = rfqLevelResults.filter(item => item.termsId == 0)
             eventrfqterm.forEach((item, index) => {
                 eventrfqterm[index] = {
                     ...item,
@@ -962,7 +964,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
                                                                                                         name="level"
                                                                                                         value={
                                                                                                             item?.isSelected
-                                                                                                                ? (item?.level || (["Currency", "Percentage"].includes(item?.valuetype)|| item?.commValue > 0 ? "item" : "rfq"))
+                                                                                                                ? (item?.level || (["Currency", "Percentage"].includes(item?.valuetype) || item?.commValue > 0 ? "item" : "rfq"))
                                                                                                                 : ""
                                                                                                         }
                                                                                                         onChange={(e) => handleCommercialItemCheck(index, e.target.value, item, "level")}
@@ -1059,9 +1061,9 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
                                                                                         <div
                                                                                             className="f12 fw600 text-muted d-flex align-items-center"
                                                                                         >
-                                                                                                <span style={{ color: "#1987d2" }}>
-                                                                                                    {`${item?.valuetype }`}
-                                                                                                </span>
+                                                                                            <span style={{ color: "#1987d2" }}>
+                                                                                                {`${item?.valuetype}`}
+                                                                                            </span>
                                                                                         </div>
                                                                                     )}
 
@@ -1360,33 +1362,33 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
                         </div>
                     </Modal.Body>
                 </Modal>
-            <Modal
-                size="lg"
-                show={OpenCurrencyModal}
-                backdrop="static"
-                keyboard={false}
-                className="zindex1280"
-                backdropClassName="zindex1280"
-                centered
-                contentClassName="border-0"
-                onHide={() => CloseCurrencyModal()}
-            >
-                <Modal.Header className="pt-2 pb-2 bgheaderCards">
-                    <Modal.Title id="modal-heading">
-                        <div className="d-flex align-items-center f14 text-white">
-                            Manage Currency
+                <Modal
+                    size="lg"
+                    show={OpenCurrencyModal}
+                    backdrop="static"
+                    keyboard={false}
+                    className="zindex1280"
+                    backdropClassName="zindex1280"
+                    centered
+                    contentClassName="border-0"
+                    onHide={() => CloseCurrencyModal()}
+                >
+                    <Modal.Header className="pt-2 pb-2 bgheaderCards">
+                        <Modal.Title id="modal-heading">
+                            <div className="d-flex align-items-center f14 text-white">
+                                Manage Currency
+                            </div>
+                        </Modal.Title>
+                        <IconButton onClick={() => CloseCurrencyModal()} size="small" edge="start">
+                            <HiOutlineX className="f20 text-white" />
+                        </IconButton>
+                    </Modal.Header>
+                    <Modal.Body className="p-0">
+                        <div className="p-3">
+                            <AddEditCurrency handleCurrencyList={handleCurrencyList} />
                         </div>
-                    </Modal.Title>
-                    <IconButton onClick={() => CloseCurrencyModal()} size="small" edge="start">
-                        <HiOutlineX className="f20 text-white" />
-                    </IconButton>
-                </Modal.Header>
-                <Modal.Body className="p-0">
-                    <div className="p-3">
-                        <AddEditCurrency handleCurrencyList={handleCurrencyList} />
-                    </div>
-                </Modal.Body>
-            </Modal>
+                    </Modal.Body>
+                </Modal>
             </React.Fragment>
         </>
     );

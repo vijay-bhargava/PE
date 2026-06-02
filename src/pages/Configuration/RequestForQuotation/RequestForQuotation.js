@@ -8,9 +8,11 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 
 // Permission Management Imports
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
-import { Alert ,Card,
+import {
+	Alert, Card,
 	CardHeader,
-	CardContent,} from '@mui/material';
+	CardContent,
+} from '@mui/material';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {
@@ -210,7 +212,7 @@ const RequestForQuotation = ({ claimType }) => {
 	const [OrgGroupId, setOrgGroupId] = useState(0);
 	const [modal1, setModal1] = useState(false);
 	const [libraryId, setLibraryId] = useState()
-	const [openQuotes ,setOpenQuotes] = useState(true);
+	const [openQuotes, setOpenQuotes] = useState(true);
 	// RequestForQuotation.jsx (Parent)
 	const [attachmentCount, setAttachmentCount] = useState(0);
 	const NFASOBRFQRef = React.createRef();
@@ -231,7 +233,7 @@ const RequestForQuotation = ({ claimType }) => {
 		console.log("CloseCurrencyModal called");
 		setOpenCurrencyModal(false);
 	};
-	
+
 	const handleCurrencyList = (list) => {
 		console.log("handleCurrencyList called with:", list);
 		setCurrencyList(list);
@@ -282,7 +284,6 @@ const RequestForQuotation = ({ claimType }) => {
 
 	useEffect(() => {
 
-		console.log("userDetail", userDetail)
 		if (value == "1" && idFromURL == null) {
 			setApproverShow(false);
 		}
@@ -290,7 +291,10 @@ const RequestForQuotation = ({ claimType }) => {
 			setApproverShow(false);
 		}
 		else {
-
+			// Restore panel once a valid RFQ ID is known
+			if (idFromURL !== null) {
+				setApproverShow(true);
+			}
 		}
 
 	}, [value, idFromURL]);
@@ -367,28 +371,28 @@ const RequestForQuotation = ({ claimType }) => {
 	}, []);
 
 	// After permissions load, ensure current tab is accessible — if not, auto-select first accessible tab
-useEffect(() => {
+	useEffect(() => {
 		if (skipAutoTabCheckRef.current) {
 			skipAutoTabCheckRef.current = false;
 			return;
 		}
 		if (loadingPermissions) return;
 
-			const canView = (tab) => {
-				// Treat 'add' or falsy idFromURL as "no saved RFQ yet"
-				const hasExistingId = !!idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL));
-				if (tab === 1)
-					return (
-						(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false) ||
-						(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false) ||
-						(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false)
-					);
-				if (tab === 2) return (permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false) && hasExistingId;
-				if (tab === 3) return (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false) && hasExistingId;
-				if (tab === 4) return (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false) && hasExistingId;
-				if (tab === 5) return (permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false) && hasExistingId;
-				return true;
-			};
+		const canView = (tab) => {
+			// Treat 'add' or falsy idFromURL as "no saved RFQ yet"
+			const hasExistingId = !!idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL));
+			if (tab === 1)
+				return (
+					(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false) ||
+					(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false) ||
+					(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false)
+				);
+			if (tab === 2) return (permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false) && hasExistingId;
+			if (tab === 3) return (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false) && hasExistingId;
+			if (tab === 4) return (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false) && hasExistingId;
+			if (tab === 5) return (permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false) && hasExistingId;
+			return true;
+		};
 
 		if (!canView(value)) {
 			const order = [1, 2, 3, 4, 5, 6, 7, 9];
@@ -817,7 +821,7 @@ useEffect(() => {
 
 
 					updateRequestCell(res.data);
-                      
+
 					const AttachFiles = attachmentforevent?.map((x) => {
 
 						x.eventId = res.data;
@@ -1040,24 +1044,28 @@ useEffect(() => {
 		getRFQManageFindById(data, atoken).then((res) => {
 			if (res && res?.length > 0) {
 				//console.log("res getRFQManageFindById", res);
+
+				// Set tempDataEditData FIRST so the component always exits skeleton state
+				setTempDataEditData(res);
+
 				setEventHeaderDetails(res?.[0]);
 				dispatch({ type: actionTypes.SET_EVENTCODE, value: res[0]?.eventCode });
 
-				if (res?.[0]?.userAccess.length > 0) {
-					const userAccess = res?.[0]?.userAccess.map(x => {
-						return ({ ...x, claimValue: JSON.parse(x.claimValue) })
-					})
-
-					setAccessLevel(userAccess)
+				if (res?.[0]?.userAccess?.length > 0) {
+					try {
+						const userAccess = res?.[0]?.userAccess.map(x => {
+							return ({ ...x, claimValue: typeof x.claimValue === 'string' ? JSON.parse(x.claimValue) : x.claimValue })
+						})
+						setAccessLevel(userAccess)
+					} catch (e) {
+						console.warn("[RFQ] userAccess parse failed, using raw:", e.message);
+						setAccessLevel(res?.[0]?.userAccess);
+					}
 
 					// Initialize Permission Manager with user access data
 					const permManager = new PermissionManager(res?.[0]?.userAccess);
 					setPermissionManager(permManager);
 				}
-
-
-
-				setTempDataEditData(res);
 
 				if (res?.[0]?.id && res?.[0]?.id > 0) {
 					formik.setFieldValue("id", res?.[0]?.id);
@@ -1065,7 +1073,7 @@ useEffect(() => {
 				if (res?.[0]?.version && res?.[0]?.version > 0) {
 					formik.setFieldValue("Version", res?.[0]?.version);
 					const sameVersion = res?.[0]?.rfqVersionHistory?.find(x => x.version == res?.[0]?.version);
-					setOpenQuotes(sameVersion.openQuotes == "Y" ? true : false);
+					setOpenQuotes(sameVersion?.openQuotes == "Y" ? true : false);
 				}
 
 
@@ -1967,10 +1975,10 @@ useEffect(() => {
 
 
 	useEffect(() => {
-        pullgetCurrency();
-    }, [atoken]);
+		pullgetCurrency();
+	}, [atoken]);
 
- 
+
 
 	const saveRFQLineItems = async (exceldata) => {
 		const data = exceldata?.map((rfqitem, index) => {
@@ -2024,7 +2032,7 @@ useEffect(() => {
 
 			// Validate the form first
 			const errors = await formik.validateForm();
-			
+
 			// If there are validation errors, mark all fields as touched and stop
 			if (Object.keys(errors).length > 0) {
 				// Mark all fields as touched to show validation errors
@@ -2037,9 +2045,9 @@ useEffect(() => {
 					purchGrpId: true,
 					termandcondition: true,
 				});
-				
+
 				// Show error toast for user feedback
-			
+
 				return;
 			}
 
@@ -2139,7 +2147,7 @@ useEffect(() => {
 	};
 
 	const checkApprovers = () => {
-		
+
 		if (!stagelist || stagelist.length === 0) {
 			toast.error("Error: No stages found in workflow.");
 			return false;
@@ -2148,7 +2156,7 @@ useEffect(() => {
 
 
 		for (const stage of isStageRequired) {
-			
+
 			const matchingWorkflow = approverInWorkflow?.find(workflow => workflow.stage == stage.wfname);
 
 			if (!matchingWorkflow) {
@@ -2167,7 +2175,7 @@ useEffect(() => {
 	};
 
 	const handleErrorRFQSubmit = () => {
-		
+
 		const currentDate = new Date();
 
 		if (!formik.values.startDate) {
@@ -2224,14 +2232,14 @@ useEffect(() => {
 	}
 
 	const handleRFQSubmit = async () => {
-		
+
 		setLoading(true)
 		const isSubmit = handleErrorRFQSubmit();
 		if (!isSubmit) {
 			setLoading(false);
 			return;
 		}
-		
+
 		const isApprovers = checkApprovers();
 		if (!isApprovers) {
 			setLoading(false);
@@ -2451,7 +2459,7 @@ useEffect(() => {
 			`/api/ItemCategory/Find?${queryParams}`,
 			atoken
 		);
-		
+
 		if (res) {
 			setCategoryList(res?.data?.result || []);
 		}
@@ -2469,7 +2477,7 @@ useEffect(() => {
 			`/api/rolemanagement/GetUserRoleRights?${queryParams}`,
 			atoken
 		);
-		
+
 		if (res) {
 			const permManager = new PermissionManager(res?.data);
 			setPermissionManager(permManager);
@@ -2478,7 +2486,7 @@ useEffect(() => {
 			setLoadingPermissions(false);
 		}
 	};
-  
+
 	const handleSupplierWithCategory = async (selectedCategory) => {
 		const obj = {
 			CustomerId: customerid,
@@ -2520,7 +2528,7 @@ useEffect(() => {
 
 	const [totalSupplier, setTotalSupplier] = useState([]);
 	const getTotalSupplier = async () => {
-		
+
 		setTabLoading(true)
 		const obj = {
 			CustomerId: customerid,
@@ -2554,12 +2562,12 @@ useEffect(() => {
 		});
 		const updatedSuppliers = resetSuppliers?.map((supplier) => {
 			// Match by both vendorId and contactId to avoid duplicate contactId issues
-			const matchIndex = ids?.findIndex((vendorId, idx) => 
+			const matchIndex = ids?.findIndex((vendorId, idx) =>
 				supplier.vendorId === vendorId && supplier.contactId === contactids[idx]
 			);
-			
+
 			if (matchIndex !== -1) {
-				const selectedVendor = selectedVendors?.find(v => 
+				const selectedVendor = selectedVendors?.find(v =>
 					v.vendorID === supplier.vendorId && v.contactId === supplier.contactId
 				);
 				return { ...supplier, isSelected: value, rfqLoadingFactor: selectedVendor?.rfqLoadingFactor };
@@ -3285,7 +3293,7 @@ useEffect(() => {
 		if (res?.data?.result.length > 0) {
 
 			const result = res?.data?.result?.filter((item) => item.stageSeq > 0)
-			
+
 			setStageList(result);
 
 			const stagesarray = result?.map((item) => item.currentStage);
@@ -3373,12 +3381,12 @@ useEffect(() => {
 
 		setAttachmentCount(count);
 	};
-	
+
 	// Debug: Track modal state changes
 	useEffect(() => {
 		console.log("OpenCurrencyModal state changed to:", OpenCurrencyModal);
 	}, [OpenCurrencyModal]);
-	
+
 	useEffect(() => {
 		console.log("modal1 state changed to:", modal1);
 	}, [modal1]);
@@ -3933,7 +3941,7 @@ useEffect(() => {
 	}
 	const handleSendMailtoSuppliers = async () => {
 		//logic for send mail to suppliers
-		
+
 		// const data = {
 		// 	rfqid: idFromURL,
 		// 	stage: "RFQ Close Email",
@@ -3973,7 +3981,7 @@ useEffect(() => {
 	const handleSaveAndClose = async () => {
 		//logic for save and close
 		const res1 = await NFASOBRFQRef?.current?.saveSOBDetails();
-		if(res1){
+		if (res1) {
 			handleSendAllocationEmail();
 			handleApproverForward();
 		}
@@ -4321,15 +4329,15 @@ useEffect(() => {
 										handleattachmentforevent={handleattachmentforevent}
 										ref={attachmentdrawerref}
 										onCountChange={handleAttachmentCount}
-													permissionManager={effectivePermissionManager}
+										permissionManager={effectivePermissionManager}
 									/>
 								)}
 
-								{ idFromURL && (
-									<HistoryCell eventtype={`RFQ`} eventId={idFromURL} 
-									permissionManager={effectivePermissionManager}
+								{idFromURL && (
+									<HistoryCell eventtype={`RFQ`} eventId={idFromURL}
+										permissionManager={effectivePermissionManager}
 									/>
-									
+
 								)}
 								{idFromURL && (<Tooltip title="Show/Hide Approvers">
 									<IconButton
@@ -4378,7 +4386,7 @@ useEffect(() => {
 												return (
 													<div>
 														{/* Permission Status Alert */}
-													
+
 
 
 														<div className="row mb-3">
@@ -4714,63 +4722,63 @@ useEffect(() => {
 																										<Autocomplete
 																											id={"baseCurrency" + i}
 																											name="baseCurrency"
-																										options={[
-																											...(currencyList?.filter(cl => cl.currencyNm !== (formik?.values?.baseCurrency || userDetail?.defaultCurrency)) || []),
-																											{ currencyNm: "Add New", id: "new" }
-																										]}
-																										getOptionLabel={(option) => option.currencyNm}
-																										loading={loadCurrency}
-																										onOpen={() => {
-																											// Call pullgetCurrency when dropdown opens
-																											if (currencyList.length === 0)
-																												pullgetCurrency();
-																										}}
-																										onChange={(event, value) => {
-																											if (value && value.id === "new") {
-																												setOpenCurrencyModal(true);
-																											} else {
-																												handleInputChange({ target: { value: value ? value?.currencyNm : "", name: "baseCurrency" } }, i);
-																											}
-																										}}
-																										//value={currencyList?.find(cl => cl.currencyNm === x.baseCurrency) || null} // Set the value from the currency list
-																										value={
-																											currencyList.find(
-																												(option) => option.currencyNm === x.baseCurrency
-																											) || { currencyNm: x.baseCurrency }
-																										}
-																										renderInput={(params) => (
-																											<TextField
-																												{...params}
-																												InputLabelProps={{
-																													shrink: true,
-																												}}
-																												name="baseCurrency"
-																												label="Select Currency *"
-																												variant="outlined"
-																												size="small"
-																												className="w-100 f14"
-																											/>
-																										)}
-																										renderOption={(props, option) => (
-																											<Box
-																												component="li"
-																												{...props}
-																												key={option.id || option.currencyNm}
-																												style={
-																													option.id === "new"
-																														? {
-																															fontStyle: "italic",
-																															color: "blue",
-																															cursor: "pointer",
-																															textDecoration: "underline",
-																														}
-																														: {}
+																											options={[
+																												...(currencyList?.filter(cl => cl.currencyNm !== (formik?.values?.baseCurrency || userDetail?.defaultCurrency)) || []),
+																												{ currencyNm: "Add New", id: "new" }
+																											]}
+																											getOptionLabel={(option) => option.currencyNm}
+																											loading={loadCurrency}
+																											onOpen={() => {
+																												// Call pullgetCurrency when dropdown opens
+																												if (currencyList.length === 0)
+																													pullgetCurrency();
+																											}}
+																											onChange={(event, value) => {
+																												if (value && value.id === "new") {
+																													setOpenCurrencyModal(true);
+																												} else {
+																													handleInputChange({ target: { value: value ? value?.currencyNm : "", name: "baseCurrency" } }, i);
 																												}
-																											>
-																												{option.currencyNm}
-																											</Box>
-																										)}
-																									/>
+																											}}
+																											//value={currencyList?.find(cl => cl.currencyNm === x.baseCurrency) || null} // Set the value from the currency list
+																											value={
+																												currencyList.find(
+																													(option) => option.currencyNm === x.baseCurrency
+																												) || { currencyNm: x.baseCurrency }
+																											}
+																											renderInput={(params) => (
+																												<TextField
+																													{...params}
+																													InputLabelProps={{
+																														shrink: true,
+																													}}
+																													name="baseCurrency"
+																													label="Select Currency *"
+																													variant="outlined"
+																													size="small"
+																													className="w-100 f14"
+																												/>
+																											)}
+																											renderOption={(props, option) => (
+																												<Box
+																													component="li"
+																													{...props}
+																													key={option.id || option.currencyNm}
+																													style={
+																														option.id === "new"
+																															? {
+																																fontStyle: "italic",
+																																color: "blue",
+																																cursor: "pointer",
+																																textDecoration: "underline",
+																															}
+																															: {}
+																													}
+																												>
+																													{option.currencyNm}
+																												</Box>
+																											)}
+																										/>
 
 																									</div>
 																									<div className="col-lg-4 col-12">
@@ -5146,20 +5154,20 @@ useEffect(() => {
 
 
 
-								if (showGeneralAccessDenied || !idFromURL || idFromURL === 'add') {
-									return null;
-								}
+											if (showGeneralAccessDenied || !idFromURL || idFromURL === 'add') {
+												return null;
+											}
 
-								return (
-									<RFQGeneralPreview
-										formik={formik}
-										inputList={inputList}
-										purchaseAllList={purchaseAllList}
-										purchaseGroupAllList={purchaseGroupAllList}
-									/>
-									);
-											})()
-										
+											return (
+												<RFQGeneralPreview
+													formik={formik}
+													inputList={inputList}
+													purchaseAllList={purchaseAllList}
+													purchaseGroupAllList={purchaseGroupAllList}
+												/>
+											);
+										})()
+
 									)}
 								</div>
 							)}
@@ -5190,7 +5198,7 @@ useEffect(() => {
 
 										if (formik.values.boqReq === true) {
 											return (
-												<BoqScreen 
+												<BoqScreen
 													idFromURL={idFromURL}
 													eventType="RFQ"
 													CurrentVersion={formik?.values?.Version}
@@ -5207,7 +5215,7 @@ useEffect(() => {
 												{/* Permission Alert for Items/Services Tab */}
 												{permissionManager && (
 													<div className="pb-0">
-													
+
 													</div>
 												)}
 
@@ -5269,7 +5277,7 @@ useEffect(() => {
 																		className="f14"
 																		disabled={(!stagearray.includes(currentStage)) || !canCreate}
 																		onClick={() => canCreate && document.getElementById('itemuploadid').click()}
-																		
+
 																	>
 																		Excel Upload
 																	</MenuItem>
@@ -5320,7 +5328,7 @@ useEffect(() => {
 											<>
 												{effectivePermissionManager && (
 													<div className="pb-0">
-													
+
 													</div>
 												)}
 												<EventCommercialScreen
@@ -5355,7 +5363,7 @@ useEffect(() => {
 											<>
 												{effectivePermissionManager && (
 													<div className="pb-0">
-                                                        
+
 													</div>
 												)}
 												<EventQuestionScreen
@@ -5369,7 +5377,7 @@ useEffect(() => {
 														editquestion: isquestioneditDisabled,
 														stagelist: stagelist,
 														permissionManager: permissionManager,
-														requestCell:requestCell
+														requestCell: requestCell
 													}}
 													ref={EventQuestionScreenRef}
 												/>
@@ -5393,7 +5401,7 @@ useEffect(() => {
 											<>
 												{effectivePermissionManager && (
 													<div className="pb-0">
-                                                        
+
 													</div>
 												)}
 											</>
@@ -5863,7 +5871,7 @@ useEffect(() => {
 											<>
 												{effectivePermissionManager && (
 													<div className="pb-0">
-                                                    
+
 													</div>
 												)}
 											</>
@@ -5961,7 +5969,7 @@ useEffect(() => {
 										currentStage: "Allocation",
 										permissionManager: effectivePermissionManager
 									}}
-									 ref={NFASOBRFQRef}
+									ref={NFASOBRFQRef}
 								/>
 							}
 							{value == 7 && rfqpreview && !showGeneralAccessDenied && idFromURL && idFromURL !== 'add' && (
@@ -5971,15 +5979,15 @@ useEffect(() => {
 											<div className="card shadow-sm border-0 mb-3" style={{ borderRadius: '8px' }}>
 												<div className="card-body p-4">
 													<div className="d-flex justify-content-between align-items-center mb-3" id="generaldetails">
-																											<Typography
-														  sx={{
-															mb: 3,
-															color: '#1976d2',
-															fontWeight: 400,
-															fontSize: '14px' // set font size to 14px
-														  }}
+														<Typography
+															sx={{
+																mb: 3,
+																color: '#1976d2',
+																fontWeight: 400,
+																fontSize: '14px' // set font size to 14px
+															}}
 														>
-														  📝 RFQ General Details
+															📝 RFQ General Details
 														</Typography>
 														{/* <h5 className="preview-section-heading text-dark-blue mb-0">RFQ General Details</h5> */}
 														{stagearray.includes(currentStage) && (
@@ -6003,251 +6011,251 @@ useEffect(() => {
 										</>
 									}
 
-	{accessLevel?.find(x => x.claimType == "Item Service")?.claimValue?.Read !== "N" && (
-  <>
-    {/* === SAME STYLE AS RFQ GENERAL DETAILS === */}
-    <div className="d-flex justify-content-between align-items-center mb-3" id="rfqitemsdetails">
-      <Typography
-        sx={{
-          mb: 3,
-          color: "#1976d2",
-          fontWeight: 400,
-          fontSize: "14px" // same size
-        }}
-      >
-        📝 RFQ Items Details
-      </Typography>
+									{accessLevel?.find(x => x.claimType == "Item Service")?.claimValue?.Read !== "N" && (
+										<>
+											{/* === SAME STYLE AS RFQ GENERAL DETAILS === */}
+											<div className="d-flex justify-content-between align-items-center mb-3" id="rfqitemsdetails">
+												<Typography
+													sx={{
+														mb: 3,
+														color: "#1976d2",
+														fontWeight: 400,
+														fontSize: "14px" // same size
+													}}
+												>
+													📝 RFQ Items Details
+												</Typography>
 
-      {stagearray.includes(currentStage) && (
-        <IconButton
-          size="small"
-          className="bg-light"
-          onClick={() => handletabEdit(2)}
-        >
-          <HiPencilAlt className="f17 text-primary" />
-        </IconButton>
-      )}
-    </div>
+												{stagearray.includes(currentStage) && (
+													<IconButton
+														size="small"
+														className="bg-light"
+														onClick={() => handletabEdit(2)}
+													>
+														<HiPencilAlt className="f17 text-primary" />
+													</IconButton>
+												)}
+											</div>
 
-    {/* CARD WITHOUT HEADER */}
-    <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-      <CardContent sx={{ p: 2 }}>
-        {formik.values.boqReq === true ? (
-          <BoqScreen 
-            idFromURL={idFromURL}
-            eventType="RFQ"
-            CurrentVersion={formik?.values?.Version}
-            stage={currentStage}
-            boqReq={formik.values.boqReq}
-            readOnly={true}
-          />
-        ) : (
-          <ProductitemCell
-            action={false}
-            itemsList={rfqItemsList}
-            handleEditItem={handleEditItem}
-            handleDeleteItem={handleDeleteItem}
-          />
-        )}
-      </CardContent>
-    </Card>
-  </>
-)}
-
-
-
-	{
-  accessLevel?.find(x => x.claimType == "Commercial Terms")?.claimValue?.Read !== "N" && (
-    <>
-
-      {/* === SAME STYLE HEADING LIKE “RFQ General Details” === */}
-      <div className="d-flex justify-content-between align-items-center mb-3" id="rfqcommercialdetails">
-        <Typography
-          sx={{
-            mb: 3,
-            color: "#1976d2",
-            fontWeight: 400,
-            fontSize: "14px" // SAME STYLE
-          }}
-        >
-          📝 RFQ Commercial Details
-        </Typography>
-
-        {stagearray.includes(currentStage) && (
-          <IconButton
-            size="small"
-            className="bg-light"
-            onClick={() => handletabEdit(3)}
-          >
-            <HiPencilAlt className="f17 text-primary" />
-          </IconButton>
-        )}
-      </div>
-
-      {/* === CARD WITHOUT HEADER === */}
-      <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-        <CardContent sx={{ p: 2 }}>
-
-          {/* Permissions Info */}
-					{(() => {
-						const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false;
-						const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false;
-						const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.CREATE) ?? false;
-						const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.REMOVE) ?? false;
-
-						return (
-							<>
-								{effectivePermissionManager && (
-									<Alert severity="info" sx={{ mb: 2 }}>
-										<div className="d-flex align-items-center">
-											<PersonOutlined className="me-2" />
-											Commercial Terms tab permissions:
-											{canRead && <span className="badge bg-success ms-1">Read</span>}
-											{canEdit && <span className="badge bg-warning ms-1">Edit</span>}
-											{canCreate && <span className="badge bg-primary ms-1">Create</span>}
-                      {canRemove && <span className="badge bg-danger ms-1">Remove</span>}
-                    </div>
-                  </Alert>
-                )}
-              </>
-            );
-          })()}
-
-          {/* Component Body */}
-          <EventCommercialScreen
-            EventType="RFQ"
-            EventId={idFromURL}
-            LibraryType="CommercialLibrary"
-            Version={formik?.values?.Version}
-            EventGeneralDetails={formik?.values}
-            Action={false}
-            currencyList={currencyList}
-            ref={EventCommercialScreenRef}
-									permissionManager={effectivePermissionManager}
-          />
-
-        </CardContent>
-      </Card>
-
-    </>
-  )
-}
+											{/* CARD WITHOUT HEADER */}
+											<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
+												<CardContent sx={{ p: 2 }}>
+													{formik.values.boqReq === true ? (
+														<BoqScreen
+															idFromURL={idFromURL}
+															eventType="RFQ"
+															CurrentVersion={formik?.values?.Version}
+															stage={currentStage}
+															boqReq={formik.values.boqReq}
+															readOnly={true}
+														/>
+													) : (
+														<ProductitemCell
+															action={false}
+															itemsList={rfqItemsList}
+															handleEditItem={handleEditItem}
+															handleDeleteItem={handleDeleteItem}
+														/>
+													)}
+												</CardContent>
+											</Card>
+										</>
+									)}
 
 
 
-{
-  accessLevel?.find(x => x.claimType == "Questions")?.claimValue?.Read !== "N" && (
-    <>
+									{
+										accessLevel?.find(x => x.claimType == "Commercial Terms")?.claimValue?.Read !== "N" && (
+											<>
 
-      {/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
-      <div className="d-flex justify-content-between align-items-center mb-3" id="rfqquestions">
-        <Typography
-          sx={{
-            mb: 3,
-            color: "#1976d2",
-            fontWeight: 400,
-            fontSize: "14px" // SAME LOOK
-          }}
-        >
-          📝 RFQ Questions
-        </Typography>
+												{/* === SAME STYLE HEADING LIKE “RFQ General Details” === */}
+												<div className="d-flex justify-content-between align-items-center mb-3" id="rfqcommercialdetails">
+													<Typography
+														sx={{
+															mb: 3,
+															color: "#1976d2",
+															fontWeight: 400,
+															fontSize: "14px" // SAME STYLE
+														}}
+													>
+														📝 RFQ Commercial Details
+													</Typography>
 
-        {stagearray.includes(currentStage) && (
-          <IconButton
-            size="small"
-            className="bg-light"
-            onClick={() => handletabEdit(4)}
-          >
-            <HiPencilAlt className="f17 text-primary" />
-          </IconButton>
-        )}
-      </div>
+													{stagearray.includes(currentStage) && (
+														<IconButton
+															size="small"
+															className="bg-light"
+															onClick={() => handletabEdit(3)}
+														>
+															<HiPencilAlt className="f17 text-primary" />
+														</IconButton>
+													)}
+												</div>
 
-      {/* === CARD WITHOUT HEADER === */}
-      <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-        <CardContent sx={{ p: 2 }}>
+												{/* === CARD WITHOUT HEADER === */}
+												<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
+													<CardContent sx={{ p: 2 }}>
 
-          {/* Permissions Info */}
-          {(() => {
-            const canRead = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false;
-            const canEdit = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) ?? false;
-            const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false;
-            const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false;
+														{/* Permissions Info */}
+														{(() => {
+															const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false;
+															const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false;
+															const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.CREATE) ?? false;
+															const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.REMOVE) ?? false;
 
-            return (
-              <>
-              
-              </>
-            );
-          })()}
+															return (
+																<>
+																	{effectivePermissionManager && (
+																		<Alert severity="info" sx={{ mb: 2 }}>
+																			<div className="d-flex align-items-center">
+																				<PersonOutlined className="me-2" />
+																				Commercial Terms tab permissions:
+																				{canRead && <span className="badge bg-success ms-1">Read</span>}
+																				{canEdit && <span className="badge bg-warning ms-1">Edit</span>}
+																				{canCreate && <span className="badge bg-primary ms-1">Create</span>}
+																				{canRemove && <span className="badge bg-danger ms-1">Remove</span>}
+																			</div>
+																		</Alert>
+																	)}
+																</>
+															);
+														})()}
 
-          {/* Component */}
-          <EventQuestionScreen
-            props={{
-              eventid: idFromURL,
-              eventtype: "RFQ",
-              librarytype: "QuestionLibrary",
-              action: false,
-              supplierid: supplierid,
-              Version: formik?.values?.Version,
-              editquestion: isquestioneditDisabled,
-              stagelist: stagelist,
-              permissionManager: permissionManager,
-			  requestCell: requestCell
-            }}
-            ref={EventQuestionScreenRef}
-          />
+														{/* Component Body */}
+														<EventCommercialScreen
+															EventType="RFQ"
+															EventId={idFromURL}
+															LibraryType="CommercialLibrary"
+															Version={formik?.values?.Version}
+															EventGeneralDetails={formik?.values}
+															Action={false}
+															currencyList={currencyList}
+															ref={EventCommercialScreenRef}
+															permissionManager={effectivePermissionManager}
+														/>
 
-        </CardContent>
-      </Card>
+													</CardContent>
+												</Card>
 
-    </>
-  )
-}
+											</>
+										)
+									}
 
 
-	{
-  accessLevel?.find(x => x.claimType == "Invite Vendor")?.claimValue?.Read !== "N" && (
-    <>
 
-      {/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
-      <div className="d-flex justify-content-between align-items-center mb-3" id="invitedsuppliers">
-        <Typography
-          sx={{
-            mb: 3,
-            color: "#1976d2",
-            fontWeight: 400,
-            fontSize: "14px" // SAME STYLE
-          }}
-        >
-          📝 Invited Suppliers
-        </Typography>
+									{
+										accessLevel?.find(x => x.claimType == "Questions")?.claimValue?.Read !== "N" && (
+											<>
 
-        {stagearray.includes(currentStage) && (
-          <IconButton
-            size="small"
-            className="bg-light"
-            onClick={() => handletabEdit(5)}
-          >
-            <HiPencilAlt className="f17 text-primary" />
-          </IconButton>
-        )}
-      </div>
+												{/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
+												<div className="d-flex justify-content-between align-items-center mb-3" id="rfqquestions">
+													<Typography
+														sx={{
+															mb: 3,
+															color: "#1976d2",
+															fontWeight: 400,
+															fontSize: "14px" // SAME LOOK
+														}}
+													>
+														📝 RFQ Questions
+													</Typography>
 
-      {/* === CARD WITHOUT HEADER === */}
-      <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-        <CardContent sx={{ p: 2 }}>
-          <div className="row">
-            <div className="col-12">
-              <SelectedSupplierCell selectedsupplier={selectedSupplier} />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+													{stagearray.includes(currentStage) && (
+														<IconButton
+															size="small"
+															className="bg-light"
+															onClick={() => handletabEdit(4)}
+														>
+															<HiPencilAlt className="f17 text-primary" />
+														</IconButton>
+													)}
+												</div>
 
-    </>
-  )
-}
+												{/* === CARD WITHOUT HEADER === */}
+												<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
+													<CardContent sx={{ p: 2 }}>
+
+														{/* Permissions Info */}
+														{(() => {
+															const canRead = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false;
+															const canEdit = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) ?? false;
+															const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false;
+															const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false;
+
+															return (
+																<>
+
+																</>
+															);
+														})()}
+
+														{/* Component */}
+														<EventQuestionScreen
+															props={{
+																eventid: idFromURL,
+																eventtype: "RFQ",
+																librarytype: "QuestionLibrary",
+																action: false,
+																supplierid: supplierid,
+																Version: formik?.values?.Version,
+																editquestion: isquestioneditDisabled,
+																stagelist: stagelist,
+																permissionManager: permissionManager,
+																requestCell: requestCell
+															}}
+															ref={EventQuestionScreenRef}
+														/>
+
+													</CardContent>
+												</Card>
+
+											</>
+										)
+									}
+
+
+									{
+										accessLevel?.find(x => x.claimType == "Invite Vendor")?.claimValue?.Read !== "N" && (
+											<>
+
+												{/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
+												<div className="d-flex justify-content-between align-items-center mb-3" id="invitedsuppliers">
+													<Typography
+														sx={{
+															mb: 3,
+															color: "#1976d2",
+															fontWeight: 400,
+															fontSize: "14px" // SAME STYLE
+														}}
+													>
+														📝 Invited Suppliers
+													</Typography>
+
+													{stagearray.includes(currentStage) && (
+														<IconButton
+															size="small"
+															className="bg-light"
+															onClick={() => handletabEdit(5)}
+														>
+															<HiPencilAlt className="f17 text-primary" />
+														</IconButton>
+													)}
+												</div>
+
+												{/* === CARD WITHOUT HEADER === */}
+												<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
+													<CardContent sx={{ p: 2 }}>
+														<div className="row">
+															<div className="col-12">
+																<SelectedSupplierCell selectedsupplier={selectedSupplier} />
+															</div>
+														</div>
+													</CardContent>
+												</Card>
+
+											</>
+										)
+									}
 
 
 								</div>
@@ -6742,14 +6750,14 @@ useEffect(() => {
 				onHide={() => ClosePurcgaseOrgModal()}
 			> */}
 			<Modal
-  show={purchaseOrgModal}
-  dialogClassName="modal-custom-mdlg"
-  backdrop="static"
-  keyboard={false}
-  centered
-  contentClassName="border-0"
-  onHide={ClosePurcgaseOrgModal}
->
+				show={purchaseOrgModal}
+				dialogClassName="modal-custom-mdlg"
+				backdrop="static"
+				keyboard={false}
+				centered
+				contentClassName="border-0"
+				onHide={ClosePurcgaseOrgModal}
+			>
 
 				<Modal.Header className="pt-2 pb-2 bgheaderCards">
 					<Modal.Title id="modal-heading">
@@ -7023,15 +7031,15 @@ useEffect(() => {
 				</Modal.Body>
 			</Modal>
 			<Modal
-  show={purchaseOrgGrpModal}
-  dialogClassName="modal-custom-mdlg"
-  backdrop="static"
-  keyboard={false}
-  centered
-  contentClassName="border-0"
-  onHide={ClosePurcgaseOrgGrpModal}
->
-	
+				show={purchaseOrgGrpModal}
+				dialogClassName="modal-custom-mdlg"
+				backdrop="static"
+				keyboard={false}
+				centered
+				contentClassName="border-0"
+				onHide={ClosePurcgaseOrgGrpModal}
+			>
+
 				<Modal.Header className="pt-2 pb-2 bgheaderCards">
 					<Modal.Title id="modal-heading">
 						<div className="d-flex align-items-center f14 text-white">

@@ -58,7 +58,7 @@ const MessageCell = () => {
 			dispatch({ type: actionTypes.SET_Opendrawer, value: false });
 			setSelectedNotification(null);
 			setIsSidebarVisible(true);
-			
+
 			// Refresh the full message list when closing
 			pullMessageList();
 			pullContextAwareMessageCount();
@@ -127,7 +127,7 @@ const MessageCell = () => {
 	const [Messagedata, setMessagedata] = useState([]);
 	const [selectedNotification, setSelectedNotification] = useState(null);
 	const getMessageListParams = (specificCommId = null) => {
-		
+
 		const currentPath = location.pathname;
 		const pathSegments = currentPath.split('/').filter(segment => segment);
 		const lastSegment = pathSegments[pathSegments.length - 1];
@@ -208,7 +208,7 @@ const MessageCell = () => {
 
 		// Clean up params based on endpoint
 		if (endpoint === 'api/Communication/FindByCommId') {
-			
+
 			delete params.CommDetails_CommParticipantUser_UserId;
 			//delete params.UserId;
 		}
@@ -217,26 +217,26 @@ const MessageCell = () => {
 	};
 
 	const pullMessageList = async (source = 'notification', specificCommId = null) => {
-		
+
 		try {
 			// Use the specificCommId if provided, otherwise fall back to CommId from state
 			const commIdToUse = specificCommId || CommId;
 			const { params, endpoint } = getMessageListParams(commIdToUse > 0 ? commIdToUse : null);
-			
+
 			const queryParams = buildQueryParams(params);
 			let res = null;
 
 			// Check if we need to fetch specific CommId chat thread
 			// This applies when clicking from QueryList OR when a specific CommId is selected
 			if (commIdToUse && commIdToUse > 0) {
-				
+
 				try {
 					const data = {
 						CommId: commIdToUse
 					};
 
 					const res = await FindThreadChat(data, atoken);
-					
+
 
 					const returnData = Array.isArray(res)
 						? res
@@ -276,7 +276,7 @@ const MessageCell = () => {
 						const finalData = Object.values(groupedData);
 
 						setMessagedata(finalData);
-						
+
 
 						dispatch({
 							type: actionTypes.SET_Notificationlist,
@@ -288,7 +288,7 @@ const MessageCell = () => {
 				}
 			} else {
 				// Call from notification icon or other sources
-				
+
 				res = await apiClient.getres(
 					`${endpoint}?${queryParams}`,
 					atoken
@@ -668,7 +668,7 @@ const MessageCell = () => {
 	const [anchorEl, setAnchorEl] = useState(null);
 
 	const handleClick = (event) => {
-		
+
 		// Always refresh message list first, then count
 		pullMessageList().then(() => {
 			pullContextAwareMessageCount();
@@ -687,7 +687,7 @@ const MessageCell = () => {
 			const source = messageSource || 'querylist';
 			// Pass CommId to pullMessageList to ensure it fetches messages for this specific conversation
 			pullMessageList(source, CommId > 0 ? CommId : null);
-			
+
 			if (notificationRef.current) {
 				notificationRef?.current.click()
 				setState({
@@ -724,7 +724,7 @@ const MessageCell = () => {
 	};
 
 	const handleSelectMessage = async (notification) => {
-        
+
 		// Get the last message (assuming this is the clicked one)
 		const lastMessage = notification?.commDetails[notification.commDetails.length - 1];
 
@@ -742,7 +742,7 @@ const MessageCell = () => {
 
 		await updateNotificationData(payload);
 		await pullContextAwareMessageCount();
-        
+
 		setSelectedNotification(notification);
 
 		const selectedCommId = lastMessage.commId || notification.id;
@@ -806,13 +806,29 @@ const MessageCell = () => {
 			<div className="text-center d-flex align-items-center" style={{ position: 'relative' }}>
 
 				<IconButton
-				 onClick={handleClick}
-				//  onClick={(e) => handleClick(e, true)}
-				  ref={notificationRef}
-				  >
+					onClick={handleClick}
+					//  onClick={(e) => handleClick(e, true)}
+					ref={notificationRef}
+				>
 					<Badge
+						overlap="circular"
+						anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
 						badgeContent={messageCount && messageCount > 0 ? messageCount : null}
 						color="secondary"
+						sx={{
+							'& .MuiBadge-badge': {
+								backgroundColor: '#c9352c',
+								color: '#ffffff',
+								fontSize: '10px',
+								fontWeight: 700,
+								minWidth: '18px',
+								height: '18px',
+								lineHeight: 1,
+								padding: '0 4px',
+								boxShadow: '0 0 0 2px #f8f8f8',
+								zIndex: 1,
+							},
+						}}
 					>
 						<HiOutlineBell style={{ fontSize: '25px' }} />
 

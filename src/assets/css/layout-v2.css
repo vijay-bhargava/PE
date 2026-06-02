@@ -1,0 +1,854 @@
+/* ============================================================
+   ProcurEngine V2 Layout — Sidebar + Header
+   New UI — does NOT affect old layout classes
+   ============================================================ */
+
+/* ---- CSS Variables ---- */
+:root {
+  --v2-font-family:
+    "Inter", "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --v2-sidebar-collapsed-width: 72px;
+  --v2-sidebar-expanded-width: 280px;
+  --v2-header-height: 60px;
+  --v2-sidebar-bg: #1a2743;
+  --v2-sidebar-accent: #33415f;
+  --v2-sidebar-hover: #2a3654;
+  --v2-sidebar-active-bg: #364466;
+  --v2-sidebar-active-border: transparent;
+  --v2-sidebar-text: #a5afc4;
+  --v2-sidebar-text-active: #ffffff;
+  --v2-sidebar-icon: #aab4c8;
+  --v2-sidebar-icon-active: #ffffff;
+  --v2-sidebar-subtext: #c7d0df;
+  --v2-header-bg: #ffffff;
+  --v2-header-border: #e8ecf0;
+  --v2-header-text: #1f2937;
+  --v2-header-muted: #6b7280;
+  --v2-primary: #2a68d3;
+  --v2-orange: #f87100;
+  --v2-transition: 0.25s ease;
+}
+
+/* ============================================================
+   SHELL
+   ============================================================ */
+.v2-shell {
+  min-height: 100vh;
+  background: #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--v2-font-family);
+}
+
+.v2-shell * {
+  font-family: inherit;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.v2-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: var(--v2-header-height);
+  background: var(--v2-header-bg);
+  border-bottom: 1px solid var(--v2-header-border);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px 0 20px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.08);
+  transition: left var(--v2-transition);
+  font-family: var(--v2-font-family);
+}
+
+.v2-header.sidebar-collapsed {
+  left: var(--v2-sidebar-collapsed-width);
+  width: calc(100% - var(--v2-sidebar-collapsed-width));
+}
+
+.v2-header.sidebar-expanded {
+  left: var(--v2-sidebar-expanded-width);
+  width: calc(100% - var(--v2-sidebar-expanded-width));
+}
+
+/* Logo */
+.v2-header-logo img {
+  height: 34px;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Right section */
+.v2-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Keep for optional use elsewhere; not used between main header items */
+.v2-header-divider {
+  width: 1px;
+  height: 32px;
+  background: #e7e7e7;
+  flex-shrink: 0;
+}
+
+/* Timezone — clock icon + text */
+.v2-timezone-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #111827;
+}
+.v2-timezone-icon {
+  font-size: 18px !important;
+  color: #111827;
+  flex-shrink: 0;
+}
+.v2-timezone {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+/* Bell / notification wrapper — centers the MessageCell bell icon */
+.v2-bell-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f8f8f8;
+  flex-shrink: 0;
+}
+
+.v2-bell-wrapper .MuiIconButton-root {
+  padding: 8px;
+  color: #1f2937;
+}
+
+.v2-bell-wrapper .MuiBadge-badge {
+  background: #c9352c;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+}
+
+/* Fallback bell button style (if MessageCell not available) */
+.v2-bell-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--v2-header-text);
+  transition: background 0.15s;
+}
+.v2-bell-btn:hover {
+  background: #f0f4ff;
+}
+.v2-bell-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background: #e53935;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+/* Dashboard filter select */
+.v2-dashboard-filter {
+  font-size: 13px !important;
+  min-width: 130px !important;
+}
+
+/* ── User section (single dropdown trigger): [avatar] [name/role] [chevron] ── */
+.v2-user-menu-btn {
+  display: flex;
+  align-items: center;
+}
+
+/* Strip all Bootstrap DropdownButton chrome */
+.v2-user-menu-btn > .dropdown-toggle,
+.v2-user-menu-btn > button.dropdown-toggle {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: inherit !important;
+}
+.v2-user-menu-btn > .dropdown-toggle::after {
+  display: none !important; /* hide Bootstrap's default caret */
+}
+
+.v2-user-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 2px 0;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.v2-user-section:hover {
+  background: transparent;
+}
+
+/* Avatar circle */
+.v2-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--v2-orange);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.v2-avatar-image {
+  object-fit: cover;
+  border: 1px solid #ececec;
+}
+
+/* Name + role stacked */
+.v2-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  line-height: 1;
+  min-width: 120px;
+}
+.v2-user-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #000;
+  white-space: nowrap;
+  line-height: 1.15;
+}
+.v2-user-role {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #f0f0f0;
+  color: #000;
+  white-space: nowrap;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Dropdown chevron */
+.v2-user-chevron {
+  font-size: 24px !important;
+  color: #000;
+  flex-shrink: 0;
+  margin-left: 12px;
+  transform: rotate(90deg);
+  transition: transform 0.2s ease;
+}
+.v2-user-menu-btn.show .v2-user-chevron {
+  transform: rotate(-90deg);
+}
+
+/* Dropdown menu */
+.v2-user-dropdown {
+  min-width: 180px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 4px 0;
+  border: 1px solid #e8ecf0;
+}
+.custom-dropdown-item {
+  font-size: 13px !important;
+  padding: 8px 16px !important;
+  color: #1f2937 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+.custom-dropdown-item:hover {
+  background: #f3f4f6 !important;
+  color: var(--v2-primary) !important;
+}
+
+/* Subscription marquee */
+.v2-marquee-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff8f0;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #92400e;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 260px;
+}
+.v2-marquee-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #b45309;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.v2-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background: var(--v2-sidebar-bg);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  transition: width var(--v2-transition);
+  overflow: hidden;
+  font-family: var(--v2-font-family);
+  box-shadow: 6px 0 20px rgba(3, 12, 28, 0.18);
+}
+
+.v2-sidebar.collapsed {
+  width: var(--v2-sidebar-collapsed-width);
+}
+
+.v2-sidebar.expanded {
+  width: var(--v2-sidebar-expanded-width);
+}
+
+/* Top toggle area */
+.v2-sidebar-top {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 18px 12px 10px;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.v2-toggle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #f2f5fa;
+  flex-shrink: 0;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
+}
+.v2-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.v2-sidebar-logo {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  width: 0;
+  transition:
+    opacity var(--v2-transition),
+    width var(--v2-transition);
+}
+.v2-sidebar.expanded .v2-sidebar-logo {
+  opacity: 1;
+  width: 140px;
+}
+.v2-sidebar-logo img {
+  height: 28px;
+  object-fit: contain;
+  max-width: 140px;
+}
+
+/* Divider */
+.v2-sidebar-divider {
+  height: 1px;
+  background: rgba(197, 207, 224, 0.18);
+  width: calc(100% - 48px);
+  margin: 10px auto 12px;
+  flex-shrink: 0;
+}
+
+/* Menu scroll area */
+.v2-menu-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 0 0;
+  scrollbar-width: none;
+}
+.v2-menu-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.v2-menu-section-divider {
+  height: 1px;
+  background: rgba(197, 207, 224, 0.18);
+  width: calc(100% - 48px);
+  margin: 12px auto 10px;
+}
+
+/* Menu item (single link or category header) */
+.v2-menu-item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  color: var(--v2-sidebar-text);
+  text-decoration: none;
+  border-radius: 6px;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    opacity 0.15s;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  min-height: 52px;
+  margin-bottom: 4px;
+}
+
+.v2-menu-item:hover {
+  background: var(--v2-sidebar-hover);
+  color: var(--v2-sidebar-text-active);
+  text-decoration: none;
+}
+
+.v2-menu-item.active {
+  background: var(--v2-sidebar-active-bg);
+  color: var(--v2-sidebar-text-active);
+  border-left: 0;
+}
+.v2-menu-item.active .v2-menu-label {
+  font-weight: 500;
+}
+
+/* Icon */
+.v2-menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  font-size: 18px;
+  color: var(--v2-sidebar-icon);
+  transition: color 0.15s;
+  border-radius: 8px;
+  grid-column: 1;
+}
+.v2-menu-item:hover .v2-menu-icon,
+.v2-menu-item.active .v2-menu-icon {
+  color: var(--v2-sidebar-icon-active);
+}
+
+/* MUI SVG icons inside sidebar — respect parent color via currentColor */
+.v2-menu-icon svg,
+.v2-action-icon svg {
+  fill: currentColor;
+  font-size: inherit;
+}
+
+/* Label */
+.v2-menu-label {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 2.4;
+  letter-spacing: 0;
+  grid-column: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--v2-transition);
+}
+.v2-sidebar.expanded .v2-menu-label {
+  opacity: 1;
+}
+
+/* Chevron for submenu */
+.v2-menu-chevron {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--v2-sidebar-icon);
+  border-radius: 6px;
+  transition:
+    opacity var(--v2-transition),
+    background-color 0.2s ease,
+    color 0.2s ease;
+  grid-column: 3;
+}
+.v2-menu-chevron svg {
+  transition: transform 0.2s ease;
+}
+
+/* Collapsed: tiny chevron visible next to icon */
+.v2-sidebar.collapsed .v2-menu-chevron {
+  width: 36px;
+  height: 36px;
+  font-size: 11px;
+  opacity: 1;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Expanded: full-size chevron */
+.v2-sidebar.expanded .v2-menu-chevron {
+  font-size: 15px;
+  opacity: 0.95;
+}
+.v2-sidebar.expanded .v2-menu-item:hover .v2-menu-chevron,
+.v2-sidebar.expanded .v2-menu-item.active .v2-menu-chevron {
+  opacity: 1;
+  color: #fff;
+}
+.v2-menu-chevron.open {
+  background: rgba(20, 30, 51, 0.38);
+}
+/* ArrowRightOutlined starts pointing right; rotate +90deg to point down when open */
+.v2-menu-chevron.open svg {
+  transform: rotate(90deg);
+}
+
+/* Submenu container */
+.v2-submenu {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.25s ease;
+  background: transparent;
+}
+.v2-submenu.open {
+  max-height: 400px;
+}
+
+/* Submenu items */
+.v2-submenu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 60px;
+  color: var(--v2-sidebar-subtext);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 2;
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  border-radius: 6px;
+  margin-bottom: 2px;
+}
+.v2-submenu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--v2-sidebar-text-active);
+  text-decoration: none;
+}
+.v2-submenu-item.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  font-weight: 500;
+}
+
+/* Collapsed: submenu items appear as flyout (we keep them hidden) */
+.v2-sidebar.collapsed .v2-submenu {
+  display: none;
+}
+
+/* Bottom actions area */
+.v2-sidebar-bottom {
+  width: 100%;
+  padding: 10px 12px 18px;
+  border-top: 0;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.v2-sidebar-utility {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 0;
+}
+
+.v2-sidebar-action-btn,
+.v2-raise-query-trigger .MuiIconButton-root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--v2-sidebar-text);
+  transition:
+    background 0.15s,
+    color 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  min-height: 36px;
+  border-radius: 6px;
+}
+.v2-sidebar-action-btn:hover,
+.v2-raise-query-trigger .MuiIconButton-root:hover {
+  background: var(--v2-sidebar-hover);
+  color: var(--v2-sidebar-text-active);
+}
+
+.v2-action-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+.v2-action-label {
+  font-size: 12px;
+  font-weight: 400;
+  display: none;
+}
+
+/* ============================================================
+   MAIN CONTENT AREA
+   ============================================================ */
+.v2-main-content {
+  padding: 20px;
+  min-height: 100vh;
+  /* margin-top: var(--v2-header-height); */
+  transition: margin-left var(--v2-transition);
+  background: #f3f4f6;
+  font-family: var(--v2-font-family);
+}
+
+.v2-main-content.sidebar-collapsed {
+  margin-left: var(--v2-sidebar-collapsed-width);
+}
+
+.v2-main-content.sidebar-expanded {
+  margin-left: var(--v2-sidebar-expanded-width);
+}
+
+/* ============================================================
+   COLLAPSED SIDEBAR — icon-only state
+   Matches Figma: icons left-aligned with padding, small arrow
+   next to icon for multi-item categories. Grid layout preserved
+   from base so icon position is identical to expanded state.
+   ============================================================ */
+
+/* Hide labels entirely */
+.v2-sidebar.collapsed .v2-menu-label {
+  display: none;
+}
+.v2-sidebar.collapsed .v2-action-label {
+  display: none;
+}
+
+/* Item row: keep base grid, allow col-3 chevron to overflow visibly */
+.v2-sidebar.collapsed .v2-menu-item {
+  overflow: visible;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 12px;
+  gap: 0;
+  margin: 0 0 10px;
+  border-radius: 8px;
+  position: relative;
+  background: transparent;
+  border-left: none !important;
+}
+
+.v2-sidebar.collapsed .v2-menu-item.active {
+  border-left: none !important;
+  background: transparent;
+}
+
+/* Icon box: active gets highlighted rounded background */
+.v2-sidebar.collapsed .v2-menu-icon {
+  min-width: 36px;
+  font-size: 18px;
+  justify-self: center;
+  align-self: center;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.v2-sidebar.collapsed .v2-menu-item:hover .v2-menu-icon {
+  background: var(--v2-sidebar-hover);
+  color: var(--v2-sidebar-icon-active);
+}
+
+.v2-sidebar.collapsed .v2-menu-item.active .v2-menu-icon {
+  background: var(--v2-sidebar-active-bg);
+  color: #fff;
+}
+
+/* Chevron: small, right next to icon (col3 renders via overflow:visible) */
+.v2-sidebar.collapsed .v2-menu-chevron {
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  justify-self: start;
+  align-self: center;
+  opacity: 0.8;
+  color: #c7d0df;
+  background: transparent;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v2-sidebar.collapsed .v2-menu-chevron svg {
+  font-size: 16px;
+  display: block;
+  transform: none !important;
+}
+
+/* No chevron for single-link items (Dashboard, Customer Setup) */
+.v2-sidebar.collapsed .v2-menu-item:not(.has-children) .v2-menu-chevron {
+  display: none;
+}
+
+/* Submenus hidden in collapsed */
+.v2-sidebar.collapsed .v2-submenu {
+  display: none;
+}
+
+.v2-sidebar.collapsed .v2-submenu-item {
+  display: none;
+}
+
+/* Bottom action buttons */
+.v2-sidebar.collapsed .v2-sidebar-action-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.v2-sidebar.expanded .v2-sidebar-utility,
+.v2-sidebar.expanded .v2-sidebar-utility-btn {
+  width: 36px;
+}
+
+.v2-sidebar.expanded .v2-sidebar-bottom {
+  align-items: flex-start;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.v2-sidebar.collapsed .v2-sidebar-bottom {
+  align-items: center;
+  padding-left: 0;
+  padding-right: 0;
+  gap: 12px;
+}
+
+.v2-raise-query-trigger {
+  display: flex;
+  justify-content: center;
+  width: 36px;
+  margin: 0;
+}
+
+.v2-raise-query-trigger .MuiIconButton-root {
+  color: var(--v2-sidebar-icon);
+}
+
+.v2-raise-query-trigger .MuiIconButton-root:hover,
+.v2-sidebar-utility-btn:hover .v2-action-icon {
+  color: var(--v2-sidebar-text-active);
+}
+
+.v2-sidebar.collapsed .v2-sidebar-divider,
+.v2-sidebar.collapsed .v2-menu-section-divider {
+  width: 36px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.v2-sidebar.collapsed .v2-sidebar-utility {
+  width: 36px;
+  justify-content: center;
+}
+
+.v2-sidebar.collapsed .v2-sidebar-action-btn {
+  margin-left: auto;
+  margin-right: auto;
+}
