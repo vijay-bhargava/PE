@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStateValue } from '../../../store';
 import RequestForQuotation from './RequestForQuotation';
 import '../../../assets/css/rfq-detail-v2.css';
+
+const isDisplayableRfqCode = (code) => {
+  return typeof code === 'string' && code.trim() && !code.includes('/');
+};
 
 /**
  * Thin V2 wrapper around the existing RequestForQuotation component.
@@ -14,7 +18,22 @@ const RequestForQuotationV2 = ({ claimType }) => {
   const [{ eventCode }] = useStateValue();
 
   const isNew = pageSlug === 'add';
-  const crumbLabel = isNew ? 'New RFQ' : eventCode || `RFQ-${pageSlug}`;
+  const fallbackCrumbLabel = isNew ? 'New RFQ' : `RFQ-${pageSlug}`;
+
+  const [stableEventCode, setStableEventCode] = useState(() =>
+    isDisplayableRfqCode(eventCode) ? eventCode : ''
+  );
+
+  const crumbLabel = useMemo(() => {
+    if (isNew) return 'New RFQ';
+    return stableEventCode || fallbackCrumbLabel;
+  }, [fallbackCrumbLabel, isNew, stableEventCode]);
+
+  useEffect(() => {
+    if (isDisplayableRfqCode(eventCode)) {
+      setStableEventCode(eventCode);
+    }
+  }, [eventCode]);
 
   return (
     <div className="rfq-detail-v2-shell">
@@ -28,7 +47,7 @@ const RequestForQuotationV2 = ({ claimType }) => {
         >
           Home
         </span>
-        <span className="rfq-dv2-sep">{'>'}</span>
+        <span className="rfq-dv2-sep">/</span>
         <span
           className="rfq-dv2-breadcrumb-link"
           onClick={() => navigate('/configuration/manage-rfq')}
@@ -38,7 +57,7 @@ const RequestForQuotationV2 = ({ claimType }) => {
         >
           Manage RFQ
         </span>
-        <span className="rfq-dv2-sep">{'>'}</span>
+        <span className="rfq-dv2-sep">/</span>
         <span className="rfq-dv2-breadcrumb-current">{crumbLabel}</span>
       </nav>
 

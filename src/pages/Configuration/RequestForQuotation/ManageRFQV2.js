@@ -64,10 +64,36 @@ const STATUS_CFG = {
   Closed: { bg: '#e5e7eb', color: '#374151', dot: '#6b7280' },
 };
 
+const STATUS_CFG_NORMALIZED = {
+  draft: { bg: '#eeeeee', color: '#374151', dot: '#9ca3af' },
+  cancel: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
+  cancelled: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
+  open: { bg: '#dcfce7', color: '#166534', dot: '#22c55e' },
+  'pre approval': { bg: '#fff3cd', color: '#7a3f00', dot: '#b45309' },
+  'under pre approval': { bg: '#fff3cd', color: '#7a3f00', dot: '#b45309' },
+  'forward for approval': { bg: '#ffedd5', color: '#9a3412', dot: '#f97316' },
+  'technical approval': { bg: '#dcfce7', color: '#065f46', dot: '#10b981' },
+  'under technical approval': { bg: '#dcfce7', color: '#065f46', dot: '#10b981' },
+  'commercial approval': { bg: '#dff2ff', color: '#075985', dot: '#0284c7' },
+  'under commercial approval': { bg: '#dff2ff', color: '#075985', dot: '#0284c7' },
+  allocation: { bg: '#e0e7ff', color: '#3730a3', dot: '#6366f1' },
+  allocated: { bg: '#e0e7ff', color: '#3730a3', dot: '#6366f1' },
+  awarded: { bg: '#fef9c3', color: '#854d0e', dot: '#eab308' },
+  published: { bg: '#dcfce7', color: '#166534', dot: '#22c55e' },
+  closed: { bg: '#e5e7eb', color: '#374151', dot: '#6b7280' },
+  rejected: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
+  approved: { bg: '#dcfce7', color: '#166534', dot: '#22c55e' },
+};
+
+const getStatusConfig = (status) => {
+  const key = String(status || '').trim().toLowerCase();
+  return STATUS_CFG_NORMALIZED[key] || STATUS_CFG[status] || { bg: '#f3f4f6', color: '#6b7280', dot: '#9ca3af' };
+};
+
 const RFQStatusBadge = ({ status }) => {
-  const c = STATUS_CFG[status] || { bg: '#f3f4f6', color: '#6b7280', dot: '#9ca3af' };
+  const c = getStatusConfig(status);
   return (
-    <span className="rfq-v2-status-badge" style={{ background: c.bg, color: c.color }}>
+    <span className="rfq-v2-status-badge" style={{ background: c.bg, color: c.color }} title={status || ''}>
       <span className="rfq-v2-status-dot" style={{ background: c.dot }} />
       {status || '—'}
     </span>
@@ -77,6 +103,15 @@ const RFQStatusBadge = ({ status }) => {
 /* ── Stages where "Create Event" action is available ── */
 const CAN_CREATE_EVENT = (stage) =>
   !['Draft', 'Under Pre Approval', 'Cancel', null, undefined].includes(stage);
+
+const AUCTION_TYPES = [
+  { label: 'Forward Auction', bidTypeId: 1 },
+  { label: 'Reverse Auction', bidTypeId: 2 },
+  { label: 'Freight Auction', bidTypeId: 3 },
+  { label: 'Formula Based Auction', bidTypeId: 4 },
+  { label: 'French Forward Auction', bidTypeId: 5 },
+  { label: 'French Reverse Auction', bidTypeId: 6 },
+];
 
 /* ═══════════════════════════════════════════════════════════ */
 const ManageRFQV2 = ({ claimType }) => {
@@ -148,6 +183,12 @@ const ManageRFQV2 = ({ claimType }) => {
 
   /* ── Advance filter panel ── */
   const [advFilterOpen, setAdvFilterOpen] = useState(false);
+  const [colMenuAnchor, setColMenuAnchor] = useState(null);
+  const [columnVisibility, setColumnVisibility] = useState({
+    rfqSubject: true, stage: true, startDate: true,
+    endDate: true, createdByName: true, Action: true,
+  });
+  const colPopoverRef = React.useRef(null);
   const [activeFilterCount, setActiveFilterCount] = useState(0);
 
   const handleFilterList = (res) => {
@@ -180,10 +221,27 @@ const ManageRFQV2 = ({ claimType }) => {
   const handleDeleteItemSet = (itemId) =>
     setRFQItemSet((prev) => prev.filter((item) => item.id !== itemId));
 
+  const buildAuctionItemForBidType = (item, auctionType) => {
+    if (!auctionType?.bidTypeId) return item;
+
+    const isForward = auctionType.bidTypeId === 1 || auctionType.bidTypeId === 5;
+    const priceBase = isForward ? item.maxPrice : item.minPrice;
+
+    return {
+      ...item,
+      bidStartprice: priceBase,
+      minimumdecreament: priceBase ? parseFloat((priceBase * 0.01).toFixed(3)) : 0,
+    };
+  };
+
   const handleRFQItemSet = (selectedItems, unselectedItems) => {
     setRFQItemSet((prev) => {
       let next = [...prev];
-      selectedItems.forEach((ni) => { if (!next.find((i) => i.id === ni.id)) next.push(ni); });
+      selectedItems.forEach((ni) => {
+        if (!next.find((i) => i.id === ni.id)) {
+          next.push(buildAuctionItemForBidType(ni, selectedBidType));
+        }
+      });
       return next.filter((i) => !unselectedItems.some((u) => u.id === i.id));
     });
   };
@@ -230,20 +288,13 @@ const ManageRFQV2 = ({ claimType }) => {
     }
   };
 
-  const handleAuctionTypeSelection = (auctionType) => {
+  const prepareItemsForBidType = (auctionType) => {
     setSelectedBidType(auctionType);
-    setRFQItemSet((prev) =>
-      prev.map((item) => {
-        const isForward = auctionType.bidTypeId === 1 || auctionType.bidTypeId === 5;
-        const bidStartprice = isForward ? item.maxPrice : item.minPrice;
-        const decrementBase = isForward ? item.maxPrice : item.minPrice;
-        return {
-          ...item,
-          bidStartprice,
-          minimumdecreament: decrementBase ? parseFloat((decrementBase * 0.01).toFixed(3)) : 0,
-        };
-      })
-    );
+    setRFQItemSet((prev) => prev.map((item) => buildAuctionItemForBidType(item, auctionType)));
+  };
+
+  const handleAuctionTypeSelection = (auctionType) => {
+    prepareItemsForBidType(auctionType);
     rfqPrCartOpenModal();
   };
 
@@ -292,6 +343,15 @@ const ManageRFQV2 = ({ claimType }) => {
       } else { toast.error('Please contact Administrator.'); }
       toast.success('Auction created successfully.');
     }
+  };
+
+  const handleEventDrawerSubmit = () => {
+    if (!selectedBidType?.bidTypeId) {
+      toast.info('Please select event type.', { position: 'top-center', autoClose: 2000 });
+      return;
+    }
+    setItemModal(false);
+    createAuctionFromPR();
   };
 
   /* ── Communication hub ── */
@@ -457,6 +517,17 @@ const ManageRFQV2 = ({ claimType }) => {
     },
   ].filter(Boolean);
 
+  useEffect(() => {
+    if (!colMenuAnchor) return;
+    const handleClickOutside = (e) => {
+      if (colPopoverRef.current && !colPopoverRef.current.contains(e.target)) {
+        setColMenuAnchor(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [colMenuAnchor]);
+
   /* ── Guard: not authorised ── */
   if (!isreadDisabled) {
     return (
@@ -510,14 +581,7 @@ const ManageRFQV2 = ({ claimType }) => {
                   Select Auction Type
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                  {[
-                    { label: 'Forward Auction', bidTypeId: 1 },
-                    { label: 'Reverse Auction', bidTypeId: 2 },
-                    { label: 'Freight Auction', bidTypeId: 3 },
-                    { label: 'Formula Based Auction', bidTypeId: 4 },
-                    { label: 'French Forward Auction', bidTypeId: 5 },
-                    { label: 'French Reverse Auction', bidTypeId: 6 },
-                  ].map((o) => (
+                  {AUCTION_TYPES.map((o) => (
                     <Dropdown.Item key={o.bidTypeId} onClick={() => handleAuctionTypeSelection(o)}>
                       <span style={{ fontSize: 13 }}>{o.label}</span>
                     </Dropdown.Item>
@@ -573,10 +637,44 @@ const ManageRFQV2 = ({ claimType }) => {
                 )}
               </button>
 
-              <button className="rfq-v2-tbtn">
-                <ViewColumnOutlined />
-                Columns
-              </button>
+              <div style={{ position: 'relative' }}>
+                <button className="rfq-v2-tbtn" onClick={(e) => setColMenuAnchor(colMenuAnchor ? null : e.currentTarget)}>
+                  <ViewColumnOutlined />
+                  Columns
+                  {Object.values(columnVisibility).some(v => !v) && (
+                    <span className="rfq-v2-filter-count">{Object.values(columnVisibility).filter(v => !v).length}</span>
+                  )}
+                </button>
+                {colMenuAnchor && (
+                  <div className="rfq-v2-col-popover" ref={colPopoverRef}>
+                    <div className="rfq-v2-col-popover-header">
+                      <span className="rfq-v2-col-popover-title">
+                        <ViewColumnOutlined className="rfq-v2-col-title-icon" />
+                        Manage Columns
+                      </span>
+                      <button className="rfq-v2-col-reset" onClick={() => setColumnVisibility({ rfqSubject: true, stage: true, startDate: true, endDate: true, createdByName: true, Action: true })}>Reset</button>
+                    </div>
+                    {[
+                      { field: 'rfqSubject', label: 'RFQ' },
+                      { field: 'stage', label: 'Status' },
+                      { field: 'startDate', label: 'Start Date' },
+                      { field: 'endDate', label: 'End Date' },
+                      { field: 'createdByName', label: 'Created by' },
+                      { field: 'Action', label: 'Action' },
+                    ].map(col => (
+                      <label key={col.field} className="rfq-v2-col-item">
+                        <input
+                          type="checkbox"
+                          className="rfq-v2-col-check"
+                          checked={!!columnVisibility[col.field]}
+                          onChange={() => setColumnVisibility(prev => ({ ...prev, [col.field]: !prev[col.field] }))}
+                        />
+                        <span className="rfq-v2-col-label">{col.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               <button className="rfq-v2-tbtn rfq-v2-tbtn-export">
                 <FileDownloadOutlined />
@@ -608,6 +706,7 @@ const ManageRFQV2 = ({ claimType }) => {
                 rowHeight={52}
                 columnHeaderHeight={40}
                 disableRowSelectionOnClick
+                columnVisibilityModel={columnVisibility}
                 disableColumnResize
                 disableColumnMenu={false}
                 hideFooterSelectedRowCount
@@ -616,27 +715,58 @@ const ManageRFQV2 = ({ claimType }) => {
                 sx={{
                   border: 'none',
                   flex: 1,
+                  minHeight: 0,
+                  height: '100%',
+                  fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif',
                   '& .MuiDataGrid-columnHeaders': {
                     background: '#f9fafb',
                     borderBottom: '1px solid #e5e7eb',
+                    minHeight: '40px !important',
+                    maxHeight: '40px !important',
+                    lineHeight: '40px',
+                  },
+                  '& .MuiDataGrid-columnHeadersInner': {
+                    background: '#f9fafb',
+                  },
+                  '& .MuiDataGrid-columnHeader': {
+                    height: '40px !important',
+                    padding: '0 16px',
                   },
                   '& .MuiDataGrid-columnHeaderTitle': {
                     fontSize: 12,
                     fontWeight: 600,
                     color: '#6b7280',
+                    textTransform: 'none',
+                    letterSpacing: 0,
                   },
                   '& .MuiDataGrid-cell': {
                     borderBottom: '1px solid #f3f4f6',
                     fontSize: 13,
                     color: '#1f2937',
+                    padding: '0 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                  },
+                  '& .MuiDataGrid-cell--withRenderer': {
+                    display: 'flex',
+                    alignItems: 'center',
                   },
                   '& .MuiDataGrid-row:hover': { background: '#f8fafc' },
+                  '& .MuiDataGrid-row.Mui-selected': { background: '#eff6ff' },
+                  '& .MuiDataGrid-row.Mui-selected:hover': { background: '#eff6ff' },
                   '& .MuiDataGrid-columnSeparator': { visibility: 'hidden' },
                   '& .MuiDataGrid-footerContainer': {
                     borderTop: '1px solid #e5e7eb',
                     minHeight: 44,
+                    padding: '0 8px',
+                    flexShrink: 0,
                   },
-                  '& .MuiDataGrid-sortIcon': { color: '#9ca3af' },
+                  '& .MuiDataGrid-sortIcon': { color: '#9ca3af', opacity: 1 },
+                  '& .MuiDataGrid-menuIconButton': { color: '#9ca3af', opacity: 1 },
+                  '& .MuiDataGrid-virtualScroller': { overflowX: 'hidden' },
+                  '& .MuiTablePagination-root': { fontSize: 12, color: '#6b7280' },
+                  '& .MuiTablePagination-selectLabel': { fontSize: 12, color: '#6b7280', margin: 0 },
+                  '& .MuiTablePagination-displayedRows': { fontSize: 12, color: '#6b7280', margin: 0 },
                 }}
               />
             )}
@@ -733,52 +863,110 @@ const ManageRFQV2 = ({ claimType }) => {
       </Modal>
 
       {/* ── Select items modal (RFQ → Event) ── */}
-      <Modal
-        size="lg"
-        show={itemmodal}
-        backdrop="static"
-        centered
-        className="zindex1280"
-        backdropClassName="zindex1280"
-        onHide={() => setItemModal(false)}
-      >
-        <Modal.Header className="pt-2 pb-2 modal-custom-header">
-          <Modal.Title>
-            <span style={{ fontSize: 14, color: '#fff' }}>RFQ Id: {firstRfq?.id}</span>
-          </Modal.Title>
-          <IconButton onClick={() => setItemModal(false)} size="small">
-            <HiOutlineX style={{ color: '#fff' }} />
-          </IconButton>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <div className="bg-white p-3">
-            {selectedPRITemModal.length > 0 ? (
-              <DataGrid
-                rows={selectedPRITemModal}
-                columns={prrfqcolumn}
-                pageSize={10}
-                checkboxSelection
-                onRowSelectionModelChange={(ids) => selectItemsById(ids)}
-                rowSelectionModel={selectedItemsActive}
-                rowHeight={40}
-                columnHeaderHeight={40}
-                className="f13 bg-white"
-                disableRowSelectionOnClick
-                isRowSelectable={(params) => {
-                  const row = params?.row;
-                  if (row?.eventType === 'PR') return true;
-                  return !row?.eventId;
-                }}
-                sx={{ border: 'none', '& .MuiDataGrid-cell': { fontSize: 13 } }}
-              />
-            ) : (
-              <div className="text-center text-danger py-3">
-                {noQuotesMessage || 'No quotes available. You cannot select any line items.'}
+      {itemmodal && (
+        <div className="rfq-v2-event-drawer-backdrop" role="presentation">
+          <section
+            className="rfq-v2-event-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rfq-v2-event-drawer-title"
+          >
+            <header className="rfq-v2-event-drawer-header">
+              <h2 id="rfq-v2-event-drawer-title" className="rfq-v2-event-drawer-title">
+                Create Event
+              </h2>
+              <div className="rfq-v2-event-drawer-actions">
+                <button
+                  type="button"
+                  className="rfq-v2-event-btn rfq-v2-event-btn-muted"
+                  onClick={() => setItemModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="rfq-v2-event-btn rfq-v2-event-btn-outline"
+                  onClick={() => setItemModal(false)}
+                >
+                  <AddOutlined />
+                  Add more items
+                </button>
+                <button
+                  type="button"
+                  className="rfq-v2-event-btn rfq-v2-event-btn-primary"
+                  onClick={handleEventDrawerSubmit}
+                >
+                  Submit ({rfqItemSet.length})
+                </button>
               </div>
-            )}
-          </div>
-        </Modal.Body>
-      </Modal>
+            </header>
+
+            <div className="rfq-v2-event-drawer-body">
+              <div className="rfq-v2-event-form-row">
+                <label className="rfq-v2-event-field">
+                  <span className="rfq-v2-event-label">Select Event type</span>
+                  <select
+                    className="rfq-v2-event-select"
+                    value={selectedBidType?.bidTypeId || ''}
+                    onChange={(e) => {
+                      const auctionType = AUCTION_TYPES.find((o) => o.bidTypeId === Number(e.target.value));
+                      if (auctionType) prepareItemsForBidType(auctionType);
+                    }}
+                  >
+                    <option value="">Select event type</option>
+                    {AUCTION_TYPES.map((o) => (
+                      <option key={o.bidTypeId} value={o.bidTypeId}>{o.label}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="rfq-v2-event-total">
+                  <span className="rfq-v2-event-label">Total Items added</span>
+                  <span className="rfq-v2-event-count">{rfqItemSet.length}</span>
+                </div>
+              </div>
+
+              <div className="rfq-v2-event-selection-head">
+                <span className="rfq-v2-event-section-label">Select Items</span>
+                <span className="rfq-v2-event-rfq-meta">
+                  RFQ-{firstRfq?.id || '-'} {firstRfq?.subject || firstRfq?.rfqSubject || ''}
+                </span>
+              </div>
+
+              <div className="rfq-v2-event-table">
+                {selectedPRITemModal.length > 0 ? (
+                  <DataGrid
+                    rows={selectedPRITemModal}
+                    columns={prrfqcolumn}
+                    pageSize={10}
+                    checkboxSelection
+                    onRowSelectionModelChange={(ids) => selectItemsById(ids)}
+                    rowSelectionModel={selectedItemsActive}
+                    rowHeight={36}
+                    columnHeaderHeight={36}
+                    className="rfq-v2-event-datagrid"
+                    disableRowSelectionOnClick
+                    isRowSelectable={(params) => {
+                      const row = params?.row;
+                      if (row?.eventType === 'PR') return true;
+                      return !row?.eventId;
+                    }}
+                    sx={{
+                      border: 'none',
+                      '& .MuiDataGrid-cell': { fontSize: 12 },
+                      '& .MuiDataGrid-columnHeaderTitle': { fontSize: 12, fontWeight: 600 },
+                    }}
+                  />
+                ) : (
+                  <div className="rfq-v2-event-empty">
+                    {noQuotesMessage || 'No quotes available. You cannot select any line items.'}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* ── Auction cart modal ── */}
       <Modal

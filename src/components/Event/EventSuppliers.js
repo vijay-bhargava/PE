@@ -18,6 +18,7 @@ const EventSuppliers = ({ selectedSupplier, stagearray, currentStage, handleSele
   const apiClient = new ApiClient(customersuffix);
   const [Version,setVersion]=useState(null)
   const [supplierVersionWise, setSupplierVersionWise] = useState([]);
+  const paginatedSupplierList = Array.isArray(supplierVersionWise) ? supplierVersionWise : [];
   const [anchorEl, setAnchorEl] = useState(null); 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -32,7 +33,7 @@ const EventSuppliers = ({ selectedSupplier, stagearray, currentStage, handleSele
  
   useEffect(()=>{
     setVersion(CurrentVersion)
-  },CurrentVersion)
+  }, [CurrentVersion])
   useEffect(() => {
     
     if(Version)
@@ -59,7 +60,7 @@ const EventSuppliers = ({ selectedSupplier, stagearray, currentStage, handleSele
     );
     if (res.status == 200) {
          
-      let vendorItemAnalysisdata = res.data?.result;
+      let vendorItemAnalysisdata = Array.isArray(res.data?.result) ? res.data.result : [];
       
       setSupplierVersionWise(vendorItemAnalysisdata);
     }
@@ -223,7 +224,7 @@ const EventSuppliers = ({ selectedSupplier, stagearray, currentStage, handleSele
               </TableRow>
             </TableHead>
             <TableBody>
-              {supplierVersionWise
+              {paginatedSupplierList
                 .slice((pageSS - 1) * pageCount, pageSS * pageCount)
                 .map((x, i) => (
                   <TableRow key={i}>

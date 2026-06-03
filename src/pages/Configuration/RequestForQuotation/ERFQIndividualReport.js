@@ -138,26 +138,35 @@ const ERFQIndividualReport = ({ accessLevel }) => {
         );
         // console.log('request id pullRFQItemServiceFind', data);
         if (res) {
+            const result = Array.isArray(res?.data?.result) ? res.data.result : [];
+            const header = result?.[0];
+            setRFQHeader(result);
 
-            //setCurrentVersion(res?.data?.result[0]?.version)
-            const result = res?.data?.result;
-            setRFQHeader(result)
-            if (result[0]?.versionhistory?.length != versionhistory?.length) {
-                setVersionhistory(result[0]?.versionhistory)
+            if (!header) {
+                setrfqItemsList([]);
+                setTotalItemSum(0);
+                setRfqItemCommercialList([]);
+                setRFQQuestionList([]);
+                return;
             }
 
-            setrfqItemsList(result[0]?.rfqParameters);
-            const itemsumarr = sumArray(result[0]?.rfqParameters?.map(x => x.targetPrice * x.quantity))
-            setTotalItemSum(itemsumarr)
+            if (header?.versionhistory?.length !== versionhistory?.length) {
+                setVersionhistory(header.versionhistory);
+            }
+
+            const rfqParameters = Array.isArray(header?.rfqParameters) ? header.rfqParameters : [];
+            setrfqItemsList(rfqParameters);
+            const itemsumarr = sumArray(rfqParameters.map(x => x.targetPrice * x.quantity));
+            setTotalItemSum(itemsumarr);
 
             setRfqItemCommercialList(
-                res?.data?.result[0]?.rfqItemCommercial.filter((x) => x.level == "item")
+                (Array.isArray(header?.rfqItemCommercial) ? header.rfqItemCommercial : []).filter((x) => x.level === "item")
             );
-            setRFQQuestionList(res?.data?.result[0]?.rfqQuestionMaster)
+            setRFQQuestionList(Array.isArray(header?.rfqQuestionMaster) ? header.rfqQuestionMaster : []);
 
             setrfqOthersCommercialList(
-                res?.data?.result[0]?.rfqPackageCommercial
-            )
+                Array.isArray(header?.rfqPackageCommercial) ? header.rfqPackageCommercial : []
+            );
         }
     };
 
@@ -427,7 +436,7 @@ const ERFQIndividualReport = ({ accessLevel }) => {
                                 <div class="col-md-3 ms-0 ps-0 d-flex"><span class="f14 fw500 me-1">Status:</span><span class="f14 fw400 text-truncate" title={supplierdetails?.[0]?.status}>{supplierdetails?.[0]?.status}</span></div>
                                 <div class="col-md-3 ms-0 ps-0 d-flex"><span class="f14 fw500 me-1">Supplier Remark: </span><span class="f14 fw400 text-truncate" title={supplierdetails?.[0]?.remarks}> {supplierdetails?.remarks?.length > 20 ?
                                     <Tooltip title={supplierdetails?.[0]?.remarks}>
-                                        {supplierdetails?.[0]?.remarks.slice(0, 20) + '...'}
+                                        {supplierdetails?.[0]?.remarks ? `${supplierdetails[0].remarks.slice(0, 20)}...` : '-'}
                                     </Tooltip> : supplierdetails?.[0]?.remarks ?? "N/A"}</span></div>
 
 

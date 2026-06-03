@@ -8,7 +8,8 @@
 .rfq-v2-page {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 60px);
+  height: calc(100vh - 72px - 32px);
+  overflow: hidden;
   background: #f3f4f6;
   font-family:
     "Inter",
@@ -16,14 +17,16 @@
     system-ui,
     -apple-system,
     sans-serif;
+  padding: 0 20px 20px;
 }
 
 /* ── Top section: breadcrumb + title + CTA ── */
 .rfq-v2-page-header {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   padding: 20px 0 16px;
+  gap: 12px;
 }
 
 .rfq-v2-breadcrumb {
@@ -53,7 +56,7 @@
   color: #111827;
   margin: 0;
   letter-spacing: -0.2px;
-  line-height: 1.2;
+  line-height: 2;
 }
 
 /* ── Create new RFQ button ── */
@@ -74,6 +77,7 @@
     background 0.15s,
     box-shadow 0.15s;
   line-height: 1;
+  flex-shrink: 0;
 }
 .rfq-v2-create-btn:hover {
   background: #1d5bbf;
@@ -92,10 +96,12 @@
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* ── Toolbar ── */
@@ -129,6 +135,7 @@
     border-color 0.15s,
     box-shadow 0.15s;
   font-family: inherit;
+  box-sizing: border-box;
 }
 .rfq-v2-search::placeholder {
   color: #9ca3af;
@@ -158,7 +165,7 @@
 .rfq-v2-tbtn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   height: 34px;
   padding: 0 12px;
   border: 1px solid #e5e7eb;
@@ -174,6 +181,7 @@
     border-color 0.12s;
   font-family: inherit;
   line-height: 1;
+  box-sizing: border-box;
 }
 .rfq-v2-tbtn:hover {
   background: #f9fafb;
@@ -185,6 +193,7 @@
 .rfq-v2-tbtn svg {
   font-size: 15px !important;
   color: #6b7280;
+  flex-shrink: 0;
 }
 
 /* Filter count badge (orange circle) */
@@ -217,24 +226,33 @@
 /* ── Table ── */
 .rfq-v2-table-wrapper {
   flex: 1;
+  height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
-/* DataGrid overrides */
+/* DataGrid overrides — covers both MUI v5 and v6 selectors */
 .rfq-v2-datagrid.MuiDataGrid-root {
   border: none !important;
   font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  flex: 1 !important;
 }
+
 .rfq-v2-datagrid .MuiDataGrid-columnHeaders {
   background: #f9fafb !important;
   border-bottom: 1px solid #e5e7eb !important;
   min-height: 40px !important;
   max-height: 40px !important;
+  line-height: 40px !important;
+}
+.rfq-v2-datagrid .MuiDataGrid-columnHeadersInner {
+  background: #f9fafb !important;
 }
 .rfq-v2-datagrid .MuiDataGrid-columnHeader {
   padding: 0 16px !important;
+  height: 40px !important;
 }
 .rfq-v2-datagrid .MuiDataGrid-columnHeaderTitle {
   font-size: 12px !important;
@@ -249,13 +267,20 @@
   color: #9ca3af !important;
   font-size: 14px !important;
 }
+
 .rfq-v2-datagrid .MuiDataGrid-cell {
   border-bottom: 1px solid #f3f4f6 !important;
   padding: 0 16px !important;
   font-size: 13px !important;
   color: #1f2937 !important;
+  /* display: flex !important; */
   align-items: center !important;
 }
+.rfq-v2-datagrid .MuiDataGrid-cell--withRenderer {
+  display: flex !important;
+  align-items: center !important;
+}
+
 .rfq-v2-datagrid .MuiDataGrid-row:hover {
   background: #f8fafc !important;
 }
@@ -267,13 +292,23 @@
   border-top: 1px solid #e5e7eb !important;
   min-height: 44px !important;
   padding: 0 8px !important;
+  flex-shrink: 0 !important;
 }
 .rfq-v2-datagrid .MuiDataGrid-columnSeparator {
   visibility: hidden !important;
 }
+.rfq-v2-datagrid .MuiDataGrid-virtualScroller {
+  overflow-x: hidden !important;
+}
 .rfq-v2-datagrid .MuiTablePagination-root {
   font-size: 12px !important;
   color: #6b7280 !important;
+}
+.rfq-v2-datagrid .MuiTablePagination-selectLabel,
+.rfq-v2-datagrid .MuiTablePagination-displayedRows {
+  font-size: 12px !important;
+  color: #6b7280 !important;
+  margin: 0 !important;
 }
 
 /* ── RFQ cell: event code + subject ── */
@@ -284,12 +319,17 @@
   gap: 2px;
   padding: 6px 0;
   cursor: pointer;
+  width: 100%;
+  min-width: 0;
 }
 .rfq-v2-cell-code {
   font-size: 11px;
   font-weight: 500;
   color: #9ca3af;
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .rfq-v2-cell-subject {
   font-size: 13px;
@@ -299,25 +339,29 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 /* ── Status badge ── */
 .rfq-v2-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: 20px;
+  gap: 6px;
+  min-height: 22px;
+  padding: 3px 9px;
+  border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  line-height: 1.4;
+  line-height: 16px;
+  flex-shrink: 0;
 }
 .rfq-v2-status-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
+  display: inline-block;
 }
 
 /* ── Action cell: + Create Event link ── */
@@ -335,6 +379,7 @@
   font-family: inherit;
   transition: color 0.12s;
   line-height: 1;
+  white-space: nowrap;
 }
 .rfq-v2-action-link:hover {
   color: #1d5bbf;
@@ -368,17 +413,19 @@
 /* ── Advance filter slide-in panel ── */
 .rfq-v2-filter-panel {
   position: fixed;
-  top: 60px; /* header height */
+  top: 72px;
   right: 0;
-  width: 320px;
-  height: calc(100vh - 60px);
-  background: #fff;
-  border-left: 1px solid #e5e7eb;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.08);
+  width: 360px;
+  height: calc(100vh - 72px);
+  background: #ffffff;
+  border-radius: 12px 0 0 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 16px 4px rgba(0, 0, 0, 0.12);
   z-index: 250;
   display: flex;
   flex-direction: column;
   animation: rfq-panel-slide-in 0.2s ease;
+  overflow: hidden;
 }
 @keyframes rfq-panel-slide-in {
   from {
@@ -390,16 +437,18 @@
     opacity: 1;
   }
 }
+
+/* Panel header — fixed, does not scroll */
 .rfq-v2-filter-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
 }
 .rfq-v2-filter-panel-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #111827;
   margin: 0;
@@ -421,10 +470,153 @@
   background: #f3f4f6;
   color: #374151;
 }
+
+/* Panel body — hosts the form (flex column, takes all remaining height) */
 .rfq-v2-filter-panel-body {
   flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── Filter form wrapper — fills panel body ── */
+.rfq-v2-filter-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* ── Scrollable fields area ── */
+.rfq-v2-filter-fields {
+  flex: 1;
   overflow-y: auto;
-  padding: 0;
+  padding: 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+/* Label above each field */
+.rfq-v2-filter-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+/* MUI field wrapper — spacing handled by parent gap */
+.rfq-v2-filter-field {
+  margin-bottom: 0 !important;
+}
+
+/* Normalise MUI input height/border to match Figma 36px spec */
+.rfq-v2-filter-field .MuiOutlinedInput-root {
+  height: 36px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+.rfq-v2-filter-field .MuiOutlinedInput-notchedOutline {
+  border-color: #d1d5db !important;
+}
+.rfq-v2-filter-field
+  .MuiOutlinedInput-root:hover
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #9ca3af !important;
+}
+.rfq-v2-filter-field
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #2a68d3 !important;
+  border-width: 1px !important;
+}
+.rfq-v2-filter-field .MuiInputBase-input::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+/* Allow taller inputs (Autocomplete with chips) to expand naturally */
+.rfq-v2-filter-field.MuiAutocomplete-root .MuiOutlinedInput-root {
+  height: auto;
+  min-height: 36px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+/* Two-column date row */
+.rfq-v2-filter-row-half {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ── Sticky footer: Reset + Apply ── */
+.rfq-v2-filter-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid #f3f4f6;
+  flex-shrink: 0;
+  background: #ffffff;
+}
+
+/* Reset button — outlined */
+.rfq-v2-filter-btn-reset {
+  height: 34px;
+  padding: 0 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+.rfq-v2-filter-btn-reset:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+.rfq-v2-filter-btn-reset:active {
+  background: #f3f4f6;
+}
+
+/* Apply button — filled blue; LoadingButton resets most browser/MUI defaults */
+.rfq-v2-filter-btn-apply {
+  height: 34px !important;
+  padding: 0 20px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  background: #2a68d3 !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer;
+  font-family: inherit !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+  text-transform: none !important;
+  box-shadow: none !important;
+}
+.rfq-v2-filter-btn-apply:hover {
+  background: #1d4ed8 !important;
+}
+.rfq-v2-filter-btn-apply:active {
+  background: #1e40af !important;
+}
+.rfq-v2-filter-btn-apply.Mui-disabled {
+  background: #93c5fd !important;
+  color: #ffffff !important;
 }
 
 /* ── Create RFQ modal actions ── */
@@ -440,4 +632,646 @@
   color: #374151;
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  width: 100%;
+}
+
+/* ── Column visibility popover ── */
+.rfq-v2-col-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 200px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 12px 4px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  overflow: hidden;
+}
+
+.rfq-v2-col-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  height: 40px;
+  box-sizing: border-box;
+}
+
+.rfq-v2-col-popover-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1;
+}
+.rfq-v2-col-title-icon {
+  font-size: 16px !important;
+  color: #6b7280;
+}
+
+.rfq-v2-col-reset {
+  font-size: 12px;
+  font-weight: 500;
+  color: #2a68d3;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+}
+.rfq-v2-col-reset:hover {
+  text-decoration: underline;
+}
+
+.rfq-v2-col-list {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rfq-v2-col-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s;
+  font-family: inherit;
+}
+.rfq-v2-col-item:hover {
+  background: #f9fafb;
+}
+
+/* Custom checkbox — hides native, draws a branded square */
+.rfq-v2-col-check {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+  position: relative;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+}
+.rfq-v2-col-check:hover {
+  border-color: #2c2c2c;
+}
+.rfq-v2-col-check:checked {
+  background: #2c2c2c;
+  border-color: #2c2c2c;
+}
+/* Checkmark via pseudo-element */
+.rfq-v2-col-check:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1.5px;
+  width: 5px;
+  height: 9px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.rfq-v2-col-label {
+  font-size: 13px;
+  font-weight: 400;
+  color: #374151;
+  line-height: 20px;
+}
+
+/* ============================================================
+   v2-notif — Notification Drawer (reskin)
+   ============================================================ */
+
+.v2-notif-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #ffffff;
+  width: 100%;
+}
+
+.v2-notif-drawer-panel {
+  width: 360px;
+  z-index: 260;
+}
+
+/* Header row */
+.v2-notif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.v2-notif-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: 0;
+}
+
+.v2-notif-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.v2-notif-mark-read {
+  background: none;
+  border: none;
+  padding: 0 6px;
+  font-size: 12px;
+  color: #6b7280;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.v2-notif-mark-read:hover {
+  color: #374151;
+  text-decoration: underline;
+}
+
+.v2-notif-close-icon {
+  width: 16px;
+  height: 16px;
+  color: currentColor;
+}
+
+.v2-notif-close-btn {
+  flex: 0 0 28px;
+}
+
+/* Scrollable notification list */
+.v2-notif-list {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.v2-notif-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Each notification row */
+.v2-notif-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  background-color: transparent;
+}
+
+.v2-notif-item:hover {
+  background-color: #f9fafb;
+}
+
+.v2-notif-item--unread {
+  background-color: #eff6ff;
+}
+
+.v2-notif-item--unread:hover {
+  background-color: #dbeafe;
+}
+
+/* Avatar circle */
+.v2-notif-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #fef3c7;
+  color: #d97706;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 10px;
+  overflow: hidden;
+}
+
+.v2-notif-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Content column */
+.v2-notif-content {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.v2-notif-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #d97706;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.v2-notif-item-preview {
+  font-size: 12px;
+  color: #374151;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin-bottom: 4px;
+}
+
+.v2-notif-item-time {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* Unread blue dot */
+.v2-notif-unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #2a68d3;
+  flex-shrink: 0;
+  align-self: center;
+  margin-left: 8px;
+}
+
+/* Empty state */
+.v2-notif-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: #9ca3af;
+}
+
+.v2-notif-empty-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.v2-notif-empty-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.v2-notif-empty-sub {
+  font-size: 12px;
+  margin-top: 4px;
+  color: #9ca3af;
+}
+
+/* View all button — flat, full-width, pinned at bottom */
+.v2-notif-view-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(100% - 40px);
+  height: 36px;
+  margin: 12px 20px;
+  background: #f3f4f6;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  font-family: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+  letter-spacing: 0;
+  transition: background 0.12s;
+}
+
+.v2-notif-view-all:hover {
+  background: #e5e7eb;
+  border-color: #e5e7eb;
+  color: #111827;
+}
+
+/* ============================================================
+   RFQ V2 Event Bottom Drawer
+   ============================================================ */
+
+.rfq-v2-event-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  background: rgba(17, 24, 39, 0.72);
+  animation: rfq-v2-event-backdrop-in 0.18s ease-out;
+}
+
+.rfq-v2-event-drawer {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  width: auto;
+  height: min(78vh, 620px);
+  min-height: 430px;
+  background: #ffffff;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -18px 48px rgba(15, 23, 42, 0.24);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  transform-origin: bottom center;
+  animation: rfq-v2-event-drawer-slide-up 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes rfq-v2-event-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rfq-v2-event-drawer-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rfq-v2-event-drawer-header {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 18px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.rfq-v2-event-drawer-title {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+  color: #111827;
+}
+
+.rfq-v2-event-drawer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.rfq-v2-event-btn {
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.rfq-v2-event-btn svg {
+  font-size: 14px !important;
+}
+
+.rfq-v2-event-btn-muted {
+  background: #f9fafb;
+  color: #6b7280;
+  border-color: #f3f4f6;
+}
+
+.rfq-v2-event-btn-muted:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.rfq-v2-event-btn-outline {
+  background: #ffffff;
+  color: #2a68d3;
+  border-color: #d1d5db;
+}
+
+.rfq-v2-event-btn-outline:hover {
+  border-color: #2a68d3;
+  background: #eff6ff;
+}
+
+.rfq-v2-event-btn-primary {
+  background: #2a68d3;
+  color: #ffffff;
+  border-color: #2a68d3;
+}
+
+.rfq-v2-event-btn-primary:hover {
+  background: #1d5bbf;
+  border-color: #1d5bbf;
+}
+
+.rfq-v2-event-drawer-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  padding: 18px;
+}
+
+.rfq-v2-event-form-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) 180px;
+  gap: 36px;
+  align-items: end;
+  padding-bottom: 18px;
+}
+
+.rfq-v2-event-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.rfq-v2-event-label {
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 600;
+  color: #111827;
+}
+
+.rfq-v2-event-select {
+  height: 32px;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #374151;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 0 30px 0 10px;
+  outline: none;
+}
+
+.rfq-v2-event-select:focus {
+  border-color: #2a68d3;
+  box-shadow: 0 0 0 2px rgba(42, 104, 211, 0.12);
+}
+
+.rfq-v2-event-total {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.rfq-v2-event-count {
+  min-width: 22px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border-radius: 5px;
+  background: #eef2ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rfq-v2-event-selection-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 0 8px;
+}
+
+.rfq-v2-event-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.rfq-v2-event-rfq-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.rfq-v2-event-table {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.rfq-v2-event-datagrid {
+  height: 100% !important;
+  min-height: 260px;
+  background: #ffffff;
+}
+
+.rfq-v2-event-datagrid .MuiDataGrid-columnHeaders {
+  background: #f9fafb !important;
+}
+
+.rfq-v2-event-empty {
+  height: 100%;
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #dc2626;
+  font-size: 13px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .v2-notif-drawer-panel {
+    width: calc(100vw - 24px);
+  }
+}
+
+@media (max-width: 768px) {
+  .rfq-v2-event-drawer {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: 86vh;
+    min-height: 0;
+  }
+
+  .rfq-v2-event-drawer-header {
+    height: auto;
+    min-height: 54px;
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 12px;
+  }
+
+  .rfq-v2-event-drawer-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .rfq-v2-event-drawer-body {
+    padding: 12px;
+  }
+
+  .rfq-v2-event-form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding-bottom: 14px;
+  }
+
+  .rfq-v2-event-btn {
+    height: 30px;
+  }
 }

@@ -1,0 +1,82 @@
+{
+  "layout": {
+    "pageBackground": "#f3f4f6",
+    "cardBackground": "#ffffff",
+    "cardBorder": "1px solid #e5e7eb",
+    "cardBorderRadius": "12px",
+    "cardBoxShadow": "none",
+    "pagePaddingLeft": "20px",
+    "pagePaddingRight": "20px",
+    "pagePaddingTop": "20px",
+    "pagePaddingBottom": "20px",
+    "pageHeaderPaddingTop": "20px",
+    "pageHeaderPaddingBottom": "16px",
+    "toolbarHeight": "auto (flex row, min-content)",
+    "toolbarPaddingVertical": "12px",
+    "toolbarPaddingHorizontal": "20px",
+    "toolbarBorderBottom": "1px solid #f3f4f6",
+    "tableRowHeight": 52,
+    "tableColumnHeaderHeight": 40,
+    "tableFooterMinHeight": 44,
+    "headerHeight": "60px",
+    "sidebarCollapsedWidth": "72px",
+    "sidebarExpandedWidth": "280px"
+  },
+  "typography": {
+    "fontFamily": "\"Inter\", \"Segoe UI\", system-ui, -apple-system, sans-serif",
+    "pageTitle": {
+      "fontSize": "20px",
+      "fontWeight": 700,
+      "color": "#111827",
+      "letterSpacing": "-0.2px",
+      "lineHeight": 1.2
+    },
+    "breadcrumb": {
+      "fontSize": "12px",
+      "color": "#9ca3af",
+      "gap": "4px"
+    },
+    "breadcrumbSeparator": {
+      "color": "#d1d5db",
+      "fontSize": "11px"
+    },
+    "tableHeader": {
+      "fontSize": "12px",
+      "fontWeight": 600,
+      "color": "#6b7280",
+      "background": "#f9fafb",
+      "padding": "0 16px"
+    },
+    "tableCell": {
+      "fontSize": "13px",
+      "color": "#1f2937",
+      "padding": "0 16px"
+    },
+    "rfqCellCode": {
+      "fontSize": "11px",
+      "fontWeight": 500,
+      "color": "#9ca3af"
+    },
+    "rfqCellSubject": {
+      "fontSize": "13px",
+      "fontWeight": 500,
+      "color": "#111827"
+    },
+    "statusBadge": {
+      "fontSize": "12px",
+      "fontWeight": 500,
+      "borderRadius": "20px",
+      "padding": "3px 10px",
+      "lineHeight": 1.4
+    },
+    "actionLink": {
+      "fontSize": "12.5px",
+      "fontWeight": 500,
+      "color": "#2a68d3"
+    },
+    "paginationText": {
+      "fontSize": "12px",
+      "color": "#6b7280"
+    }
+  }
+}

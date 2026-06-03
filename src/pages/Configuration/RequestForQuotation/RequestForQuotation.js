@@ -25,6 +25,8 @@ import {
 	HiOutlinePencil,
 	HiDotsVertical,
 	HiOutlineInformationCircle,
+	HiOutlineDownload,
+	HiOutlineArrowRight,
 } from "react-icons/hi";
 import { LiaUserSolid } from "react-icons/lia";
 import {
@@ -88,7 +90,14 @@ import {
 	menuactionlist,
 	pullMessageCount,
 	downloadExcelTemplate,
+	downloadFilesOnAzure,
+	attachmentmodalforevent,
+	filequeryparam,
+	getFileName,
+	validateFileSize,
+	getPayloadWithFilePath,
 } from "../../../utils/common";
+import { uploadFilesOnAzure } from "../../../utils/documentlibrary";
 import { actionTypes, useStateValue } from "../../../store";
 import {
 	OrgGroupMasterList,
@@ -125,7 +134,6 @@ import AddQuestionFormCell from "./AddQuestionFormCell";
 import { toast } from "react-toastify";
 import { StageFindAll } from "../../../utils/stagemaster";
 import {
-	BackButton,
 	MemoizedEventStageFlow,
 } from "../../../utils/common/component";
 import NotFoundPage from "../../../components/NotAllowed";
@@ -152,6 +160,7 @@ import PurchaseOrgGrp from "../../../utils/common/PurchaseOrgGrp";
 import PurchaseOrg from "../../../utils/common/PurchaseOrg";
 import GridSkeleton from "../../../components/Skeleton/gridSkeleton";
 import { TbExchange } from "react-icons/tb";
+import { PiWarningDiamondFill } from "react-icons/pi";
 import ERFQComparative from "./ERFQComparative";
 import RFQGeneralPreview from "./RFQGeneralPreview";
 import RFQActionDrawer from "../../../components/Reports/RFQActionDrawer";
@@ -3421,6 +3430,121 @@ const RequestForQuotation = ({ claimType }) => {
 	const [age, setAge] = React.useState('');
 
 	const [anchorEl, setAnchorEl] = React.useState(null);
+	const [statusAnchorEl, setStatusAnchorEl] = React.useState(null);
+	const [workflowPanelTab, setWorkflowPanelTab] = useState("workflow");
+
+	// ── Fetch right-panel tab data when tab switches ─────────────────────────
+	// NOTE: must be AFTER workflowPanelTab declaration to avoid temporal dead zone
+	useEffect(() => {
+		if (!approvershow) return;
+		if (workflowPanelTab === 'history' && idFromURL) {
+			fetchPanelHistory();
+		}
+		if (workflowPanelTab === 'attachments' && idFromURL) {
+			fetchPanelAttachments();
+		}
+	}, [workflowPanelTab, approvershow, idFromURL]);
+
+	// ── Right panel: History tab state ──────────────────────────────────────
+	const [historyAudit, setHistoryAudit] = useState([]);
+	const [historyGraph, setHistoryGraph] = useState([]);
+	const [historyLoading, setHistoryLoading] = useState(false);
+	const [historySelectedItem, setHistorySelectedItem] = useState(null);
+
+	const fetchPanelHistory = async () => {
+		if (!idFromURL) return;
+		setHistoryLoading(true);
+		const params = new URLSearchParams({ CustomerId: customerid, EventType: 'RFQ', EventId: idFromURL }).toString();
+		const res = await apiClient.getres(`api/ReportConfig/AuditReport?${params}`, atoken);
+		if (res?.data) {
+			const audit = res.data?.changeAudit || [];
+			const graph = res.data?.stategraph || [];
+			setHistoryAudit(audit);
+			setHistoryGraph(graph);
+			if (audit.length > 0) {
+				const latest = [...audit].sort((a, b) => new Date(b.actionDate) - new Date(a.actionDate))[0];
+				setHistorySelectedItem(latest);
+			}
+		}
+		setHistoryLoading(false);
+	};
+
+	const getHistoryInitials = (name) => {
+		if (!name) return '?';
+		return name.split(' ').map(p => p.charAt(0)).join('').toUpperCase().slice(0, 2);
+	};
+
+	// ── Right panel: Attachments tab state ──────────────────────────────────
+	const [panelSavedAttach, setPanelSavedAttach] = useState([]);
+	const [panelNewFiles, setPanelNewFiles] = useState([]);
+	const [panelAttachLoading, setPanelAttachLoading] = useState(false);
+	const [panelAttachDesc, setPanelAttachDesc] = useState('');
+	const [panelAttachFile, setPanelAttachFile] = useState(null);
+	const [panelAttachError, setPanelAttachError] = useState('');
+	const [panelAttachAdding, setPanelAttachAdding] = useState(false);
+	const panelFileInputRef = useRef(null);
+
+	const fetchPanelAttachments = async () => {
+		if (!idFromURL) return;
+		setPanelAttachLoading(true);
+		const params = buildQueryParams({ EventType: 'RFQ', EventId: idFromURL, VendorId: 0 });
+		const res = await apiClient.getres(`/api/eventattachment/Find?${params}`, atoken);
+		const resData = res?.data?.result || [];
+		if (resData.length > 0) {
+			const mapped = attachmentmodalforevent(resData, idFromURL, 'RFQ');
+			setPanelSavedAttach(mapped);
+			handleattachmentforevent(mapped);
+			handleAttachmentCount(mapped.length);
+		} else {
+			setPanelSavedAttach([]);
+			handleattachmentforevent([]);
+			handleAttachmentCount(0);
+		}
+		setPanelAttachLoading(false);
+	};
+
+	// fileArg: pass file directly from onChange (state not yet updated when called)
+	const addPanelAttachment = async (fileArg) => {
+		const fileToUse = fileArg || panelAttachFile;
+		const descToUse = panelAttachDesc.trim();
+		if (!descToUse || !fileToUse?.file) {
+			setPanelAttachError('Enter a description first, then pick a file.');
+			return;
+		}
+		setPanelAttachError('');
+		setPanelAttachAdding(true);
+		try {
+			const filedata = filequeryparam({ EventType: 'RFQ', EventId: idFromURL, Description: 'General', CustomerId: customerid });
+			const path = await uploadFilesOnAzure(filedata, fileToUse.file, atoken);
+			if (!path) return;
+			const payload = getPayloadWithFilePath('fileNamePath', path, {
+				eventId: idFromURL, eventType: 'RFQ',
+				attachmentDescription: descToUse,
+				attachment: fileToUse.file.name,
+				docRefId: 0, createdById: userDetail?.id, createdByName: userDetail?.name,
+			});
+			const res = await apiClient.postres(`/api/eventattachment/${idFromURL}/AddMultiple`, { attachments: [payload] }, atoken);
+			if (res) {
+				setPanelAttachDesc('');
+				setPanelAttachFile(null);
+				if (panelFileInputRef.current) panelFileInputRef.current.value = '';
+				fetchPanelAttachments();
+			}
+		} catch (e) {
+			setPanelAttachError('Upload failed. Please try again.');
+		} finally {
+			setPanelAttachAdding(false);
+		}
+	};
+
+	const deletePanelAttachment = async (index, id) => {
+		const res = await apiClient.postres(`/api/eventattachment/${id}/Delete`, null, atoken);
+		if (res) {
+			const updated = panelSavedAttach.filter((_, i) => i !== index);
+			setPanelSavedAttach(updated);
+			handleattachmentforevent(updated);
+		}
+	};
 
 	const handleClick = (event) => {
 		// Handle the main button click
@@ -3444,6 +3568,14 @@ const RequestForQuotation = ({ claimType }) => {
 	const [selectedMenuItem, setSelectedMenuItem] = useState("Save & Continue");
 	const handleMenuClose = () => {
 		setAnchorEl(null);
+	};
+
+	const handleStatusMenuOpen = (event) => {
+		setStatusAnchorEl(event.currentTarget);
+	};
+
+	const handleStatusMenuClose = () => {
+		setStatusAnchorEl(null);
 	};
 	// RFQ Template Title
 	const [TemplateTitle, setTemplateTitle] = useState("")
@@ -4069,6 +4201,34 @@ const RequestForQuotation = ({ claimType }) => {
 		}
 	};
 
+	const rfqStatusSteps = [
+		"Draft",
+		"Open",
+		"Forward for Approval",
+		"Technical Approval",
+		"Commercial Approval",
+		"Allocation",
+		"Awarded",
+	];
+
+	const normalizedCurrentStage = (currentStage || "Draft").trim();
+	const currentStatusIndex = Math.max(
+		0,
+		rfqStatusSteps.findIndex(
+			(step) => step.toLowerCase() === normalizedCurrentStage.toLowerCase()
+		)
+	);
+
+	const formatRfqDateTime = (value) => {
+		if (!value) return "-";
+		const parsed = dayjs(value);
+		return parsed.isValid() ? parsed.format("DD-MM-YY HH:mm") : "-";
+	};
+
+	const rfqTitle =
+		formik?.values?.subject ||
+		tempDataEditData?.[0]?.subject ||
+		"Purchase Requisition for production";
 
 
 	//##return
@@ -4077,28 +4237,72 @@ const RequestForQuotation = ({ claimType }) => {
 			<div className="mainContainer d-flex rfq-modern-shell" style={{ overflow: 'hidden' }}>
 				<div className={`leftContent ${approvershow ? "col-9" : "col-12"} d-flex flex-column`}>
 					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ height: 'calc(130vh - 120px)', overflow: 'hidden' }}>
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3" style={{ flexShrink: 0 }}>
-							<div className="d-flex align-items-center">
-								<BackButton
-									title={
-										tempDataEditData?.[0].eventCode
-											? <span className="page-heading">{tempDataEditData[0].eventCode}</span>
-											: idFromURL
-												? <span className="page-heading">RFQ ({idFromURL})</span>
-												: <span className="page-heading">Request for Quotation</span>
-									}
-									modal={currentStage === "Draft"}
-								/>
+						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 rfq-dv2-page-head" style={{ flexShrink: 0 }}>
+							<div className="d-flex rfq-dv2-title-wrap">
+								<span className="rfq-v2-title">{rfqTitle}</span>
+								<div className="rfq-dv2-meta-row">
+									<span className="rfq-dv2-meta-item">
+										<span className="rfq-dv2-meta-label">Status</span>
+										<button
+											type="button"
+											className="rfq-dv2-status-pill"
+											onClick={handleStatusMenuOpen}
+										>
+											<span className="rfq-dv2-status-dot" />
+											{normalizedCurrentStage}
+										</button>
+									</span>
+									<span className="rfq-dv2-meta-item">
+										<span className="rfq-dv2-meta-label">End Date/Time:</span>{" "}
+										<span className="rfq-dv2-meta-value">{formatRfqDateTime(formik?.values?.endDate)}</span>
+									</span>
+									<span className="rfq-dv2-meta-item">
+										<span className="rfq-dv2-meta-label">Requisitioner:</span>{" "}
+										<span className="rfq-dv2-meta-value">{formik?.values?.requisitioner || "-"}</span>
+									</span>
+								</div>
+								<Menu
+									anchorEl={statusAnchorEl}
+									open={Boolean(statusAnchorEl)}
+									onClose={handleStatusMenuClose}
+									classes={{ paper: "rfq-dv2-status-menu-paper" }}
+									anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+									transformOrigin={{ vertical: "top", horizontal: "left" }}
+								>
+									<div className="rfq-dv2-status-menu">
+										<div className="rfq-dv2-status-menu-title">RFQ Status</div>
+										<div className="rfq-dv2-status-menu-list">
+											{rfqStatusSteps.map((step, index) => {
+												const stepClass =
+													index < currentStatusIndex
+														? ""
+														: index === currentStatusIndex
+															? "is-current"
+															: "is-future";
+
+												return (
+													<div
+														key={step}
+														className={`rfq-dv2-status-step ${stepClass}`}
+													>
+														<span className="rfq-dv2-status-step-icon" />
+														<span>{step}</span>
+													</div>
+												);
+											})}
+										</div>
+									</div>
+								</Menu>
 							</div>
 							{/* Stage Flow - centered between title and buttons */}
-							<div className="d-flex justify-content-center flex-grow-1">
+							<div className="d-flex justify-content-center flex-grow-1 rfq-dv2-stage-flow">
 								<MemoizedEventStageFlow
 									stagelist={stagelist}
 									currentStage={currentStage}
 								/>
 							</div>
 							{/* Action Button*/}
-							<div className="d-flex align-items-center gap-2">
+							<div className="d-flex align-items-center gap-2 rfq-dv2-actions">
 								{!loading ? (
 									actionType === 'Forward' ||
 										(value === 6 && currentStage !== 'Technical Approval' && currentStage !== 'Open' && actionType === 'approval') ? (
@@ -4238,7 +4442,7 @@ const RequestForQuotation = ({ claimType }) => {
 						</div>
 
 						{/* Tab Navigation and Icons Header */}
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3">
+						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 bg-grey">
 							{/* Tab Navigation */}
 							<Box sx={{
 								flexGrow: 1,
@@ -4254,12 +4458,12 @@ const RequestForQuotation = ({ claimType }) => {
 									allowScrollButtonsMobile
 								>
 									{!actionType && (
-										<Tab value={1} label={<span className="section-heading">General</span>} />
+										<Tab value={1} label={<span className="section-heading">Overview</span>} />
 									)}
 									{!actionType && (
 										<Tab
 											value={2}
-											label={<span className="section-heading">Items/Services</span>}
+											label={<span className="section-heading">Items & Services</span>}
 											disabled={!idFromURL}
 										/>
 									)}
@@ -4297,7 +4501,7 @@ const RequestForQuotation = ({ claimType }) => {
 									) && (
 											<Tab
 												value={6}
-												label={<span className="section-heading">Report</span>}
+												label={<span className="section-heading">Reports</span>}
 												disabled={!idFromURL}
 											/>
 										)}
@@ -4320,7 +4524,7 @@ const RequestForQuotation = ({ claimType }) => {
 
 							{/* Top-right icons: History, Attachment, and Approval */}
 							{/* <div className="d-flex align-items-center gap-2"> */}
-							<div className={`d-flex align-items-center gap-2`}>
+							<div className="d-flex align-items-center gap-2 rfq-dv2-tab-actions" aria-hidden="true">
 								{(
 									<AttachmentWorkFlow
 										eventtype={`RFQ`}
@@ -5164,6 +5368,9 @@ const RequestForQuotation = ({ claimType }) => {
 													inputList={inputList}
 													purchaseAllList={purchaseAllList}
 													purchaseGroupAllList={purchaseGroupAllList}
+													stagearray={stagearray}
+													currentStage={currentStage}
+													handletabEdit={handletabEdit}
 												/>
 											);
 										})()
@@ -6268,18 +6475,61 @@ const RequestForQuotation = ({ claimType }) => {
 				{/* Right content - Approval Section */}
 				<div className={`rightContent ${approvershow ? "col-3" : "d-none"}`}>
 					<div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column ms-3 approver-panel" style={{ border: "1px solid #ddd", borderTop: "none", height: 'calc(100vh - 120px)', maxHeight: '100%', overflow: 'hidden' }}>
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2 flex-shrink-0">
-							<div className="section-heading mb-0 pb-4">Approval Workflow</div>
-							<IconButton
-								onClick={() => handleApprover(false)}
-								size="small"
-								className="text-muted"
-							>
-								<HiOutlineX className="f16" />
-							</IconButton>
+						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2 flex-shrink-0 rfq-dv2-workflow-head">
+							<div className="rfq-dv2-workflow-tabs">
+								<button
+									type="button"
+									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "workflow" ? "active" : ""}`}
+									onClick={() => setWorkflowPanelTab("workflow")}
+								>
+									Approval Workflow
+								</button>
+								<button
+									type="button"
+									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "history" ? "active" : ""}`}
+									onClick={() => setWorkflowPanelTab("history")}
+								>
+									View History
+								</button>
+								<button
+									type="button"
+									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "attachments" ? "active" : ""}`}
+									onClick={() => setWorkflowPanelTab("attachments")}
+								>
+									Attachments
+								</button>
+							</div>
+						</div>
+						<div className="rfq-dv2-workflow-action-panel">
+							<div className="rfq-dv2-workflow-alert">
+								<PiWarningDiamondFill className="rfq-dv2-workflow-alert-icon" />
+								<span>{normalizedCurrentStage} required for You</span>
+							</div>
+							<div className="rfq-dv2-workflow-actions">
+								<button
+									type="button"
+									className="rfq-dv2-workflow-approve"
+									onClick={(event) => {
+										formik_ApproveReject.setFieldValue("status", "Approved");
+										toggleDrawer("openInvoiceApproved", true)(event);
+									}}
+								>
+									Approve
+								</button>
+								<button
+									type="button"
+									className="rfq-dv2-workflow-reject"
+									onClick={(event) => {
+										formik_ApproveReject.setFieldValue("status", "Rejected");
+										toggleDrawer("openInvoiceApproved", true)(event);
+									}}
+								>
+									Reject
+								</button>
+							</div>
 						</div>
 						<div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
-							{approvershow && (
+							{approvershow && workflowPanelTab === "workflow" && (
 								<EventApprovalBox
 									requestCell={requestCell}
 									handleEventAppList={handleEventAppList}
@@ -6295,6 +6545,160 @@ const RequestForQuotation = ({ claimType }) => {
 									endDate={tempDataEditData?.[0]?.endDate}
 									currentStage={currentStage}
 								/>
+							)}
+							{/* ── History Tab ── */}
+							{approvershow && workflowPanelTab === "history" && (
+								<div className="rfq-dv2-history-track">
+									{historyLoading ? (
+										<div className="rfq-dv2-panel-loading">Loading history…</div>
+									) : historyGraph.length === 0 && historyAudit.length === 0 ? (
+										<div className="rfq-dv2-panel-empty">No history found.</div>
+									) : (
+										<>
+											{/* State Graph */}
+											{historyGraph.length > 0 && (
+												<div className="rfq-dv2-stage-graph">
+													{historyGraph.map((stage, i) => {
+														const name = stage.approverName ?? stage.modifiedByName ?? 'Unknown';
+														const date = stage.stageDone
+															? formatDateViaLocale(stage.stageDone, userDetail)
+															: formatDateViaLocale(stage.modifiedOn, userDetail);
+														return (
+															<React.Fragment key={i}>
+																{/* → arrow between boxes */}
+																{i > 0 && (
+																	<div className="rfq-dv2-stage-graph-arrow">
+																		<span className="rfq-dv2-stage-arrow-icon">→</span>
+																	</div>
+																)}
+																<div className="rfq-dv2-stage-graph-node">
+																	{/* ✓ Stage badge */}
+																	<span className="rfq-dv2-stage-graph-badge">
+																		<span className="rfq-dv2-stage-check">✓</span>
+																		{stage.currentStage?.toUpperCase()}
+																	</span>
+																	{/* Name */}
+																	<span className="rfq-dv2-stage-graph-user">{name}</span>
+																	{/* Date */}
+																	<span className="rfq-dv2-stage-graph-date">{date}</span>
+																</div>
+															</React.Fragment>
+														);
+													})}
+												</div>
+											)}
+
+											{/* Change History List — temporarily hidden */}
+											{/* TODO: re-enable when needed
+											{historyAudit.length > 0 && (
+												<div className="rfq-dv2-history-list">
+													...
+												</div>
+											)}
+											*/}
+										</>
+									)}
+								</div>
+							)}
+
+							{/* ── Attachments Tab ── */}
+							{approvershow && workflowPanelTab === "attachments" && (
+								<div className="rfq-dv2-attachments-panel">
+									{panelAttachLoading ? (
+										<div className="rfq-dv2-panel-loading">Loading attachments…</div>
+									) : (
+										<>
+											{/* ── Add new file toolbar ──
+												  Show only when:
+												  1. Stage allows editing (same condition as original AttachmentWorkFlow action prop)
+												  2. User has DOCUMENT_LIBRARY CREATE permission
+												*/}
+											{stagearray.includes(currentStage) && (effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.CREATE) ?? true) && (
+												<div className="rfq-dv2-attach-toolbar">
+													<div className="rfq-dv2-attach-input-row">
+														<input
+															type="text"
+															className="rfq-dv2-attach-desc-input"
+															placeholder="Description"
+															value={panelAttachDesc}
+															onChange={e => setPanelAttachDesc(e.target.value.replace(/'/g, ''))}
+														/>
+														<button
+															type="button"
+															className="rfq-dv2-add-file-btn"
+															onClick={() => panelFileInputRef.current?.click()}
+															disabled={panelAttachAdding}
+														>
+															<HiPlusSm /> {panelAttachAdding ? 'Uploading…' : 'Add new file'}
+														</button>
+													</div>
+													<input
+														type="file"
+														ref={panelFileInputRef}
+														style={{ display: 'none' }}
+														accept=".docx,.doc,.jpeg,.jpg,.gif,.png,.pdf,.xlsx"
+														onChange={e => {
+															if (validateFileSize(e)) {
+																const fileObj = { file: e.target.files[0] };
+																setPanelAttachFile(fileObj);
+																addPanelAttachment(fileObj);
+															} else {
+																setPanelAttachFile(null);
+															}
+														}}
+													/>
+													{panelAttachError && (
+														<div className="rfq-dv2-attach-error">{panelAttachError}</div>
+													)}
+												</div>
+											)}
+
+											{/* ── File rows (Image 2 layout) ── */}
+											{panelSavedAttach.length === 0 ? (
+												<div className="rfq-dv2-panel-empty">No attachments yet.</div>
+											) : (
+												<div className="rfq-dv2-attach-list">
+													{panelSavedAttach.map((item, i) => (
+														<div key={i} className="rfq-dv2-file-row">
+															<input
+																type="checkbox"
+																className="rfq-dv2-file-check"
+																aria-label="Select attachment"
+																readOnly
+															/>
+															<div className="rfq-dv2-file-meta">
+																<strong className="rfq-dv2-file-title">
+																	{item.attachmentDescription || 'Attachment'}
+																</strong>
+																<span className="rfq-dv2-file-name">
+																	{getFileName(item.fileNamePath)}
+																</span>
+															</div>
+															<button
+																type="button"
+																className="rfq-dv2-file-action"
+																aria-label="Download"
+																onClick={() => downloadFilesOnAzure(item.fileNamePath, getFileName(item.fileNamePath), atoken)}
+															>
+																<HiOutlineDownload />
+															</button>
+															{stagearray.includes(currentStage) && !item.required && (effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.REMOVE) ?? true) && (
+																<button
+																	type="button"
+																	className="rfq-dv2-file-action is-danger"
+																	aria-label="Delete"
+																	onClick={() => deletePanelAttachment(i, item.id)}
+																>
+																	<HiOutlineX />
+																</button>
+															)}
+														</div>
+													))}
+												</div>
+											)}
+										</>
+									)}
+								</div>
 							)}
 						</div>
 
@@ -6564,140 +6968,96 @@ const RequestForQuotation = ({ claimType }) => {
 			</React.Fragment>
 			<React.Fragment key="key4">
 
-				<Drawer anchor="right" open={state["openInvoiceApproved"]}>
+				<Dialog
+					open={state["openInvoiceApproved"]}
+					onClose={toggleDrawer("openInvoiceApproved", false, [])}
+					maxWidth={false}
+					PaperProps={{ className: "rfq-dv2-approval-modal" }}
+					BackdropProps={{ className: "rfq-dv2-approval-backdrop" }}
+				>
 					<form onSubmit={formik_ApproveReject.handleSubmit} autoComplete="off">
-						<Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-							<div className="flex flex-col">
-								<Box className="bgheaderCards">
-									<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-										<div className="ms-3 text-white">Approval Action</div>
-										<div>
-											<IconButton
-												onClick={toggleDrawer("openInvoiceApproved", false, [])}
-												size="small"
-												edge="start"
-												sx={{ mr: 1 }}
-											>
-												<HiOutlineX className="f20 text-white" />
-											</IconButton>
-										</div>
-									</div>
-								</Box>
-								<div className="h50px"></div>
-								<div className="p-3">
-									<div className="row ">
-										<div className="col-12 col-md-12 col-lg-12">
-											<div className="mb-4 textblue f14"></div>
-											<div className="row">
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="isApproved"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="isApproved"
-														select
-														className="mb-2"
-														fullWidth
-														size="small"
-														label="Status"
-														variant="outlined"
-														value={formik_ApproveReject.values?.status}
-														onChange={(e) => {
-
-															formik_ApproveReject.setFieldValue(
-																"status",
-																e.target.value
-															)
-														}
-
-														}
-
-														error={
-															formik_ApproveReject.touched.status &&
-															Boolean(formik_ApproveReject.errors.status)
-														}
-														helperText={
-															formik_ApproveReject.touched.status &&
-															formik_ApproveReject.errors.status
-														}
-													>
-														{actionType != "Forward" && menuactionlist.filter(x => x.value != "Forward").map((x) => {
-
-															return (<MenuItem value={x.value}>{x.label}</MenuItem>)
-
-														})
-
-														}
-														{actionType == "Forward" && menuactionlist.filter(x => x.value == "Forward").map((x) => {
-
-															return (<MenuItem value={x.value}>{x.label}</MenuItem>)
-
-														})
-
-														}
-
-													</TextField>
-												</div>
-
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="approveComment"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														multiline
-														rows={3}
-														name="approveComment"
-														className="w-100 f14"
-														size="small"
-														label="Comment "
-														variant="outlined"
-														inputProps={{ maxLength: 200 }}
-														value={formik_ApproveReject?.values?.approveComment}
-														onChange={(e) =>
-															formik_ApproveReject.setFieldValue(
-																"approveComment",
-																e.target.value
-															)
-														}
-														InputProps={{
-															endAdornment: formik_ApproveReject?.values?.approveComment && (
-																<InputAdornment position="end">
-																	<Typography variant="body2" color="textSecondary">
-																		{formik_ApproveReject?.values?.approveComment?.length}/200
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-													/>
-
-												</div>
-
-											</div>
-
-										</div>
-									</div>
-									<div className="row">
-										<div className="col-12 text-end">
-											<LoadingButton
-												loading={loading}
-												color="primary"
-												size="medium"
-												className="text-white text-capitalize mb-3 mr-3"
-												variant="contained"
-												type="submit"
-											>
-												<span>Submit</span>
-											</LoadingButton>
-
-										</div>
-									</div>
-								</div>
+						<div className="rfq-dv2-approval-modal-head">
+							<h3>
+								{formik_ApproveReject.values?.status === "Rejected"
+									? "Reject this stage?"
+									: "Approve this stage?"}
+							</h3>
+							<IconButton
+								onClick={toggleDrawer("openInvoiceApproved", false, [])}
+								size="small"
+								aria-label="Close approval action"
+								className="rfq-dv2-approval-close"
+							>
+								<HiOutlineX />
+							</IconButton>
+						</div>
+						<div className="rfq-dv2-approval-modal-body">
+							<div
+								className={`rfq-dv2-approval-message ${formik_ApproveReject.values?.status === "Rejected" ? "is-reject" : ""}`}
+							>
+								{formik_ApproveReject.values?.status === "Rejected" ? (
+									<>
+										You're rejecting <strong>{normalizedCurrentStage}</strong>. The RFQ will remain in this stage until the rejection is handled.
+									</>
+								) : (
+									<>
+										You're approving <strong>{normalizedCurrentStage}</strong>. The RFQ will move to the next stage once all approvers in this stage approve.
+									</>
+								)}
 							</div>
-						</Box>
+							<div className="rfq-dv2-approval-field">
+								<label htmlFor="approveComment">Comment (optional)</label>
+								<TextField
+									id="approveComment"
+									multiline
+									rows={1}
+									name="approveComment"
+									fullWidth
+									variant="outlined"
+									placeholder={
+										formik_ApproveReject.values?.status === "Rejected"
+											? "Add the reason for rejection."
+											: "Looks good - quantities match forecast. Proceed."
+									}
+									inputProps={{ maxLength: 200 }}
+									value={formik_ApproveReject?.values?.approveComment}
+									onChange={(e) =>
+										formik_ApproveReject.setFieldValue(
+											"approveComment",
+											e.target.value
+										)
+									}
+									InputProps={{
+										endAdornment: formik_ApproveReject?.values?.approveComment && (
+											<InputAdornment position="end">
+												<Typography variant="body2" color="textSecondary">
+													{formik_ApproveReject?.values?.approveComment?.length}/200
+												</Typography>
+											</InputAdornment>
+										),
+									}}
+								/>
+								<p>Visible to all approvers and the requisitioner.</p>
+							</div>
+						</div>
+						<div className="rfq-dv2-approval-modal-actions">
+							<button
+								type="button"
+								className="rfq-dv2-approval-cancel"
+								onClick={toggleDrawer("openInvoiceApproved", false, [])}
+							>
+								Cancel
+							</button>
+							<LoadingButton
+								loading={loading}
+								type="submit"
+								className={`rfq-dv2-approval-submit ${formik_ApproveReject.values?.status === "Rejected" ? "is-reject" : ""}`}
+							>
+								<span>{formik_ApproveReject.values?.status === "Rejected" ? "Submit rejection" : "Submit approval"}</span>
+							</LoadingButton>
+						</div>
 					</form>
-				</Drawer>
+				</Dialog>
 			</React.Fragment>
 
 			<Dialog open={confirmDelete} onClose={handleCloseDelete}>
