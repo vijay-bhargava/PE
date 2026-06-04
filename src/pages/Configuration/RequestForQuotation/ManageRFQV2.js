@@ -149,10 +149,16 @@ const ManageRFQV2 = ({ claimType }) => {
   const [recorddata, setRecorddata] = useState([]);
   const [gridloading, setGridloading] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 });
 
   const pullRFQManageFind = () => {
     if (!isreadDisabled) { setRecorddata([]); return; }
-    const data = { CustomerId: customerid, SortingColumn: 'Id' };
+    const data = {
+      CustomerId: customerid,
+      SortingColumn: 'Id',
+      PageNumber: 1,
+      PageSize: 1000,
+    };
     setGridloading(true);
     getRFQManageFind(data, atoken).then((res) => {
       setGridloading(false);
@@ -180,6 +186,10 @@ const ManageRFQV2 = ({ claimType }) => {
       );
     })
     : recorddata;
+
+  useEffect(() => {
+    setPaginationModel((prev) => ({ ...prev, page: 0 }));
+  }, [searchText, recorddata.length]);
 
   /* ── Advance filter panel ── */
   const [advFilterOpen, setAdvFilterOpen] = useState(false);
@@ -710,8 +720,9 @@ const ManageRFQV2 = ({ claimType }) => {
                 disableColumnResize
                 disableColumnMenu={false}
                 hideFooterSelectedRowCount
-                pageSizeOptions={[25, 50, 100]}
-                initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
+                pageSizeOptions={[10, 25, 50, 100]}
+                paginationModel={paginationModel}
+                onPaginationModelChange={setPaginationModel}
                 sx={{
                   border: 'none',
                   flex: 1,

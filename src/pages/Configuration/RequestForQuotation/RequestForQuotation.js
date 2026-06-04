@@ -182,7 +182,7 @@ import AddEditCurrency from "../../../utils/common/AddEditCurrency";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const RequestForQuotation = ({ claimType }) => {
+const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const fileInputRef = useRef(null);
 	const location = useLocation();
 	const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
@@ -4236,16 +4236,17 @@ const RequestForQuotation = ({ claimType }) => {
 		<>
 			<div className="mainContainer d-flex rfq-modern-shell" style={{ overflow: 'hidden' }}>
 				<div className={`leftContent ${approvershow ? "col-9" : "col-12"} d-flex flex-column`}>
-					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ height: 'calc(130vh - 120px)', overflow: 'hidden' }}>
+					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ height: '100%', overflow: 'hidden' }}>
 						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 rfq-dv2-page-head" style={{ flexShrink: 0 }}>
 							<div className="d-flex rfq-dv2-title-wrap">
+								{breadcrumb}
 								<span className="rfq-v2-title">{rfqTitle}</span>
 								<div className="rfq-dv2-meta-row">
 									<span className="rfq-dv2-meta-item">
 										<span className="rfq-dv2-meta-label">Status</span>
 										<button
 											type="button"
-											className="rfq-dv2-status-pill"
+											className={`rfq-dv2-status-pill ${normalizedCurrentStage.toLowerCase() === "draft" ? "is-draft" : ""}`}
 											onClick={handleStatusMenuOpen}
 										>
 											<span className="rfq-dv2-status-dot" />
@@ -4560,7 +4561,7 @@ const RequestForQuotation = ({ claimType }) => {
 						</div>
 
 						{/* Tab Content */}
-						<div className="flex-grow-1 p-2 hidden-scrollbar" style={{
+						<div className={`flex-grow-1 p-2 hidden-scrollbar ${(!idFromURL || idFromURL === "add") ? "rfq-dv2-create-form" : ""}`} style={{
 							height: 'calc(100% - 60px)'
 						}}>
 							{/* General Tab Content */}
@@ -4597,7 +4598,7 @@ const RequestForQuotation = ({ claimType }) => {
 															<div className="col-12">
 																<TextFieldCell
 																	size="small"
-																	label="Subject *"
+																	label="RFQ Subject"
 																	name="subject"
 																	id="subject"
 																	value={formik.values.subject}
@@ -4614,8 +4615,8 @@ const RequestForQuotation = ({ claimType }) => {
 
 														<div className="row mb-3">
 															<div className="col-12">
-																<div className="f12 text-muted mb-1">
-																	<span>Description *</span>
+																<div className="f12 text-muted mb-1 rfq-dv2-quill-field">
+																	<span>RFQ Description</span>
 																	<ReactQuill
 																		theme="snow"
 																		value={formik.values.description || ''}
@@ -4631,7 +4632,7 @@ const RequestForQuotation = ({ claimType }) => {
 														<LocalizationProvider dateAdapter={AdapterDayjs}>
 															<div className="row mt-4 mb-2">
 																{/* Requisitioner */}
-																<div className="col-12 col-md-4 col-lg-4">
+																<div className="col-12 col-md-4 col-lg-4 rfq-dv2-requisitioner-field">
 																	<Autocomplete
 																		id="requisitioner"
 																		name="requisitioner"
@@ -4660,7 +4661,7 @@ const RequestForQuotation = ({ claimType }) => {
 																</div>
 
 																{/* Start Date */}
-																<div className="col-12 col-md-4 col-lg-4">
+																<div className="col-12 col-md-4 col-lg-4 rfq-dv2-start-field">
 																	<MobileDateTimePicker
 																		label="Start Date/Time"
 																		name="startDate"
@@ -4688,7 +4689,7 @@ const RequestForQuotation = ({ claimType }) => {
 																</div>
 
 																{/* End Date */}
-																<div className="col-12 col-md-4 col-lg-4">
+																<div className="col-12 col-md-4 col-lg-4 rfq-dv2-end-field">
 																	<MobileDateTimePicker
 																		label="End Date/Time *"
 																		name="endDate"
@@ -4720,7 +4721,7 @@ const RequestForQuotation = ({ claimType }) => {
 														<div className="row mt-4 mb-2">
 															{/* Purchase Org */}
 															{purchaseAllList && (
-																<div className="col-12 col-md-4 col-lg-4 mb-2">
+																<div className="col-12 col-md-4 col-lg-4 mb-2 rfq-dv2-purchase-org-field">
 																	<Autocomplete
 																		id="purchOrgId"
 																		name="purchOrgId"
@@ -4784,7 +4785,7 @@ const RequestForQuotation = ({ claimType }) => {
 
 															{/* Purchase Group */}
 															{purchaseGroupAllList && (
-																<div className="col-12 col-md-4 col-lg-4 mb-2">
+																<div className="col-12 col-md-4 col-lg-4 mb-2 rfq-dv2-purchase-group-field">
 																	<Autocomplete
 																		id="purchGrpId"
 																		name="purchGrpId"
@@ -4860,7 +4861,7 @@ const RequestForQuotation = ({ claimType }) => {
 
 
 
-														<div className="col-12 mb-1">
+														<div className="col-12 mb-1 rfq-dv2-terms-field">
 															<FormControl className="w-100">
 																<FormLabel id="baseCurrency">
 																	<span className="f13">
@@ -5085,7 +5086,7 @@ const RequestForQuotation = ({ claimType }) => {
 																)}
 														</div>
 														<div className="col-12 mb-1">
-															<div className="f12 text-muted mb-1">
+															<div className="f12 text-muted mb-1 rfq-dv2-quill-field">
 																<span>Terms & Conditions *</span>
 																{idFromURL && (
 																	<span>
@@ -5169,7 +5170,7 @@ const RequestForQuotation = ({ claimType }) => {
 																<></>
 															)}
 														</div>
-														<div className="col-12 mb-4 d-flex">
+														<div className="col-12 mb-4 d-flex rfq-dv2-toggle-section">
 															<div className="col-12 col-md-2 col-lg-2 mt-4">
 																<FormGroup>
 																	<FormControlLabel

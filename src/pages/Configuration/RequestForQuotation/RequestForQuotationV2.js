@@ -35,33 +35,35 @@ const RequestForQuotationV2 = ({ claimType }) => {
     }
   }, [eventCode]);
 
+  const breadcrumb = (
+    <nav className="rfq-dv2-breadcrumb" aria-label="breadcrumb">
+      <span
+        className="rfq-dv2-breadcrumb-link"
+        onClick={() => navigate('/app')}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && navigate('/app')}
+      >
+        Home
+      </span>
+      <span className="rfq-dv2-sep">/</span>
+      <span
+        className="rfq-dv2-breadcrumb-link"
+        onClick={() => navigate('/configuration/manage-rfq')}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && navigate('/configuration/manage-rfq')}
+      >
+        Manage RFQ
+      </span>
+      <span className="rfq-dv2-sep">/</span>
+      <span className="rfq-dv2-breadcrumb-current">{crumbLabel}</span>
+    </nav>
+  );
+
   return (
     <div className="rfq-detail-v2-shell">
-      <nav className="rfq-dv2-breadcrumb" aria-label="breadcrumb">
-        <span
-          className="rfq-dv2-breadcrumb-link"
-          onClick={() => navigate('/app')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && navigate('/app')}
-        >
-          Home
-        </span>
-        <span className="rfq-dv2-sep">/</span>
-        <span
-          className="rfq-dv2-breadcrumb-link"
-          onClick={() => navigate('/configuration/manage-rfq')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && navigate('/configuration/manage-rfq')}
-        >
-          Manage RFQ
-        </span>
-        <span className="rfq-dv2-sep">/</span>
-        <span className="rfq-dv2-breadcrumb-current">{crumbLabel}</span>
-      </nav>
-
-      <RequestForQuotation claimType={claimType} />
+      <RequestForQuotation claimType={claimType} breadcrumb={breadcrumb} />
     </div>
   );
 };
