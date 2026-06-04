@@ -31,7 +31,7 @@ import AddUpdateQuestion from "../../pages/Settings/QuestionMaster/AddUpdateQues
 import { CategoryFindAll } from "../../utils/questionlibrary";
 import { FastApiClient } from "../../FastApiClient";
 import { CLAIM_TYPES, ACTIONS } from '../../utils/permissionManager';
-import {getEventApproversFind} from '../../utils/common/utility';
+import { getEventApproversFind } from '../../utils/common/utility';
 import { set } from "date-fns";
 const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
 
@@ -84,8 +84,8 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
       const queryParams = buildQueryParams(params);
       const res = await apiclient.getres(`/api/RFQQuestionLib/Find?${queryParams}`, atoken);
       if (res) {
-        const data = res?.data?.result;
-        setQuestionList([...data])
+        const data = Array.isArray(res?.data?.result) ? res.data.result : [];
+        setQuestionList(data)
         const selectedLibrary = findObjByValueFromArray(Librarylist, data[0]?.libraryId, 'id');
         if (selectedLibrary) {
           setSelectedLibrary(selectedLibrary)
@@ -102,29 +102,29 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
         }
         return;
       }
-      
+
       const res = await apiclient.getres(`/api/SQE/${props.vendorId}/Find`, atoken);
-      
+
       if (res && res.data?.length > 0) {
 
         // Find the specific VQ record that matches the eventid
         const vqRecord = res.data.find(vq => vq.id === parseInt(props.eventid));
-        
+
         if (vqRecord && vqRecord.sqeHeaderDetails) {
           const sqeHeaderDetails = vqRecord.sqeHeaderDetails || [];
-          
+
           // Filter out existing questions without libraryId to avoid duplicates
           const eventquestion = (questionlist ?? []).filter(x => !x.libraryId);
-          
+
           // Set the questions list with the prefilled data
           const finalQuestions = sqeHeaderDetails.length > 0 ? sqeHeaderDetails : eventquestion;
           setQuestionList(finalQuestions);
-          
+
           // Callback to parent with the questions
           if (props.CallbackSelectedQuestionList) {
             props.CallbackSelectedQuestionList(finalQuestions);
           }
-          
+
           // Set the selected library if available
           if (sqeHeaderDetails.length > 0) {
             const firstQuestion = sqeHeaderDetails[0];
@@ -163,8 +163,8 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
     const queryParams = buildQueryParams(params);
     const res = await apiclient.getres(`/api/QuestionsLib/Find?${queryParams}`, atoken);
     if (res) {
-      const questionlibresult = res?.data?.result; //pe.questionmaster table
-      if (questionlibresult == 0) {
+      const questionlibresult = Array.isArray(res?.data?.result) ? res.data.result : []; //pe.questionmaster table
+      if (questionlibresult.length == 0) {
         toast.info(`No Questions Found. Please Select Another Library `, {
           toastid: "noquestionerror"
         })
@@ -197,8 +197,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
   //in order to handle event from parent component
   useImperativeHandle(EventQuestionScreenRef, () => ({
     saveEventQuestion: async () => {
-      if(isQuestionListLoading)
-      {
+      if (isQuestionListLoading) {
         return;
       }
       setIsQuestionListLoading(true);
@@ -211,7 +210,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
           x.Version = props?.Version
         })
         const hasTechnicalApproval = props.stagelist.some(stage => stage.currentStage === "Technical Approval");
-        
+
         const isTechApproverPresent = await getEventApproversFind(props.requestCell, atoken).then((res) => {
           return res?.some(item =>
             item.stage?.toLowerCase().includes("technical") ||
@@ -344,9 +343,9 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
 
 
   const callbackDeleteQuesFromList = (category, subcategory, questionDescription) => {
-    
+
     setQuestionList((prevQuestions) => {
-      
+
       // Filter out the question based on category, subcategory, and description
       return prevQuestions.filter((item) => {
         // We return only the items that do NOT match the specified category, subcategory, and description
@@ -357,7 +356,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
         );
       });
     });
-    
+
     if (props.eventtype == "VQ") {
       props.CallbackSelectedQuestionList((questionlist) => {
         // Filter out the question based on category, subcategory, and description
@@ -376,7 +375,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
   //drawerrelated
 
   const handleAddQuestion = (values) => {
-    
+
     if (props?.eventtype == "RFQ") {
       const newQ = RFQQuestionsModalOBJ(values, props?.eventid);
 
@@ -385,9 +384,9 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
     }
 
     if (props?.eventtype == "VQ") {
-      
+
       const newQ = SQEQuestionsModalOBJ(values, props.eventid);
-      
+
       setQuestionList([...questionlist, newQ])
       props.CallbackSelectedQuestionList([...questionlist, newQ])
       //#Anurag_Dev handle close the drawer after the question mapping
@@ -485,7 +484,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
         eventtype={props?.eventtype}
         callbackDeleteQuesFromList={callbackDeleteQuesFromList}
         eventSealed={props?.eventSealed ?? "Y"}
-        vendorId = {props.vendorId}
+        vendorId={props.vendorId}
         currentStage={props.currentStage}
         stagelist={props.stagelist}
         EventHeaderDetails={props.EventHeaderDetails}
@@ -531,7 +530,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
           else {
 
           }
-          }
+        }
         }
         action={props.action}
         questionresponses={props.questionresponses ?? []}

@@ -1,9 +1,9 @@
 // const DashboardDefault = Loadable(lazy(() => import('pages/dashboard')));
 import { Navigate } from "react-router-dom";
-import MainLayout from "../layout/MainLayout";
+import MainLayout from "../layout/MainLayoutV2";
 import AboutUs from "../pages/AboutUs";
-import ManageRFQ from "../pages/Configuration/RequestForQuotation/ManageRFQ";
-import RequestForQuotation from "../pages/Configuration/RequestForQuotation/RequestForQuotation";
+import ManageRFQ from "../pages/Configuration/RequestForQuotation/ManageRFQV2";
+import RequestForQuotation from "../pages/Configuration/RequestForQuotation/RequestForQuotationV2";
 import BoqScreen from "../pages/Configuration/RequestForQuotation/BoqScreen";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import ManageParticipants from "../pages/Manage/ManageParticipants/ManageParticipants";
@@ -27,7 +27,7 @@ import CustomerList from "../pages/MasterData/CustomerSetup/CustomerList";
 import ManagePR from "../pages/Configuration/PurchaseRequest/ManagePR";
 import PurchaseRequest from "../pages/Configuration/PurchaseRequest/PurchaseRequest";
 
-import { bid_list, managePR_list, manageParticipants_list, managerfi_list, managerfq_list, managenfa_list, purchaseRequest_list, registerParticipants_list, rfq_list ,nfa_list} from "./claimlist";
+import { bid_list, managePR_list, manageParticipants_list, managerfi_list, managerfq_list, managenfa_list, purchaseRequest_list, registerParticipants_list, rfq_list, nfa_list } from "./claimlist";
 import ManageBid from "../pages/Configuration/Auctions/ManageBid";
 import AuctionControl from "../pages/Configuration/Auctions/AuctionControl";
 import ERFQComparative from "../pages/Configuration/RequestForQuotation/ERFQComparative";
@@ -192,7 +192,7 @@ const MainRoutes = {
 		{
 			path: "/settings/manage-delegate",
 			// element: <ManageDelegate />,
-			element: <Delegation/>,
+			element: <Delegation />,
 		},
 		{
 			path: "/settings/manage-user",
@@ -202,7 +202,7 @@ const MainRoutes = {
 			path: "/settings/manage-category",
 			element: <AddPrItemCategory />,
 		},
-{
+		{
 			path: "/settings/manage-grade",
 			element: <ManageGrade />,
 		},
@@ -239,9 +239,9 @@ const MainRoutes = {
 			element: <ManageNFA claimType={managenfa_list} key={"manageNFA"} />,
 		},
 		{
-            path: "/create-exception",
-            element: <AddUpdateexception/>,
-        },
+			path: "/create-exception",
+			element: <AddUpdateexception />,
+		},
 		{
 			path: "/create-project",
 			element: <AddUpdateProject />,
@@ -251,13 +251,13 @@ const MainRoutes = {
 			element: <AddUpdateSpend />,
 		},
 		{
-            path: "/reports/NFASummaryReport",
-            element: <NFASummaryReport />,
-        },
+			path: "/reports/NFASummaryReport",
+			element: <NFASummaryReport />,
+		},
 		{
-            path: "/reports/TATReport",
-            element: <TATReport />,
-        },
+			path: "/reports/TATReport",
+			element: <TATReport />,
+		},
 		{
 
 			path: "/configuration/manage-nfa/:pageSlug",
@@ -275,8 +275,8 @@ const MainRoutes = {
 		// 	path: "configuration/nfa-list",
 		// 	element: <ManageNFA key={"managenfa"} claimType={managenfa_list} />,
 		// },
-	
-		
+
+
 		{
 			path: '/manage/manage-participants/invited-participants/:pageSlug/:supplierid',
 			element: <RegisterSuppliers key={"invitedparticipants"} />

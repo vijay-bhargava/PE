@@ -58,7 +58,7 @@ const MessageCell = () => {
 			dispatch({ type: actionTypes.SET_Opendrawer, value: false });
 			setSelectedNotification(null);
 			setIsSidebarVisible(true);
-			
+
 			// Refresh the full message list when closing
 			pullMessageList();
 			pullContextAwareMessageCount();
@@ -127,7 +127,7 @@ const MessageCell = () => {
 	const [Messagedata, setMessagedata] = useState([]);
 	const [selectedNotification, setSelectedNotification] = useState(null);
 	const getMessageListParams = (specificCommId = null) => {
-		
+
 		const currentPath = location.pathname;
 		const pathSegments = currentPath.split('/').filter(segment => segment);
 		const lastSegment = pathSegments[pathSegments.length - 1];
@@ -208,7 +208,7 @@ const MessageCell = () => {
 
 		// Clean up params based on endpoint
 		if (endpoint === 'api/Communication/FindByCommId') {
-			
+
 			delete params.CommDetails_CommParticipantUser_UserId;
 			//delete params.UserId;
 		}
@@ -217,26 +217,26 @@ const MessageCell = () => {
 	};
 
 	const pullMessageList = async (source = 'notification', specificCommId = null) => {
-		
+
 		try {
 			// Use the specificCommId if provided, otherwise fall back to CommId from state
 			const commIdToUse = specificCommId || CommId;
 			const { params, endpoint } = getMessageListParams(commIdToUse > 0 ? commIdToUse : null);
-			
+
 			const queryParams = buildQueryParams(params);
 			let res = null;
 
 			// Check if we need to fetch specific CommId chat thread
 			// This applies when clicking from QueryList OR when a specific CommId is selected
 			if (commIdToUse && commIdToUse > 0) {
-				
+
 				try {
 					const data = {
 						CommId: commIdToUse
 					};
 
 					const res = await FindThreadChat(data, atoken);
-					
+
 
 					const returnData = Array.isArray(res)
 						? res
@@ -276,7 +276,7 @@ const MessageCell = () => {
 						const finalData = Object.values(groupedData);
 
 						setMessagedata(finalData);
-						
+
 
 						dispatch({
 							type: actionTypes.SET_Notificationlist,
@@ -288,7 +288,7 @@ const MessageCell = () => {
 				}
 			} else {
 				// Call from notification icon or other sources
-				
+
 				res = await apiClient.getres(
 					`${endpoint}?${queryParams}`,
 					atoken
@@ -668,7 +668,8 @@ const MessageCell = () => {
 	const [anchorEl, setAnchorEl] = useState(null);
 
 	const handleClick = (event) => {
-		
+		const nextOpen = !isOpen;
+
 		// Always refresh message list first, then count
 		pullMessageList().then(() => {
 			pullContextAwareMessageCount();
@@ -678,6 +679,8 @@ const MessageCell = () => {
 		});
 
 		setAnchorEl(anchorEl ? null : event.currentTarget);
+		setIsOpen(nextOpen);
+		dispatch({ type: actionTypes.SET_NotificationDrawer, value: nextOpen });
 	};
 
 	useEffect(() => {
@@ -687,7 +690,7 @@ const MessageCell = () => {
 			const source = messageSource || 'querylist';
 			// Pass CommId to pullMessageList to ensure it fetches messages for this specific conversation
 			pullMessageList(source, CommId > 0 ? CommId : null);
-			
+
 			if (notificationRef.current) {
 				notificationRef?.current.click()
 				setState({
@@ -724,7 +727,7 @@ const MessageCell = () => {
 	};
 
 	const handleSelectMessage = async (notification) => {
-        
+
 		// Get the last message (assuming this is the clicked one)
 		const lastMessage = notification?.commDetails[notification.commDetails.length - 1];
 
@@ -742,7 +745,7 @@ const MessageCell = () => {
 
 		await updateNotificationData(payload);
 		await pullContextAwareMessageCount();
-        
+
 		setSelectedNotification(notification);
 
 		const selectedCommId = lastMessage.commId || notification.id;
@@ -787,6 +790,7 @@ const MessageCell = () => {
 		const handleClickOutside = (event) => {
 			if (popperRef.current && !popperRef.current.contains(event.target)) {
 				setIsOpen(false);
+				dispatch({ type: actionTypes.SET_NotificationDrawer, value: false });
 			}
 		};
 
@@ -806,13 +810,29 @@ const MessageCell = () => {
 			<div className="text-center d-flex align-items-center" style={{ position: 'relative' }}>
 
 				<IconButton
-				 onClick={handleClick}
-				//  onClick={(e) => handleClick(e, true)}
-				  ref={notificationRef}
-				  >
+					onClick={handleClick}
+					//  onClick={(e) => handleClick(e, true)}
+					ref={notificationRef}
+				>
 					<Badge
+						overlap="circular"
+						anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
 						badgeContent={messageCount && messageCount > 0 ? messageCount : null}
 						color="secondary"
+						sx={{
+							'& .MuiBadge-badge': {
+								backgroundColor: '#c9352c',
+								color: '#ffffff',
+								fontSize: '10px',
+								fontWeight: 700,
+								minWidth: '18px',
+								height: '18px',
+								lineHeight: 1,
+								padding: '0 4px',
+								boxShadow: '0 0 0 2px #f8f8f8',
+								zIndex: 1,
+							},
+						}}
 					>
 						<HiOutlineBell style={{ fontSize: '25px' }} />
 
@@ -824,65 +844,38 @@ const MessageCell = () => {
 
 
 
-				<Drawer
-					anchor="right"
-					open={isOpen}
-					variant="temporary"
-					ModalProps={{
-						keepMounted: true,
-					}}
-					PaperProps={{
-						sx: {
-							zIndex: 1400, // 🔺 Raise above most headers (default AppBar zIndex = 1100)
-							width: { xs: 320, sm: 300, md: 350 },
-						},
-					}}
-					sx={{ zIndex: 1400 }}
-				>
-
-					<Box sx={{ width: { xs: 320, sm: 300, md: 350 } }}>
-						<Box className="bgheaderNotificationCards">
-							<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-								<div className="ms-3 text-white">Notifications</div>
-								<div>
-									<IconButton
+				{isOpen && (
+					<div className="rfq-v2-filter-panel v2-notif-drawer-panel" ref={popperRef}>
+						<div className="v2-notif-panel">
+							{/* Header */}
+							<div className="v2-notif-header">
+								<span className="v2-notif-title">Notifications</span>
+								<div className="v2-notif-header-actions">
+									<button
+										className="v2-notif-mark-read"
+										onClick={handleMarkAllRead}
+										type="button"
+									>
+										Mark all read
+									</button>
+									<button
 										onClick={() => {
 											dispatch({ type: actionTypes.SET_NotificationDrawer, value: false });
-											setIsOpen(false); // also update local state, if you're using it
+											setIsOpen(false);
 										}}
-										// onClick={() => setIsOpen(false)}
-
-										size="small"
-										edge="start"
-										sx={{ mr: 1 }}
+										className="rfq-v2-filter-panel-close v2-notif-close-btn"
+										type="button"
+										aria-label="Close notifications"
 									>
-										<HiOutlineX className="f20 text-white" />
-									</IconButton>
+										<HiOutlineX className="v2-notif-close-icon" />
+									</button>
 								</div>
 							</div>
-						</Box>
 
-						<div className="notification-container" style={{
-							padding: '16px',
-							backgroundColor: '#ffffff',
-							height: 'calc(100vh - 120px)',
-							overflowY: 'auto',
-							scrollbarWidth: 'none', /* Firefox */
-							msOverflowStyle: 'none'  /* Internet Explorer 10+ */
-						}}>
-							<style>
-								{`
-									.notification-container::-webkit-scrollbar {
-										display: none; /* Safari and Chrome */
-									}
-								`}
-							</style>
-							{/* Header */}
-
-
-							{Notificationlist && Notificationlist?.length > 0 ? (
-								<div className="notification-list">
-									{Notificationlist.slice(0, 10).map((item, i) => {
+							{/* Notification list */}
+							<div className="v2-notif-list">
+								{Notificationlist && Notificationlist?.length > 0 ? (
+									Notificationlist.slice(0, 10).map((item, i) => {
 										const lastMessage = item.commDetails[item.commDetails.length - 1];
 										const participants = lastMessage?.commParticipantUser || [];
 										const isUnread = participants.some(
@@ -920,128 +913,72 @@ const MessageCell = () => {
 											return `${diffDays}d ago`;
 										};
 
+										const avatarImage = lastMessage?.commParticipantUser?.[0]?.profileImage || null;
+										const avatarName = lastMessage?.createdByName || item?.createdByName || '';
+										const titleText = item.subject || (item.eventType ? item.eventType + (item.eventId ? ' #' + item.eventId : '') : 'Notification');
+
 										return (
 											<div
 												key={i}
 												role="button"
-												className="notification-item"
-												style={{
-													display: 'flex',
-													alignItems: 'flex-start',
-													padding: '12px 0',
-													borderBottom: i < Notificationlist.slice(0, 10).length - 1 ? '1px solid #f5f5f5' : 'none',
-													transition: 'background-color 0.2s ease',
-													cursor: 'pointer',
-													backgroundColor: isUnread ? '#f8fffe' : 'transparent'
-												}}
+												className={`v2-notif-item${isUnread ? ' v2-notif-item--unread' : ''}`}
 												onClick={() => handleSelectMessage(item)}
-												onMouseEnter={(e) => {
-													e.currentTarget.style.backgroundColor = '#f8f9fa';
-												}}
-												onMouseLeave={(e) => {
-													e.currentTarget.style.backgroundColor = isUnread ? '#f8fffe' : 'transparent';
-												}}
 											>
-												<div style={{ flex: 1, minWidth: 0 }}>
-													<div style={{
-														fontSize: '12px',
-														color: '#1a1a1a',
-														lineHeight: '1.3',
-														marginBottom: '6px',
-														overflow: 'hidden',
-														display: '-webkit-box',
-														WebkitLineClamp: 2,
-														WebkitBoxOrient: 'vertical',
-														fontWeight: isUnread ? '500' : '400'
-													}}>
+												{/* Avatar */}
+												<div className="v2-notif-avatar">
+													{avatarImage ? (
+														<img
+															src={avatarImage}
+															alt={avatarName}
+															className="v2-notif-avatar-img"
+														/>
+													) : (
+														<span>{getInitials(avatarName)}</span>
+													)}
+												</div>
+
+												{/* Content */}
+												<div className="v2-notif-content">
+													<div className="v2-notif-item-title">{titleText}</div>
+													<div className="v2-notif-item-preview">
 														{lastMessage?.queryText?.replace(/<\/?[^>]+(>|$)/g, "") || 'No message content'}
 													</div>
-
-													<div style={{
-														fontSize: '10px',
-														lineHeight: '1.4',
-														color: '#666',
-														marginBottom: '4px'
-													}}>
-														{item.eventType && (
-															<span style={{
-																color: '#2196f3',
-																fontWeight: '500'
-															}}>
-																{item.eventType}
-																{item.eventId && ` - ${item.eventId}`}
-															</span>
-														)}
-													</div>
-
-													<div style={{
-														display: 'flex',
-														alignItems: 'center',
-														fontSize: '12px',
-														color: '#999'
-													}}>
-														<span>{getTimeAgo(item.datetime)}</span>
-
+													<div className="v2-notif-item-time">
+														{getTimeAgo(item.datetime)}
 													</div>
 												</div>
 
+												{/* Unread dot */}
 												{isUnread && (
-													<div style={{
-														width: '8px',
-														height: '8px',
-														borderRadius: '50%',
-														backgroundColor: '#2196f3',
-														marginLeft: '8px',
-														flexShrink: 0,
-														alignSelf: 'center'
-													}} />
+													<div className="v2-notif-unread-dot" />
 												)}
 											</div>
 										);
-									})}
-								</div>
-							) : (
-								<div style={{
-									textAlign: 'center',
-									padding: '40px 20px',
-									color: '#999'
-								}}>
-									<div style={{ fontSize: '24px', marginBottom: '8px' }}>🔔</div>
-									<div style={{ fontSize: '14px', fontWeight: '500' }}>No notifications</div>
-									<div style={{ fontSize: '12px', marginTop: '4px' }}>You're all caught up!</div>
-								</div>
-							)}
+									})
+								) : (
+									<div className="v2-notif-empty">
+										<div className="v2-notif-empty-icon">&#128276;</div>
+										<div className="v2-notif-empty-title">No notifications</div>
+										<div className="v2-notif-empty-sub">You're all caught up!</div>
+									</div>
+								)}
+							</div>
 
-							{Notificationlist && Notificationlist.length > 10 && (
-								<div style={{
-									borderTop: '1px solid #f0f0f0',
-									paddingTop: '12px',
-									marginTop: '12px',
-									textAlign: 'center'
-								}}>
-									<Button
-										variant="text"
-										onClick={() => {
-											setIsOpen(false);
-											navigate("/query-list");
-										}}
-										style={{
-											color: '#2196f3',
-											fontSize: '13px',
-											fontWeight: '500',
-											textTransform: 'none',
-											padding: '8px 16px'
-										}}
-									>
-										View All Notifications
-									</Button>
-								</div>
-							)}
+							{/* View all button — always visible */}
+							<button
+								className="v2-notif-view-all"
+								type="button"
+								onClick={() => {
+									setIsOpen(false);
+									dispatch({ type: actionTypes.SET_NotificationDrawer, value: false });
+									navigate("/query-list");
+								}}
+							>
+								View all Notification
+							</button>
 						</div>
-
-						{/* Removed commented duplicate notification list code for cleaner codebase */}
-					</Box>
-				</Drawer>
+					</div>
+				)}
 
 
 			</div>
@@ -1051,7 +988,7 @@ const MessageCell = () => {
 				<Drawer
 					anchor="right"
 					open={state["sidebar"]}
-					className=""
+					className="v2-notif-drawer"
 					style={{ zIndex: 9999 }}
 				>
 					<form onSubmit={formik.handleSubmit}>

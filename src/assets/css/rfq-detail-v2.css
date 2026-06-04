@@ -1,0 +1,3474 @@
+/* RFQ Detail Page V2 - Figma detail state */
+.rfq-detail-v2-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  height: calc(100vh - 60px);
+  min-height: 0;
+  padding: 20px 20px;
+  box-sizing: border-box;
+  background: #f5f5f5;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+.rfq-dv2-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 6px;
+  color: #8b93a1;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.rfq-dv2-breadcrumb-link {
+  color: #8b93a1;
+  cursor: pointer;
+}
+
+.rfq-dv2-breadcrumb-link:hover {
+  color: #2388d9;
+}
+
+.rfq-dv2-sep {
+  width: 14px;
+  height: 14px;
+  color: transparent;
+  font-size: 0;
+  position: relative;
+}
+
+.rfq-dv2-sep::before {
+  position: absolute;
+  top: 1px;
+  left: 6px;
+  width: 1px;
+  height: 13px;
+  background: #b8c0cc;
+  content: "";
+  transform: rotate(42deg);
+}
+
+.rfq-dv2-breadcrumb-current {
+  color: #475467;
+  font-weight: 600;
+}
+
+.rfq-detail-v2-shell .mainContainer.rfq-modern-shell,
+.rfq-detail-v2-shell .mainContainer {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 16px !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  overflow: hidden !important;
+  background: #f5f5f5 !important;
+}
+
+.rfq-detail-v2-shell .leftContent {
+  flex: 1 1 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .rightContent {
+  /* display: block !important; */
+  flex: 0 0 340px !important;
+  width: 340px !important;
+  min-width: 340px !important;
+  max-width: 340px !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .leftContent > .bg-white {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-page-head {
+  min-height: 49px !important;
+  margin: 0 !important;
+  padding: 0 0 8px !important;
+  align-items: flex-start !important;
+  border: 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-title-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-title-wrap > .d-flex,
+.rfq-detail-v2-shell .rfq-dv2-title-wrap .d-flex.align-items-center {
+  min-height: 21px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-title-wrap .MuiIconButton-root {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-stage-flow,
+.rfq-detail-v2-shell .rfq-dv2-page-head > .d-flex.align-items-center.gap-2 {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-actions {
+  display: none !important;
+}
+
+.rfq-dv2-meta-row {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  color: #667085;
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.rfq-dv2-meta-label {
+  color: #667085;
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.rfq-dv2-meta-value {
+  color: #1d2939;
+  font-weight: 600;
+}
+
+.rfq-dv2-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 22px;
+  padding: 0 15px 0 10px;
+  border: 0;
+  border-radius: 5px;
+  background: #d7ebfc;
+  color: #1f2a37;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.rfq-dv2-status-pill::after {
+  width: 0;
+  height: 0;
+  margin-left: 4px;
+  border-top: 4px solid #667085;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  content: "";
+}
+
+.rfq-dv2-status-pill:hover {
+  background: #cbe5fb;
+}
+
+.rfq-dv2-status-pill.is-draft {
+  background: #fff1bf;
+}
+
+.rfq-dv2-status-pill.is-draft:hover {
+  background: #ffe9a3;
+}
+
+.rfq-dv2-status-pill.is-draft .rfq-dv2-status-dot {
+  background: #e0ac16;
+}
+
+.rfq-dv2-status-pill:focus-visible {
+  outline: 2px solid rgba(35, 136, 217, 0.35);
+  outline-offset: 2px;
+}
+
+.rfq-dv2-status-menu-paper {
+  width: 280px;
+  margin-top: 10px;
+  overflow: visible !important;
+  border: 1px solid #e6e9ee;
+  border-radius: 8px !important;
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.22) !important;
+}
+
+.rfq-dv2-status-menu-paper .MuiList-root {
+  padding: 0 !important;
+}
+
+.rfq-dv2-status-menu {
+  min-height: 404px;
+  padding: 22px 24px 24px;
+  background: #ffffff;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.rfq-dv2-status-menu-title {
+  margin-bottom: 26px;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.rfq-dv2-status-menu-list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.rfq-dv2-status-menu-list::before {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 10px;
+  width: 1px;
+  background: #e5e7eb;
+  content: "";
+}
+
+.rfq-dv2-status-step {
+  width: max-content;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 20px;
+  color: #047329;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.rfq-dv2-status-step-icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border-radius: 999px;
+  background: #19c850;
+}
+
+.rfq-dv2-status-step-icon::after {
+  width: 8px;
+  height: 5px;
+  margin-top: -1px;
+  border-bottom: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  content: "";
+  transform: rotate(-45deg);
+}
+
+.rfq-dv2-status-step.is-current {
+  color: #0d376c;
+}
+
+.rfq-dv2-status-step.is-current .rfq-dv2-status-step-icon {
+  background: #2585d8;
+}
+
+.rfq-dv2-status-step.is-future {
+  color: #8b93a1;
+}
+
+.rfq-dv2-status-step.is-future .rfq-dv2-status-step-icon {
+  background: #e2e5e8;
+}
+
+.rfq-dv2-status-step.is-future .rfq-dv2-status-step-icon::after {
+  border-color: #9aa3af;
+}
+
+.rfq-dv2-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1688d8;
+}
+
+.rfq-detail-v2-shell
+  .leftContent
+  .bg-white
+  > .d-flex.border-bottom:nth-of-type(2) {
+  min-height: 48px !important;
+  max-height: 48px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+  border: 1px solid #e0e0e0 !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+  border-radius: 16px 16px 0 0 !important;
+  border-top: 1px solid #e0e0e0 !important;
+  background: #f5f5f5 !important;
+}
+
+.rfq-detail-v2-shell
+  .leftContent
+  .bg-white
+  > .d-flex.border-bottom:nth-of-type(2)
+  > .d-flex.align-items-center {
+  display: none !important;
+  flex: 0 0 auto;
+  gap: 6px !important;
+  margin-left: 12px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-tab-actions {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell
+  .leftContent
+  .bg-white
+  > .d-flex.border-bottom:nth-of-type(2)
+  .MuiIconButton-root {
+  width: 26px !important;
+  height: 26px !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+}
+
+.rfq-detail-v2-shell
+  .leftContent
+  .bg-white
+  > .d-flex.border-bottom:nth-of-type(2)
+  .approverCircle {
+  width: 24px !important;
+  height: 24px !important;
+  border: 1px solid #dbe7f5 !important;
+  border-radius: 6px !important;
+  background: #eff7ff !important;
+  box-shadow: none !important;
+}
+
+.rfq-detail-v2-shell
+  .leftContent
+  .bg-white
+  > .d-flex.border-bottom:nth-of-type(2)
+  .approverCircle
+  svg {
+  width: 15px !important;
+  height: 15px !important;
+  color: #2388d9 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme,
+.rfq-detail-v2-shell .tabstheme .MuiTabs-root {
+  min-height: 48px !important;
+  background-color: var(--vz-body-bg) !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTabs-scroller,
+.rfq-detail-v2-shell .tabstheme .MuiTabs-flexContainer {
+  min-height: 48px !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTab-root {
+  min-width: 0 !important;
+  min-height: 48px !important;
+  margin-right: 13px !important;
+  padding: 0px !important;
+  color: #101828 !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  line-height: 48px !important;
+  text-transform: none !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTab-root.Mui-selected {
+  color: #2388d9 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTabs-indicator {
+  height: 3px !important;
+  border-radius: 0 !important;
+  background-color: #2388d9 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .section-heading {
+  color: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+.rfq-detail-v2-shell .leftContent .bg-white > .flex-grow-1 {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  /* padding: 18px 18px 30px !important; */
+  overflow: visible !important;
+  border-right: 1px solid #dfe4ea !important;
+  border-bottom: 1px solid #dfe4ea !important;
+  border-left: 1px solid #dfe4ea !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+}
+
+/* RFQ V2 header layout fixes only */
+.rfq-detail-v2-shell .leftContent > .bg-white {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.rfq-detail-v2-shell .leftContent > .bg-white::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-page-head {
+  min-height: max-content !important;
+  padding-top: 6px !important;
+  overflow: visible !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-title-wrap {
+  overflow: visible !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-title-wrap .rfq-dv2-breadcrumb {
+  flex: 0 0 auto;
+  min-height: 18px;
+  padding-top: 0;
+  padding-left: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-meta-row {
+  height: auto;
+  min-height: 22px;
+  overflow: visible;
+  align-items: center;
+}
+
+.rfq-dv2-overview {
+  position: relative;
+  max-width: none;
+  padding: 0 !important;
+  color: #101828;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.rfq-dv2-overview-edit {
+  display: none;
+}
+
+.rfq-dv2-detail-row {
+  display: grid;
+  grid-template-columns: 185px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  margin: 0 0 17px;
+}
+
+.rfq-dv2-detail-label {
+  color: #101828;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.rfq-dv2-detail-value {
+  color: #05070b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  word-break: break-word;
+}
+
+.rfq-dv2-detail-row-text {
+  margin-top: 6px;
+  margin-bottom: 16px;
+}
+
+.rfq-dv2-text-panel {
+  min-height: 160px;
+  padding: 14px 16px;
+  border: 1px solid #d6dce4;
+  border-radius: 7px;
+  background: #fff;
+  color: #101828;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 17px;
+  white-space: pre-wrap;
+}
+
+.rfq-dv2-detail-row-text:last-child .rfq-dv2-text-panel {
+  min-height: 158px;
+}
+
+.rfq-detail-v2-shell .rightContent > .bg-white,
+.rfq-detail-v2-shell .rightContent > .bg-white.approver-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: calc(100vh - 116px) !important;
+  max-height: calc(100vh - 116px) !important;
+  margin-left: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid #dfe4ea !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08) !important;
+}
+
+.rfq-detail-v2-shell .rightContent .bg-white > .d-flex.border-bottom {
+  min-height: 34px !important;
+  max-height: 34px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-items: stretch !important;
+  border-bottom: 1px solid #e9edf2 !important;
+  background: #ffffff !important;
+}
+
+.rfq-dv2-workflow-tabs {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rfq-dv2-workflow-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  height: 34px;
+  padding: 0 5px;
+  border-right: 1px solid #eef1f5;
+  color: #101828;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.rfq-dv2-workflow-tab.active {
+  position: relative;
+  color: #2388d9;
+  background: #eef7ff;
+}
+
+.rfq-dv2-workflow-tab.active::after {
+  position: absolute;
+  right: 7px;
+  bottom: 0;
+  left: 7px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: #2388d9;
+  content: "";
+}
+
+.rfq-detail-v2-shell .rightContent .bg-white > .flex-grow-1 {
+  padding: 8px 9px 14px !important;
+  overflow-y: auto !important;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .approvalCard {
+  position: relative;
+  margin: 0 0 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rfq-detail-v2-shell .approvalCard::before {
+  position: absolute;
+  top: 26px;
+  bottom: -12px;
+  left: 10px;
+  width: 1px;
+  background: #d9dde3;
+  content: "";
+}
+
+.rfq-detail-v2-shell .approvalCard:last-child::before {
+  display: none;
+}
+
+.rfq-detail-v2-shell .approvalAcordion {
+  position: relative;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .MuiAccordionSummary-root {
+  min-height: 47px !important;
+  padding: 0 6px 0 0 !important;
+  border-left: 3px solid transparent;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell
+  .approvalCard.is-active-stage
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  border-left-color: #f59e0b;
+  background: #fff8df !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .MuiAccordionSummary-content {
+  margin: 0 !important;
+  align-items: center;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .MuiAccordionSummary-expandIconWrapper {
+  color: #9aa3af;
+  transform: scale(0.82);
+}
+
+.rfq-detail-v2-shell .approvalAcordion .row {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .col-md-10 {
+  position: relative;
+  width: calc(100% - 34px);
+  max-width: calc(100% - 34px);
+  padding-left: 28px !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .col-md-10::before {
+  position: absolute;
+  top: 12px;
+  left: 7px;
+  z-index: 1;
+  width: 15px;
+  height: 15px;
+  border: 2px solid #f59e0b;
+  border-radius: 50%;
+  background: #ffffff;
+  content: "";
+}
+
+.rfq-detail-v2-shell
+  .approvalCard.is-future-stage
+  .approvalAcordion
+  .col-md-10::before {
+  border-color: #d6dbe1;
+  background: #f1f3f5;
+}
+
+.rfq-detail-v2-shell .approval-stage-title {
+  color: #a25500 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 16px !important;
+}
+
+.rfq-detail-v2-shell .approvalCard.is-future-stage .approval-stage-title {
+  color: #9aa3af !important;
+}
+
+.rfq-detail-v2-shell .approval-stage-subtitle {
+  color: #667085 !important;
+  font-size: 10px !important;
+  line-height: 14px !important;
+}
+
+.rfq-detail-v2-shell .approvalCard.is-future-stage .approval-stage-subtitle {
+  color: #b8bec7 !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordionDetails {
+  padding: 0 0 10px 28px !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordionDetails > .rounded {
+  margin-bottom: 6px !important;
+}
+
+.rfq-detail-v2-shell
+  .approvalAcordionDetails
+  .MuiAutocomplete-root
+  .MuiOutlinedInput-root,
+.rfq-detail-v2-shell
+  .approvalAcordionDetails
+  .MuiTextField-root
+  .MuiOutlinedInput-root {
+  min-height: 30px !important;
+  border-radius: 7px !important;
+  font-size: 11px !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordionDetails .customButton {
+  min-width: 28px !important;
+  height: 28px !important;
+  border-radius: 7px !important;
+}
+
+.rfq-detail-v2-shell .custom-table {
+  width: 100%;
+}
+
+.rfq-detail-v2-shell .custom-table .table-body,
+.rfq-detail-v2-shell .custom-table .table-row {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.rfq-detail-v2-shell .custom-table .cell-content {
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .custom-table .approver-name > .col-12 > div > .d-flex {
+  position: relative;
+  margin: 0 0 8px !important;
+  padding: 10px 10px 10px 35px;
+  gap: 8px !important;
+  border: 1px solid #dfe6ef;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell
+  .custom-table
+  .approver-name
+  > .col-12
+  > div
+  > .d-flex::before {
+  position: absolute;
+  top: 11px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #d8ecff;
+  color: #2388d9;
+  content: "RC";
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.rfq-detail-v2-shell .custom-table .approver-name span {
+  color: #101828;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+.rfq-detail-v2-shell .custom-table .approver-name [style*="Designation"] {
+  color: #98a2b3 !important;
+}
+
+.rfq-detail-v2-shell .approverAction {
+  border-radius: 999px !important;
+  padding: 2px 7px !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.rfq-detail-v2-shell .approverAction.Approved {
+  background: #d9f2df !important;
+  color: #15803d !important;
+}
+
+.rfq-detail-v2-shell .approverAction.Pending {
+  background: #fff1b8 !important;
+  color: #a15c00 !important;
+}
+
+.rfq-detail-v2-shell .approverAction.Rejected {
+  background: #ffe3e3 !important;
+  color: #dc2626 !important;
+}
+
+.rfq-detail-v2-shell .delete-button {
+  width: 22px !important;
+  height: 22px !important;
+  border: 1px solid #fecaca !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  color: #ef4444 !important;
+}
+
+/* Right workflow sidebar - Figma tab states */
+.rfq-detail-v2-shell
+  .rightContent
+  .bg-white
+  > .d-flex.border-bottom
+  .MuiIconButton-root {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab {
+  border: 0;
+  border-right: 1px solid #eef1f5;
+  background: transparent;
+  cursor: pointer;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab:last-child {
+  border-right: 0;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-action-panel {
+  flex: 0 0 auto;
+  padding: 12px 13px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 13px;
+  color: #9a3f00;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 18px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  border-radius: 3px;
+  background: #f28c18;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  transform: rotate(45deg);
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::first-letter {
+  transform: rotate(-45deg);
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon {
+  text-indent: -1px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::after {
+  content: "!";
+  transform: rotate(-45deg);
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon {
+  font-size: 0;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-actions {
+  display: grid;
+  grid-template-columns: 1fr 54px;
+  gap: 8px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-approve,
+.rfq-detail-v2-shell .rfq-dv2-workflow-reject {
+  height: 32px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-approve {
+  border: 1px solid #44964d;
+  background: #459b4d;
+  color: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-reject {
+  border: 1px solid #ef3434;
+  background: #ffffff;
+  color: #d90000;
+}
+
+.rfq-detail-v2-shell .approvalCard {
+  margin: 0 0 4px !important;
+}
+
+.rfq-detail-v2-shell .approvalCard::before {
+  top: 29px !important;
+  bottom: -12px !important;
+  left: 10px !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion::before {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .MuiAccordionSummary-root {
+  min-height: 42px !important;
+  max-height: 42px !important;
+}
+
+.rfq-detail-v2-shell
+  .approvalCard.is-future-stage
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell
+  .approvalAcordion
+  .MuiAccordionSummary-expandIconWrapper.Mui-expanded {
+  transform: rotate(180deg) scale(0.82);
+}
+
+.rfq-detail-v2-shell .approvalAcordion .col-md-10 {
+  padding-left: 31px !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .col-md-2 {
+  width: 24px !important;
+  max-width: 24px !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .col-md-10::before {
+  left: 8px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-summary-add {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-stage-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.rfq-detail-v2-shell .approval-stage-title {
+  font-size: 11px !important;
+  line-height: 14px !important;
+  min-width: 0;
+  overflow: hidden;
+  color: #8f3f00 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-stage-count {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  flex: 0 0 auto;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #ffec9f;
+  color: #ad7200;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.rfq-detail-v2-shell .approval-stage-subtitle {
+  margin-top: 1px !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  line-height: 12px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-stage-waiting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: #8f3f00;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 13px;
+}
+
+.rfq-detail-v2-shell .approvalCard.is-future-stage .rfq-dv2-stage-waiting,
+.rfq-detail-v2-shell .approvalCard.is-future-stage .approval-stage-title {
+  color: #9aa3af !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-mini-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  border-radius: 999px;
+  background: #d8ecff;
+  color: #2388d9;
+  font-size: 7px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.rfq-detail-v2-shell .approvalAcordionDetails {
+  padding: 7px 0 9px 31px !important;
+}
+
+.rfq-detail-v2-shell .custom-table .approver-name > .col-12 > div > .d-flex {
+  width: calc(100% - 2px);
+  min-height: 58px;
+  padding: 8px !important;
+  border-color: #d8dee8 !important;
+  border-radius: 9px !important;
+}
+
+.rfq-detail-v2-shell
+  .custom-table
+  .approver-name
+  > .col-12
+  > div
+  > .d-flex::before {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-approver-item {
+  width: 100%;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-approver-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: #d8ecff;
+  color: #2388d9 !important;
+  font-size: 7px !important;
+  font-weight: 800 !important;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.rfq-detail-v2-shell .custom-table .approver-name span {
+  font-size: 10px !important;
+}
+
+.rfq-detail-v2-shell
+  .custom-table
+  .approver-name
+  .rfq-dv2-approver-item
+  > div
+  > div:first-child {
+  gap: 6px !important;
+  margin-bottom: 2px !important;
+}
+
+.rfq-detail-v2-shell
+  .custom-table
+  .approver-name
+  .rfq-dv2-approver-item
+  > div
+  > div:first-child
+  > span:first-child {
+  max-width: 116px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rfq-detail-v2-shell .custom-table .approver-name .cell-text,
+.rfq-detail-v2-shell
+  .custom-table
+  .approver-name
+  .rfq-dv2-approver-item
+  > div
+  > div:not(:first-child) {
+  color: #8b93a1 !important;
+  font-size: 9px !important;
+  line-height: 13px !important;
+}
+
+.rfq-detail-v2-shell .approverAction {
+  padding: 2px 7px !important;
+  font-size: 7px !important;
+}
+
+.rfq-detail-v2-shell .delete-button {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.rfq-detail-v2-shell .delete-button svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordionDetails .MuiBox-root {
+  width: 100%;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-add-approver-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 2px);
+  height: 29px;
+  margin-top: -1px;
+  border: 1px dashed #c8cdd5;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-add-approver-inline svg {
+  width: 15px;
+  height: 15px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-add-approver-inline:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rfq-dv2-history-track {
+  display: flex;
+  gap: 8px;
+  min-width: max-content;
+  padding: 2px 0 0;
+  height: 100%;
+}
+
+.rfq-dv2-history-card {
+  width: 108px;
+  min-height: 74px;
+  padding: 8px;
+  border: 1px dashed #d9dde5;
+  border-radius: 7px;
+  background: #ffffff;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.rfq-dv2-history-status {
+  display: inline-flex;
+  align-items: center;
+  height: 14px;
+  margin-bottom: 8px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #dff3df;
+  color: #268343;
+  font-size: 7px;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.rfq-dv2-history-card strong,
+.rfq-dv2-history-card small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rfq-dv2-history-card strong {
+  color: #111827;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.rfq-dv2-history-card small {
+  color: #8b93a1;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.rfq-dv2-attachments-panel {
+  padding: 4px 0 0;
+}
+
+.rfq-dv2-add-file-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 34px;
+  margin: 0 0 12px auto;
+  padding: 0 14px;
+  border: 1px solid #cfd6df;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #101828;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.rfq-dv2-file-row {
+  display: grid;
+  grid-template-columns: 16px 0 minmax(0, 1fr) 24px 24px;
+  align-items: center;
+  gap: 8px;
+  min-height: 49px;
+  border-bottom: 1px solid #e6e9ef;
+  color: #101828;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.rfq-dv2-file-row input {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+}
+
+.rfq-dv2-file-icon {
+  display: none;
+}
+
+.rfq-dv2-file-meta {
+  min-width: 0;
+}
+
+.rfq-dv2-file-meta strong,
+.rfq-dv2-file-meta span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rfq-dv2-file-meta strong {
+  color: #101828;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 14px;
+}
+
+.rfq-dv2-file-meta span {
+  color: #101828;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 13px;
+}
+
+.rfq-dv2-file-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+}
+
+.rfq-dv2-file-action.is-danger {
+  border-color: #fecaca;
+  color: #ef4444;
+}
+
+/* RFQ detail right workflow panel - Figma precision pass */
+.rfq-detail-v2-shell .rightContent {
+  flex: 0 0 286px !important;
+  width: 286px !important;
+  min-width: 286px !important;
+  max-width: 286px !important;
+}
+
+.rfq-detail-v2-shell .rightContent > .bg-white.approver-panel {
+  height: calc(100vh - 104px) !important;
+  max-height: calc(100vh - 104px) !important;
+  border: 1px solid #dfe6ee !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16) !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-head {
+  min-height: 35px !important;
+  max-height: 35px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border-bottom: 1px solid #d8dee8 !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tabs {
+  height: 35px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab {
+  height: 35px;
+  padding: 0 4px;
+  border-right: 1px solid #e4e8ef;
+  color: #111827;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 35px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab.active {
+  background: #eef7ff;
+  color: #1685db;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab.active::after {
+  right: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 0;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-action-panel {
+  padding: 12px 12px 10px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert {
+  margin-bottom: 12px;
+  gap: 8px;
+  color: #8f3f00;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 18px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-actions {
+  grid-template-columns: 1fr 51px;
+  gap: 8px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-approve,
+.rfq-detail-v2-shell .rfq-dv2-workflow-reject {
+  height: 32px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.rfq-detail-v2-shell .rightContent .bg-white > .flex-grow-1 {
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalCard {
+  margin: 0 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion {
+  margin: 0 !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalCard.is-active-stage
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  min-height: 62px !important;
+  max-height: 62px !important;
+  border-left: 3px solid #f59e0b !important;
+  background: #fff9e8 !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalCard:not(.is-active-stage)
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  min-height: 48px !important;
+  max-height: 48px !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion .col-md-10 {
+  padding-left: 36px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion .col-md-10::before {
+  top: 15px !important;
+  left: 12px !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalCard.is-active-stage
+  .approvalAcordion
+  .col-md-10::before {
+  border-color: #f59e0b !important;
+  box-shadow: inset 0 0 0 3px #ffffff;
+  background: #f59e0b !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalCard::before {
+  top: 45px !important;
+  bottom: -16px !important;
+  left: 20px !important;
+  background: #d6dbe2 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approval-stage-title {
+  color: #8f3f00 !important;
+  font-size: 12px !important;
+  line-height: 15px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approval-stage-subtitle {
+  margin-top: 3px !important;
+  color: #8f3f00 !important;
+  font-size: 10px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordionDetails {
+  padding: 8px 9px 9px 40px !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .custom-table
+  .approver-name
+  > .col-12
+  > div
+  > .d-flex {
+  min-height: 66px;
+  margin-bottom: 8px !important;
+  padding: 10px 9px 9px 34px !important;
+  border: 1px solid #d5dde8 !important;
+  border-radius: 9px !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .custom-table
+  .approver-name
+  > .col-12
+  > div
+  > .d-flex::after {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #d8ecff;
+  color: #2388d9;
+  content: "RC";
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.rfq-detail-v2-shell .rightContent .custom-table .approver-name span {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approverAction {
+  padding: 2px 8px !important;
+  border-radius: 999px !important;
+  font-size: 7px !important;
+  font-weight: 900 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-approver-inline {
+  height: 29px;
+  margin-top: 0;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-history-track {
+  width: 100%;
+  min-width: 100%;
+  padding: 12px 9px 16px;
+  overflow-x: auto;
+  border-top: 1px dashed #d9dde5;
+  border-bottom: 1px dashed #d9dde5;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-history-card {
+  width: 104px;
+  flex: 0 0 104px;
+  min-height: 74px;
+  border-style: dashed;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-history-card + .rfq-dv2-history-card {
+  position: relative;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-history-card + .rfq-dv2-history-card::before {
+  position: absolute;
+  top: 28px;
+  left: -12px;
+  color: #9aa3af;
+  content: ">";
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-history-status.is-open {
+  background: #dff3df;
+  color: #268343;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-attachments-panel {
+  padding: 12px 11px 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-add-file-btn {
+  height: 34px;
+  margin-bottom: 10px;
+  margin-left: auto;
+}
+
+.rfq-detail-v2-shell
+  .rfq-dv2-attachments-panel
+  > .rfq-dv2-file-row:not(.rfq-dv2-file-row-new) {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-file-row {
+  grid-template-columns: 16px 0 minmax(0, 1fr) 24px 24px;
+  min-height: 47px;
+  gap: 7px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-file-row input {
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border: 1px solid #aeb7c2;
+  border-radius: 2px;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-file-action {
+  font-size: 0;
+}
+
+/* Figma-aligned View History tab strip */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-track {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  padding: 16px 14px 14px !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 1px solid #d4d4d4 !important;
+  border-left: 0 !important;
+  background: #ffffff !important;
+  scrollbar-width: none;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-track::-webkit-scrollbar {
+  display: none;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-card {
+  position: relative;
+  display: flex;
+  flex: 0 0 116px !important;
+  flex-direction: column;
+  width: 116px !important;
+  min-width: 116px !important;
+  height: 74px;
+  min-height: 74px !important;
+  padding: 9px 10px 8px !important;
+  border: 1px dashed #d9dde5 !important;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .rfq-dv2-history-card
+  + .rfq-dv2-history-card::before {
+  top: 33px !important;
+  left: -16px !important;
+  width: 16px;
+  height: 1px;
+  background: #a3abb6;
+  color: transparent !important;
+  content: "" !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .rfq-dv2-history-card
+  + .rfq-dv2-history-card::after {
+  position: absolute;
+  top: 28px;
+  left: -8px;
+  width: 8px;
+  height: 8px;
+  border-top: 1.5px solid #a3abb6;
+  border-right: 1.5px solid #a3abb6;
+  content: "";
+  transform: rotate(45deg);
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-status {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+  height: 16px;
+  margin: 0 0 8px;
+  padding: 0 8px 0 6px;
+  border-radius: 4px;
+  background: #dff3df;
+  color: #2f7d32;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-status::before {
+  display: inline-block;
+  width: 8px;
+  height: 4px;
+  border-bottom: 1.5px solid currentColor;
+  border-left: 1.5px solid currentColor;
+  content: "";
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-card strong {
+  display: block;
+  max-width: 100%;
+  margin: 0 0 2px;
+  color: #111827;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 13px;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-card small {
+  display: block;
+  color: #8b93a1;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 11px;
+}
+
+/* Figma-aligned Attachments tab */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attachments-panel {
+  width: 100%;
+  min-height: calc(100% - 102px);
+  padding: 16px 17px 0 !important;
+  background: #f5f5f5;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 122px;
+  height: 36px;
+  margin: 0 0 12px auto !important;
+  padding: 0 14px;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 24px 24px !important;
+  align-items: center;
+  column-gap: 9px !important;
+  min-height: 54px !important;
+  padding: 0;
+  border-bottom: 1px solid #d7d7d7;
+  background: transparent;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  border: 1px solid #9ca3af;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .rfq-dv2-file-row
+  input[type="checkbox"]:checked {
+  border-color: #1685db;
+  background: #1685db;
+  box-shadow: inset 0 0 0 2px #ffffff;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-icon {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta {
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta strong,
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta strong {
+  margin: 0 0 2px;
+  color: #111827;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 14px;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta span {
+  color: #111827;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 13px;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 0;
+  line-height: 1;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-action svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-action.is-danger {
+  border-color: #fecaca;
+  color: #ef4444;
+}
+
+/* Center approval/rejection confirmation modal */
+.MuiDialog-root .rfq-dv2-approval-modal {
+  width: min(520px, calc(100vw - 32px));
+  max-width: min(520px, calc(100vw - 32px));
+  overflow: hidden;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.24);
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.MuiBackdrop-root.rfq-dv2-approval-backdrop {
+  background-color: rgba(0, 0, 0, 0.54) !important;
+}
+
+.rfq-dv2-approval-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+  padding: 0 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rfq-dv2-approval-modal-head h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 22px;
+}
+
+.rfq-dv2-approval-close {
+  width: 30px !important;
+  height: 30px !important;
+  color: #9ca3af !important;
+}
+
+.rfq-dv2-approval-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.rfq-dv2-approval-modal-body {
+  padding: 18px 22px 0;
+}
+
+.rfq-dv2-approval-message {
+  padding: 13px 16px;
+  border: 1px solid #bdeac4;
+  border-radius: 8px;
+  background: #f1fff3;
+  color: #4a9955;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.rfq-dv2-approval-message strong {
+  color: #33843e;
+  font-weight: 900;
+}
+
+.rfq-dv2-approval-message.is-reject {
+  border-color: #fecaca;
+  background: #fff5f5;
+  color: #b42318;
+}
+
+.rfq-dv2-approval-message.is-reject strong {
+  color: #991b1b;
+}
+
+.rfq-dv2-approval-field {
+  margin-top: 18px;
+}
+
+.rfq-dv2-approval-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 14px;
+  text-transform: uppercase;
+}
+
+.rfq-dv2-approval-field .MuiOutlinedInput-root {
+  align-items: flex-start;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.rfq-dv2-approval-field .MuiOutlinedInput-notchedOutline {
+  border-color: #cfd8e3;
+}
+
+.rfq-dv2-approval-field
+  .MuiOutlinedInput-root:hover
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #b8c4d4;
+}
+
+.rfq-dv2-approval-field
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-width: 1px;
+  border-color: #9db7d7;
+}
+
+.rfq-dv2-approval-field textarea {
+  min-height: 84px !important;
+}
+
+.rfq-dv2-approval-field p {
+  margin: 10px 0 0;
+  color: #7a8798;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
+}
+
+.rfq-dv2-approval-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 22px 20px;
+}
+
+.rfq-dv2-approval-cancel,
+.rfq-dv2-approval-submit {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border-radius: 999px !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+}
+
+.rfq-dv2-approval-cancel {
+  min-width: 82px;
+  padding: 0 18px;
+  border: 1px solid #d9e0ea;
+  background: #ffffff;
+  color: #475467;
+}
+
+.rfq-dv2-approval-submit {
+  min-width: 142px !important;
+  padding: 0 20px !important;
+  border: 0 !important;
+  background: #5aa05a !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.rfq-dv2-approval-submit::before {
+  margin-right: 7px;
+  color: currentColor;
+  content: "\2713";
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.rfq-dv2-approval-submit.is-reject {
+  background: #d92d20 !important;
+}
+
+.rfq-dv2-approval-submit.is-reject::before {
+  content: "!";
+}
+
+.rfq-detail-v2-shell .rfq-dv2-file-action svg {
+  width: 13px;
+  height: 13px;
+  font-size: 13px;
+}
+
+/* RFQ workflow panel final Figma sizing/state */
+.rfq-detail-v2-shell .rightContent {
+  flex: 0 0 340px !important;
+  width: 340px !important;
+  min-width: 340px !important;
+  max-width: 340px !important;
+}
+
+.rfq-detail-v2-shell .rightContent > .bg-white.approver-panel {
+  height: calc(100vh - 100px) !important;
+  max-height: calc(100vh - 100px) !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 16px !important;
+  background: #f5f5f5 !important;
+  box-shadow: 0 1px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-head {
+  min-height: 39px !important;
+  max-height: 39px !important;
+  border-radius: 16px 16px 0 0 !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tabs,
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab {
+  height: 39px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab {
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 39px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-action-panel {
+  padding: 13px 14px 11px;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert {
+  margin-bottom: 14px;
+  font-size: 15px;
+  line-height: 19px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-actions {
+  grid-template-columns: 1fr 60px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-approve,
+.rfq-detail-v2-shell .rfq-dv2-workflow-reject {
+  height: 36px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalCard.is-active-stage
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  min-height: 76px !important;
+  max-height: 76px !important;
+  border-left-width: 3px !important;
+  background: #fff9e8 !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalCard:not(.is-active-stage)
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  min-height: 56px !important;
+  max-height: 56px !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion .col-md-10 {
+  width: calc(100% - 30px);
+  max-width: calc(100% - 30px);
+  padding-left: 42px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion .col-md-2 {
+  width: 30px !important;
+  max-width: 30px !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalAcordion
+  .col-md-2
+  .MuiIconButton-root {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion .col-md-10::before {
+  top: 17px !important;
+  left: 16px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalCard::before {
+  top: 50px !important;
+  left: 24px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approval-stage-title {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-stage-count {
+  height: 20px;
+  padding: 0 8px;
+  font-size: 9px;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-stage-waiting {
+  margin-top: 8px;
+  gap: 7px;
+  font-size: 11px;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordionDetails {
+  padding: 10px 9px 10px 46px !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .custom-table.is-rfq-sidebar,
+.rfq-detail-v2-shell .custom-table.is-rfq-sidebar .table-body,
+.rfq-detail-v2-shell .custom-table.is-rfq-sidebar .table-row,
+.rfq-detail-v2-shell .custom-table.is-rfq-sidebar .cell-content,
+.rfq-detail-v2-shell .custom-table.is-rfq-sidebar .approver-name {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 22px;
+  column-gap: 9px;
+  min-height: 76px;
+  margin: 0 0 8px !important;
+  padding: 13px 9px 9px 10px;
+  border: 1px solid #d6dde8;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-card.is-pending {
+  background: #eef5ff;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #d8ecff;
+  color: #2388d9;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-body {
+  min-width: 0;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-name {
+  max-width: 120px;
+  overflow: hidden;
+  color: #101828;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-status {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  flex: 0 0 auto;
+  padding: 0 8px !important;
+  border-radius: 999px !important;
+  font-size: 8px !important;
+  font-weight: 900 !important;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-status.Approved {
+  background: #d9f2df !important;
+  color: #15803d !important;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-status.Pending {
+  background: #ffe89a !important;
+  color: #a05f00 !important;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-status.Approved::before {
+  width: 8px;
+  height: 5px;
+  margin-right: 5px;
+  border-bottom: 1.5px solid currentColor;
+  border-left: 1.5px solid currentColor;
+  content: "";
+  transform: rotate(-45deg);
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-status.Pending::before {
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  content: "";
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-role,
+.rfq-detail-v2-shell .rfq-sidebar-approver-date {
+  overflow: hidden;
+  color: #8b93a1;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-role {
+  margin-top: 2px;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-top: -2px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #ef4444;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-remove svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Approval confirmation modal */
+.rfq-dv2-approval-backdrop {
+  background-color: rgba(0, 0, 0, 0.54) !important;
+  backdrop-filter: none;
+}
+
+.rfq-dv2-approval-dialog {
+  width: 560px !important;
+  max-width: calc(100vw - 32px) !important;
+  overflow: hidden !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22) !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+}
+
+.rfq-dv2-approval-modal {
+  width: 100%;
+  background: #ffffff;
+}
+
+.rfq-dv2-approval-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 16px 0 18px;
+  border-bottom: 1px solid #d9dde5;
+}
+
+.rfq-dv2-approval-modal-head h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.rfq-dv2-approval-close {
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  color: #9aa3af !important;
+}
+
+.rfq-dv2-approval-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.rfq-dv2-approval-modal-body {
+  padding: 20px 26px 24px;
+}
+
+.rfq-dv2-approval-note {
+  min-height: 48px;
+  margin-bottom: 17px;
+  padding: 13px 15px;
+  border: 1px solid #b9e9c2;
+  border-radius: 7px;
+  background: #f1fff4;
+  color: #4d8f58;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.rfq-dv2-approval-note strong {
+  color: #2b7e36;
+  font-weight: 900;
+}
+
+.rfq-dv2-approval-note.is-reject {
+  border-color: #fecaca;
+  background: #fff5f5;
+  color: #b42318;
+}
+
+.rfq-dv2-approval-note.is-reject strong {
+  color: #9f1239;
+}
+
+.rfq-dv2-approval-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #596273;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.rfq-dv2-approval-comment .MuiOutlinedInput-root {
+  min-height: 88px;
+  padding: 0 !important;
+  border-radius: 7px !important;
+  background: #ffffff;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+}
+
+.rfq-dv2-approval-comment .MuiOutlinedInput-notchedOutline {
+  border-color: #cbd6e3 !important;
+}
+
+.rfq-dv2-approval-comment
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #9db8db !important;
+  border-width: 1px !important;
+}
+
+.rfq-dv2-approval-comment textarea {
+  padding: 12px 14px !important;
+  color: #344054 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 18px !important;
+}
+
+.rfq-dv2-approval-comment textarea::placeholder {
+  color: #667085 !important;
+  opacity: 1;
+}
+
+.rfq-dv2-approval-footnote {
+  margin-top: 12px;
+  color: #667085;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+}
+
+.rfq-dv2-approval-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.rfq-dv2-approval-cancel,
+.rfq-dv2-approval-submit {
+  height: 34px !important;
+  min-width: 86px !important;
+  padding: 0 18px !important;
+  border-radius: 999px !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+}
+
+.rfq-dv2-approval-cancel {
+  border: 1px solid #d6dde8;
+  background: #ffffff;
+  color: #596273;
+}
+
+.rfq-dv2-approval-submit {
+  border: 1px solid #4f8e4f !important;
+  background: #4f8e4f !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.rfq-dv2-approval-submit:hover {
+  background: #3f7c43 !important;
+}
+
+.rfq-dv2-approval-submit.is-reject {
+  border-color: #d92d20 !important;
+  background: #d92d20 !important;
+}
+
+.rfq-dv2-approval-submit.is-reject:hover {
+  background: #b42318 !important;
+}
+
+@media (max-width: 640px) {
+  .rfq-dv2-approval-dialog {
+    width: calc(100vw - 24px) !important;
+  }
+
+  .rfq-dv2-approval-modal-body {
+    padding: 16px;
+  }
+
+  .rfq-dv2-approval-actions {
+    justify-content: stretch;
+  }
+
+  .rfq-dv2-approval-cancel,
+  .rfq-dv2-approval-submit {
+    flex: 1 1 0;
+  }
+}
+
+.rfq-detail-v2-shell .MuiTextField-root .MuiInputLabel-root,
+.rfq-detail-v2-shell .f12.text-muted {
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 12px !important;
+}
+
+.rfq-detail-v2-shell .ql-toolbar {
+  border-color: #d6dce4 !important;
+  border-radius: 7px 7px 0 0 !important;
+}
+
+.rfq-detail-v2-shell .ql-container {
+  border-color: #d6dce4 !important;
+  border-radius: 0 0 7px 7px !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 12px !important;
+}
+
+@media (max-width: 768px) {
+  .rfq-detail-v2-shell {
+    padding: 10px;
+  }
+
+  .rfq-detail-v2-shell .leftContent > .bg-white {
+    height: auto !important;
+    min-height: calc(100vh - 100px) !important;
+  }
+
+  .rfq-detail-v2-shell .rfq-dv2-page-head {
+    max-height: none !important;
+    min-height: 78px !important;
+  }
+
+  .rfq-dv2-detail-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
+    margin-bottom: 14px;
+  }
+
+  .rfq-dv2-text-panel {
+    min-height: 120px;
+  }
+}
+
+/* Final RFQ workflow polish: modal, alert icon, attachments alignment */
+.MuiDialog-root .rfq-dv2-approval-modal,
+.rfq-dv2-approval-dialog {
+  width: 655px !important;
+  max-width: calc(100vw - 40px) !important;
+  min-height: 475px !important;
+  overflow: hidden !important;
+  border: 1px solid #d4d4d4 !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.26) !important;
+}
+
+.rfq-dv2-approval-modal-head {
+  height: 64px !important;
+  padding: 0 24px !important;
+  border-bottom: 1px solid #d4d4d4 !important;
+}
+
+.rfq-dv2-approval-modal-head h3 {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  line-height: 28px !important;
+}
+
+.rfq-dv2-approval-close {
+  color: #9b9b9b !important;
+}
+
+.rfq-dv2-approval-close svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.rfq-dv2-approval-modal-body {
+  padding: 28px 32px 0 !important;
+}
+
+.rfq-dv2-approval-message {
+  min-height: 74px;
+  padding: 17px 20px !important;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 24px !important;
+}
+
+.rfq-dv2-approval-field {
+  margin-top: 22px !important;
+}
+
+.rfq-dv2-approval-field label {
+  margin-bottom: 10px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.rfq-dv2-approval-field .MuiOutlinedInput-root {
+  min-height: 122px;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+}
+
+.rfq-dv2-approval-field textarea {
+  min-height: 104px !important;
+}
+
+.rfq-dv2-approval-field p {
+  margin-top: 14px !important;
+  font-size: 12px !important;
+  line-height: 16px !important;
+}
+
+.rfq-dv2-approval-modal-actions {
+  padding: 24px 32px 26px !important;
+}
+
+.rfq-dv2-approval-cancel,
+.rfq-dv2-approval-submit {
+  height: 44px !important;
+  font-size: 15px !important;
+}
+
+.rfq-dv2-approval-cancel {
+  min-width: 100px !important;
+}
+
+.rfq-dv2-approval-submit {
+  min-width: 174px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert {
+  align-items: center !important;
+  gap: 10px !important;
+  margin-bottom: 12px !important;
+  color: #8f3f00 !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  line-height: 20px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon {
+  position: relative !important;
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 3px !important;
+  background: #f59e0b !important;
+  color: #ffffff !important;
+  transform: rotate(45deg) !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::before,
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::after {
+  position: absolute !important;
+  left: 50% !important;
+  display: block !important;
+  border: 0 !important;
+  background: #ffffff !important;
+  content: "" !important;
+  transform: translateX(-50%) rotate(-45deg) !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::before {
+  top: 4px !important;
+  width: 2px !important;
+  height: 8px !important;
+  border-radius: 2px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::after {
+  top: 13px !important;
+  width: 2px !important;
+  height: 2px !important;
+  border-radius: 50% !important;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn {
+  margin-right: auto !important;
+  margin-left: 0 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attachments-panel {
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn {
+  display: flex !important;
+  margin-right: 0 !important;
+  margin-left: auto !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon {
+  flex: 0 0 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #f59e0b !important;
+  transform: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::before,
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::after {
+  display: none !important;
+  content: none !important;
+}
+
+@media (max-width: 700px) {
+  .MuiDialog-root .rfq-dv2-approval-modal,
+  .rfq-dv2-approval-dialog {
+    width: calc(100vw - 24px) !important;
+    min-height: auto !important;
+  }
+
+  .rfq-dv2-approval-modal-head {
+    height: 56px !important;
+    padding: 0 18px !important;
+  }
+
+  .rfq-dv2-approval-modal-body {
+    padding: 20px 18px 0 !important;
+  }
+
+  .rfq-dv2-approval-modal-actions {
+    padding: 20px 18px !important;
+  }
+}
+
+/* Main RFQ tabs final alignment: no hidden scroll spacer, no active radius */
+.rfq-detail-v2-shell .tabstheme .MuiTabs-scrollButtons,
+.rfq-detail-v2-shell .tabstheme .MuiTabs-scrollButtons.Mui-disabled {
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTabs-scroller {
+  margin-left: 0 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTabs-flexContainer {
+  gap: 0 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTab-root {
+  border-radius: 0 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTab-root.Mui-selected {
+  border-radius: 0 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTabs-indicator {
+  bottom: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* View history connector uses a real icon, not pseudo arrows */
+.rfq-detail-v2-shell
+  .rightContent
+  .rfq-dv2-history-card
+  + .rfq-dv2-history-card::before,
+.rfq-detail-v2-shell
+  .rightContent
+  .rfq-dv2-history-card
+  + .rfq-dv2-history-card::after {
+  display: none !important;
+  content: none !important;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 74px;
+  margin: 0 -8px;
+  color: #9aa3af;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-arrow svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
+}
+
+/* ── Right panel: shared loading / empty ─────────────────────────────── */
+.rfq-detail-v2-shell .rfq-dv2-panel-loading,
+.rfq-detail-v2-shell .rfq-dv2-panel-empty {
+  padding: 24px 16px;
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+/* ── History tab: state graph — HORIZONTAL layout ────────────────────── */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph {
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* vertically center nodes + arrows */
+  gap: 0;
+  padding: 16px 14px;
+  overflow-x: auto;
+  overflow-y: visible;
+  border-bottom: 1px solid #f3f4f6;
+  /* nice scroll on mobile */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+/* item wrapper no longer used (React.Fragment), keep for safety */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-item {
+  display: contents;
+}
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-arrow {
+  flex-shrink: 0;
+  width: 22px; /* horizontal connector line */
+  height: 2px;
+  background: #93c5fd; /* lighter blue */
+  margin: 0 2px;
+  position: relative;
+  align-self: center; /* stays at mid-height regardless of node height */
+}
+/* arrowhead on right end */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-arrow::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid #93c5fd;
+}
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-node {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f0f4ff;
+  border-left: 3px solid #2a68d3;
+  width: 90px; /* fixed width — consistent columns */
+  box-sizing: border-box;
+}
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2a68d3;
+  word-break: break-word;
+}
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-user {
+  font-size: 11px;
+  color: #374151;
+  word-break: break-word;
+}
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-date {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+/* ── History tab: change list ────────────────────────────────────────── */
+.rfq-detail-v2-shell .rfq-dv2-history-list {
+  padding: 8px 0;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-list-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  padding: 6px 16px 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-item:hover,
+.rfq-detail-v2-shell .rfq-dv2-history-item.is-selected {
+  background: #f0f4ff;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-content {
+  flex: 1;
+  min-width: 0;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-item-text {
+  font-size: 12px;
+  color: #111827;
+  font-weight: 500;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-item-date {
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-detail {
+  margin: 0 12px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 8px 12px;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-detail-row {
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  padding: 3px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-detail-row:last-child {
+  border-bottom: none;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-prop {
+  font-weight: 600;
+  color: #374151;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-old {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-new {
+  color: #111827;
+  font-weight: 500;
+}
+.rfq-detail-v2-shell .rfq-dv2-history-arrow-txt {
+  color: #6b7280;
+}
+
+/* ── Attachments tab ─────────────────────────────────────────────────── */
+.rfq-detail-v2-shell .rfq-dv2-attach-add-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.rfq-detail-v2-shell .rfq-dv2-attach-desc-input {
+  height: 32px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  color: #374151;
+}
+.rfq-detail-v2-shell .rfq-dv2-attach-desc-input:focus {
+  border-color: #2a68d3;
+}
+.rfq-detail-v2-shell .rfq-dv2-attach-file-input {
+  font-size: 11px;
+  color: #6b7280;
+}
+.rfq-detail-v2-shell .rfq-dv2-attach-add-btn {
+  align-self: flex-end;
+  height: 30px;
+  padding: 0 14px;
+  background: #2a68d3;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+.rfq-detail-v2-shell .rfq-dv2-attach-add-btn:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+.rfq-detail-v2-shell .rfq-dv2-attach-error {
+  font-size: 11px;
+  color: #ef4444;
+}
+.rfq-detail-v2-shell .rfq-dv2-attach-list {
+  padding: 8px 0;
+}
+.rfq-detail-v2-shell .rfq-dv2-file-link {
+  font-size: 11px;
+  color: #2a68d3;
+  cursor: pointer;
+  text-decoration: underline;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.rfq-detail-v2-shell .rfq-dv2-file-link:hover {
+  color: #1d5bbf;
+}
+
+/* ── Attachments tab: toolbar + input row ───────────────────────────── */
+.rfq-detail-v2-shell .rfq-dv2-attach-toolbar {
+  padding: 10px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rfq-detail-v2-shell .rfq-dv2-attach-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rfq-detail-v2-shell .rfq-dv2-attach-input-row .rfq-dv2-attach-desc-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+.rfq-detail-v2-shell
+  .rfq-dv2-attach-input-row
+  .rfq-dv2-attach-desc-input:focus {
+  border-color: #2a68d3;
+}
+/* file rows */
+.rfq-detail-v2-shell .rfq-dv2-file-check {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  accent-color: #2a68d3;
+  cursor: pointer;
+  margin-top: 2px;
+}
+.rfq-detail-v2-shell .rfq-dv2-file-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  display: block;
+  line-height: 1.3;
+}
+.rfq-detail-v2-shell .rfq-dv2-file-name {
+  font-size: 11px;
+  color: #6b7280;
+  display: block;
+  word-break: break-all;
+  line-height: 1.3;
+}
+
+/* ── Attachments toolbar — RIGHT PANEL (final override) ──────────────── */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-toolbar {
+  padding: 10px 14px 8px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #fafbfc !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  margin: 0 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-input-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+/* Description input */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input {
+  flex: 1 !important;
+  min-width: 0 !important;
+  height: 34px !important;
+  padding: 0 10px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-family: inherit !important;
+  background: #fff !important;
+  color: #374151 !important;
+  outline: none !important;
+  transition: border-color 0.15s !important;
+  box-sizing: border-box !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input:focus {
+  border-color: #2a68d3 !important;
+  box-shadow: 0 0 0 2px rgba(42, 104, 211, 0.1) !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Add new file button */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  height: 34px !important;
+  padding: 0 12px !important;
+  background: #fff !important;
+  color: #374151 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  transition:
+    background 0.12s,
+    border-color 0.12s !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn:hover {
+  background: #f9fafb !important;
+  border-color: #2a68d3 !important;
+  color: #2a68d3 !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn svg {
+  font-size: 15px !important;
+  color: inherit !important;
+}
+
+/* Error text */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-error {
+  font-size: 11px !important;
+  color: #ef4444 !important;
+  padding: 0 2px !important;
+}
+
+/* ── View History: stage graph boxes (final override) ───────────────── */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0 !important;
+  padding: 16px 14px !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  border-bottom: 1px solid #f3f4f6 !important;
+  scrollbar-width: thin !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* Node box — white card with border */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-node {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  border: 1.5px solid #e5e7eb !important;
+  width: 120px !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Green badge: ✓ DRAFT */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border-radius: 20px !important;
+  padding: 2px 8px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  width: fit-content !important;
+  word-break: normal !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+/* ✓ checkmark inside badge */
+.rfq-detail-v2-shell .rfq-dv2-stage-check {
+  font-size: 9px !important;
+  font-weight: 900 !important;
+  color: #16a34a !important;
+  flex-shrink: 0 !important;
+}
+
+/* Name */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-user {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  line-height: 1.3 !important;
+  word-break: break-word !important;
+  white-space: normal !important;
+}
+
+/* Date */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-date {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  line-height: 1.2 !important;
+  word-break: break-word !important;
+}
+
+/* → arrow connector */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-arrow {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: auto !important;
+  background: none !important;
+  opacity: 1 !important;
+}
+.rfq-detail-v2-shell .rfq-dv2-stage-arrow-icon {
+  font-size: 16px !important;
+  color: #9ca3af !important;
+  line-height: 1 !important;
+}
+/* remove old ::after arrowhead */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-arrow::after {
+  display: none !important;
+}
+
+/* Create RFQ form */
+.rfq-detail-v2-shell .rfq-dv2-create-form {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  padding: 18px 24px 32px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form > div {
+  display: flex;
+  flex-direction: column;
+  max-width: 720px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .row {
+  --bs-gutter-x: 16px;
+  width: 100%;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .row.mb-3,
+.rfq-detail-v2-shell .rfq-dv2-create-form .row.mt-4 {
+  margin-bottom: 14px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .row.mt-4 {
+  margin-top: 12px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .col-12,
+.rfq-detail-v2-shell .rfq-dv2-create-form [class*="col-"] {
+  margin-bottom: 10px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-start-field {
+  order: 1;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-end-field {
+  order: 2;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-requisitioner-field {
+  order: 3;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-purchase-group-field {
+  order: 1;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-purchase-org-field {
+  order: 2;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-toggle-section {
+  order: 6;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-toggle-section > div {
+  width: 100% !important;
+  max-width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-terms-field {
+  order: 7;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiFormLabel-root,
+.rfq-detail-v2-shell .rfq-dv2-create-form .f12.text-muted,
+.rfq-detail-v2-shell .rfq-dv2-create-form .f13 {
+  color: #000000 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 20px !important;
+  margin-bottom: 6px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiTextField-root,
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiFormControl-root,
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiAutocomplete-root {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiInputLabel-root {
+  position: static !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiInputLabel-shrink {
+  transform: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiInputBase-root {
+  height: 32px !important;
+  min-height: 32px !important;
+  border-radius: 6px !important;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiOutlinedInput-notchedOutline {
+  border-color: #d0d5dd !important;
+}
+
+.rfq-detail-v2-shell
+  .rfq-dv2-create-form
+  .MuiOutlinedInput-notchedOutline
+  legend {
+  width: 0 !important;
+  max-width: 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiInputBase-input {
+  font-size: 13px !important;
+  height: 32px !important;
+  box-sizing: border-box !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+.rfq-detail-v2-shell
+  .rfq-dv2-create-form
+  .MuiAutocomplete-root
+  .MuiOutlinedInput-root {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.rfq-detail-v2-shell
+  .rfq-dv2-create-form
+  .MuiAutocomplete-root
+  .MuiInputBase-input {
+  height: 30px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .ql-toolbar {
+  display: none;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-quill-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-quill-field > span {
+  display: block;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .ql-container.ql-snow {
+  min-height: 108px;
+  border: 1px solid #d0d5dd !important;
+  border-radius: 6px !important;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .ql-editor {
+  min-height: 108px;
+  padding: 10px 12px !important;
+  color: #111827;
+  font-size: 13px;
+  font-style: normal;
+  line-height: 20px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .ql-editor.ql-blank::before {
+  left: 12px;
+  right: 12px;
+  color: #98a2b3;
+  font-size: 13px;
+  font-style: normal;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form #termandcondition + .ql-container,
+.rfq-detail-v2-shell .rfq-dv2-create-form #termandcondition .ql-container {
+  min-height: 86px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiRadio-root,
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiCheckbox-root {
+  padding: 2px 6px 2px 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiFormControlLabel-root {
+  margin-left: 0 !important;
+  margin-right: 22px !important;
+  align-items: flex-start !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiFormControlLabel-label {
+  color: #344054 !important;
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiFormControlLabel-label::after {
+  content: "Description";
+  display: block;
+  color: #98a2b3;
+  font-size: 11px;
+  font-weight: 400;
+  margin-top: 2px;
+}

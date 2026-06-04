@@ -1,5 +1,5 @@
 :root {
-  --vz-body-bg: #fafafa;
+  --vz-body-bg: #f5f5f5;
   --vz-header-bg: #fff;
   --vz-header-item-color: #e9ecef;
   --vz-header-bg-dark: #405189;
@@ -195,7 +195,7 @@ body {
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
-  padding-top: 35px;
+  padding-top: 30px;
 }
 
 .text-dark-blue {
@@ -951,7 +951,7 @@ a {
 }
 
 #mainRightContant {
-  padding: 10px;
+  padding: 1px !important;
   background-color: var(--vz-body-bg);
   overflow-x: hidden;
 }

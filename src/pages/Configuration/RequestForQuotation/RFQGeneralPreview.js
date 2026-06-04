@@ -1,185 +1,101 @@
-import React, { useState, useMemo } from 'react'
-import { formatDateViaLocale, formatDateViaLocale2, formatDateViaLocalet, formatDateViaTime, formatDateViaTimeZone, formattimeoption, renderHtmlAsText } from '../../../utils/common/utility'
-import { useNavigate } from 'react-router-dom';
-import { api, ApiClient } from '../../../Apiclient';
-import { useStateValue } from '../../../store';
+import React, { useMemo } from "react";
 import IconButton from "@mui/material/IconButton";
+import { HiPencilAlt } from "react-icons/hi";
+import { useStateValue } from "../../../store";
 import {
-	Close,
-	ExpandLess,
-	ExpandMore,
-} from "@mui/icons-material";
-import {
-	Autocomplete,
-	Button,
-	ButtonGroup,
-	Checkbox,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogContentText,
-	DialogTitle,
-	Divider,
-	FormControl,
-	FormControlLabel,
-	FormGroup,
-	FormHelperText,
-	FormLabel,
-	Input,
-	InputAdornment,
-	InputLabel,
-	MenuItem,
-	Paper,
-	Radio,
-	RadioGroup,
-	Select,
-	Stack,
-	Table,
-	TableBody,
-	TableCell,
-	TableContainer,
-	TableHead,
-	TableRow,
-	TextField,
-	Tooltip,
-	Typography,
-	createFilterOptions,
-	Card,
-	CardHeader,
-	CardContent,
-	Box
-} from "@mui/material";
-import { findStringByValueFromArray } from '../../../utils/common';
-import { HiPencilAlt } from 'react-icons/hi';
+  findStringByValueFromArray,
+} from "../../../utils/common";
+import { formatDateViaLocale2 } from "../../../utils/common/utility";
 
-const RFQGeneralPreview = ({formik,inputList,purchaseAllList,purchaseGroupAllList,customClassName, stagearray, currentStage, handletabEdit}) => {
-    const navigate = useNavigate();
-	const [{ atoken, rtoken, customerid,customersuffix,roleClaims, userDetail }, dispatch] =
-		useStateValue();
-	const apiClient = new ApiClient(customersuffix);
-	
-    const [showTable, setShowTable] = useState(true);
+const stripHtml = (html) => {
+  if (!html) return "";
+  const temp = document.createElement("div");
+  temp.innerHTML = html;
+  return temp.textContent || "";
+};
 
-    function getPlainTextFromHtml(html) {
-      if (!html) return '';
-      const temp = document.createElement('div');
-      temp.innerHTML = html;
-      return temp.textContent || '';
-    }
+const RFQGeneralPreview = ({
+  formik,
+  purchaseAllList,
+  purchaseGroupAllList,
+  stagearray,
+  currentStage,
+  handletabEdit,
+}) => {
+  const [{ userDetail }] = useStateValue();
 
-    const plainDescription = useMemo(() => {
-      return getPlainTextFromHtml(formik.values.description);
-    }, [formik.values.description]);
+  const plainDescription = useMemo(
+    () => stripHtml(formik.values.description),
+    [formik.values.description]
+  );
+
+  const plainTerms = useMemo(
+    () => stripHtml(formik.values.termandcondition),
+    [formik.values.termandcondition]
+  );
+
+  const canEditOverview =
+    (stagearray?.includes(currentStage) || currentStage === "Under Approval") &&
+    typeof handletabEdit === "function";
+
+  const rows = [
+    ["RFQ Subject:", formik.values.subject || "-"],
+    ["Start Date/Time:", formatDateViaLocale2(formik?.values?.startDate, userDetail) || "-"],
+    ["End Date/Time:", formatDateViaLocale2(formik?.values?.endDate, userDetail) || "-"],
+    ["Requisitioner:", formik.values?.requisitioner || "-"],
+    ["Sealed Bid:", formik.values?.RFQType === "closed" ? "YES" : "NO"],
+    ["BOQ:", formik.values.boqReq ? "YES" : "NO"],
+    ["Base Currency:", formik.values.baseCurrency || userDetail?.defaultCurrency || "-"],
+    [
+      "Purchase Group:",
+      findStringByValueFromArray(
+        purchaseGroupAllList,
+        formik.values?.purchGrpId?.id,
+        "id",
+        "groupName"
+      ) || "-",
+    ],
+    [
+      "Purchase Org:",
+      findStringByValueFromArray(
+        purchaseAllList,
+        formik.values?.purchOrgId?.id,
+        "id",
+        "orgName"
+      ) || "-",
+    ],
+  ];
 
   return (
-    <Box sx={{ p: 3, overflow: 'hidden', ...(customClassName && customClassName !== 'none' ? { className: customClassName } : {}) }}>
-      
-      {/* RFQ General Details Card */}
-      <Card sx={{ mb: 3, boxShadow: 2 }}>
-        <CardHeader
-          title=""
-          sx={{ backgroundColor: '#ffffff', py: 1.5 }}
-          titleTypographyProps={{ fontSize: '14px', fontWeight: 400 }}
-          action={
-            (stagearray?.includes(currentStage) || currentStage === 'Under Approval') && (
-              <IconButton size="small" onClick={() => handletabEdit(1)}>
-                <HiPencilAlt className="f17 text-primary" />
-              </IconButton>
-            )
-          }
-        />
-        <CardContent>
-          <div className="row">
-            
-            {/* RFQ Subject */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>RFQ Subject:</strong></Typography>
-              <Typography variant="body1">{formik.values.subject || 'Not specified'}</Typography>
-            </div>
+    <div className="rfq-dv2-overview">
+      {canEditOverview && (
+        <IconButton
+          className="rfq-dv2-overview-edit"
+          size="small"
+          onClick={() => handletabEdit(1)}
+        >
+          <HiPencilAlt className="f17 text-primary" />
+        </IconButton>
+      )}
 
-            {/* Start Date */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Start Date/Time:</strong></Typography>
-              <Typography variant="body1">{formatDateViaLocale2(formik?.values?.startDate, userDetail) || '—'}</Typography>
-            </div>
+      {rows.map(([label, detail]) => (
+        <div className="rfq-dv2-detail-row" key={label}>
+          <div className="rfq-dv2-detail-label">{label}</div>
+          <div className="rfq-dv2-detail-value">{detail}</div>
+        </div>
+      ))}
 
-            {/* End Date */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>End Date/Time:</strong></Typography>
-              <Typography variant="body1">{formatDateViaLocale2(formik?.values?.endDate, userDetail) || '—'}</Typography>
-            </div>
+      <div className="rfq-dv2-detail-row rfq-dv2-detail-row-text">
+        <div className="rfq-dv2-detail-label">RFQ Description:</div>
+        <div className="rfq-dv2-text-panel">{plainDescription || "-"}</div>
+      </div>
 
-            {/* Requisitioner */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Requisitioner:</strong></Typography>
-              <Typography variant="body1">{formik.values?.requisitioner || '—'}</Typography>
-            </div>
-
-            {/* Sealed Bid */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Sealed Bid:</strong></Typography>
-              <Typography variant="body1">{formik.values?.RFQType === "closed" ? "Yes" : "No"}</Typography>
-            </div>
-            
-            {/* Bid Open Date */}
-            {formik.values?.RFQType === "closed" && (
-              <div className="col-md-6 mb-3">
-                <Typography variant="body2" color="textSecondary"><strong>Bid Open Date:</strong></Typography>
-                <Typography variant="body1">{formatDateViaLocale2(formik?.values?.bidOpeningDate, userDetail) || '—'}</Typography>
-              </div>
-            )}
-
-            {/* BOQ */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>BOQ:</strong></Typography>
-              <Typography variant="body1">{formik.values.boqReq ? "Yes" : "No"}</Typography>
-            </div>
-
-            {/* Base Currency */}
-            {formik.values?.baseCurrency && (
-              <div className="col-md-6 mb-3">
-                <Typography variant="body2" color="textSecondary"><strong>Base Currency:</strong></Typography>
-                <Typography variant="body1">{formik.values.baseCurrency || userDetail?.defaultCurrency}</Typography>
-              </div>
-            )}
-
-            {/* Purchase Org */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Purchase Org:</strong></Typography>
-              <Typography variant="body1">
-                {findStringByValueFromArray(purchaseAllList, formik.values?.purchOrgId?.id, "id", "orgName") || '—'}
-              </Typography>
-            </div>
-
-            {/* Purchase Group */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Purchase Group:</strong></Typography>
-              <Typography variant="body1">
-                {findStringByValueFromArray(purchaseGroupAllList, formik.values?.purchGrpId?.id, "id", "groupName") || '—'}
-              </Typography>
-            </div>
-
-            {/* RFQ Description */}
-            <div className="col-12">
-              <Typography variant="body2" color="textSecondary"><strong>RFQ Description:</strong></Typography>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', border: '1px solid #e0e0e0', borderRadius: '4px', p: 1 }}>
-                {formik.values.description?.replace(/<\/?[^>]+(>|$)/g, "") || '—'}
-              </Typography>
-            </div>
-
-            {/* Terms & Conditions */}
-            <div className="col-12 mt-2">
-              <Typography variant="body2" color="textSecondary"><strong>Terms & Conditions:</strong></Typography>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', border: '1px solid #e0e0e0', borderRadius: '4px', p: 1 }}>
-                {formik.values.termandcondition?.replace(/<\/?[^>]+(>|$)/g, "") || '—'}
-              </Typography>
-            </div>
-
-          </div>
-        </CardContent>
-      </Card>
-    </Box>
-  )
-}
+      <div className="rfq-dv2-detail-row rfq-dv2-detail-row-text">
+        <div className="rfq-dv2-detail-label">Terms & Conditions:</div>
+        <div className="rfq-dv2-text-panel">{plainTerms || "-"}</div>
+      </div>
+    </div>
+  );
+};
 
 export default RFQGeneralPreview;

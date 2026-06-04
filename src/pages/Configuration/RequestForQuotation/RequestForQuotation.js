@@ -8,9 +8,11 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 
 // Permission Management Imports
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
-import { Alert ,Card,
+import {
+	Alert, Card,
 	CardHeader,
-	CardContent,} from '@mui/material';
+	CardContent,
+} from '@mui/material';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {
@@ -23,6 +25,8 @@ import {
 	HiOutlinePencil,
 	HiDotsVertical,
 	HiOutlineInformationCircle,
+	HiOutlineDownload,
+	HiOutlineArrowRight,
 } from "react-icons/hi";
 import { LiaUserSolid } from "react-icons/lia";
 import {
@@ -86,7 +90,14 @@ import {
 	menuactionlist,
 	pullMessageCount,
 	downloadExcelTemplate,
+	downloadFilesOnAzure,
+	attachmentmodalforevent,
+	filequeryparam,
+	getFileName,
+	validateFileSize,
+	getPayloadWithFilePath,
 } from "../../../utils/common";
+import { uploadFilesOnAzure } from "../../../utils/documentlibrary";
 import { actionTypes, useStateValue } from "../../../store";
 import {
 	OrgGroupMasterList,
@@ -123,7 +134,6 @@ import AddQuestionFormCell from "./AddQuestionFormCell";
 import { toast } from "react-toastify";
 import { StageFindAll } from "../../../utils/stagemaster";
 import {
-	BackButton,
 	MemoizedEventStageFlow,
 } from "../../../utils/common/component";
 import NotFoundPage from "../../../components/NotAllowed";
@@ -150,6 +160,7 @@ import PurchaseOrgGrp from "../../../utils/common/PurchaseOrgGrp";
 import PurchaseOrg from "../../../utils/common/PurchaseOrg";
 import GridSkeleton from "../../../components/Skeleton/gridSkeleton";
 import { TbExchange } from "react-icons/tb";
+import { PiWarningDiamondFill } from "react-icons/pi";
 import ERFQComparative from "./ERFQComparative";
 import RFQGeneralPreview from "./RFQGeneralPreview";
 import RFQActionDrawer from "../../../components/Reports/RFQActionDrawer";
@@ -171,7 +182,7 @@ import AddEditCurrency from "../../../utils/common/AddEditCurrency";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const RequestForQuotation = ({ claimType }) => {
+const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const fileInputRef = useRef(null);
 	const location = useLocation();
 	const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
@@ -210,7 +221,7 @@ const RequestForQuotation = ({ claimType }) => {
 	const [OrgGroupId, setOrgGroupId] = useState(0);
 	const [modal1, setModal1] = useState(false);
 	const [libraryId, setLibraryId] = useState()
-	const [openQuotes ,setOpenQuotes] = useState(true);
+	const [openQuotes, setOpenQuotes] = useState(true);
 	// RequestForQuotation.jsx (Parent)
 	const [attachmentCount, setAttachmentCount] = useState(0);
 	const NFASOBRFQRef = React.createRef();
@@ -231,7 +242,7 @@ const RequestForQuotation = ({ claimType }) => {
 		console.log("CloseCurrencyModal called");
 		setOpenCurrencyModal(false);
 	};
-	
+
 	const handleCurrencyList = (list) => {
 		console.log("handleCurrencyList called with:", list);
 		setCurrencyList(list);
@@ -282,7 +293,6 @@ const RequestForQuotation = ({ claimType }) => {
 
 	useEffect(() => {
 
-		console.log("userDetail", userDetail)
 		if (value == "1" && idFromURL == null) {
 			setApproverShow(false);
 		}
@@ -290,7 +300,10 @@ const RequestForQuotation = ({ claimType }) => {
 			setApproverShow(false);
 		}
 		else {
-
+			// Restore panel once a valid RFQ ID is known
+			if (idFromURL !== null) {
+				setApproverShow(true);
+			}
 		}
 
 	}, [value, idFromURL]);
@@ -367,28 +380,28 @@ const RequestForQuotation = ({ claimType }) => {
 	}, []);
 
 	// After permissions load, ensure current tab is accessible — if not, auto-select first accessible tab
-useEffect(() => {
+	useEffect(() => {
 		if (skipAutoTabCheckRef.current) {
 			skipAutoTabCheckRef.current = false;
 			return;
 		}
 		if (loadingPermissions) return;
 
-			const canView = (tab) => {
-				// Treat 'add' or falsy idFromURL as "no saved RFQ yet"
-				const hasExistingId = !!idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL));
-				if (tab === 1)
-					return (
-						(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false) ||
-						(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false) ||
-						(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false)
-					);
-				if (tab === 2) return (permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false) && hasExistingId;
-				if (tab === 3) return (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false) && hasExistingId;
-				if (tab === 4) return (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false) && hasExistingId;
-				if (tab === 5) return (permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false) && hasExistingId;
-				return true;
-			};
+		const canView = (tab) => {
+			// Treat 'add' or falsy idFromURL as "no saved RFQ yet"
+			const hasExistingId = !!idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL));
+			if (tab === 1)
+				return (
+					(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false) ||
+					(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false) ||
+					(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false)
+				);
+			if (tab === 2) return (permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false) && hasExistingId;
+			if (tab === 3) return (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false) && hasExistingId;
+			if (tab === 4) return (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false) && hasExistingId;
+			if (tab === 5) return (permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false) && hasExistingId;
+			return true;
+		};
 
 		if (!canView(value)) {
 			const order = [1, 2, 3, 4, 5, 6, 7, 9];
@@ -817,7 +830,7 @@ useEffect(() => {
 
 
 					updateRequestCell(res.data);
-                      
+
 					const AttachFiles = attachmentforevent?.map((x) => {
 
 						x.eventId = res.data;
@@ -1040,24 +1053,28 @@ useEffect(() => {
 		getRFQManageFindById(data, atoken).then((res) => {
 			if (res && res?.length > 0) {
 				//console.log("res getRFQManageFindById", res);
+
+				// Set tempDataEditData FIRST so the component always exits skeleton state
+				setTempDataEditData(res);
+
 				setEventHeaderDetails(res?.[0]);
 				dispatch({ type: actionTypes.SET_EVENTCODE, value: res[0]?.eventCode });
 
-				if (res?.[0]?.userAccess.length > 0) {
-					const userAccess = res?.[0]?.userAccess.map(x => {
-						return ({ ...x, claimValue: JSON.parse(x.claimValue) })
-					})
-
-					setAccessLevel(userAccess)
+				if (res?.[0]?.userAccess?.length > 0) {
+					try {
+						const userAccess = res?.[0]?.userAccess.map(x => {
+							return ({ ...x, claimValue: typeof x.claimValue === 'string' ? JSON.parse(x.claimValue) : x.claimValue })
+						})
+						setAccessLevel(userAccess)
+					} catch (e) {
+						console.warn("[RFQ] userAccess parse failed, using raw:", e.message);
+						setAccessLevel(res?.[0]?.userAccess);
+					}
 
 					// Initialize Permission Manager with user access data
 					const permManager = new PermissionManager(res?.[0]?.userAccess);
 					setPermissionManager(permManager);
 				}
-
-
-
-				setTempDataEditData(res);
 
 				if (res?.[0]?.id && res?.[0]?.id > 0) {
 					formik.setFieldValue("id", res?.[0]?.id);
@@ -1065,7 +1082,7 @@ useEffect(() => {
 				if (res?.[0]?.version && res?.[0]?.version > 0) {
 					formik.setFieldValue("Version", res?.[0]?.version);
 					const sameVersion = res?.[0]?.rfqVersionHistory?.find(x => x.version == res?.[0]?.version);
-					setOpenQuotes(sameVersion.openQuotes == "Y" ? true : false);
+					setOpenQuotes(sameVersion?.openQuotes == "Y" ? true : false);
 				}
 
 
@@ -1967,10 +1984,10 @@ useEffect(() => {
 
 
 	useEffect(() => {
-        pullgetCurrency();
-    }, [atoken]);
+		pullgetCurrency();
+	}, [atoken]);
 
- 
+
 
 	const saveRFQLineItems = async (exceldata) => {
 		const data = exceldata?.map((rfqitem, index) => {
@@ -2024,7 +2041,7 @@ useEffect(() => {
 
 			// Validate the form first
 			const errors = await formik.validateForm();
-			
+
 			// If there are validation errors, mark all fields as touched and stop
 			if (Object.keys(errors).length > 0) {
 				// Mark all fields as touched to show validation errors
@@ -2037,9 +2054,9 @@ useEffect(() => {
 					purchGrpId: true,
 					termandcondition: true,
 				});
-				
+
 				// Show error toast for user feedback
-			
+
 				return;
 			}
 
@@ -2139,7 +2156,7 @@ useEffect(() => {
 	};
 
 	const checkApprovers = () => {
-		
+
 		if (!stagelist || stagelist.length === 0) {
 			toast.error("Error: No stages found in workflow.");
 			return false;
@@ -2148,7 +2165,7 @@ useEffect(() => {
 
 
 		for (const stage of isStageRequired) {
-			
+
 			const matchingWorkflow = approverInWorkflow?.find(workflow => workflow.stage == stage.wfname);
 
 			if (!matchingWorkflow) {
@@ -2167,7 +2184,7 @@ useEffect(() => {
 	};
 
 	const handleErrorRFQSubmit = () => {
-		
+
 		const currentDate = new Date();
 
 		if (!formik.values.startDate) {
@@ -2224,14 +2241,14 @@ useEffect(() => {
 	}
 
 	const handleRFQSubmit = async () => {
-		
+
 		setLoading(true)
 		const isSubmit = handleErrorRFQSubmit();
 		if (!isSubmit) {
 			setLoading(false);
 			return;
 		}
-		
+
 		const isApprovers = checkApprovers();
 		if (!isApprovers) {
 			setLoading(false);
@@ -2451,7 +2468,7 @@ useEffect(() => {
 			`/api/ItemCategory/Find?${queryParams}`,
 			atoken
 		);
-		
+
 		if (res) {
 			setCategoryList(res?.data?.result || []);
 		}
@@ -2469,7 +2486,7 @@ useEffect(() => {
 			`/api/rolemanagement/GetUserRoleRights?${queryParams}`,
 			atoken
 		);
-		
+
 		if (res) {
 			const permManager = new PermissionManager(res?.data);
 			setPermissionManager(permManager);
@@ -2478,7 +2495,7 @@ useEffect(() => {
 			setLoadingPermissions(false);
 		}
 	};
-  
+
 	const handleSupplierWithCategory = async (selectedCategory) => {
 		const obj = {
 			CustomerId: customerid,
@@ -2520,7 +2537,7 @@ useEffect(() => {
 
 	const [totalSupplier, setTotalSupplier] = useState([]);
 	const getTotalSupplier = async () => {
-		
+
 		setTabLoading(true)
 		const obj = {
 			CustomerId: customerid,
@@ -2554,12 +2571,12 @@ useEffect(() => {
 		});
 		const updatedSuppliers = resetSuppliers?.map((supplier) => {
 			// Match by both vendorId and contactId to avoid duplicate contactId issues
-			const matchIndex = ids?.findIndex((vendorId, idx) => 
+			const matchIndex = ids?.findIndex((vendorId, idx) =>
 				supplier.vendorId === vendorId && supplier.contactId === contactids[idx]
 			);
-			
+
 			if (matchIndex !== -1) {
-				const selectedVendor = selectedVendors?.find(v => 
+				const selectedVendor = selectedVendors?.find(v =>
 					v.vendorID === supplier.vendorId && v.contactId === supplier.contactId
 				);
 				return { ...supplier, isSelected: value, rfqLoadingFactor: selectedVendor?.rfqLoadingFactor };
@@ -3285,7 +3302,7 @@ useEffect(() => {
 		if (res?.data?.result.length > 0) {
 
 			const result = res?.data?.result?.filter((item) => item.stageSeq > 0)
-			
+
 			setStageList(result);
 
 			const stagesarray = result?.map((item) => item.currentStage);
@@ -3373,12 +3390,12 @@ useEffect(() => {
 
 		setAttachmentCount(count);
 	};
-	
+
 	// Debug: Track modal state changes
 	useEffect(() => {
 		console.log("OpenCurrencyModal state changed to:", OpenCurrencyModal);
 	}, [OpenCurrencyModal]);
-	
+
 	useEffect(() => {
 		console.log("modal1 state changed to:", modal1);
 	}, [modal1]);
@@ -3413,6 +3430,121 @@ useEffect(() => {
 	const [age, setAge] = React.useState('');
 
 	const [anchorEl, setAnchorEl] = React.useState(null);
+	const [statusAnchorEl, setStatusAnchorEl] = React.useState(null);
+	const [workflowPanelTab, setWorkflowPanelTab] = useState("workflow");
+
+	// ── Fetch right-panel tab data when tab switches ─────────────────────────
+	// NOTE: must be AFTER workflowPanelTab declaration to avoid temporal dead zone
+	useEffect(() => {
+		if (!approvershow) return;
+		if (workflowPanelTab === 'history' && idFromURL) {
+			fetchPanelHistory();
+		}
+		if (workflowPanelTab === 'attachments' && idFromURL) {
+			fetchPanelAttachments();
+		}
+	}, [workflowPanelTab, approvershow, idFromURL]);
+
+	// ── Right panel: History tab state ──────────────────────────────────────
+	const [historyAudit, setHistoryAudit] = useState([]);
+	const [historyGraph, setHistoryGraph] = useState([]);
+	const [historyLoading, setHistoryLoading] = useState(false);
+	const [historySelectedItem, setHistorySelectedItem] = useState(null);
+
+	const fetchPanelHistory = async () => {
+		if (!idFromURL) return;
+		setHistoryLoading(true);
+		const params = new URLSearchParams({ CustomerId: customerid, EventType: 'RFQ', EventId: idFromURL }).toString();
+		const res = await apiClient.getres(`api/ReportConfig/AuditReport?${params}`, atoken);
+		if (res?.data) {
+			const audit = res.data?.changeAudit || [];
+			const graph = res.data?.stategraph || [];
+			setHistoryAudit(audit);
+			setHistoryGraph(graph);
+			if (audit.length > 0) {
+				const latest = [...audit].sort((a, b) => new Date(b.actionDate) - new Date(a.actionDate))[0];
+				setHistorySelectedItem(latest);
+			}
+		}
+		setHistoryLoading(false);
+	};
+
+	const getHistoryInitials = (name) => {
+		if (!name) return '?';
+		return name.split(' ').map(p => p.charAt(0)).join('').toUpperCase().slice(0, 2);
+	};
+
+	// ── Right panel: Attachments tab state ──────────────────────────────────
+	const [panelSavedAttach, setPanelSavedAttach] = useState([]);
+	const [panelNewFiles, setPanelNewFiles] = useState([]);
+	const [panelAttachLoading, setPanelAttachLoading] = useState(false);
+	const [panelAttachDesc, setPanelAttachDesc] = useState('');
+	const [panelAttachFile, setPanelAttachFile] = useState(null);
+	const [panelAttachError, setPanelAttachError] = useState('');
+	const [panelAttachAdding, setPanelAttachAdding] = useState(false);
+	const panelFileInputRef = useRef(null);
+
+	const fetchPanelAttachments = async () => {
+		if (!idFromURL) return;
+		setPanelAttachLoading(true);
+		const params = buildQueryParams({ EventType: 'RFQ', EventId: idFromURL, VendorId: 0 });
+		const res = await apiClient.getres(`/api/eventattachment/Find?${params}`, atoken);
+		const resData = res?.data?.result || [];
+		if (resData.length > 0) {
+			const mapped = attachmentmodalforevent(resData, idFromURL, 'RFQ');
+			setPanelSavedAttach(mapped);
+			handleattachmentforevent(mapped);
+			handleAttachmentCount(mapped.length);
+		} else {
+			setPanelSavedAttach([]);
+			handleattachmentforevent([]);
+			handleAttachmentCount(0);
+		}
+		setPanelAttachLoading(false);
+	};
+
+	// fileArg: pass file directly from onChange (state not yet updated when called)
+	const addPanelAttachment = async (fileArg) => {
+		const fileToUse = fileArg || panelAttachFile;
+		const descToUse = panelAttachDesc.trim();
+		if (!descToUse || !fileToUse?.file) {
+			setPanelAttachError('Enter a description first, then pick a file.');
+			return;
+		}
+		setPanelAttachError('');
+		setPanelAttachAdding(true);
+		try {
+			const filedata = filequeryparam({ EventType: 'RFQ', EventId: idFromURL, Description: 'General', CustomerId: customerid });
+			const path = await uploadFilesOnAzure(filedata, fileToUse.file, atoken);
+			if (!path) return;
+			const payload = getPayloadWithFilePath('fileNamePath', path, {
+				eventId: idFromURL, eventType: 'RFQ',
+				attachmentDescription: descToUse,
+				attachment: fileToUse.file.name,
+				docRefId: 0, createdById: userDetail?.id, createdByName: userDetail?.name,
+			});
+			const res = await apiClient.postres(`/api/eventattachment/${idFromURL}/AddMultiple`, { attachments: [payload] }, atoken);
+			if (res) {
+				setPanelAttachDesc('');
+				setPanelAttachFile(null);
+				if (panelFileInputRef.current) panelFileInputRef.current.value = '';
+				fetchPanelAttachments();
+			}
+		} catch (e) {
+			setPanelAttachError('Upload failed. Please try again.');
+		} finally {
+			setPanelAttachAdding(false);
+		}
+	};
+
+	const deletePanelAttachment = async (index, id) => {
+		const res = await apiClient.postres(`/api/eventattachment/${id}/Delete`, null, atoken);
+		if (res) {
+			const updated = panelSavedAttach.filter((_, i) => i !== index);
+			setPanelSavedAttach(updated);
+			handleattachmentforevent(updated);
+		}
+	};
 
 	const handleClick = (event) => {
 		// Handle the main button click
@@ -3436,6 +3568,14 @@ useEffect(() => {
 	const [selectedMenuItem, setSelectedMenuItem] = useState("Save & Continue");
 	const handleMenuClose = () => {
 		setAnchorEl(null);
+	};
+
+	const handleStatusMenuOpen = (event) => {
+		setStatusAnchorEl(event.currentTarget);
+	};
+
+	const handleStatusMenuClose = () => {
+		setStatusAnchorEl(null);
 	};
 	// RFQ Template Title
 	const [TemplateTitle, setTemplateTitle] = useState("")
@@ -3933,7 +4073,7 @@ useEffect(() => {
 	}
 	const handleSendMailtoSuppliers = async () => {
 		//logic for send mail to suppliers
-		
+
 		// const data = {
 		// 	rfqid: idFromURL,
 		// 	stage: "RFQ Close Email",
@@ -3973,7 +4113,7 @@ useEffect(() => {
 	const handleSaveAndClose = async () => {
 		//logic for save and close
 		const res1 = await NFASOBRFQRef?.current?.saveSOBDetails();
-		if(res1){
+		if (res1) {
 			handleSendAllocationEmail();
 			handleApproverForward();
 		}
@@ -4061,6 +4201,34 @@ useEffect(() => {
 		}
 	};
 
+	const rfqStatusSteps = [
+		"Draft",
+		"Open",
+		"Forward for Approval",
+		"Technical Approval",
+		"Commercial Approval",
+		"Allocation",
+		"Awarded",
+	];
+
+	const normalizedCurrentStage = (currentStage || "Draft").trim();
+	const currentStatusIndex = Math.max(
+		0,
+		rfqStatusSteps.findIndex(
+			(step) => step.toLowerCase() === normalizedCurrentStage.toLowerCase()
+		)
+	);
+
+	const formatRfqDateTime = (value) => {
+		if (!value) return "-";
+		const parsed = dayjs(value);
+		return parsed.isValid() ? parsed.format("DD-MM-YY HH:mm") : "-";
+	};
+
+	const rfqTitle =
+		formik?.values?.subject ||
+		tempDataEditData?.[0]?.subject ||
+		"Purchase Requisition for production";
 
 
 	//##return
@@ -4068,29 +4236,74 @@ useEffect(() => {
 		<>
 			<div className="mainContainer d-flex rfq-modern-shell" style={{ overflow: 'hidden' }}>
 				<div className={`leftContent ${approvershow ? "col-9" : "col-12"} d-flex flex-column`}>
-					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ height: 'calc(130vh - 120px)', overflow: 'hidden' }}>
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3" style={{ flexShrink: 0 }}>
-							<div className="d-flex align-items-center">
-								<BackButton
-									title={
-										tempDataEditData?.[0].eventCode
-											? <span className="page-heading">{tempDataEditData[0].eventCode}</span>
-											: idFromURL
-												? <span className="page-heading">RFQ ({idFromURL})</span>
-												: <span className="page-heading">Request for Quotation</span>
-									}
-									modal={currentStage === "Draft"}
-								/>
+					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ height: '100%', overflow: 'hidden' }}>
+						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 rfq-dv2-page-head" style={{ flexShrink: 0 }}>
+							<div className="d-flex rfq-dv2-title-wrap">
+								{breadcrumb}
+								<span className="rfq-v2-title">{rfqTitle}</span>
+								<div className="rfq-dv2-meta-row">
+									<span className="rfq-dv2-meta-item">
+										<span className="rfq-dv2-meta-label">Status</span>
+										<button
+											type="button"
+											className={`rfq-dv2-status-pill ${normalizedCurrentStage.toLowerCase() === "draft" ? "is-draft" : ""}`}
+											onClick={handleStatusMenuOpen}
+										>
+											<span className="rfq-dv2-status-dot" />
+											{normalizedCurrentStage}
+										</button>
+									</span>
+									<span className="rfq-dv2-meta-item">
+										<span className="rfq-dv2-meta-label">End Date/Time:</span>{" "}
+										<span className="rfq-dv2-meta-value">{formatRfqDateTime(formik?.values?.endDate)}</span>
+									</span>
+									<span className="rfq-dv2-meta-item">
+										<span className="rfq-dv2-meta-label">Requisitioner:</span>{" "}
+										<span className="rfq-dv2-meta-value">{formik?.values?.requisitioner || "-"}</span>
+									</span>
+								</div>
+								<Menu
+									anchorEl={statusAnchorEl}
+									open={Boolean(statusAnchorEl)}
+									onClose={handleStatusMenuClose}
+									classes={{ paper: "rfq-dv2-status-menu-paper" }}
+									anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+									transformOrigin={{ vertical: "top", horizontal: "left" }}
+								>
+									<div className="rfq-dv2-status-menu">
+										<div className="rfq-dv2-status-menu-title">RFQ Status</div>
+										<div className="rfq-dv2-status-menu-list">
+											{rfqStatusSteps.map((step, index) => {
+												const stepClass =
+													index < currentStatusIndex
+														? ""
+														: index === currentStatusIndex
+															? "is-current"
+															: "is-future";
+
+												return (
+													<div
+														key={step}
+														className={`rfq-dv2-status-step ${stepClass}`}
+													>
+														<span className="rfq-dv2-status-step-icon" />
+														<span>{step}</span>
+													</div>
+												);
+											})}
+										</div>
+									</div>
+								</Menu>
 							</div>
 							{/* Stage Flow - centered between title and buttons */}
-							<div className="d-flex justify-content-center flex-grow-1">
+							<div className="d-flex justify-content-center flex-grow-1 rfq-dv2-stage-flow">
 								<MemoizedEventStageFlow
 									stagelist={stagelist}
 									currentStage={currentStage}
 								/>
 							</div>
 							{/* Action Button*/}
-							<div className="d-flex align-items-center gap-2">
+							<div className="d-flex align-items-center gap-2 rfq-dv2-actions">
 								{!loading ? (
 									actionType === 'Forward' ||
 										(value === 6 && currentStage !== 'Technical Approval' && currentStage !== 'Open' && actionType === 'approval') ? (
@@ -4230,7 +4443,7 @@ useEffect(() => {
 						</div>
 
 						{/* Tab Navigation and Icons Header */}
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3">
+						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 bg-grey">
 							{/* Tab Navigation */}
 							<Box sx={{
 								flexGrow: 1,
@@ -4246,12 +4459,12 @@ useEffect(() => {
 									allowScrollButtonsMobile
 								>
 									{!actionType && (
-										<Tab value={1} label={<span className="section-heading">General</span>} />
+										<Tab value={1} label={<span className="section-heading">Overview</span>} />
 									)}
 									{!actionType && (
 										<Tab
 											value={2}
-											label={<span className="section-heading">Items/Services</span>}
+											label={<span className="section-heading">Items & Services</span>}
 											disabled={!idFromURL}
 										/>
 									)}
@@ -4289,7 +4502,7 @@ useEffect(() => {
 									) && (
 											<Tab
 												value={6}
-												label={<span className="section-heading">Report</span>}
+												label={<span className="section-heading">Reports</span>}
 												disabled={!idFromURL}
 											/>
 										)}
@@ -4312,7 +4525,7 @@ useEffect(() => {
 
 							{/* Top-right icons: History, Attachment, and Approval */}
 							{/* <div className="d-flex align-items-center gap-2"> */}
-							<div className={`d-flex align-items-center gap-2`}>
+							<div className="d-flex align-items-center gap-2 rfq-dv2-tab-actions" aria-hidden="true">
 								{(
 									<AttachmentWorkFlow
 										eventtype={`RFQ`}
@@ -4321,15 +4534,15 @@ useEffect(() => {
 										handleattachmentforevent={handleattachmentforevent}
 										ref={attachmentdrawerref}
 										onCountChange={handleAttachmentCount}
-													permissionManager={effectivePermissionManager}
+										permissionManager={effectivePermissionManager}
 									/>
 								)}
 
-								{ idFromURL && (
-									<HistoryCell eventtype={`RFQ`} eventId={idFromURL} 
-									permissionManager={effectivePermissionManager}
+								{idFromURL && (
+									<HistoryCell eventtype={`RFQ`} eventId={idFromURL}
+										permissionManager={effectivePermissionManager}
 									/>
-									
+
 								)}
 								{idFromURL && (<Tooltip title="Show/Hide Approvers">
 									<IconButton
@@ -4348,7 +4561,7 @@ useEffect(() => {
 						</div>
 
 						{/* Tab Content */}
-						<div className="flex-grow-1 p-2 hidden-scrollbar" style={{
+						<div className={`flex-grow-1 p-2 hidden-scrollbar ${(!idFromURL || idFromURL === "add") ? "rfq-dv2-create-form" : ""}`} style={{
 							height: 'calc(100% - 60px)'
 						}}>
 							{/* General Tab Content */}
@@ -4378,14 +4591,14 @@ useEffect(() => {
 												return (
 													<div>
 														{/* Permission Status Alert */}
-													
+
 
 
 														<div className="row mb-3">
 															<div className="col-12">
 																<TextFieldCell
 																	size="small"
-																	label="Subject *"
+																	label="RFQ Subject"
 																	name="subject"
 																	id="subject"
 																	value={formik.values.subject}
@@ -4402,8 +4615,8 @@ useEffect(() => {
 
 														<div className="row mb-3">
 															<div className="col-12">
-																<div className="f12 text-muted mb-1">
-																	<span>Description *</span>
+																<div className="f12 text-muted mb-1 rfq-dv2-quill-field">
+																	<span>RFQ Description</span>
 																	<ReactQuill
 																		theme="snow"
 																		value={formik.values.description || ''}
@@ -4419,7 +4632,7 @@ useEffect(() => {
 														<LocalizationProvider dateAdapter={AdapterDayjs}>
 															<div className="row mt-4 mb-2">
 																{/* Requisitioner */}
-																<div className="col-12 col-md-4 col-lg-4">
+																<div className="col-12 col-md-4 col-lg-4 rfq-dv2-requisitioner-field">
 																	<Autocomplete
 																		id="requisitioner"
 																		name="requisitioner"
@@ -4448,7 +4661,7 @@ useEffect(() => {
 																</div>
 
 																{/* Start Date */}
-																<div className="col-12 col-md-4 col-lg-4">
+																<div className="col-12 col-md-4 col-lg-4 rfq-dv2-start-field">
 																	<MobileDateTimePicker
 																		label="Start Date/Time"
 																		name="startDate"
@@ -4476,7 +4689,7 @@ useEffect(() => {
 																</div>
 
 																{/* End Date */}
-																<div className="col-12 col-md-4 col-lg-4">
+																<div className="col-12 col-md-4 col-lg-4 rfq-dv2-end-field">
 																	<MobileDateTimePicker
 																		label="End Date/Time *"
 																		name="endDate"
@@ -4508,7 +4721,7 @@ useEffect(() => {
 														<div className="row mt-4 mb-2">
 															{/* Purchase Org */}
 															{purchaseAllList && (
-																<div className="col-12 col-md-4 col-lg-4 mb-2">
+																<div className="col-12 col-md-4 col-lg-4 mb-2 rfq-dv2-purchase-org-field">
 																	<Autocomplete
 																		id="purchOrgId"
 																		name="purchOrgId"
@@ -4572,7 +4785,7 @@ useEffect(() => {
 
 															{/* Purchase Group */}
 															{purchaseGroupAllList && (
-																<div className="col-12 col-md-4 col-lg-4 mb-2">
+																<div className="col-12 col-md-4 col-lg-4 mb-2 rfq-dv2-purchase-group-field">
 																	<Autocomplete
 																		id="purchGrpId"
 																		name="purchGrpId"
@@ -4648,7 +4861,7 @@ useEffect(() => {
 
 
 
-														<div className="col-12 mb-1">
+														<div className="col-12 mb-1 rfq-dv2-terms-field">
 															<FormControl className="w-100">
 																<FormLabel id="baseCurrency">
 																	<span className="f13">
@@ -4714,63 +4927,63 @@ useEffect(() => {
 																										<Autocomplete
 																											id={"baseCurrency" + i}
 																											name="baseCurrency"
-																										options={[
-																											...(currencyList?.filter(cl => cl.currencyNm !== (formik?.values?.baseCurrency || userDetail?.defaultCurrency)) || []),
-																											{ currencyNm: "Add New", id: "new" }
-																										]}
-																										getOptionLabel={(option) => option.currencyNm}
-																										loading={loadCurrency}
-																										onOpen={() => {
-																											// Call pullgetCurrency when dropdown opens
-																											if (currencyList.length === 0)
-																												pullgetCurrency();
-																										}}
-																										onChange={(event, value) => {
-																											if (value && value.id === "new") {
-																												setOpenCurrencyModal(true);
-																											} else {
-																												handleInputChange({ target: { value: value ? value?.currencyNm : "", name: "baseCurrency" } }, i);
-																											}
-																										}}
-																										//value={currencyList?.find(cl => cl.currencyNm === x.baseCurrency) || null} // Set the value from the currency list
-																										value={
-																											currencyList.find(
-																												(option) => option.currencyNm === x.baseCurrency
-																											) || { currencyNm: x.baseCurrency }
-																										}
-																										renderInput={(params) => (
-																											<TextField
-																												{...params}
-																												InputLabelProps={{
-																													shrink: true,
-																												}}
-																												name="baseCurrency"
-																												label="Select Currency *"
-																												variant="outlined"
-																												size="small"
-																												className="w-100 f14"
-																											/>
-																										)}
-																										renderOption={(props, option) => (
-																											<Box
-																												component="li"
-																												{...props}
-																												key={option.id || option.currencyNm}
-																												style={
-																													option.id === "new"
-																														? {
-																															fontStyle: "italic",
-																															color: "blue",
-																															cursor: "pointer",
-																															textDecoration: "underline",
-																														}
-																														: {}
+																											options={[
+																												...(currencyList?.filter(cl => cl.currencyNm !== (formik?.values?.baseCurrency || userDetail?.defaultCurrency)) || []),
+																												{ currencyNm: "Add New", id: "new" }
+																											]}
+																											getOptionLabel={(option) => option.currencyNm}
+																											loading={loadCurrency}
+																											onOpen={() => {
+																												// Call pullgetCurrency when dropdown opens
+																												if (currencyList.length === 0)
+																													pullgetCurrency();
+																											}}
+																											onChange={(event, value) => {
+																												if (value && value.id === "new") {
+																													setOpenCurrencyModal(true);
+																												} else {
+																													handleInputChange({ target: { value: value ? value?.currencyNm : "", name: "baseCurrency" } }, i);
 																												}
-																											>
-																												{option.currencyNm}
-																											</Box>
-																										)}
-																									/>
+																											}}
+																											//value={currencyList?.find(cl => cl.currencyNm === x.baseCurrency) || null} // Set the value from the currency list
+																											value={
+																												currencyList.find(
+																													(option) => option.currencyNm === x.baseCurrency
+																												) || { currencyNm: x.baseCurrency }
+																											}
+																											renderInput={(params) => (
+																												<TextField
+																													{...params}
+																													InputLabelProps={{
+																														shrink: true,
+																													}}
+																													name="baseCurrency"
+																													label="Select Currency *"
+																													variant="outlined"
+																													size="small"
+																													className="w-100 f14"
+																												/>
+																											)}
+																											renderOption={(props, option) => (
+																												<Box
+																													component="li"
+																													{...props}
+																													key={option.id || option.currencyNm}
+																													style={
+																														option.id === "new"
+																															? {
+																																fontStyle: "italic",
+																																color: "blue",
+																																cursor: "pointer",
+																																textDecoration: "underline",
+																															}
+																															: {}
+																													}
+																												>
+																													{option.currencyNm}
+																												</Box>
+																											)}
+																										/>
 
 																									</div>
 																									<div className="col-lg-4 col-12">
@@ -4873,7 +5086,7 @@ useEffect(() => {
 																)}
 														</div>
 														<div className="col-12 mb-1">
-															<div className="f12 text-muted mb-1">
+															<div className="f12 text-muted mb-1 rfq-dv2-quill-field">
 																<span>Terms & Conditions *</span>
 																{idFromURL && (
 																	<span>
@@ -4957,7 +5170,7 @@ useEffect(() => {
 																<></>
 															)}
 														</div>
-														<div className="col-12 mb-4 d-flex">
+														<div className="col-12 mb-4 d-flex rfq-dv2-toggle-section">
 															<div className="col-12 col-md-2 col-lg-2 mt-4">
 																<FormGroup>
 																	<FormControlLabel
@@ -5146,20 +5359,23 @@ useEffect(() => {
 
 
 
-								if (showGeneralAccessDenied || !idFromURL || idFromURL === 'add') {
-									return null;
-								}
+											if (showGeneralAccessDenied || !idFromURL || idFromURL === 'add') {
+												return null;
+											}
 
-								return (
-									<RFQGeneralPreview
-										formik={formik}
-										inputList={inputList}
-										purchaseAllList={purchaseAllList}
-										purchaseGroupAllList={purchaseGroupAllList}
-									/>
-									);
-											})()
-										
+											return (
+												<RFQGeneralPreview
+													formik={formik}
+													inputList={inputList}
+													purchaseAllList={purchaseAllList}
+													purchaseGroupAllList={purchaseGroupAllList}
+													stagearray={stagearray}
+													currentStage={currentStage}
+													handletabEdit={handletabEdit}
+												/>
+											);
+										})()
+
 									)}
 								</div>
 							)}
@@ -5190,7 +5406,7 @@ useEffect(() => {
 
 										if (formik.values.boqReq === true) {
 											return (
-												<BoqScreen 
+												<BoqScreen
 													idFromURL={idFromURL}
 													eventType="RFQ"
 													CurrentVersion={formik?.values?.Version}
@@ -5207,7 +5423,7 @@ useEffect(() => {
 												{/* Permission Alert for Items/Services Tab */}
 												{permissionManager && (
 													<div className="pb-0">
-													
+
 													</div>
 												)}
 
@@ -5269,7 +5485,7 @@ useEffect(() => {
 																		className="f14"
 																		disabled={(!stagearray.includes(currentStage)) || !canCreate}
 																		onClick={() => canCreate && document.getElementById('itemuploadid').click()}
-																		
+
 																	>
 																		Excel Upload
 																	</MenuItem>
@@ -5320,7 +5536,7 @@ useEffect(() => {
 											<>
 												{effectivePermissionManager && (
 													<div className="pb-0">
-													
+
 													</div>
 												)}
 												<EventCommercialScreen
@@ -5355,7 +5571,7 @@ useEffect(() => {
 											<>
 												{effectivePermissionManager && (
 													<div className="pb-0">
-                                                        
+
 													</div>
 												)}
 												<EventQuestionScreen
@@ -5369,7 +5585,7 @@ useEffect(() => {
 														editquestion: isquestioneditDisabled,
 														stagelist: stagelist,
 														permissionManager: permissionManager,
-														requestCell:requestCell
+														requestCell: requestCell
 													}}
 													ref={EventQuestionScreenRef}
 												/>
@@ -5393,7 +5609,7 @@ useEffect(() => {
 											<>
 												{effectivePermissionManager && (
 													<div className="pb-0">
-                                                        
+
 													</div>
 												)}
 											</>
@@ -5863,7 +6079,7 @@ useEffect(() => {
 											<>
 												{effectivePermissionManager && (
 													<div className="pb-0">
-                                                    
+
 													</div>
 												)}
 											</>
@@ -5961,7 +6177,7 @@ useEffect(() => {
 										currentStage: "Allocation",
 										permissionManager: effectivePermissionManager
 									}}
-									 ref={NFASOBRFQRef}
+									ref={NFASOBRFQRef}
 								/>
 							}
 							{value == 7 && rfqpreview && !showGeneralAccessDenied && idFromURL && idFromURL !== 'add' && (
@@ -5971,15 +6187,15 @@ useEffect(() => {
 											<div className="card shadow-sm border-0 mb-3" style={{ borderRadius: '8px' }}>
 												<div className="card-body p-4">
 													<div className="d-flex justify-content-between align-items-center mb-3" id="generaldetails">
-																											<Typography
-														  sx={{
-															mb: 3,
-															color: '#1976d2',
-															fontWeight: 400,
-															fontSize: '14px' // set font size to 14px
-														  }}
+														<Typography
+															sx={{
+																mb: 3,
+																color: '#1976d2',
+																fontWeight: 400,
+																fontSize: '14px' // set font size to 14px
+															}}
 														>
-														  📝 RFQ General Details
+															📝 RFQ General Details
 														</Typography>
 														{/* <h5 className="preview-section-heading text-dark-blue mb-0">RFQ General Details</h5> */}
 														{stagearray.includes(currentStage) && (
@@ -6003,251 +6219,251 @@ useEffect(() => {
 										</>
 									}
 
-	{accessLevel?.find(x => x.claimType == "Item Service")?.claimValue?.Read !== "N" && (
-  <>
-    {/* === SAME STYLE AS RFQ GENERAL DETAILS === */}
-    <div className="d-flex justify-content-between align-items-center mb-3" id="rfqitemsdetails">
-      <Typography
-        sx={{
-          mb: 3,
-          color: "#1976d2",
-          fontWeight: 400,
-          fontSize: "14px" // same size
-        }}
-      >
-        📝 RFQ Items Details
-      </Typography>
+									{accessLevel?.find(x => x.claimType == "Item Service")?.claimValue?.Read !== "N" && (
+										<>
+											{/* === SAME STYLE AS RFQ GENERAL DETAILS === */}
+											<div className="d-flex justify-content-between align-items-center mb-3" id="rfqitemsdetails">
+												<Typography
+													sx={{
+														mb: 3,
+														color: "#1976d2",
+														fontWeight: 400,
+														fontSize: "14px" // same size
+													}}
+												>
+													📝 RFQ Items Details
+												</Typography>
 
-      {stagearray.includes(currentStage) && (
-        <IconButton
-          size="small"
-          className="bg-light"
-          onClick={() => handletabEdit(2)}
-        >
-          <HiPencilAlt className="f17 text-primary" />
-        </IconButton>
-      )}
-    </div>
+												{stagearray.includes(currentStage) && (
+													<IconButton
+														size="small"
+														className="bg-light"
+														onClick={() => handletabEdit(2)}
+													>
+														<HiPencilAlt className="f17 text-primary" />
+													</IconButton>
+												)}
+											</div>
 
-    {/* CARD WITHOUT HEADER */}
-    <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-      <CardContent sx={{ p: 2 }}>
-        {formik.values.boqReq === true ? (
-          <BoqScreen 
-            idFromURL={idFromURL}
-            eventType="RFQ"
-            CurrentVersion={formik?.values?.Version}
-            stage={currentStage}
-            boqReq={formik.values.boqReq}
-            readOnly={true}
-          />
-        ) : (
-          <ProductitemCell
-            action={false}
-            itemsList={rfqItemsList}
-            handleEditItem={handleEditItem}
-            handleDeleteItem={handleDeleteItem}
-          />
-        )}
-      </CardContent>
-    </Card>
-  </>
-)}
-
-
-
-	{
-  accessLevel?.find(x => x.claimType == "Commercial Terms")?.claimValue?.Read !== "N" && (
-    <>
-
-      {/* === SAME STYLE HEADING LIKE “RFQ General Details” === */}
-      <div className="d-flex justify-content-between align-items-center mb-3" id="rfqcommercialdetails">
-        <Typography
-          sx={{
-            mb: 3,
-            color: "#1976d2",
-            fontWeight: 400,
-            fontSize: "14px" // SAME STYLE
-          }}
-        >
-          📝 RFQ Commercial Details
-        </Typography>
-
-        {stagearray.includes(currentStage) && (
-          <IconButton
-            size="small"
-            className="bg-light"
-            onClick={() => handletabEdit(3)}
-          >
-            <HiPencilAlt className="f17 text-primary" />
-          </IconButton>
-        )}
-      </div>
-
-      {/* === CARD WITHOUT HEADER === */}
-      <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-        <CardContent sx={{ p: 2 }}>
-
-          {/* Permissions Info */}
-					{(() => {
-						const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false;
-						const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false;
-						const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.CREATE) ?? false;
-						const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.REMOVE) ?? false;
-
-						return (
-							<>
-								{effectivePermissionManager && (
-									<Alert severity="info" sx={{ mb: 2 }}>
-										<div className="d-flex align-items-center">
-											<PersonOutlined className="me-2" />
-											Commercial Terms tab permissions:
-											{canRead && <span className="badge bg-success ms-1">Read</span>}
-											{canEdit && <span className="badge bg-warning ms-1">Edit</span>}
-											{canCreate && <span className="badge bg-primary ms-1">Create</span>}
-                      {canRemove && <span className="badge bg-danger ms-1">Remove</span>}
-                    </div>
-                  </Alert>
-                )}
-              </>
-            );
-          })()}
-
-          {/* Component Body */}
-          <EventCommercialScreen
-            EventType="RFQ"
-            EventId={idFromURL}
-            LibraryType="CommercialLibrary"
-            Version={formik?.values?.Version}
-            EventGeneralDetails={formik?.values}
-            Action={false}
-            currencyList={currencyList}
-            ref={EventCommercialScreenRef}
-									permissionManager={effectivePermissionManager}
-          />
-
-        </CardContent>
-      </Card>
-
-    </>
-  )
-}
+											{/* CARD WITHOUT HEADER */}
+											<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
+												<CardContent sx={{ p: 2 }}>
+													{formik.values.boqReq === true ? (
+														<BoqScreen
+															idFromURL={idFromURL}
+															eventType="RFQ"
+															CurrentVersion={formik?.values?.Version}
+															stage={currentStage}
+															boqReq={formik.values.boqReq}
+															readOnly={true}
+														/>
+													) : (
+														<ProductitemCell
+															action={false}
+															itemsList={rfqItemsList}
+															handleEditItem={handleEditItem}
+															handleDeleteItem={handleDeleteItem}
+														/>
+													)}
+												</CardContent>
+											</Card>
+										</>
+									)}
 
 
 
-{
-  accessLevel?.find(x => x.claimType == "Questions")?.claimValue?.Read !== "N" && (
-    <>
+									{
+										accessLevel?.find(x => x.claimType == "Commercial Terms")?.claimValue?.Read !== "N" && (
+											<>
 
-      {/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
-      <div className="d-flex justify-content-between align-items-center mb-3" id="rfqquestions">
-        <Typography
-          sx={{
-            mb: 3,
-            color: "#1976d2",
-            fontWeight: 400,
-            fontSize: "14px" // SAME LOOK
-          }}
-        >
-          📝 RFQ Questions
-        </Typography>
+												{/* === SAME STYLE HEADING LIKE “RFQ General Details” === */}
+												<div className="d-flex justify-content-between align-items-center mb-3" id="rfqcommercialdetails">
+													<Typography
+														sx={{
+															mb: 3,
+															color: "#1976d2",
+															fontWeight: 400,
+															fontSize: "14px" // SAME STYLE
+														}}
+													>
+														📝 RFQ Commercial Details
+													</Typography>
 
-        {stagearray.includes(currentStage) && (
-          <IconButton
-            size="small"
-            className="bg-light"
-            onClick={() => handletabEdit(4)}
-          >
-            <HiPencilAlt className="f17 text-primary" />
-          </IconButton>
-        )}
-      </div>
+													{stagearray.includes(currentStage) && (
+														<IconButton
+															size="small"
+															className="bg-light"
+															onClick={() => handletabEdit(3)}
+														>
+															<HiPencilAlt className="f17 text-primary" />
+														</IconButton>
+													)}
+												</div>
 
-      {/* === CARD WITHOUT HEADER === */}
-      <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-        <CardContent sx={{ p: 2 }}>
+												{/* === CARD WITHOUT HEADER === */}
+												<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
+													<CardContent sx={{ p: 2 }}>
 
-          {/* Permissions Info */}
-          {(() => {
-            const canRead = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false;
-            const canEdit = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) ?? false;
-            const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false;
-            const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false;
+														{/* Permissions Info */}
+														{(() => {
+															const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false;
+															const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false;
+															const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.CREATE) ?? false;
+															const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.REMOVE) ?? false;
 
-            return (
-              <>
-              
-              </>
-            );
-          })()}
+															return (
+																<>
+																	{effectivePermissionManager && (
+																		<Alert severity="info" sx={{ mb: 2 }}>
+																			<div className="d-flex align-items-center">
+																				<PersonOutlined className="me-2" />
+																				Commercial Terms tab permissions:
+																				{canRead && <span className="badge bg-success ms-1">Read</span>}
+																				{canEdit && <span className="badge bg-warning ms-1">Edit</span>}
+																				{canCreate && <span className="badge bg-primary ms-1">Create</span>}
+																				{canRemove && <span className="badge bg-danger ms-1">Remove</span>}
+																			</div>
+																		</Alert>
+																	)}
+																</>
+															);
+														})()}
 
-          {/* Component */}
-          <EventQuestionScreen
-            props={{
-              eventid: idFromURL,
-              eventtype: "RFQ",
-              librarytype: "QuestionLibrary",
-              action: false,
-              supplierid: supplierid,
-              Version: formik?.values?.Version,
-              editquestion: isquestioneditDisabled,
-              stagelist: stagelist,
-              permissionManager: permissionManager,
-			  requestCell: requestCell
-            }}
-            ref={EventQuestionScreenRef}
-          />
+														{/* Component Body */}
+														<EventCommercialScreen
+															EventType="RFQ"
+															EventId={idFromURL}
+															LibraryType="CommercialLibrary"
+															Version={formik?.values?.Version}
+															EventGeneralDetails={formik?.values}
+															Action={false}
+															currencyList={currencyList}
+															ref={EventCommercialScreenRef}
+															permissionManager={effectivePermissionManager}
+														/>
 
-        </CardContent>
-      </Card>
+													</CardContent>
+												</Card>
 
-    </>
-  )
-}
+											</>
+										)
+									}
 
 
-	{
-  accessLevel?.find(x => x.claimType == "Invite Vendor")?.claimValue?.Read !== "N" && (
-    <>
 
-      {/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
-      <div className="d-flex justify-content-between align-items-center mb-3" id="invitedsuppliers">
-        <Typography
-          sx={{
-            mb: 3,
-            color: "#1976d2",
-            fontWeight: 400,
-            fontSize: "14px" // SAME STYLE
-          }}
-        >
-          📝 Invited Suppliers
-        </Typography>
+									{
+										accessLevel?.find(x => x.claimType == "Questions")?.claimValue?.Read !== "N" && (
+											<>
 
-        {stagearray.includes(currentStage) && (
-          <IconButton
-            size="small"
-            className="bg-light"
-            onClick={() => handletabEdit(5)}
-          >
-            <HiPencilAlt className="f17 text-primary" />
-          </IconButton>
-        )}
-      </div>
+												{/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
+												<div className="d-flex justify-content-between align-items-center mb-3" id="rfqquestions">
+													<Typography
+														sx={{
+															mb: 3,
+															color: "#1976d2",
+															fontWeight: 400,
+															fontSize: "14px" // SAME LOOK
+														}}
+													>
+														📝 RFQ Questions
+													</Typography>
 
-      {/* === CARD WITHOUT HEADER === */}
-      <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-        <CardContent sx={{ p: 2 }}>
-          <div className="row">
-            <div className="col-12">
-              <SelectedSupplierCell selectedsupplier={selectedSupplier} />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+													{stagearray.includes(currentStage) && (
+														<IconButton
+															size="small"
+															className="bg-light"
+															onClick={() => handletabEdit(4)}
+														>
+															<HiPencilAlt className="f17 text-primary" />
+														</IconButton>
+													)}
+												</div>
 
-    </>
-  )
-}
+												{/* === CARD WITHOUT HEADER === */}
+												<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
+													<CardContent sx={{ p: 2 }}>
+
+														{/* Permissions Info */}
+														{(() => {
+															const canRead = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false;
+															const canEdit = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) ?? false;
+															const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false;
+															const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false;
+
+															return (
+																<>
+
+																</>
+															);
+														})()}
+
+														{/* Component */}
+														<EventQuestionScreen
+															props={{
+																eventid: idFromURL,
+																eventtype: "RFQ",
+																librarytype: "QuestionLibrary",
+																action: false,
+																supplierid: supplierid,
+																Version: formik?.values?.Version,
+																editquestion: isquestioneditDisabled,
+																stagelist: stagelist,
+																permissionManager: permissionManager,
+																requestCell: requestCell
+															}}
+															ref={EventQuestionScreenRef}
+														/>
+
+													</CardContent>
+												</Card>
+
+											</>
+										)
+									}
+
+
+									{
+										accessLevel?.find(x => x.claimType == "Invite Vendor")?.claimValue?.Read !== "N" && (
+											<>
+
+												{/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
+												<div className="d-flex justify-content-between align-items-center mb-3" id="invitedsuppliers">
+													<Typography
+														sx={{
+															mb: 3,
+															color: "#1976d2",
+															fontWeight: 400,
+															fontSize: "14px" // SAME STYLE
+														}}
+													>
+														📝 Invited Suppliers
+													</Typography>
+
+													{stagearray.includes(currentStage) && (
+														<IconButton
+															size="small"
+															className="bg-light"
+															onClick={() => handletabEdit(5)}
+														>
+															<HiPencilAlt className="f17 text-primary" />
+														</IconButton>
+													)}
+												</div>
+
+												{/* === CARD WITHOUT HEADER === */}
+												<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
+													<CardContent sx={{ p: 2 }}>
+														<div className="row">
+															<div className="col-12">
+																<SelectedSupplierCell selectedsupplier={selectedSupplier} />
+															</div>
+														</div>
+													</CardContent>
+												</Card>
+
+											</>
+										)
+									}
 
 
 								</div>
@@ -6260,18 +6476,61 @@ useEffect(() => {
 				{/* Right content - Approval Section */}
 				<div className={`rightContent ${approvershow ? "col-3" : "d-none"}`}>
 					<div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column ms-3 approver-panel" style={{ border: "1px solid #ddd", borderTop: "none", height: 'calc(100vh - 120px)', maxHeight: '100%', overflow: 'hidden' }}>
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2 flex-shrink-0">
-							<div className="section-heading mb-0 pb-4">Approval Workflow</div>
-							<IconButton
-								onClick={() => handleApprover(false)}
-								size="small"
-								className="text-muted"
-							>
-								<HiOutlineX className="f16" />
-							</IconButton>
+						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2 flex-shrink-0 rfq-dv2-workflow-head">
+							<div className="rfq-dv2-workflow-tabs">
+								<button
+									type="button"
+									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "workflow" ? "active" : ""}`}
+									onClick={() => setWorkflowPanelTab("workflow")}
+								>
+									Approval Workflow
+								</button>
+								<button
+									type="button"
+									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "history" ? "active" : ""}`}
+									onClick={() => setWorkflowPanelTab("history")}
+								>
+									View History
+								</button>
+								<button
+									type="button"
+									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "attachments" ? "active" : ""}`}
+									onClick={() => setWorkflowPanelTab("attachments")}
+								>
+									Attachments
+								</button>
+							</div>
+						</div>
+						<div className="rfq-dv2-workflow-action-panel">
+							<div className="rfq-dv2-workflow-alert">
+								<PiWarningDiamondFill className="rfq-dv2-workflow-alert-icon" />
+								<span>{normalizedCurrentStage} required for You</span>
+							</div>
+							<div className="rfq-dv2-workflow-actions">
+								<button
+									type="button"
+									className="rfq-dv2-workflow-approve"
+									onClick={(event) => {
+										formik_ApproveReject.setFieldValue("status", "Approved");
+										toggleDrawer("openInvoiceApproved", true)(event);
+									}}
+								>
+									Approve
+								</button>
+								<button
+									type="button"
+									className="rfq-dv2-workflow-reject"
+									onClick={(event) => {
+										formik_ApproveReject.setFieldValue("status", "Rejected");
+										toggleDrawer("openInvoiceApproved", true)(event);
+									}}
+								>
+									Reject
+								</button>
+							</div>
 						</div>
 						<div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
-							{approvershow && (
+							{approvershow && workflowPanelTab === "workflow" && (
 								<EventApprovalBox
 									requestCell={requestCell}
 									handleEventAppList={handleEventAppList}
@@ -6287,6 +6546,160 @@ useEffect(() => {
 									endDate={tempDataEditData?.[0]?.endDate}
 									currentStage={currentStage}
 								/>
+							)}
+							{/* ── History Tab ── */}
+							{approvershow && workflowPanelTab === "history" && (
+								<div className="rfq-dv2-history-track">
+									{historyLoading ? (
+										<div className="rfq-dv2-panel-loading">Loading history…</div>
+									) : historyGraph.length === 0 && historyAudit.length === 0 ? (
+										<div className="rfq-dv2-panel-empty">No history found.</div>
+									) : (
+										<>
+											{/* State Graph */}
+											{historyGraph.length > 0 && (
+												<div className="rfq-dv2-stage-graph">
+													{historyGraph.map((stage, i) => {
+														const name = stage.approverName ?? stage.modifiedByName ?? 'Unknown';
+														const date = stage.stageDone
+															? formatDateViaLocale(stage.stageDone, userDetail)
+															: formatDateViaLocale(stage.modifiedOn, userDetail);
+														return (
+															<React.Fragment key={i}>
+																{/* → arrow between boxes */}
+																{i > 0 && (
+																	<div className="rfq-dv2-stage-graph-arrow">
+																		<span className="rfq-dv2-stage-arrow-icon">→</span>
+																	</div>
+																)}
+																<div className="rfq-dv2-stage-graph-node">
+																	{/* ✓ Stage badge */}
+																	<span className="rfq-dv2-stage-graph-badge">
+																		<span className="rfq-dv2-stage-check">✓</span>
+																		{stage.currentStage?.toUpperCase()}
+																	</span>
+																	{/* Name */}
+																	<span className="rfq-dv2-stage-graph-user">{name}</span>
+																	{/* Date */}
+																	<span className="rfq-dv2-stage-graph-date">{date}</span>
+																</div>
+															</React.Fragment>
+														);
+													})}
+												</div>
+											)}
+
+											{/* Change History List — temporarily hidden */}
+											{/* TODO: re-enable when needed
+											{historyAudit.length > 0 && (
+												<div className="rfq-dv2-history-list">
+													...
+												</div>
+											)}
+											*/}
+										</>
+									)}
+								</div>
+							)}
+
+							{/* ── Attachments Tab ── */}
+							{approvershow && workflowPanelTab === "attachments" && (
+								<div className="rfq-dv2-attachments-panel">
+									{panelAttachLoading ? (
+										<div className="rfq-dv2-panel-loading">Loading attachments…</div>
+									) : (
+										<>
+											{/* ── Add new file toolbar ──
+												  Show only when:
+												  1. Stage allows editing (same condition as original AttachmentWorkFlow action prop)
+												  2. User has DOCUMENT_LIBRARY CREATE permission
+												*/}
+											{stagearray.includes(currentStage) && (effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.CREATE) ?? true) && (
+												<div className="rfq-dv2-attach-toolbar">
+													<div className="rfq-dv2-attach-input-row">
+														<input
+															type="text"
+															className="rfq-dv2-attach-desc-input"
+															placeholder="Description"
+															value={panelAttachDesc}
+															onChange={e => setPanelAttachDesc(e.target.value.replace(/'/g, ''))}
+														/>
+														<button
+															type="button"
+															className="rfq-dv2-add-file-btn"
+															onClick={() => panelFileInputRef.current?.click()}
+															disabled={panelAttachAdding}
+														>
+															<HiPlusSm /> {panelAttachAdding ? 'Uploading…' : 'Add new file'}
+														</button>
+													</div>
+													<input
+														type="file"
+														ref={panelFileInputRef}
+														style={{ display: 'none' }}
+														accept=".docx,.doc,.jpeg,.jpg,.gif,.png,.pdf,.xlsx"
+														onChange={e => {
+															if (validateFileSize(e)) {
+																const fileObj = { file: e.target.files[0] };
+																setPanelAttachFile(fileObj);
+																addPanelAttachment(fileObj);
+															} else {
+																setPanelAttachFile(null);
+															}
+														}}
+													/>
+													{panelAttachError && (
+														<div className="rfq-dv2-attach-error">{panelAttachError}</div>
+													)}
+												</div>
+											)}
+
+											{/* ── File rows (Image 2 layout) ── */}
+											{panelSavedAttach.length === 0 ? (
+												<div className="rfq-dv2-panel-empty">No attachments yet.</div>
+											) : (
+												<div className="rfq-dv2-attach-list">
+													{panelSavedAttach.map((item, i) => (
+														<div key={i} className="rfq-dv2-file-row">
+															<input
+																type="checkbox"
+																className="rfq-dv2-file-check"
+																aria-label="Select attachment"
+																readOnly
+															/>
+															<div className="rfq-dv2-file-meta">
+																<strong className="rfq-dv2-file-title">
+																	{item.attachmentDescription || 'Attachment'}
+																</strong>
+																<span className="rfq-dv2-file-name">
+																	{getFileName(item.fileNamePath)}
+																</span>
+															</div>
+															<button
+																type="button"
+																className="rfq-dv2-file-action"
+																aria-label="Download"
+																onClick={() => downloadFilesOnAzure(item.fileNamePath, getFileName(item.fileNamePath), atoken)}
+															>
+																<HiOutlineDownload />
+															</button>
+															{stagearray.includes(currentStage) && !item.required && (effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.REMOVE) ?? true) && (
+																<button
+																	type="button"
+																	className="rfq-dv2-file-action is-danger"
+																	aria-label="Delete"
+																	onClick={() => deletePanelAttachment(i, item.id)}
+																>
+																	<HiOutlineX />
+																</button>
+															)}
+														</div>
+													))}
+												</div>
+											)}
+										</>
+									)}
+								</div>
 							)}
 						</div>
 
@@ -6556,140 +6969,96 @@ useEffect(() => {
 			</React.Fragment>
 			<React.Fragment key="key4">
 
-				<Drawer anchor="right" open={state["openInvoiceApproved"]}>
+				<Dialog
+					open={state["openInvoiceApproved"]}
+					onClose={toggleDrawer("openInvoiceApproved", false, [])}
+					maxWidth={false}
+					PaperProps={{ className: "rfq-dv2-approval-modal" }}
+					BackdropProps={{ className: "rfq-dv2-approval-backdrop" }}
+				>
 					<form onSubmit={formik_ApproveReject.handleSubmit} autoComplete="off">
-						<Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-							<div className="flex flex-col">
-								<Box className="bgheaderCards">
-									<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-										<div className="ms-3 text-white">Approval Action</div>
-										<div>
-											<IconButton
-												onClick={toggleDrawer("openInvoiceApproved", false, [])}
-												size="small"
-												edge="start"
-												sx={{ mr: 1 }}
-											>
-												<HiOutlineX className="f20 text-white" />
-											</IconButton>
-										</div>
-									</div>
-								</Box>
-								<div className="h50px"></div>
-								<div className="p-3">
-									<div className="row ">
-										<div className="col-12 col-md-12 col-lg-12">
-											<div className="mb-4 textblue f14"></div>
-											<div className="row">
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="isApproved"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="isApproved"
-														select
-														className="mb-2"
-														fullWidth
-														size="small"
-														label="Status"
-														variant="outlined"
-														value={formik_ApproveReject.values?.status}
-														onChange={(e) => {
-
-															formik_ApproveReject.setFieldValue(
-																"status",
-																e.target.value
-															)
-														}
-
-														}
-
-														error={
-															formik_ApproveReject.touched.status &&
-															Boolean(formik_ApproveReject.errors.status)
-														}
-														helperText={
-															formik_ApproveReject.touched.status &&
-															formik_ApproveReject.errors.status
-														}
-													>
-														{actionType != "Forward" && menuactionlist.filter(x => x.value != "Forward").map((x) => {
-
-															return (<MenuItem value={x.value}>{x.label}</MenuItem>)
-
-														})
-
-														}
-														{actionType == "Forward" && menuactionlist.filter(x => x.value == "Forward").map((x) => {
-
-															return (<MenuItem value={x.value}>{x.label}</MenuItem>)
-
-														})
-
-														}
-
-													</TextField>
-												</div>
-
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="approveComment"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														multiline
-														rows={3}
-														name="approveComment"
-														className="w-100 f14"
-														size="small"
-														label="Comment "
-														variant="outlined"
-														inputProps={{ maxLength: 200 }}
-														value={formik_ApproveReject?.values?.approveComment}
-														onChange={(e) =>
-															formik_ApproveReject.setFieldValue(
-																"approveComment",
-																e.target.value
-															)
-														}
-														InputProps={{
-															endAdornment: formik_ApproveReject?.values?.approveComment && (
-																<InputAdornment position="end">
-																	<Typography variant="body2" color="textSecondary">
-																		{formik_ApproveReject?.values?.approveComment?.length}/200
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-													/>
-
-												</div>
-
-											</div>
-
-										</div>
-									</div>
-									<div className="row">
-										<div className="col-12 text-end">
-											<LoadingButton
-												loading={loading}
-												color="primary"
-												size="medium"
-												className="text-white text-capitalize mb-3 mr-3"
-												variant="contained"
-												type="submit"
-											>
-												<span>Submit</span>
-											</LoadingButton>
-
-										</div>
-									</div>
-								</div>
+						<div className="rfq-dv2-approval-modal-head">
+							<h3>
+								{formik_ApproveReject.values?.status === "Rejected"
+									? "Reject this stage?"
+									: "Approve this stage?"}
+							</h3>
+							<IconButton
+								onClick={toggleDrawer("openInvoiceApproved", false, [])}
+								size="small"
+								aria-label="Close approval action"
+								className="rfq-dv2-approval-close"
+							>
+								<HiOutlineX />
+							</IconButton>
+						</div>
+						<div className="rfq-dv2-approval-modal-body">
+							<div
+								className={`rfq-dv2-approval-message ${formik_ApproveReject.values?.status === "Rejected" ? "is-reject" : ""}`}
+							>
+								{formik_ApproveReject.values?.status === "Rejected" ? (
+									<>
+										You're rejecting <strong>{normalizedCurrentStage}</strong>. The RFQ will remain in this stage until the rejection is handled.
+									</>
+								) : (
+									<>
+										You're approving <strong>{normalizedCurrentStage}</strong>. The RFQ will move to the next stage once all approvers in this stage approve.
+									</>
+								)}
 							</div>
-						</Box>
+							<div className="rfq-dv2-approval-field">
+								<label htmlFor="approveComment">Comment (optional)</label>
+								<TextField
+									id="approveComment"
+									multiline
+									rows={1}
+									name="approveComment"
+									fullWidth
+									variant="outlined"
+									placeholder={
+										formik_ApproveReject.values?.status === "Rejected"
+											? "Add the reason for rejection."
+											: "Looks good - quantities match forecast. Proceed."
+									}
+									inputProps={{ maxLength: 200 }}
+									value={formik_ApproveReject?.values?.approveComment}
+									onChange={(e) =>
+										formik_ApproveReject.setFieldValue(
+											"approveComment",
+											e.target.value
+										)
+									}
+									InputProps={{
+										endAdornment: formik_ApproveReject?.values?.approveComment && (
+											<InputAdornment position="end">
+												<Typography variant="body2" color="textSecondary">
+													{formik_ApproveReject?.values?.approveComment?.length}/200
+												</Typography>
+											</InputAdornment>
+										),
+									}}
+								/>
+								<p>Visible to all approvers and the requisitioner.</p>
+							</div>
+						</div>
+						<div className="rfq-dv2-approval-modal-actions">
+							<button
+								type="button"
+								className="rfq-dv2-approval-cancel"
+								onClick={toggleDrawer("openInvoiceApproved", false, [])}
+							>
+								Cancel
+							</button>
+							<LoadingButton
+								loading={loading}
+								type="submit"
+								className={`rfq-dv2-approval-submit ${formik_ApproveReject.values?.status === "Rejected" ? "is-reject" : ""}`}
+							>
+								<span>{formik_ApproveReject.values?.status === "Rejected" ? "Submit rejection" : "Submit approval"}</span>
+							</LoadingButton>
+						</div>
 					</form>
-				</Drawer>
+				</Dialog>
 			</React.Fragment>
 
 			<Dialog open={confirmDelete} onClose={handleCloseDelete}>
@@ -6742,14 +7111,14 @@ useEffect(() => {
 				onHide={() => ClosePurcgaseOrgModal()}
 			> */}
 			<Modal
-  show={purchaseOrgModal}
-  dialogClassName="modal-custom-mdlg"
-  backdrop="static"
-  keyboard={false}
-  centered
-  contentClassName="border-0"
-  onHide={ClosePurcgaseOrgModal}
->
+				show={purchaseOrgModal}
+				dialogClassName="modal-custom-mdlg"
+				backdrop="static"
+				keyboard={false}
+				centered
+				contentClassName="border-0"
+				onHide={ClosePurcgaseOrgModal}
+			>
 
 				<Modal.Header className="pt-2 pb-2 bgheaderCards">
 					<Modal.Title id="modal-heading">
@@ -7023,15 +7392,15 @@ useEffect(() => {
 				</Modal.Body>
 			</Modal>
 			<Modal
-  show={purchaseOrgGrpModal}
-  dialogClassName="modal-custom-mdlg"
-  backdrop="static"
-  keyboard={false}
-  centered
-  contentClassName="border-0"
-  onHide={ClosePurcgaseOrgGrpModal}
->
-	
+				show={purchaseOrgGrpModal}
+				dialogClassName="modal-custom-mdlg"
+				backdrop="static"
+				keyboard={false}
+				centered
+				contentClassName="border-0"
+				onHide={ClosePurcgaseOrgGrpModal}
+			>
+
 				<Modal.Header className="pt-2 pb-2 bgheaderCards">
 					<Modal.Title id="modal-heading">
 						<div className="d-flex align-items-center f14 text-white">

@@ -42,7 +42,7 @@ import { Card } from "react-bootstrap";
 import { CLAIM_TYPES, ACTIONS } from "../../utils/permissionManager";
 
 const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, stagelist, accessLevel, Version = 1, permissionManager, eventCode, eventSubject, startDate, endDate, currentStage }) => {
-	
+
 	const [cookies] = useCookies(["patkn", "prtkn"]);
 	const [{ atoken, rtoken, customersuffix, customerid }, dispatch] = useStateValue();
 	const apiClient = new ApiClient(customersuffix);
@@ -385,8 +385,30 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 					<>
 						{approverList && approverList.length > 0 && approverList.map((x, i) => {
 							const wfstage = stagelist.find(s => s.wfname == x.stage);
-							const stagename = stagelist.find(s => s.wfname == x.stage)?.currentStage ?? ""
-							return (<Card className="ms-2 mt-2 approvalCard">
+							const stagename = stagelist.find(s => s.wfname == x.stage)?.currentStage ?? "";
+							const normalizedStage = `${x.stage || ""}`.trim().toLowerCase();
+							const normalizedCurrentStage = `${currentStage || ""}`.trim().toLowerCase();
+							const normalizedStageName = `${stagename || ""}`.trim().toLowerCase();
+							const hasMatchingStage = approverList.some((stageItem) => {
+								const stageName = `${stageItem?.stage || ""}`.trim().toLowerCase();
+								const currentStageName =
+									`${stagelist.find(s => s.wfname == stageItem?.stage)?.currentStage || ""}`
+										.trim()
+										.toLowerCase();
+								return (
+									stageName === normalizedCurrentStage ||
+									currentStageName === normalizedCurrentStage
+								);
+							});
+							const isActiveStage =
+								normalizedStage === normalizedCurrentStage ||
+								normalizedStageName === normalizedCurrentStage ||
+								(i === 0 && !hasMatchingStage);
+							const isFutureStage = !isActiveStage && i > 0;
+							const approvedCount = x.approvers?.filter((approver) => approver.status === "Approved").length || 0;
+							const pendingCount = x.approvers?.filter((approver) => approver.status === "Pending").length || 0;
+							const totalCount = x.approvers?.length || 0;
+							return (<Card className={`ms-2 mt-2 approvalCard ${isActiveStage ? "is-active-stage" : ""} ${isFutureStage ? "is-future-stage" : ""}`}>
 
 								<Card.Body className="p-0 m-0">
 									<div className="">
@@ -403,13 +425,18 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 													<div className="row justify-content-between w-100">
 														<div className="col-md-10">
 
-															<div className="f13 fw600 m-0 p-0 d-flex align-items-baseline">{x.stage}</div>
-															{stagename && (
-																<div className="f11 text-muted ms-1" style={{ marginTop: '-4px' }}>({stagename})</div>
-															)}
-
-
-
+															<div className="rfq-dv2-stage-summary">
+																<span className="approval-stage-title">{x.stage}</span>
+																{totalCount > 0 && (
+																	<span className="rfq-dv2-stage-count">
+																		{approvedCount}/{totalCount} APPROVED
+																	</span>
+																)}
+															</div>
+															<div className="rfq-dv2-stage-waiting">
+																<span className="rfq-dv2-mini-avatar">RC</span>
+																{pendingCount > 0 ? `Waiting on ${pendingCount}` : "Awaiting prior steps"}
+															</div>
 
 														</div>
 														<div className="col-md-2 d-flex align-items-baseline justify-content-end ps-3 me-0 pe-0">
@@ -429,19 +456,19 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 																				>
 																					<FaRegFloppyDisk className="f17 text-success" />
 																				</IconButton> */}
-																				{currentStage != "Awarded" && 
-																				 (!(x.approvers?.every(approver => approver.status && approver.status !== "Pending")) ||  x.approvers?.length == 0) &&
-																				 <IconButton
-																					size="small"
-																					disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)}
-																					onClick={(e) => {
-																						handleIconClick(e);
-																						toggleAdd(i);
-																					}}
-																				>
-																					
-																					<HiOutlineUserAdd className="f17 text-primary" />
-																				</IconButton>}
+																				{currentStage != "Awarded" &&
+																					(!(x.approvers?.every(approver => approver.status && approver.status !== "Pending")) || x.approvers?.length == 0) &&
+																					<IconButton
+																						size="small"
+																						disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)}
+																						onClick={(e) => {
+																							handleIconClick(e);
+																							toggleAdd(i);
+																						}}
+																					>
+
+																						<HiOutlineUserAdd className="f17 text-primary" />
+																					</IconButton>}
 																			</span>
 																		</div>
 																	</div>
@@ -593,9 +620,6 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 																			</div>
 																		</div>
 
-
-
-
 																	</div>
 																) : (
 																	<></>
@@ -616,6 +640,7 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 															eventSubject={eventSubject}
 															startDate={startDate}
 															endDate={endDate}
+															variant="rfq-sidebar"
 														/>
 													</div>
 
