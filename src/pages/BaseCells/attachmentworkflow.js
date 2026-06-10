@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useImperativeHandle, forwardRef } from "react";
-import { HiUserGroup, HiOutlineX, HiX,HiPlusSm } from "react-icons/hi";
+import { HiUserGroup, HiOutlineX, HiX, HiPlusSm } from "react-icons/hi";
 import {
 	Badge,
 	Box,
@@ -73,7 +73,6 @@ const AttachmentWorkFlow = forwardRef(({ eventtype, eventid, action, handleattac
 	const [hasCheckboxChanged, setHasCheckboxChanged] = useState(false);
 
 	const fetchAttachments = async () => {
-		debugger
 		let res = [];
 		const urlPath = window.location.pathname;
 		const urlParams = new URLSearchParams(window.location.search);
@@ -122,7 +121,7 @@ const AttachmentWorkFlow = forwardRef(({ eventtype, eventid, action, handleattac
 					? eventattachmentmodal(resevent?.data?.result, eventid, eventtype)
 					: [];
 			setAttach(reseventData);
-			
+
 			handleattachmentforevent(reseventData)
 			onCountChange?.(reseventData.length);
 
@@ -355,11 +354,11 @@ const AttachmentWorkFlow = forwardRef(({ eventtype, eventid, action, handleattac
 
 			try {
 				const files = savedAttachment.map(x => ({
-								...x,
-								eventId: eventid,
-								createdById: userDetail?.id,
-								createdByName: userDetail?.name
-							}));
+					...x,
+					eventId: eventid,
+					createdById: userDetail?.id,
+					createdByName: userDetail?.name
+				}));
 
 				// const data = { attachments: Files };
 
@@ -581,7 +580,7 @@ const AttachmentWorkFlow = forwardRef(({ eventtype, eventid, action, handleattac
 								if (permissionManager) {
 									return (
 										<div className="p-3 pb-0">
-											
+
 										</div>
 									);
 								}
@@ -659,17 +658,17 @@ const AttachmentWorkFlow = forwardRef(({ eventtype, eventid, action, handleattac
 															{(() => {
 																const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.CREATE) ?? false;
 																return (
-																	 <LoadingButton
-        variant="text"
-        size="small"
-        startIcon={<HiPlusSm />}
-        className="me-2 rounded-pill text-capitalize blue-text font-normal"
-        onClick={addAttachment}
-        disabled={!canCreate}
-        loading={isAdding}
-      >
-        Add
-      </LoadingButton>
+																	<LoadingButton
+																		variant="text"
+																		size="small"
+																		startIcon={<HiPlusSm />}
+																		className="me-2 rounded-pill text-capitalize blue-text font-normal"
+																		onClick={addAttachment}
+																		disabled={!canCreate}
+																		loading={isAdding}
+																	>
+																		Add
+																	</LoadingButton>
 																	// <LoadingButton
 																	// 	variant="text"
 																	// 	size="small"

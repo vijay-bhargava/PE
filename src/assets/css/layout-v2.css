@@ -34,7 +34,7 @@
    ============================================================ */
 .v2-shell {
   min-height: 100vh;
-  background: #F1F1F1;
+  background: #f1f1f1;
   display: flex;
   flex-direction: column;
   font-family: var(--v2-font-family);
@@ -305,6 +305,55 @@
 .custom-dropdown-item:hover {
   background: #f3f4f6 !important;
   color: var(--v2-primary) !important;
+}
+
+/* Profile dropdown card */
+.v2-profile-dropdown {
+  min-width: 180px;
+}
+
+/* Override Bootstrap dropdown-menu to add shadow */
+.v2-user-menu-btn .dropdown-menu {
+  border-radius: 10px !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden;
+  margin-top: 6px !important;
+  margin-left: 7px !important;
+}
+
+/* Menu items */
+.v2-profile-dropdown-item.dropdown-item {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px !important;
+  font-size: 13px !important;
+  font-weight: 500;
+  color: #374151 !important;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.v2-profile-dropdown-item.dropdown-item:hover,
+.v2-profile-dropdown-item.dropdown-item:focus {
+  background: #f3f4f6 !important;
+  color: var(--v2-primary, #1976d2) !important;
+}
+.v2-profile-dropdown-item--danger.dropdown-item {
+  color: #374151 !important;
+}
+.v2-profile-dropdown-item--danger.dropdown-item:hover,
+.v2-profile-dropdown-item--danger.dropdown-item:focus {
+  background: #fff1f2 !important;
+  color: #dc2626 !important;
+}
+.v2-profile-dropdown-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 
 /* Subscription marquee */

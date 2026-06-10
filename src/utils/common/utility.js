@@ -307,7 +307,8 @@ export const GetNFACondition = async (data, atoken) => {
 
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -641,7 +642,8 @@ export const FindDepartmentList = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -666,7 +668,8 @@ export const getBusinessUnit = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -691,7 +694,8 @@ export const getUserDepartment = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -717,7 +721,8 @@ export const getUserDepartmentList = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -745,7 +750,8 @@ export const getBusinessUnitList = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -846,7 +852,8 @@ export const getUserDesignation = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -972,7 +979,8 @@ export const getRFQManageFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -1063,7 +1071,8 @@ export const getRFQItemServiceFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -1117,7 +1126,8 @@ export const getLibraryOrgEntityFind = async (data, atoken) => {
 
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -1141,7 +1151,8 @@ export const getCommercialLibFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -1182,7 +1193,8 @@ export const getQuestionsLibFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -1888,7 +1900,8 @@ export const getAuctionItemServiceFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -2355,7 +2368,8 @@ export const getEventDetails = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -2379,7 +2393,8 @@ export const getNFAProjectList = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -2401,7 +2416,8 @@ export const getNFAConditionList = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -2425,7 +2441,8 @@ export const getNFASpendList = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -2448,7 +2465,8 @@ export const getNFAManageFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -2472,7 +2490,8 @@ export const getNFAManageFindById = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);

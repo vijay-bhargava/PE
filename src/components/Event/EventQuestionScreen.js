@@ -79,12 +79,14 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
       const params = {
         // CustomerId: customerid,
         RFQId: props.eventid,
-        Version: parseInt(props.Version)
+        Version: isNaN(parseInt(props.Version)) ? undefined : parseInt(props.Version)
       };
       const queryParams = buildQueryParams(params);
       const res = await apiclient.getres(`/api/RFQQuestionLib/Find?${queryParams}`, atoken);
       if (res) {
-        const data = Array.isArray(res?.data?.result) ? res.data.result : [];
+        // API may return direct array or { result: [...] }
+        const d = res?.data;
+        const data = Array.isArray(d) ? d : (Array.isArray(d?.result) ? d.result : []);
         setQuestionList(data)
         const selectedLibrary = findObjByValueFromArray(Librarylist, data[0]?.libraryId, 'id');
         if (selectedLibrary) {
