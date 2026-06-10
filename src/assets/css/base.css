@@ -505,7 +505,7 @@ a {
   right: 0 !important;
   z-index: 99 !important;
   background-color: var(--vz-primary-color) !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Responsive styles for auction header */
@@ -567,7 +567,7 @@ a {
     flex: 0 0 25% !important;
     max-width: 25% !important;
   }
-  
+
   .chat-open-right.col-md-9 {
     flex: 0 0 75% !important;
     max-width: 75% !important;
@@ -579,42 +579,42 @@ a {
   .auction-header-chat-open .auction-subject-text {
     max-width: 100px !important;
   }
-  
+
   .auction-header-chat-open .f17 {
     font-size: 0.75rem !important;
   }
-  
+
   .auction-header-chat-open .f14 {
     font-size: 0.65rem !important;
   }
-  
+
   .auction-header-chat-open .f20 {
     font-size: 0.85rem !important;
   }
-  
+
   .auction-header-chat-open .auction-timer-input {
     width: 50px !important;
     min-width: 50px !important;
   }
-  
+
   .auction-header-chat-open .auction-control-buttons button {
     min-width: 30px !important;
     padding: 4px !important;
   }
-  
+
   .auction-header-chat-open .auction-control-buttons .f14 {
     font-size: 0.65rem !important;
   }
-  
+
   .auction-header-chat-open .text-white.mx-2 {
     margin-left: 0.15rem !important;
     margin-right: 0.15rem !important;
   }
-  
+
   .auction-header-chat-open .auction-chat-controls {
     padding-left: 0.25rem !important;
   }
-  
+
   .auction-header-chat-open .cardBtn {
     padding: 0.25rem !important;
     min-width: 30px !important;
@@ -626,22 +626,22 @@ a {
   .auction-header-fixed {
     overflow-x: hidden !important;
   }
-  
+
   .auction-header-content {
     max-width: 100%;
     overflow: hidden;
   }
-  
+
   .auction-header-left {
     flex: 0 0 auto;
     max-width: 30%;
   }
-  
+
   .auction-header-right {
     flex: 1 1 auto;
     min-width: 0;
   }
-  
+
   .auction-chat-controls {
     flex: 0 0 auto;
     width: auto !important;
@@ -653,15 +653,15 @@ a {
   .auction-header-chat-open .f17 {
     font-size: 0.85rem !important;
   }
-  
+
   .auction-header-chat-open .f14 {
     font-size: 0.7rem !important;
   }
-  
+
   .auction-header-chat-open .auction-subject-text {
     max-width: 150px !important;
   }
-  
+
   .auction-header-chat-open .auction-timer-input {
     width: 55px !important;
     min-width: 55px !important;
@@ -672,7 +672,7 @@ a {
   .auction-header-chat-open .auction-subject-text {
     max-width: 120px !important;
   }
-  
+
   .auction-header-chat-open .auction-control-buttons button {
     min-width: 35px !important;
     padding: 6px !important;
@@ -684,20 +684,20 @@ a {
   .auction-header-content .f17 {
     font-size: 0.95rem !important;
   }
-  
+
   .auction-header-content .f14 {
     font-size: 0.8rem !important;
   }
-  
+
   .auction-header-content .f20 {
     font-size: 1rem !important;
   }
-  
+
   .auction-timer-input {
     width: 60px !important;
     min-width: 60px !important;
   }
-  
+
   .auction-control-buttons {
     gap: 3px !important;
   }
@@ -709,12 +709,12 @@ a {
     top: 60px !important;
     padding: 0.5rem !important;
   }
-  
+
   .auction-header-content {
     flex-direction: column !important;
     gap: 0.5rem !important;
   }
-  
+
   .auction-header-left,
   .auction-header-right {
     width: 100% !important;
@@ -722,21 +722,21 @@ a {
     text-align: center !important;
     justify-content: center !important;
   }
-  
+
   .auction-subject-text {
     max-width: 200px !important;
   }
-  
+
   .auction-timer-section {
     justify-content: center !important;
     flex-wrap: wrap !important;
     gap: 5px !important;
   }
-  
+
   .auction-header-divider {
     display: none !important;
   }
-  
+
   /* When chat is open on mobile, hide it or adjust */
   .auction-header-chat-open.auction-header-fixed {
     right: 0 !important;
@@ -750,35 +750,35 @@ a {
     top: 50px !important;
     padding: 0.4rem !important;
   }
-  
+
   .auction-header-content .f17 {
     font-size: 0.85rem !important;
   }
-  
+
   .auction-header-content .f14 {
     font-size: 0.75rem !important;
   }
-  
+
   .auction-timer-input {
     width: 50px !important;
     min-width: 50px !important;
   }
-  
+
   .auction-timer-input input {
     padding: 1px 4px !important;
     font-size: 0.8rem !important;
   }
-  
+
   .auction-control-buttons button {
     min-width: 35px !important;
     padding: 5px !important;
     font-size: 1.2rem !important;
   }
-  
+
   .auction-subject-text {
     max-width: 150px !important;
   }
-  
+
   .auction-chat-controls {
     padding-left: 0 !important;
     margin-top: 0.5rem;
@@ -792,39 +792,39 @@ a {
     top: 50px !important;
     padding: 0.3rem !important;
   }
-  
+
   .auction-header-content .f17 {
     font-size: 0.75rem !important;
   }
-  
+
   .auction-header-content .f14 {
     font-size: 0.7rem !important;
   }
-  
+
   .auction-header-content .f15 {
     font-size: 0.7rem !important;
   }
-  
+
   .auction-timer-input {
     width: 45px !important;
     min-width: 45px !important;
   }
-  
+
   .auction-control-buttons button {
     min-width: 30px !important;
     padding: 3px !important;
     font-size: 1rem !important;
   }
-  
+
   .auction-subject-text {
     max-width: 120px !important;
     font-size: 0.7rem !important;
   }
-  
+
   .auction-timer-section {
     gap: 2px !important;
   }
-  
+
   .auction-header-left .f20 {
     font-size: 0.9rem !important;
   }
@@ -883,13 +883,13 @@ a {
   .auction-header-content .row {
     gap: 0;
   }
-  
+
   .auction-header-left,
   .auction-header-right {
     padding-left: 0.15rem;
     padding-right: 0.15rem;
   }
-  
+
   .auction-chat-controls {
     padding-left: 0 !important;
   }
@@ -902,20 +902,20 @@ a {
     right: 0 !important;
     top: 45px !important;
   }
-  
+
   .auction-header-content .row {
     gap: 0.3rem;
   }
-  
+
   .auction-header-left,
   .auction-header-right {
     padding: 0 !important;
   }
-  
+
   .auction-timer-section span {
     margin: 0 1px !important;
   }
-  
+
   .auction-chat-controls {
     width: 100%;
     justify-content: center !important;
@@ -929,7 +929,7 @@ a {
     overflow-x: auto;
     white-space: nowrap;
   }
-  
+
   .auction-header-content {
     min-width: max-content;
   }
@@ -1363,7 +1363,9 @@ a {
   text-decoration: none;
   border-radius: 5px;
   /* Add rounded corners */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
   /* Add box shadow for depth */
   transition: background-color 0.3s ease;
   /* Add transition for smooth hover effect */
@@ -1512,7 +1514,8 @@ a {
   height: 5rem;
   background-color: #f8f9fa;
   z-index: 9999;
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+  box-shadow:
+    rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
     rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
   border-radius: 5px;
   margin-left: 10px;
@@ -1596,7 +1599,8 @@ a {
     height: 5rem;
     background-color: #f8f9fa;
     z-index: 9999;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    box-shadow:
+      rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
       rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
     border-radius: 5px;
     margin-left: 10px;
@@ -1611,7 +1615,8 @@ a {
     height: 5rem;
     background-color: #f8f9fa;
     z-index: 9999;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    box-shadow:
+      rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
       rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
     border-radius: 15px;
   }
@@ -1625,7 +1630,8 @@ a {
     height: 5rem;
     background-color: #f8f9fa;
     z-index: 9999;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    box-shadow:
+      rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
       rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
     border-radius: 5px;
     margin-left: 10px;
@@ -1640,7 +1646,8 @@ a {
     height: 5rem;
     background-color: #f8f9fa;
     z-index: 9999;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    box-shadow:
+      rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
       rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
     border-radius: 5px;
     margin-left: 20px;
@@ -1655,7 +1662,8 @@ a {
     height: 5rem;
     background-color: #f8f9fa;
     z-index: 9999;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    box-shadow:
+      rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
       rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
     border-radius: 5px;
     margin-left: 32px;
@@ -1818,8 +1826,10 @@ a {
   justify-content: center;
   -webkit-box-align: center;
   align-items: center;
-  box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 1px -2px,
-    rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
+  box-shadow:
+    rgba(0, 0, 0, 0.2) 0px 3px 1px -2px,
+    rgba(0, 0, 0, 0.14) 0px 2px 2px 0px,
+    rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
   overflow: hidden;
   background-color: rgb(26, 39, 66);
   color: rgb(255, 255, 255);
@@ -1834,8 +1844,10 @@ a {
 .css-chatcontainer {
   background-color: rgb(255, 255, 255);
   color: rgb(31, 31, 31);
-  box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
-    rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+  box-shadow:
+    rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
+    rgba(0, 0, 0, 0.14) 0px 3px 4px 0px,
+    rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
   display: flex;
   flex-direction: column;
   transform-origin: right bottom;
@@ -1861,8 +1873,10 @@ a {
   display: flex;
   flex-direction: column;
   border-radius: 16px;
-  box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
-    rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+  box-shadow:
+    rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
+    rgba(0, 0, 0, 0.14) 0px 3px 4px 0px,
+    rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
   background-color: #fff;
   transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: right bottom;
@@ -2256,8 +2270,10 @@ a {
 }
 
 .MuiSwitch-thumb {
-  box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2),
-    0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0px 2px 1px -1px rgba(0, 0, 0, 0.2),
+    0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+    0px 1px 3px 0px rgba(0, 0, 0, 0.12);
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -2320,7 +2336,7 @@ a {
 } */
 .MuiButton-textPrimary {
   /* background-color: #1D72C7!important; */
-  color: #000000 !important;
+  color: #000000;
   /* border: 1px solid#1D72C7!important; */
   border-radius: 0.5rem;
 }
@@ -3330,8 +3346,7 @@ a.dropdown-item.custom-dropdown-item:visited {
 }
 
 .qualified-badge {
- 
-  color: #0f5132;            /* Dark green text */
+  color: #0f5132; /* Dark green text */
   font-weight: 600;
   border-radius: 6px;
   font-size: 14px;
@@ -3339,7 +3354,7 @@ a.dropdown-item.custom-dropdown-item:visited {
   display: inline-block;
 }
 .actionpin-wrap button:disabled {
-  opacity: 0.5;       /* button ko fade/blur effect */
+  opacity: 0.5; /* button ko fade/blur effect */
   cursor: not-allowed; /* cursor ko disabled dikhaye */
 }
 
@@ -3353,7 +3368,7 @@ a.dropdown-item.custom-dropdown-item:visited {
 }
 .label-fixed {
   white-space: nowrap;
-  flex-shrink: 0;   
+  flex-shrink: 0;
 }
 .textLigblue {
   color: #1976d2 !important;
@@ -3363,17 +3378,23 @@ a.dropdown-item.custom-dropdown-item:visited {
   width: 75%;
 }
 
-
-
-
 /* Connection Status Loader Animation */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Pulse animation for failed connection indicator */
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }

@@ -113,6 +113,28 @@ const AUCTION_TYPES = [
   { label: 'French Reverse Auction', bidTypeId: 6 },
 ];
 
+const EXPORT_COLUMNS = [
+  { field: 'id', label: 'RFQ ID', getValue: (row) => row?.id ?? '' },
+  { field: 'eventCode', label: 'RFQ Code', getValue: (row) => row?.eventCode || '' },
+  { field: 'rfqSubject', label: 'RFQ Subject', getValue: (row) => row?.subject || row?.rfqSubject || '' },
+  { field: 'stage', label: 'Status', getValue: (row) => row?.stage || '' },
+  { field: 'startDate', label: 'Start Date', getValue: (row, userDetail) => row?.startDate ? formatDateViaLocale(row.startDate, userDetail) : '' },
+  { field: 'endDate', label: 'End Date', getValue: (row, userDetail) => row?.endDate ? formatDateViaLocale(row.endDate, userDetail) : '' },
+  { field: 'createdByName', label: 'Created by', getValue: (row) => row?.createdByName || '' },
+];
+
+const escapeCsvValue = (value) => {
+  const text = String(value ?? '');
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+};
+
+const normalizeRFQDetailResult = (result) => {
+  if (Array.isArray(result)) return result;
+  if (Array.isArray(result?.data)) return result.data;
+  if (Array.isArray(result?.result)) return result.result;
+  return result ? [result] : [];
+};
+
 /* ═══════════════════════════════════════════════════════════ */
 const ManageRFQV2 = ({ claimType }) => {
   const navigate = useNavigate();
@@ -174,18 +196,94 @@ const ManageRFQV2 = ({ claimType }) => {
 
   useEffect(() => { pullRFQManageFind(); }, [atoken, customerid]);
 
-  /* Filter active records by search text (client-side) */
-  const filteredData = searchText.trim()
-    ? recorddata.filter((row) => {
+  /* ── Filter popover state — MUST be declared before filteredData ── */
+  const [filterAnchor, setFilterAnchor] = useState(null);
+  const filterPopoverRef = React.useRef(null);
+
+  // MUI DataGrid filterModel — drives the DataGrid's built-in column filtering
+  const [filterModel, setFilterModel] = useState({ items: [] });
+
+  // Temp state inside the popover (before Apply)
+  const FILTER_COLUMNS = [
+    { field: 'rfqSubject', label: 'RFQ Subject' },
+    { field: 'stage', label: 'Status' },
+    { field: 'startDate', label: 'Start Date' },
+    { field: 'endDate', label: 'End Date' },
+    { field: 'createdByName', label: 'Created By' },
+  ];
+  const FILTER_OPERATORS = ['contains', 'equals', 'startsWith', 'endsWith', 'isEmpty', 'isNotEmpty'];
+
+  const _filterIdRef = React.useRef(0);
+  const emptyFilterItem = () => ({ id: ++_filterIdRef.current, field: 'rfqSubject', operator: 'contains', value: '' });
+  const [tempFilterItems, setTempFilterItems] = useState([emptyFilterItem()]);
+
+  const applyFilter = () => {
+    const validItems = tempFilterItems.filter(
+      (f) => f.operator === 'isEmpty' || f.operator === 'isNotEmpty' || (f.value && f.value.trim())
+    );
+    setFilterModel({ items: validItems });
+    setFilterAnchor(null);
+  };
+
+  const resetFilter = () => {
+    setFilterModel({ items: [] });
+    setTempFilterItems([emptyFilterItem()]);
+    setFilterAnchor(null);
+  };
+
+  /* ── Client-side filter helper ── */
+  const getFieldValue = (row, field) => {
+    switch (field) {
+      case 'rfqSubject': return (row?.subject || row?.rfqSubject || '').toLowerCase();
+      case 'stage': return (row?.stage || row?.status || '').toLowerCase();
+      case 'createdByName': return (row?.createdByName || '').toLowerCase();
+      case 'startDate': return row?.startDate ? formatDateViaLocale(row.startDate, userDetail).toLowerCase() : '';
+      case 'endDate': return row?.endDate ? formatDateViaLocale(row.endDate, userDetail).toLowerCase() : '';
+      default: return String(row?.[field] ?? '').toLowerCase();
+    }
+  };
+
+  const matchesOperator = (cellVal, operator, filterVal) => {
+    const v = filterVal.toLowerCase().trim();
+    switch (operator) {
+      case 'contains': return cellVal.includes(v);
+      case 'equals': return cellVal === v;
+      case 'startsWith': return cellVal.startsWith(v);
+      case 'endsWith': return cellVal.endsWith(v);
+      case 'isEmpty': return !cellVal;
+      case 'isNotEmpty': return !!cellVal;
+      default: return cellVal.includes(v);
+    }
+  };
+
+  /* Filter active records — search text + applied filterModel items */
+  const filteredData = (() => {
+    let data = recorddata;
+
+    // Applied column filters
+    if (filterModel.items.length > 0) {
+      data = data.filter((row) =>
+        filterModel.items.every((item) => {
+          const cellVal = getFieldValue(row, item.field);
+          const needsValue = item.operator !== 'isEmpty' && item.operator !== 'isNotEmpty';
+          if (needsValue && !item.value?.trim()) return true; // skip empty filter rows
+          return matchesOperator(cellVal, item.operator, item.value || '');
+        })
+      );
+    }
+
+    // Text search
+    if (searchText.trim()) {
       const q = searchText.toLowerCase();
-      return (
-        row?.subject?.toLowerCase().includes(q) ||
-        row?.rfqSubject?.toLowerCase().includes(q) ||
-        row?.eventCode?.toLowerCase().includes(q) ||
+      data = data.filter((row) =>
+        (row?.subject || row?.rfqSubject || '').toLowerCase().includes(q) ||
+        (row?.eventCode || '').toLowerCase().includes(q) ||
         String(row?.id).includes(q)
       );
-    })
-    : recorddata;
+    }
+
+    return data;
+  })();
 
   useEffect(() => {
     setPaginationModel((prev) => ({ ...prev, page: 0 }));
@@ -201,15 +299,23 @@ const ManageRFQV2 = ({ claimType }) => {
   const colPopoverRef = React.useRef(null);
   const [activeFilterCount, setActiveFilterCount] = useState(0);
 
+  // Keep activeFilterCount in sync with filterModel
+  useEffect(() => {
+    setActiveFilterCount(filterModel.items.length);
+  }, [filterModel]);
+
   const handleFilterList = (res) => {
     if (accessLevel?.list?.created?.toLowerCase().trim() === 'none') {
       setRecorddata(res.filter((x) => x.status && x.status !== 'Draft'));
     } else {
       setRecorddata(res);
     }
-    setActiveFilterCount(1);
   };
-  const clearFilterList = () => { pullRFQManageFind(); setActiveFilterCount(0); };
+  const clearFilterList = () => {
+    pullRFQManageFind();
+    setFilterModel({ items: [] });
+    setTempFilterItems([emptyFilterItem()]);
+  };
 
   /* ── RFQ → Auction logic (unchanged from ManageRFQ) ── */
   const [selectedPRITemModal, setSelectedPRItemModal] = useState([]);
@@ -248,52 +354,79 @@ const ManageRFQV2 = ({ claimType }) => {
     setRFQItemSet((prev) => {
       let next = [...prev];
       selectedItems.forEach((ni) => {
-        if (!next.find((i) => i.id === ni.id)) {
+        if (!next.find((i) => i.id === ni.id && i.rfqId === ni.rfqId)) {
           next.push(buildAuctionItemForBidType(ni, selectedBidType));
         }
       });
-      return next.filter((i) => !unselectedItems.some((u) => u.id === i.id));
+      return next.filter((i) => !unselectedItems.some((u) => u.id === i.id && u.rfqId === i.rfqId));
     });
   };
 
   const selectItemsById = (ids) => {
-    const sel = selectedPRITemModal.filter((o) => ids.includes(o.id));
-    const unsel = selectedPRITemModal.filter((o) => !ids.includes(o.id));
-    setSelectedItemsActive(ids);
+    const selectedIds = Array.isArray(ids) ? ids : Array.from(ids || []);
+    const sel = selectedPRITemModal.filter((o) => selectedIds.includes(o.id));
+    const unsel = selectedPRITemModal.filter((o) => !selectedIds.includes(o.id));
+    setSelectedItemsActive(selectedIds);
     handleRFQItemSet(sel, unsel);
   };
 
-  const pullLineItemList = async (id) => {
+  const pullLineItemList = async (id, rowFallback = null) => {
+    const fallbackRFQ = rowFallback || recorddata?.find((x) => Number(x?.id) === Number(id)) || null;
+    if (fallbackRFQ) {
+      setFirstRFQ(fallbackRFQ);
+    }
     const queryParams = buildQueryParams({ Id: id });
     const res = await apiClient.getres(`api/RFQManage/FindById?${queryParams}`, atoken);
     if (res) {
-      const data = res?.data?.result ?? [];
-      const selectedRfqId = data?.find((x) => x.id === id) ?? null;
-      setRfqVendorInvitedList(selectedRfqId?.rfqVendorInvited);
+      const data = normalizeRFQDetailResult(res?.data);
+      const selectedRfqId = data.find((x) => Number(x?.id) === Number(id)) ?? data[0] ?? null;
+      const invitedVendors = Array.isArray(selectedRfqId?.rfqVendorInvited)
+        ? selectedRfqId.rfqVendorInvited
+        : [];
+      const rfqParameters = Array.isArray(selectedRfqId?.rfqParameters)
+        ? selectedRfqId.rfqParameters
+        : [];
+
+      setRfqVendorInvitedList(invitedVendors);
       setrfqMultiCurrencyList(selectedRfqId?.multicurrencytList || []);
+
       if (selectedRfqId) {
-        const hasClosedVendor = selectedRfqId?.rfqVendorInvited.some(
-          (v) => v?.status !== 'Open' && v?.isTermsAccepted === 'Y'
+        const hydratedRFQ = {
+          ...fallbackRFQ,
+          ...selectedRfqId,
+          eventCode: selectedRfqId.eventCode || fallbackRFQ?.eventCode,
+          subject: selectedRfqId.subject || fallbackRFQ?.subject || fallbackRFQ?.rfqSubject,
+        };
+        const selectedItems = rfqParameters.map((item) => ({
+          ...item,
+          rfqId: hydratedRFQ.id ?? id ?? 0,
+          rfqSubject: hydratedRFQ.subject,
+          rfqDescription: hydratedRFQ.description,
+          rfqTermandCondition: hydratedRFQ.termandCondition,
+          rfqPurchOrgId: hydratedRFQ.purchOrgId,
+          rfqPurchGrpId: hydratedRFQ.purchGrpId,
+          rfqIsMultiCurrency: hydratedRFQ.isMultiCurrency,
+        }));
+
+        // Only allow item selection if at least one vendor has submitted a quote
+        const hasClosedVendor = invitedVendors.some(
+          (vendor) => vendor?.status !== 'Open' && vendor?.isTermsAccepted == 'Y'
         );
+
         if (hasClosedVendor) {
-          setSelectedPRItemModal(
-            selectedRfqId?.rfqParameters.map((item) => ({
-              ...item,
-              rfqId: selectedRfqId.id ?? 0,
-              rfqSubject: selectedRfqId.subject,
-              rfqDescription: selectedRfqId.description,
-              rfqTermandCondition: selectedRfqId.termandCondition,
-              rfqPurchOrgId: selectedRfqId.purchOrgId,
-              rfqPurchGrpId: selectedRfqId.purchGrpId,
-              rfqIsMultiCurrency: selectedRfqId.isMultiCurrency,
-            }))
+          setSelectedPRItemModal(selectedItems);
+          setSelectedItemsActive(
+            selectedItems
+              .filter((item) => rfqItemSet.some((existing) => existing.id === item.id && existing.rfqId === item.rfqId))
+              .map((item) => item.id)
           );
-          setNoQuotesMessage('');
+          setNoQuotesMessage(selectedItems.length ? '' : 'No line items available for this RFQ.');
         } else {
           setSelectedPRItemModal([]);
           setNoQuotesMessage('None of the vendors have quoted. Cannot proceed.');
         }
-        setFirstRFQ(selectedRfqId);
+
+        setFirstRFQ(hydratedRFQ);
       }
     }
   };
@@ -483,17 +616,37 @@ const ManageRFQV2 = ({ claimType }) => {
       field: 'Action',
       headerName: 'Action',
       flex: 0.9,
-      minWidth: 120,
+      minWidth: 160,
       sortable: false,
-      renderCell: (params) =>
-        CAN_CREATE_EVENT(params.row.stage) ? (
+      renderCell: (params) => {
+        if (!CAN_CREATE_EVENT(params.row.stage)) return null;
+        const itemsFromThisRFQ = rfqItemSet.filter((x) => x.rfqId === params.row.id);
+        const anyItemsSelected = rfqItemSet.length > 0;
+
+        if (!anyItemsSelected) {
+          return (
+            <button
+              className="rfq-v2-action-link"
+              onClick={() => { setItemModal(true); pullLineItemList(params.row.id, params.row); }}
+            >
+              <AddOutlined /> Create Event
+            </button>
+          );
+        }
+
+        // Some items are already selected — all eligible rows show "Add Item"
+        return (
           <button
             className="rfq-v2-action-link"
-            onClick={() => { setItemModal(true); pullLineItemList(params.row.id); }}
+            onClick={() => { setItemModal(true); pullLineItemList(params.row.id, params.row); }}
           >
-            <AddOutlined /> Create Event
+            <AddOutlined />
+            {itemsFromThisRFQ.length > 0
+              ? `Add Items (${itemsFromThisRFQ.length})`
+              : 'Add Items'}
           </button>
-        ) : null,
+        );
+      },
     },
   ];
 
@@ -518,7 +671,7 @@ const ManageRFQV2 = ({ claimType }) => {
     { field: 'bidStartprice', headerName: 'Start Unit Price', flex: 1, minWidth: 120, renderCell: (p) => <span className="rfq-v2-text-cell">{p.formattedValue}</span> },
     { field: 'targetPrice', headerName: 'Target Price', flex: 1, minWidth: 100, renderCell: (p) => <span className="rfq-v2-text-cell">{p.formattedValue}</span> },
     action && {
-      field: 'Action', headerName: 'Action', flex: 1, minWidth: 80,
+      field: 'Action', headerName: 'Action', flex: 0.6, minWidth: 70,
       renderCell: (p) => (
         <Tooltip title="Remove Item">
           <HiTrash className="text-danger" style={{ cursor: 'pointer' }} onClick={() => handleDeleteItemSet(p.id)} />
@@ -526,6 +679,40 @@ const ManageRFQV2 = ({ claimType }) => {
       ),
     },
   ].filter(Boolean);
+
+  const handleExportRFQs = useCallback(() => {
+    if (!filteredData.length) {
+      toast.info('No RFQ data available to export.', { toastId: 'rfq_export_empty' });
+      return;
+    }
+
+    const exportColumns = EXPORT_COLUMNS.filter((column) => columnVisibility[column.field] !== false);
+    if (!exportColumns.length) {
+      toast.info('Please enable at least one column to export.', { toastId: 'rfq_export_no_columns' });
+      return;
+    }
+
+    const csvRows = [
+      exportColumns.map((column) => escapeCsvValue(column.label)).join(','),
+      ...filteredData.map((row) =>
+        exportColumns
+          .map((column) => escapeCsvValue(column.getValue(row, userDetail)))
+          .join(',')
+      ),
+    ];
+
+    const csvContent = `\uFEFF${csvRows.join('\r\n')}`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `manage-rfq-${stamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [columnVisibility, filteredData, userDetail]);
 
   useEffect(() => {
     if (!colMenuAnchor) return;
@@ -537,6 +724,18 @@ const ManageRFQV2 = ({ claimType }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [colMenuAnchor]);
+
+  // Click-outside for filter popover
+  useEffect(() => {
+    if (!filterAnchor) return;
+    const handleClickOutside = (e) => {
+      if (filterPopoverRef.current && !filterPopoverRef.current.contains(e.target)) {
+        setFilterAnchor(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [filterAnchor]);
 
   /* ── Guard: not authorised ── */
   if (!isreadDisabled) {
@@ -628,13 +827,101 @@ const ManageRFQV2 = ({ claimType }) => {
 
             {/* Right buttons */}
             <div className="rfq-v2-toolbar-right">
-              <button className="rfq-v2-tbtn">
-                <FilterListOutlined />
-                Filter
-                {activeFilterCount > 0 && (
-                  <span className="rfq-v2-filter-count">{activeFilterCount}</span>
+              {/* ── Filter popover (status checkboxes) ── */}
+              <div style={{ position: 'relative' }}>
+                <button
+                  className="rfq-v2-tbtn"
+                  onClick={(e) => setFilterAnchor(filterAnchor ? null : e.currentTarget)}
+                >
+                  <FilterListOutlined />
+                  Filter
+                  {activeFilterCount > 0 && (
+                    <span className="rfq-v2-filter-count">{activeFilterCount}</span>
+                  )}
+                </button>
+
+                {filterAnchor && (
+                  <div className="rfq-v2-col-popover rfq-v2-filter-popover" ref={filterPopoverRef}>
+                    {/* Header */}
+                    <div className="rfq-v2-col-popover-header">
+                      <span className="rfq-v2-col-popover-title">
+                        <FilterListOutlined className="rfq-v2-col-title-icon" />
+                        Filters
+                      </span>
+                      <button className="rfq-v2-col-reset" onClick={resetFilter}>Reset</button>
+                    </div>
+
+                    {/* Filter rows */}
+                    <div className="rfq-v2-filter-rows">
+                      {tempFilterItems.map((item, idx) => (
+                        <div key={item.id} className="rfq-v2-filter-row-item">
+                          {/* Column */}
+                          <select
+                            className="rfq-v2-filter-select"
+                            value={item.field}
+                            onChange={(e) => setTempFilterItems(prev =>
+                              prev.map((f, i) => i === idx ? { ...f, field: e.target.value } : f)
+                            )}
+                          >
+                            {FILTER_COLUMNS.map((c) => (
+                              <option key={c.field} value={c.field}>{c.label}</option>
+                            ))}
+                          </select>
+
+                          {/* Operator */}
+                          <select
+                            className="rfq-v2-filter-select"
+                            value={item.operator}
+                            onChange={(e) => setTempFilterItems(prev =>
+                              prev.map((f, i) => i === idx ? { ...f, operator: e.target.value } : f)
+                            )}
+                          >
+                            {FILTER_OPERATORS.map((op) => (
+                              <option key={op} value={op}>{op}</option>
+                            ))}
+                          </select>
+
+                          {/* Value — hidden for isEmpty/isNotEmpty */}
+                          {item.operator !== 'isEmpty' && item.operator !== 'isNotEmpty' && (
+                            <input
+                              type="text"
+                              className="rfq-v2-filter-value-input"
+                              placeholder="Filter value"
+                              value={item.value}
+                              onChange={(e) => setTempFilterItems(prev =>
+                                prev.map((f, i) => i === idx ? { ...f, value: e.target.value } : f)
+                              )}
+                            />
+                          )}
+
+                          {/* Remove row */}
+                          {tempFilterItems.length > 1 && (
+                            <button
+                              className="rfq-v2-filter-remove-btn"
+                              onClick={() => setTempFilterItems(prev => prev.filter((_, i) => i !== idx))}
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add filter row + Apply */}
+                    <div className="rfq-v2-filter-popover-footer">
+                      <button
+                        className="rfq-v2-filter-add-btn"
+                        onClick={() => setTempFilterItems(prev => [...prev, emptyFilterItem()])}
+                      >
+                        + Add filter
+                      </button>
+                      <button className="rfq-v2-filter-apply-btn" onClick={applyFilter}>
+                        Apply
+                      </button>
+                    </div>
+                  </div>
                 )}
-              </button>
+              </div>
 
               <button
                 className="rfq-v2-tbtn"
@@ -686,7 +973,12 @@ const ManageRFQV2 = ({ claimType }) => {
                 )}
               </div>
 
-              <button className="rfq-v2-tbtn rfq-v2-tbtn-export">
+              <button
+                type="button"
+                className="rfq-v2-tbtn rfq-v2-tbtn-export"
+                onClick={handleExportRFQs}
+                disabled={!filteredData.length}
+              >
                 <FileDownloadOutlined />
                 Export
                 <KeyboardArrowDownOutlined className="export-chevron" />
@@ -715,6 +1007,7 @@ const ManageRFQV2 = ({ claimType }) => {
                 getRowId={(row) => row.id}
                 rowHeight={52}
                 columnHeaderHeight={40}
+                pagination
                 disableRowSelectionOnClick
                 columnVisibilityModel={columnVisibility}
                 disableColumnResize
@@ -723,6 +1016,7 @@ const ManageRFQV2 = ({ claimType }) => {
                 pageSizeOptions={[10, 25, 50, 100]}
                 paginationModel={paginationModel}
                 onPaginationModelChange={setPaginationModel}
+                /* filterModel removed — all filtering done client-side in filteredData */
                 sx={{
                   border: 'none',
                   flex: 1,
@@ -940,7 +1234,8 @@ const ManageRFQV2 = ({ claimType }) => {
               <div className="rfq-v2-event-selection-head">
                 <span className="rfq-v2-event-section-label">Select Items</span>
                 <span className="rfq-v2-event-rfq-meta">
-                  RFQ-{firstRfq?.id || '-'} {firstRfq?.subject || firstRfq?.rfqSubject || ''}
+                  {firstRfq?.eventCode || (firstRfq?.id ? `RFQ-${firstRfq.id}` : 'RFQ-')}
+                  {firstRfq?.subject || firstRfq?.rfqSubject ? ` ${firstRfq?.subject || firstRfq?.rfqSubject}` : ''}
                 </span>
               </div>
 
@@ -979,60 +1274,105 @@ const ManageRFQV2 = ({ claimType }) => {
         </div>
       )}
 
-      {/* ── Auction cart modal ── */}
-      <Modal
-        size="xl"
-        show={rfqprcartmodal}
-        backdrop="static"
-        centered
-        contentClassName="border-0 rounded"
-        className="zindex1280"
-        backdropClassName="zindex1280"
-        onHide={rfqPrCartCloseModal}
-      >
-        <Modal.Header className="pt-2 pb-2 bgheaderCards">
-          <Modal.Title>
-            <span style={{ fontSize: 14, color: '#fff' }}>
-              {selectedBidType?.bidTypeId === 1 ? 'Create Forward Auction From RFQ'
-                : selectedBidType?.bidTypeId === 2 ? 'Create Reverse Auction From RFQ'
-                  : selectedBidType?.bidTypeId === 3 ? 'Create Freight Auction From RFQ'
-                    : selectedBidType?.bidTypeId === 4 ? 'Create Formula Based Auction From RFQ'
-                      : selectedBidType?.bidTypeId === 5 ? 'Create French Forward Auction From RFQ'
-                        : selectedBidType?.bidTypeId === 6 ? 'Create French Reverse Auction From RFQ'
-                          : 'Create Auction From RFQ'}
+      {/* ── Floating selection summary box ── */}
+      {rfqItemSet.length > 0 && (
+        <div className="rfq-v2-float-box">
+          <div className="rfq-v2-float-field">
+            <span className="rfq-v2-float-label">Event type</span>
+            <span className="rfq-v2-float-value">
+              {selectedBidType?.label || <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: 13 }}>Not selected</span>}
             </span>
-          </Modal.Title>
-          <IconButton onClick={rfqPrCartCloseModal} size="small">
-            <HiOutlineX style={{ color: '#fff' }} />
-          </IconButton>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <div className="p-3">
-            <div style={{ height: 400 }}>
-              <DataGrid
-                getRowId={(row) => row.id}
-                rows={Array.from(rfqItemSet)}
-                columns={prauctioncolumn}
-                pageSize={10}
-                rowHeight={40}
-                columnHeaderHeight={40}
-                disableDensitySelector
-                sx={{ border: 'none', '& .MuiDataGrid-cell': { fontSize: 13 } }}
-              />
-            </div>
-            <div className="d-flex justify-content-end mt-3">
-              <LoadingButton
-                variant="outlined"
-                size="medium"
-                className="rounded-pill"
-                onClick={createAuctionFromPR}
-              >
-                <span className="text-capitalize">Submit</span>
-              </LoadingButton>
-            </div>
           </div>
-        </Modal.Body>
-      </Modal>
+          <div className="rfq-v2-float-divider" />
+          <div className="rfq-v2-float-field">
+            <span className="rfq-v2-float-label">Total Items</span>
+            <span className="rfq-v2-float-count-badge">{rfqItemSet.length}</span>
+          </div>
+          <button
+            className="rfq-v2-float-view-btn"
+            onClick={() => setRFQPRcartmodal(true)}
+          >
+            View Event &nbsp;({rfqItemSet.length})
+          </button>
+        </div>
+      )}
+
+      {/* ── Auction cart drawer (bottom, same style as create-event drawer) ── */}
+      {rfqprcartmodal && (
+        <div className="rfq-v2-event-drawer-backdrop" role="presentation">
+          <section
+            className="rfq-v2-event-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rfq-v2-cart-drawer-title"
+          >
+            <header className="rfq-v2-event-drawer-header">
+              <h2 id="rfq-v2-cart-drawer-title" className="rfq-v2-event-drawer-title">
+                {selectedBidType?.label
+                  ? `Create ${selectedBidType.label} From RFQ`
+                  : 'Create Event From RFQ'}
+              </h2>
+              <div className="rfq-v2-event-drawer-actions">
+                <button
+                  type="button"
+                  className="rfq-v2-event-btn rfq-v2-event-btn-muted"
+                  onClick={rfqPrCartCloseModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="rfq-v2-event-btn rfq-v2-event-btn-primary"
+                  onClick={createAuctionFromPR}
+                >
+                  Submit ({rfqItemSet.length})
+                </button>
+              </div>
+            </header>
+
+            <div className="rfq-v2-event-drawer-body">
+              <div className="rfq-v2-event-form-row">
+                <div className="rfq-v2-event-total">
+                  <span className="rfq-v2-event-label">Event type</span>
+                  <span className="rfq-v2-event-count">
+                    {selectedBidType?.label || '—'}
+                  </span>
+                </div>
+                <div className="rfq-v2-event-total">
+                  <span className="rfq-v2-event-label">Total Items selected</span>
+                  <span className="rfq-v2-event-count">{rfqItemSet.length}</span>
+                </div>
+              </div>
+
+              <div className="rfq-v2-event-selection-head">
+                <span className="rfq-v2-event-section-label">Selected Items</span>
+              </div>
+
+              <div className="rfq-v2-event-table">
+                {rfqItemSet.length > 0 ? (
+                  <DataGrid
+                    getRowId={(row) => `${row.rfqId}-${row.id}`}
+                    rows={Array.from(rfqItemSet)}
+                    columns={prauctioncolumn}
+                    rowHeight={36}
+                    columnHeaderHeight={36}
+                    className="rfq-v2-event-datagrid"
+                    disableRowSelectionOnClick
+                    hideFooterSelectedRowCount
+                    sx={{
+                      border: 'none',
+                      '& .MuiDataGrid-cell': { fontSize: 12 },
+                      '& .MuiDataGrid-columnHeaderTitle': { fontSize: 12, fontWeight: 600 },
+                    }}
+                  />
+                ) : (
+                  <div className="rfq-v2-event-empty">No items selected yet.</div>
+                )}
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
     </>
   );
 };

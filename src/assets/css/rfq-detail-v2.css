@@ -1,4 +1,4 @@
-/* RFQ Detail Page V2 - Figma detail state */
+﻿/* RFQ Detail Page V2 - Figma detail state */
 .rfq-detail-v2-shell {
   display: flex;
   flex-direction: column;
@@ -142,6 +142,42 @@
   display: none !important;
 }
 
+.rfq-detail-v2-shell .rfq-dv2-tab-save-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  margin-left: 12px;
+  margin-right: 8px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-save-continue-btn {
+  height: 32px !important;
+  min-width: 128px !important;
+  padding: 0 16px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: #2a68d3 !important;
+  color: #ffffff !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-save-continue-btn:hover {
+  background: #1d5bbf !important;
+  box-shadow: 0 2px 8px rgba(42, 104, 211, 0.22) !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-save-continue-btn.Mui-disabled {
+  background: #bfd3f5 !important;
+  color: #ffffff !important;
+  cursor: not-allowed !important;
+}
+
 .rfq-dv2-meta-row {
   height: 22px;
   display: flex;
@@ -211,21 +247,27 @@
   outline-offset: 2px;
 }
 
+.rfq-dv2-status-menu-paper.MuiMenu-paper,
 .rfq-dv2-status-menu-paper {
-  width: 280px;
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
   margin-top: 10px;
-  overflow: visible !important;
+  overflow: hidden !important;
   border: 1px solid #e6e9ee;
   border-radius: 8px !important;
   box-shadow: 0 15px 35px rgba(15, 23, 42, 0.22) !important;
 }
 
 .rfq-dv2-status-menu-paper .MuiList-root {
+  width: 280px !important;
+  max-width: 280px !important;
   padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 
 .rfq-dv2-status-menu {
-  min-height: 404px;
   padding: 22px 24px 24px;
   background: #ffffff;
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
@@ -257,7 +299,8 @@
 }
 
 .rfq-dv2-status-step {
-  width: max-content;
+  width: 100%;
+  box-sizing: border-box;
   position: relative;
   display: flex;
   align-items: center;
@@ -1238,88 +1281,310 @@
   font-weight: 600;
 }
 
-.rfq-dv2-attachments-panel {
-  padding: 4px 0 0;
+/* Panel wrapper */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attachments-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 10px 14px;
+  width: 100%;
+  background: #ffffff;
 }
 
-.rfq-dv2-add-file-btn {
-  display: inline-flex;
+/* Loading / empty states */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-panel-loading,
+.rfq-detail-v2-shell .rightContent .rfq-dv2-panel-empty {
+  padding: 24px 0;
+  text-align: center;
+  color: #9aa4b2;
+  font-size: 12px;
+}
+
+/* â”€â”€ Add section card â”€â”€ */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-add-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e9edf2;
+}
+
+/* Description textarea */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #101828;
+  background: #ffffff;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input:focus {
+  border-color: #2388d9;
+  box-shadow: 0 0 0 2px rgba(35, 136, 217, 0.12);
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input::placeholder {
+  color: #b0b8c8;
+}
+
+/* Dashed file-pick zone */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-zone {
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  height: 34px;
-  margin: 0 0 12px auto;
-  padding: 0 14px;
-  border: 1px solid #cfd6df;
-  border-radius: 7px;
-  background: #ffffff;
-  color: #101828;
-  font-size: 11px;
-  font-weight: 800;
+  width: 100%;
+  min-height: 64px;
+  border: 1.5px dashed #c8d0dc;
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
-
-.rfq-dv2-file-row {
-  display: grid;
-  grid-template-columns: 16px 0 minmax(0, 1fr) 24px 24px;
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-zone:hover {
+  border-color: #2388d9;
+  background: #eef7ff;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-zone-empty {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  min-height: 49px;
-  border-bottom: 1px solid #e6e9ef;
-  color: #101828;
-  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  /* gap: 2px; */
+  /* padding: 10px 0; */
+  color: #9aa4b2;
+  font-size: 11px;
+  font-weight: 500;
+  pointer-events: none;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-zone-icon {
+  font-size: 18px;
+  color: #2388d9;
+  margin-bottom: 2px;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-zone-hint {
+  font-size: 10px;
+  font-weight: 400;
+  color: #b0b8c8;
 }
 
-.rfq-dv2-file-row input {
-  width: 13px;
-  height: 13px;
-  margin: 0;
+/* File chip (file selected state) */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  pointer-events: none;
 }
-
-.rfq-dv2-file-icon {
-  display: none;
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-chip-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: #2388d9;
 }
-
-.rfq-dv2-file-meta {
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-chip-name {
+  flex: 1 1 0;
   min-width: 0;
-}
-
-.rfq-dv2-file-meta strong,
-.rfq-dv2-file-meta span {
-  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #101828;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
-
-.rfq-dv2-file-meta strong {
-  color: #101828;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 14px;
-}
-
-.rfq-dv2-file-meta span {
-  color: #101828;
-  font-size: 10px;
-  font-weight: 500;
-  line-height: 13px;
-}
-
-.rfq-dv2-file-action {
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-chip-clear {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #111827;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: #fee4e2;
+  color: #d92d20;
+  font-size: 14px;
+  cursor: pointer;
+  pointer-events: all;
+  transition: background 0.15s;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-chip-clear:hover {
+  background: #fda29b;
 }
 
-.rfq-dv2-file-action.is-danger {
-  border-color: #fecaca;
-  color: #ef4444;
+/* Add Attachment button */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  width: 100% !important;
+  height: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid #000000;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  color: #000000 !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  transition: background 0.15s !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn:hover:not(:disabled) {
+  background: #e9ebeb !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn:disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+}
+
+/* Error message */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-error {
+  font-size: 11px;
+  color: #d92d20;
+  padding: 0 2px;
+}
+
+/* â”€â”€ File list â”€â”€ */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* row: [checkbox 28px] [meta 1fr] [download 28px] [delete 28px] */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-row {
+  display: grid !important;
+  grid-template-columns: 28px 1fr 28px 28px !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 8px 4px !important;
+  min-height: unset !important;
+  border-bottom: 1px solid #f0f2f5 !important;
+  background: transparent !important;
+  transition: background 0.1s;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-row:last-child {
+  border-bottom: none !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-row:hover {
+  background: #f8fafc !important;
+}
+
+/* T&C MUI checkbox */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-tc {
+  padding: 2px !important;
+}
+
+/* Description + filename stacked */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta .rfq-dv2-file-desc-text {
+  display: block !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #101828 !important;
+  line-height: 1.4 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta .rfq-dv2-file-name-text {
+  display: block !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  color: #667085 !important;
+  line-height: 1.3 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Download button */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-dl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid #d0d5dd;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #2388d9;
+  cursor: pointer;
+  font-size: 12px;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-dl-btn:hover {
+  background: #eef7ff;
+  border-color: #2388d9;
+}
+
+/* Delete button */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid #fda29b;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #d92d20;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-delete-btn:hover {
+  background: #fef2f2;
+}
+
+/* Update button row */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-update-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 4px 0;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-update-btn {
+  height: 30px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #ffffff;
+  background: #2388d9;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.rfq-detail-v2-shell
+  .rightContent
+  .rfq-dv2-attach-update-btn:hover:not(:disabled) {
+  background: #1a70b8;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-update-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* RFQ detail right workflow panel - Figma precision pass */
@@ -1570,41 +1835,6 @@
   color: #268343;
 }
 
-.rfq-detail-v2-shell .rfq-dv2-attachments-panel {
-  padding: 12px 11px 0 !important;
-}
-
-.rfq-detail-v2-shell .rfq-dv2-add-file-btn {
-  height: 34px;
-  margin-bottom: 10px;
-  margin-left: auto;
-}
-
-.rfq-detail-v2-shell
-  .rfq-dv2-attachments-panel
-  > .rfq-dv2-file-row:not(.rfq-dv2-file-row-new) {
-  display: none !important;
-}
-
-.rfq-detail-v2-shell .rfq-dv2-file-row {
-  grid-template-columns: 16px 0 minmax(0, 1fr) 24px 24px;
-  min-height: 47px;
-  gap: 7px;
-}
-
-.rfq-detail-v2-shell .rfq-dv2-file-row input {
-  appearance: none;
-  width: 13px;
-  height: 13px;
-  border: 1px solid #aeb7c2;
-  border-radius: 2px;
-  background: #ffffff;
-}
-
-.rfq-detail-v2-shell .rfq-dv2-file-action {
-  font-size: 0;
-}
-
 /* Figma-aligned View History tab strip */
 .rfq-detail-v2-shell .rightContent .rfq-dv2-history-track {
   position: relative;
@@ -1721,127 +1951,6 @@
 }
 
 /* Figma-aligned Attachments tab */
-.rfq-detail-v2-shell .rightContent .rfq-dv2-attachments-panel {
-  width: 100%;
-  min-height: calc(100% - 102px);
-  padding: 16px 17px 0 !important;
-  background: #f5f5f5;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  width: 122px;
-  height: 36px;
-  margin: 0 0 12px auto !important;
-  padding: 0 14px;
-  border: 1px solid #9ca3af;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #111827;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  box-shadow: none;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn svg {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-row {
-  display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) 24px 24px !important;
-  align-items: center;
-  column-gap: 9px !important;
-  min-height: 54px !important;
-  padding: 0;
-  border-bottom: 1px solid #d7d7d7;
-  background: transparent;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-row input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  margin: 0;
-  border: 1px solid #9ca3af;
-  border-radius: 3px;
-  background: #ffffff;
-  cursor: pointer;
-}
-
-.rfq-detail-v2-shell
-  .rightContent
-  .rfq-dv2-file-row
-  input[type="checkbox"]:checked {
-  border-color: #1685db;
-  background: #1685db;
-  box-shadow: inset 0 0 0 2px #ffffff;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-icon {
-  display: none !important;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta {
-  min-width: 0;
-  padding-top: 1px;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta strong,
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta span {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta strong {
-  margin: 0 0 2px;
-  color: #111827;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 14px;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta span {
-  color: #111827;
-  font-size: 10px;
-  font-weight: 500;
-  line-height: 13px;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 1px solid #e0e0e0;
-  border-radius: 7px;
-  background: #ffffff;
-  color: #111827;
-  font-size: 0;
-  line-height: 1;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-action svg {
-  width: 13px;
-  height: 13px;
-  stroke-width: 2;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-action.is-danger {
-  border-color: #fecaca;
-  color: #ef4444;
-}
 
 /* Center approval/rejection confirmation modal */
 .MuiDialog-root .rfq-dv2-approval-modal {
@@ -2681,21 +2790,6 @@
   border-radius: 50% !important;
 }
 
-.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn {
-  margin-right: auto !important;
-  margin-left: 0 !important;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-attachments-panel {
-  background: #ffffff !important;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn {
-  display: flex !important;
-  margin-right: 0 !important;
-  margin-left: auto !important;
-}
-
 .rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon {
   flex: 0 0 20px !important;
   width: 20px !important;
@@ -2795,7 +2889,7 @@
   stroke-width: 1.8;
 }
 
-/* ── Right panel: shared loading / empty ─────────────────────────────── */
+/* â”€â”€ Right panel: shared loading / empty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .rfq-detail-v2-shell .rfq-dv2-panel-loading,
 .rfq-detail-v2-shell .rfq-dv2-panel-empty {
   padding: 24px 16px;
@@ -2804,7 +2898,7 @@
   text-align: center;
 }
 
-/* ── History tab: state graph — HORIZONTAL layout ────────────────────── */
+/* â”€â”€ History tab: state graph â€” HORIZONTAL layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .rfq-detail-v2-shell .rfq-dv2-stage-graph {
   display: flex;
   flex-direction: row;
@@ -2853,7 +2947,7 @@
   border-radius: 8px;
   background: #f0f4ff;
   border-left: 3px solid #2a68d3;
-  width: 90px; /* fixed width — consistent columns */
+  width: 90px; /* fixed width â€” consistent columns */
   box-sizing: border-box;
 }
 .rfq-detail-v2-shell .rfq-dv2-stage-graph-badge {
@@ -2872,7 +2966,7 @@
   color: #9ca3af;
 }
 
-/* ── History tab: change list ────────────────────────────────────────── */
+/* â”€â”€ History tab: change list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .rfq-detail-v2-shell .rfq-dv2-history-list {
   padding: 8px 0;
 }
@@ -2959,209 +3053,6 @@
 }
 .rfq-detail-v2-shell .rfq-dv2-history-arrow-txt {
   color: #6b7280;
-}
-
-/* ── Attachments tab ─────────────────────────────────────────────────── */
-.rfq-detail-v2-shell .rfq-dv2-attach-add-row {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f3f4f6;
-}
-.rfq-detail-v2-shell .rfq-dv2-attach-desc-input {
-  height: 32px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 0 10px;
-  font-size: 12px;
-  font-family: inherit;
-  outline: none;
-  color: #374151;
-}
-.rfq-detail-v2-shell .rfq-dv2-attach-desc-input:focus {
-  border-color: #2a68d3;
-}
-.rfq-detail-v2-shell .rfq-dv2-attach-file-input {
-  font-size: 11px;
-  color: #6b7280;
-}
-.rfq-detail-v2-shell .rfq-dv2-attach-add-btn {
-  align-self: flex-end;
-  height: 30px;
-  padding: 0 14px;
-  background: #2a68d3;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: inherit;
-}
-.rfq-detail-v2-shell .rfq-dv2-attach-add-btn:disabled {
-  background: #93c5fd;
-  cursor: not-allowed;
-}
-.rfq-detail-v2-shell .rfq-dv2-attach-error {
-  font-size: 11px;
-  color: #ef4444;
-}
-.rfq-detail-v2-shell .rfq-dv2-attach-list {
-  padding: 8px 0;
-}
-.rfq-detail-v2-shell .rfq-dv2-file-link {
-  font-size: 11px;
-  color: #2a68d3;
-  cursor: pointer;
-  text-decoration: underline;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
-}
-.rfq-detail-v2-shell .rfq-dv2-file-link:hover {
-  color: #1d5bbf;
-}
-
-/* ── Attachments tab: toolbar + input row ───────────────────────────── */
-.rfq-detail-v2-shell .rfq-dv2-attach-toolbar {
-  padding: 10px 16px;
-  border-bottom: 1px solid #f3f4f6;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.rfq-detail-v2-shell .rfq-dv2-attach-input-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.rfq-detail-v2-shell .rfq-dv2-attach-input-row .rfq-dv2-attach-desc-input {
-  flex: 1;
-  min-width: 0;
-  height: 30px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 0 8px;
-  font-size: 12px;
-  font-family: inherit;
-  outline: none;
-}
-.rfq-detail-v2-shell
-  .rfq-dv2-attach-input-row
-  .rfq-dv2-attach-desc-input:focus {
-  border-color: #2a68d3;
-}
-/* file rows */
-.rfq-detail-v2-shell .rfq-dv2-file-check {
-  flex-shrink: 0;
-  width: 15px;
-  height: 15px;
-  accent-color: #2a68d3;
-  cursor: pointer;
-  margin-top: 2px;
-}
-.rfq-detail-v2-shell .rfq-dv2-file-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #111827;
-  display: block;
-  line-height: 1.3;
-}
-.rfq-detail-v2-shell .rfq-dv2-file-name {
-  font-size: 11px;
-  color: #6b7280;
-  display: block;
-  word-break: break-all;
-  line-height: 1.3;
-}
-
-/* ── Attachments toolbar — RIGHT PANEL (final override) ──────────────── */
-.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-toolbar {
-  padding: 10px 14px 8px !important;
-  border-bottom: 1px solid #e5e7eb !important;
-  background: #fafbfc !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 8px !important;
-  margin: 0 !important;
-}
-
-.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-input-row {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  width: 100% !important;
-}
-
-/* Description input */
-.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input {
-  flex: 1 !important;
-  min-width: 0 !important;
-  height: 34px !important;
-  padding: 0 10px !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 8px !important;
-  font-size: 12px !important;
-  font-family: inherit !important;
-  background: #fff !important;
-  color: #374151 !important;
-  outline: none !important;
-  transition: border-color 0.15s !important;
-  box-sizing: border-box !important;
-}
-.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input:focus {
-  border-color: #2a68d3 !important;
-  box-shadow: 0 0 0 2px rgba(42, 104, 211, 0.1) !important;
-}
-.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input::placeholder {
-  color: #9ca3af !important;
-}
-
-/* Add new file button */
-.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 4px !important;
-  height: 34px !important;
-  padding: 0 12px !important;
-  background: #fff !important;
-  color: #374151 !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 8px !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  font-family: inherit !important;
-  cursor: pointer !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
-  margin: 0 !important;
-  box-shadow: none !important;
-  transition:
-    background 0.12s,
-    border-color 0.12s !important;
-}
-.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn:hover {
-  background: #f9fafb !important;
-  border-color: #2a68d3 !important;
-  color: #2a68d3 !important;
-}
-.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn:disabled {
-  opacity: 0.6 !important;
-  cursor: not-allowed !important;
-}
-.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn svg {
-  font-size: 15px !important;
-  color: inherit !important;
-}
-
-/* Error text */
-.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-error {
-  font-size: 11px !important;
-  color: #ef4444 !important;
-  padding: 0 2px !important;
 }
 
 /* ── View History: stage graph boxes (final override) ───────────────── */

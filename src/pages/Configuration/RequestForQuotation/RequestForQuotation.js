@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+﻿import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import IconButton from "@mui/material/IconButton";
@@ -194,8 +194,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		useStateValue();
 	const apiClient = new ApiClient(customersuffix);
 	//ref
-	const EventCommercialScreenRef = React.createRef();
-	const EventQuestionScreenRef = React.createRef();
+	const EventCommercialScreenRef = useRef(null);
+	const EventQuestionScreenRef = useRef(null);
 	const attachmentdrawerref = useRef()
 	//Currency List
 	const [currencyList, setCurrencyList] = useState([]);
@@ -224,7 +224,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const [openQuotes, setOpenQuotes] = useState(true);
 	// RequestForQuotation.jsx (Parent)
 	const [attachmentCount, setAttachmentCount] = useState(0);
-	const NFASOBRFQRef = React.createRef();
+	const NFASOBRFQRef = useRef(null);
 	// Permission Management State
 	const [permissionManager, setPermissionManager] = useState(null);
 	const [loadingPermissions, setLoadingPermissions] = useState(true);
@@ -325,7 +325,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const [isquestioncreateitDisabled, setIQuestionCreateDisabled] = useState(true);
 	const [issuppliercreateitDisabled, setIsSupplierCreateDisabled] = useState(true);
 	const [issuppliereditDisabled, setIsSupplierEditDisabled] = useState(true);
-	const [issupplierreadDisabled, setIsSupplierReadDisabled] = useState(true);
+	const [issupplierreadDisabled, setIsSupplierReadDisabled] = useState(false);
 	const [issupplierraccesslevel, Setissupplierraccesslevel] = useState('');
 
 	const [isworkreadDisabled, setisworkReadDisabled] = useState(true);
@@ -1071,7 +1071,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						setAccessLevel(res?.[0]?.userAccess);
 					}
 
-					// Initialize Permission Manager with user access data
+					// Initialize Permission Manager with RFQ-level userAccess
 					const permManager = new PermissionManager(res?.[0]?.userAccess);
 					setPermissionManager(permManager);
 				}
@@ -1083,6 +1083,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					formik.setFieldValue("Version", res?.[0]?.version);
 					const sameVersion = res?.[0]?.rfqVersionHistory?.find(x => x.version == res?.[0]?.version);
 					setOpenQuotes(sameVersion?.openQuotes == "Y" ? true : false);
+					// Reload items with the confirmed version (avoids stale formik value race)
+					pullRFQItemServiceFind(Id, res?.[0]?.version);
 				}
 
 
@@ -1246,21 +1248,24 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const handleUomList = (array) => {
 		setUOMMaster(array);
 	};
-	const pullRFQItemServiceFind = (refid) => {
+	// versionOverride: pass an explicit version when calling right after pullgetRFQManageFind
+	// (avoids stale formik.values.Version due to async setFieldValue)
+	const pullRFQItemServiceFind = (refid, versionOverride) => {
+		const ver = versionOverride !== undefined
+			? parseInt(versionOverride)
+			: parseInt(formik?.values?.Version);
 		var data = {
 			RFQId: refid,
-			Version: parseInt(formik?.values?.Version),
+			// undefined is excluded from query params by the builder → server uses default behavior.
+			// Do NOT fall back to 1: that would filter to version-1 items only on multi-version RFQs.
+			Version: isNaN(ver) ? undefined : ver,
 			CustomerId: customerid,
 		};
 
-
 		getRFQItemServiceFind(data, atoken).then((res) => {
-
 			if (res && res?.length > 0) {
-
 				setrfqItemsList(res);
-			}
-			else {
+			} else {
 				setrfqItemsList([]);
 			}
 		});
@@ -2017,7 +2022,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	};
 
 	const handleSaveContinue = async () => {
-		debugger
 		if (value == 1) {
 
 			const currentDate = new Date();
@@ -2336,7 +2340,14 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	useEffect(() => {
 
 		if (value == 2 && idFromURL) {
-			pullRFQItemServiceFind(idFromURL);
+			// Only call if pullgetRFQManageFind has already completed (tempDataEditData is set).
+			// If tempDataEditData is not yet loaded, pullgetRFQManageFind will call
+			// pullRFQItemServiceFind(id, version) directly once it finishes — no duplicate needed.
+			// This prevents a race where the no-version call overwrites correctly loaded items.
+			if (tempDataEditData && tempDataEditData.length > 0) {
+				const resolvedVersion = tempDataEditData?.[0]?.version || formik?.values?.Version;
+				pullRFQItemServiceFind(idFromURL, resolvedVersion);
+			}
 		}
 		if (value == 3) {
 			pullLibraryOrgEntityFind();
@@ -2447,7 +2458,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 
 	const downloadItemsExcel = async () => {
-		debugger
 		await downloadExcelTemplate({
 			customerId: customerid,
 			templateId: 3,
@@ -2482,16 +2492,19 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		}
 		const queryParams = buildQueryParams(obj);
 
-		const res = await apiClient.getres(
-			`/api/rolemanagement/GetUserRoleRights?${queryParams}`,
-			atoken
-		);
+		try {
+			const res = await apiClient.getres(
+				`/api/rolemanagement/GetUserRoleRights?${queryParams}`,
+				atoken
+			);
 
-		if (res) {
-			const permManager = new PermissionManager(res?.data);
-			setPermissionManager(permManager);
-			setLoadingPermissions(false);
-		} else {
+			if (res?.data) {
+				const permManager = new PermissionManager(Array.isArray(res.data) ? res.data : []);
+				setPermissionManager(permManager);
+			}
+		} catch (e) {
+			console.warn("[RFQ] getUserRoleRights failed:", e.message);
+		} finally {
 			setLoadingPermissions(false);
 		}
 	};
@@ -2512,11 +2525,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		if (res.data?.length > 0) {
 			const data = res.data;
 			const emails = data?.map((item) => item.email);
-			const resetSuppliers = totalSupplier?.map((supplier) => {
-				return { ...supplier, isShow: false };
-
-				return supplier;
-			});
+			const resetSuppliers = totalSupplier?.map((supplier) => ({
+				...supplier, isShow: false,
+			}));
 
 			const updatedSuppliers = resetSuppliers?.map((supplier) => {
 				if (emails.includes(supplier.email)) {
@@ -2526,11 +2537,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			});
 			setTotalSupplier(updatedSuppliers);
 		} else {
-			const resetSuppliers = totalSupplier?.map((supplier) => {
-				return { ...supplier, isShow: false };
-
-				return supplier;
-			});
+			const resetSuppliers = totalSupplier?.map((supplier) => ({
+				...supplier, isShow: false,
+			}));
 			setTotalSupplier(resetSuppliers);
 		}
 	};
@@ -3305,7 +3314,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 			setStageList(result);
 
-			const stagesarray = result?.map((item) => item.currentStage);
+			// stagearray intentionally stays ['Draft'] — it represents editable stages only,
+			// not all workflow stages. Overwriting it from EventStageFind breaks the
+			// read-only vs editable branch logic in the Overview tab.
+			// const stagesarray = result?.map((item) => item.currentStage);
 		}
 	}
 
@@ -3482,11 +3494,14 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const [panelAttachFile, setPanelAttachFile] = useState(null);
 	const [panelAttachError, setPanelAttachError] = useState('');
 	const [panelAttachAdding, setPanelAttachAdding] = useState(false);
+	const [panelHasCheckboxChanged, setPanelHasCheckboxChanged] = useState(false);
+	const [panelIsUpdating, setPanelIsUpdating] = useState(false);
 	const panelFileInputRef = useRef(null);
 
 	const fetchPanelAttachments = async () => {
 		if (!idFromURL) return;
 		setPanelAttachLoading(true);
+		setPanelHasCheckboxChanged(false);
 		const params = buildQueryParams({ EventType: 'RFQ', EventId: idFromURL, VendorId: 0 });
 		const res = await apiClient.getres(`/api/eventattachment/Find?${params}`, atoken);
 		const resData = res?.data?.result || [];
@@ -3503,24 +3518,26 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		setPanelAttachLoading(false);
 	};
 
-	// fileArg: pass file directly from onChange (state not yet updated when called)
-	const addPanelAttachment = async (fileArg) => {
-		const fileToUse = fileArg || panelAttachFile;
+	const addPanelAttachment = async () => {
 		const descToUse = panelAttachDesc.trim();
-		if (!descToUse || !fileToUse?.file) {
-			setPanelAttachError('Enter a description first, then pick a file.');
+		if (!descToUse) {
+			setPanelAttachError('Please enter a description for the attachment.');
+			return;
+		}
+		if (!panelAttachFile?.file) {
+			setPanelAttachError('Please choose a file to upload.');
 			return;
 		}
 		setPanelAttachError('');
 		setPanelAttachAdding(true);
 		try {
 			const filedata = filequeryparam({ EventType: 'RFQ', EventId: idFromURL, Description: 'General', CustomerId: customerid });
-			const path = await uploadFilesOnAzure(filedata, fileToUse.file, atoken);
+			const path = await uploadFilesOnAzure(filedata, panelAttachFile.file, atoken);
 			if (!path) return;
 			const payload = getPayloadWithFilePath('fileNamePath', path, {
 				eventId: idFromURL, eventType: 'RFQ',
 				attachmentDescription: descToUse,
-				attachment: fileToUse.file.name,
+				attachment: panelAttachFile.file.name,
 				docRefId: 0, createdById: userDetail?.id, createdByName: userDetail?.name,
 			});
 			const res = await apiClient.postres(`/api/eventattachment/${idFromURL}/AddMultiple`, { attachments: [payload] }, atoken);
@@ -3534,6 +3551,28 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setPanelAttachError('Upload failed. Please try again.');
 		} finally {
 			setPanelAttachAdding(false);
+		}
+	};
+
+	const updatePanelAttachments = async () => {
+		if (!panelSavedAttach.length) return;
+		setPanelIsUpdating(true);
+		try {
+			const files = panelSavedAttach.map(x => ({
+				...x,
+				eventId: idFromURL,
+				createdById: userDetail?.id,
+				createdByName: userDetail?.name,
+			}));
+			const res = await apiClient.postres(`/api/eventattachment/UpdateAttachments`, files, atoken);
+			if (res) {
+				toast.success('Attachments updated successfully.', { toastId: 'panel_attach_update' });
+				setPanelHasCheckboxChanged(false);
+			}
+		} catch (e) {
+			toast.error('Failed to update attachments.');
+		} finally {
+			setPanelIsUpdating(false);
 		}
 	};
 
@@ -4230,6 +4269,17 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		tempDataEditData?.[0]?.subject ||
 		"Purchase Requisition for production";
 
+	const isNewRFQ = !idFromURL || idFromURL === "add";
+	const isSaveContinueHeaderDisabled =
+		loading ||
+		(value == 9
+			? currentStage != "Allocation"
+			: isNewRFQ
+				? false
+				: !stagearray.includes(currentStage));
+	const showTabSaveContinue =
+		!actionType &&
+		(isNewRFQ || normalizedCurrentStage.toLowerCase() === "draft");
 
 	//##return
 	return (
@@ -4269,6 +4319,14 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									classes={{ paper: "rfq-dv2-status-menu-paper" }}
 									anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
 									transformOrigin={{ vertical: "top", horizontal: "left" }}
+									PaperProps={{
+										style: {
+											width: 280,
+											minWidth: 280,
+											maxWidth: 280,
+											overflow: "hidden",
+										}
+									}}
 								>
 									<div className="rfq-dv2-status-menu">
 										<div className="rfq-dv2-status-menu-title">RFQ Status</div>
@@ -4323,7 +4381,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 												className="p-2 pt-1 pb-1"
 												onClick={handleButtonGroup}
 												sx={{ padding: '2px 8px', minHeight: '28px', lineHeight: '1' }}
-												disabled={value == 9 ? currentStage != 'Allocation' : !stagearray.includes(currentStage)}
+												disabled={value == 9
+													? currentStage != 'Allocation'
+													: (!idFromURL || idFromURL === 'add')
+														? false  // always enabled for new RFQ
+														: !stagearray.includes(currentStage)
+												}
 											>
 												<span className="text-capitalize">{selectedMenuItem}</span>
 											</Button>
@@ -4459,12 +4522,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									allowScrollButtonsMobile
 								>
 									{!actionType && (
-										<Tab value={1} label={<span className="section-heading">Overview</span>} />
+										<Tab value={1} label={<span className="section-heading">General</span>} />
 									)}
 									{!actionType && (
 										<Tab
 											value={2}
-											label={<span className="section-heading">Items & Services</span>}
+											label={<span className="section-heading">Items/Services</span>}
 											disabled={!idFromURL}
 										/>
 									)}
@@ -4502,7 +4565,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									) && (
 											<Tab
 												value={6}
-												label={<span className="section-heading">Reports</span>}
+												label={<span className="section-heading">Report</span>}
 												disabled={!idFromURL}
 											/>
 										)}
@@ -4522,6 +4585,20 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									)}
 								</Tabs>
 							</Box>
+
+							{showTabSaveContinue && (
+								<div className="rfq-dv2-tab-save-action">
+									<Button
+										type="button"
+										size="small"
+										className="rfq-dv2-save-continue-btn"
+										onClick={handleSaveContinue}
+										disabled={isSaveContinueHeaderDisabled}
+									>
+										{value === 5 ? "Save Suppliers" : "Save & Continue"}
+									</Button>
+								</div>
+							)}
 
 							{/* Top-right icons: History, Attachment, and Approval */}
 							{/* <div className="d-flex align-items-center gap-2"> */}
@@ -4561,8 +4638,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						</div>
 
 						{/* Tab Content */}
-						<div className={`flex-grow-1 p-2 hidden-scrollbar ${(!idFromURL || idFromURL === "add") ? "rfq-dv2-create-form" : ""}`} style={{
-							height: 'calc(100% - 60px)'
+						<div className={`flex-grow-1 hidden-scrollbar ${(!idFromURL || idFromURL === "add") ? "rfq-dv2-create-form" : ""}`} style={{
+							height: 'calc(100% - 60px)',
+							padding: '20px 16px 16px',
 						}}>
 							{/* General Tab Content */}
 							{value === 1 && (
@@ -4596,9 +4674,11 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 														<div className="row mb-3">
 															<div className="col-12">
-																<TextFieldCell
+																<label className="pe-field-label">RFQ Subject</label>
+																<TextField
+																	fullWidth
 																	size="small"
-																	label="RFQ Subject"
+																	variant="outlined"
 																	name="subject"
 																	id="subject"
 																	value={formik.values.subject}
@@ -4607,7 +4687,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																	error={formik.touched.subject && Boolean(formik.errors.subject)}
 																	helperText={formik.touched.subject && formik.errors.subject}
 																	disabled={!canEdit}
-																	className="w-100"
+																	className="w-100 f14"
+																	autoComplete="off"
 																/>
 															</div>
 														</div>
@@ -4633,6 +4714,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															<div className="row mt-4 mb-2">
 																{/* Requisitioner */}
 																<div className="col-12 col-md-4 col-lg-4 rfq-dv2-requisitioner-field">
+																	<label className="pe-field-label">Requisitioner</label>
 																	<Autocomplete
 																		id="requisitioner"
 																		name="requisitioner"
@@ -4650,11 +4732,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																		renderInput={(params) => (
 																			<TextField
 																				{...params}
-																				label="Requisitioner"
 																				variant="outlined"
 																				error={formik.touched.requisitioner && Boolean(formik.errors.requisitioner)}
 																				helperText={formik.touched.requisitioner && formik.errors.requisitioner}
-																				InputLabelProps={{ shrink: true }}
 																			/>
 																		)}
 																	/>
@@ -4662,8 +4742,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 																{/* Start Date */}
 																<div className="col-12 col-md-4 col-lg-4 rfq-dv2-start-field">
+																	<label className="pe-field-label">Start Date/Time</label>
 																	<MobileDateTimePicker
-																		label="Start Date/Time"
 																		name="startDate"
 																		id="startDate"
 																		value={formik.values?.startDate}
@@ -4677,7 +4757,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																			textField: {
 																				variant: "outlined",
 																				size: "small",
-																				InputLabelProps: { shrink: true },
 																				error: formik.touched?.startDate && Boolean(formik.errors?.startDate),
 																				helperText: formik.touched?.startDate && formik.errors?.startDate,
 																			},
@@ -4690,8 +4769,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 																{/* End Date */}
 																<div className="col-12 col-md-4 col-lg-4 rfq-dv2-end-field">
+																	<label className="pe-field-label">End Date/Time <span style={{ color: "#ef4444" }}>*</span></label>
 																	<MobileDateTimePicker
-																		label="End Date/Time *"
 																		name="endDate"
 																		id="endDate"
 																		value={formik.values.endDate}
@@ -4705,7 +4784,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																			textField: {
 																				variant: "outlined",
 																				size: "small",
-																				InputLabelProps: { shrink: true },
 																				error: formik.touched.endDate && Boolean(formik.errors.endDate),
 																				helperText: formik.touched.endDate && formik.errors.endDate,
 																			},
@@ -4722,6 +4800,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															{/* Purchase Org */}
 															{purchaseAllList && (
 																<div className="col-12 col-md-4 col-lg-4 mb-2 rfq-dv2-purchase-org-field">
+																	<label className="pe-field-label">Purchase Org</label>
 																	<Autocomplete
 																		id="purchOrgId"
 																		name="purchOrgId"
@@ -4775,8 +4854,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																			<TextField
 																				{...params}
 																				variant="outlined"
-																				label="Purchase Org"
-																				InputLabelProps={{ shrink: true }}
 																			/>
 																		)}
 																	/>
@@ -4786,6 +4863,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															{/* Purchase Group */}
 															{purchaseGroupAllList && (
 																<div className="col-12 col-md-4 col-lg-4 mb-2 rfq-dv2-purchase-group-field">
+																	<label className="pe-field-label">Purchase Group</label>
 																	<Autocomplete
 																		id="purchGrpId"
 																		name="purchGrpId"
@@ -4826,8 +4904,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																			<TextField
 																				{...params}
 																				variant="outlined"
-																				label="Purchase Group"
-																				InputLabelProps={{ shrink: true }}
 																			/>
 																		)}
 																	/>
@@ -4924,6 +5000,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																									key={i}
 																								>
 																									<div className="col-lg-4 col-12">
+																										<label className="pe-field-label">Select Currency <span style={{ color: "#ef4444" }}>*</span></label>
 																										<Autocomplete
 																											id={"baseCurrency" + i}
 																											name="baseCurrency"
@@ -4954,11 +5031,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																											renderInput={(params) => (
 																												<TextField
 																													{...params}
-																													InputLabelProps={{
-																														shrink: true,
-																													}}
 																													name="baseCurrency"
-																													label="Select Currency *"
 																													variant="outlined"
 																													size="small"
 																													className="w-100 f14"
@@ -4987,17 +5060,14 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 																									</div>
 																									<div className="col-lg-4 col-12">
+																										<label className="pe-field-label">Conversion Factor <span style={{ color: "#ef4444" }}>*</span></label>
 																										<TextField
 																											variant="outlined"
-																											InputLabelProps={{
-																												shrink: true,
-																											}}
 
 																											className={`w-100 ${x && x.baseCurrency && x.currencyConversion && !isNaN(parseFloat(x.currencyConversion)) && parseFloat(x.currencyConversion) <= 0 ? 'invalid-input' : ''}`}
 																											required
 
 																											id={`currency-conversion-${i}`}
-																											label="Enter currency conversion factor"
 																											value={x.currencyConversion}
 																											size="small"
 																											name="currencyConversion"
@@ -5253,10 +5323,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																<>
 																	<div className="col-12 col-md-6 col-lg-4 mt-4 ms-0 ps-0 me-2">
 																		<LocalizationProvider dateAdapter={AdapterDayjs}>
+																			<label className="pe-field-label">Bid Open Date/Time</label>
 																			<MobileDateTimePicker
 																				disabled={!(formik.values.RFQType === "closed")}
 																				variant="outlined"
-																				label={`Bid Open Date/Time`}
 																				size="small"
 																				name="bidOpeningDate"
 																				id="bidOpeningDate"
@@ -5269,7 +5339,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																					textField: {
 																						variant: "outlined",
 																						size: "small",
-																						InputLabelProps: { shrink: true },
 																						error: formik.touched.bidOpeningDate && Boolean(formik.errors.bidOpeningDate),
 																						helperText: formik.touched.bidOpeningDate && formik.errors.bidOpeningDate,
 																					},
@@ -5618,7 +5687,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 									{tabloading ? <GridSkeleton /> :
 										<>
-											{!issupplierreadDisabled === false &&
+											{issupplierreadDisabled === false &&
 												<div className="p-2 pt-0">
 													<div className="row">
 														<div className="col-12">
@@ -5627,6 +5696,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																	<div className="col-12 col-md-12">
 																		<div className="row mt-2">
 																			<div className="col-12 col-md-6 col-lg-6 mb-3">
+																				<label className="pe-field-label">Category</label>
 																				<Autocomplete
 																					disablePortal
 																					id=""
@@ -5636,10 +5706,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																					renderInput={(params) => (
 																						<TextField
 																							{...params}
-																							InputLabelProps={{
-																								shrink: true,
-																							}}
-																							label="Category"
 																						/>
 																					)}
 																					onOpen={() => {
@@ -5660,6 +5726,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																			</div>
 
 																			<div className="col-12 col-md-6 col-lg-6 mb-3">
+																				<label className="pe-field-label">Search Supplier by Name</label>
 																				<Autocomplete
 																					id="searchvendorbyname"
 																					options={
@@ -5695,10 +5762,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																					renderInput={(params) => (
 																						<TextField
 																							{...params}
-																							InputLabelProps={{
-																								shrink: true,
-																							}}
-																							label="Search User from Supplier by Name"
 																						/>
 																					)}
 																					onChange={(e, newvalue) => {
@@ -6169,7 +6232,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 							{value == 9 &&
 								<EventAllocationScreen
 									props={{
-										eventId: 0,
+										eventId: idFromURL,
 										nfaEventId: idFromURL,
 										nfaEventType: 'RFQ',
 										Version: formik?.values?.Version,
@@ -6501,34 +6564,36 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								</button>
 							</div>
 						</div>
-						<div className="rfq-dv2-workflow-action-panel">
-							<div className="rfq-dv2-workflow-alert">
-								<PiWarningDiamondFill className="rfq-dv2-workflow-alert-icon" />
-								<span>{normalizedCurrentStage} required for You</span>
+						{workflowPanelTab === "workflow" && (
+							<div className="rfq-dv2-workflow-action-panel">
+								<div className="rfq-dv2-workflow-alert">
+									<PiWarningDiamondFill className="rfq-dv2-workflow-alert-icon" />
+									<span>{normalizedCurrentStage} required for You</span>
+								</div>
+								<div className="rfq-dv2-workflow-actions">
+									<button
+										type="button"
+										className="rfq-dv2-workflow-approve"
+										onClick={(event) => {
+											formik_ApproveReject.setFieldValue("status", "Approved");
+											toggleDrawer("openInvoiceApproved", true)(event);
+										}}
+									>
+										Approve
+									</button>
+									<button
+										type="button"
+										className="rfq-dv2-workflow-reject"
+										onClick={(event) => {
+											formik_ApproveReject.setFieldValue("status", "Rejected");
+											toggleDrawer("openInvoiceApproved", true)(event);
+										}}
+									>
+										Reject
+									</button>
+								</div>
 							</div>
-							<div className="rfq-dv2-workflow-actions">
-								<button
-									type="button"
-									className="rfq-dv2-workflow-approve"
-									onClick={(event) => {
-										formik_ApproveReject.setFieldValue("status", "Approved");
-										toggleDrawer("openInvoiceApproved", true)(event);
-									}}
-								>
-									Approve
-								</button>
-								<button
-									type="button"
-									className="rfq-dv2-workflow-reject"
-									onClick={(event) => {
-										formik_ApproveReject.setFieldValue("status", "Rejected");
-										toggleDrawer("openInvoiceApproved", true)(event);
-									}}
-								>
-									Reject
-								</button>
-							</div>
-						</div>
+						)}
 						<div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
 							{approvershow && workflowPanelTab === "workflow" && (
 								<EventApprovalBox
@@ -6609,84 +6674,123 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										<div className="rfq-dv2-panel-loading">Loading attachments…</div>
 									) : (
 										<>
-											{/* ── Add new file toolbar ──
-												  Show only when:
-												  1. Stage allows editing (same condition as original AttachmentWorkFlow action prop)
-												  2. User has DOCUMENT_LIBRARY CREATE permission
-												*/}
-											{stagearray.includes(currentStage) && (effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.CREATE) ?? true) && (
-												<div className="rfq-dv2-attach-toolbar">
-													<div className="rfq-dv2-attach-input-row">
-														<input
-															type="text"
-															className="rfq-dv2-attach-desc-input"
-															placeholder="Description"
-															value={panelAttachDesc}
-															onChange={e => setPanelAttachDesc(e.target.value.replace(/'/g, ''))}
-														/>
-														<button
-															type="button"
-															className="rfq-dv2-add-file-btn"
-															onClick={() => panelFileInputRef.current?.click()}
-															disabled={panelAttachAdding}
-														>
-															<HiPlusSm /> {panelAttachAdding ? 'Uploading…' : 'Add new file'}
-														</button>
-													</div>
-													<input
-														type="file"
-														ref={panelFileInputRef}
-														style={{ display: 'none' }}
-														accept=".docx,.doc,.jpeg,.jpg,.gif,.png,.pdf,.xlsx"
+											{/* ── Add new file section ── same guard as prod AttachmentWorkFlow ── */}
+											{stagearray.includes(currentStage) && (effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.CREATE) ?? false) && (
+												<div className="rfq-dv2-attach-add-section">
+													{/* Description textarea */}
+													<textarea
+														className="rfq-dv2-attach-desc-input"
+														placeholder="Attachment Description"
+														rows={4}
+														value={panelAttachDesc}
 														onChange={e => {
-															if (validateFileSize(e)) {
-																const fileObj = { file: e.target.files[0] };
-																setPanelAttachFile(fileObj);
-																addPanelAttachment(fileObj);
-															} else {
-																setPanelAttachFile(null);
-															}
+															setPanelAttachDesc(e.target.value.replace(/'/g, ''));
+															if (panelAttachError) setPanelAttachError('');
 														}}
 													/>
+
+													{/* File picker zone */}
+													<label className="rfq-dv2-file-zone">
+														<input
+															type="file"
+															ref={panelFileInputRef}
+															style={{ display: 'none' }}
+															accept=".docx,.doc,.jpeg,.jpg,.gif,.png,.pdf,.xlsx"
+															onChange={e => {
+																if (validateFileSize(e)) {
+																	setPanelAttachFile({ file: e.target.files[0] });
+																	if (panelAttachError) setPanelAttachError('');
+																} else {
+																	setPanelAttachFile(null);
+																}
+															}}
+														/>
+														{panelAttachFile ? (
+															<div className="rfq-dv2-file-chip">
+																<HiOutlineDownload className="rfq-dv2-file-chip-icon" />
+																<span className="rfq-dv2-file-chip-name">{panelAttachFile.file.name}</span>
+																<button
+																	type="button"
+																	className="rfq-dv2-file-chip-clear"
+																	onClick={e => { e.preventDefault(); e.stopPropagation(); setPanelAttachFile(null); if (panelFileInputRef.current) panelFileInputRef.current.value = ''; }}
+																>
+																	<HiOutlineX />
+																</button>
+															</div>
+														) : (
+															<div className="rfq-dv2-file-zone-empty">
+																<HiPlusSm className="rfq-dv2-file-zone-icon" />
+																<span>Click to choose file</span>
+																<span className="rfq-dv2-file-zone-hint">pdf, doc, xlsx, png…</span>
+															</div>
+														)}
+													</label>
+
 													{panelAttachError && (
 														<div className="rfq-dv2-attach-error">{panelAttachError}</div>
 													)}
+
+													{/* Add button */}
+													<button
+														type="button"
+														className="rfq-dv2-add-file-btn"
+														onClick={addPanelAttachment}
+														disabled={panelAttachAdding}
+													>
+														<HiPlusSm />
+														{panelAttachAdding ? 'Adding…' : 'Add new file'}
+													</button>
 												</div>
 											)}
 
-											{/* ── File rows (Image 2 layout) ── */}
+											{/* ── File rows ── */}
 											{panelSavedAttach.length === 0 ? (
 												<div className="rfq-dv2-panel-empty">No attachments yet.</div>
 											) : (
 												<div className="rfq-dv2-attach-list">
 													{panelSavedAttach.map((item, i) => (
 														<div key={i} className="rfq-dv2-file-row">
-															<input
-																type="checkbox"
-																className="rfq-dv2-file-check"
-																aria-label="Select attachment"
-																readOnly
+															{/* Checkbox */}
+															<Checkbox
+																size="small"
+																className="rfq-dv2-file-tc"
+																checked={item.fileType === 'TC'}
+																disabled={
+																	!stagearray.includes(currentStage) ||
+																	!(effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.EDIT) ?? false)
+																}
+																onChange={e => {
+																	const updated = panelSavedAttach.map((a, idx) =>
+																		idx === i ? { ...a, fileType: e.target.checked ? 'TC' : '' } : a
+																	);
+																	setPanelSavedAttach(updated);
+																	handleattachmentforevent(updated);
+																	setPanelHasCheckboxChanged(true);
+																}}
 															/>
+															{/* Description (bold) + filename stacked */}
 															<div className="rfq-dv2-file-meta">
-																<strong className="rfq-dv2-file-title">
-																	{item.attachmentDescription || 'Attachment'}
-																</strong>
-																<span className="rfq-dv2-file-name">
+																<span className="rfq-dv2-file-desc-text" title={item.attachmentDescription}>
+																	{item.attachmentDescription || '—'}
+																</span>
+																<span className="rfq-dv2-file-name-text" title={getFileName(item.fileNamePath)}>
 																	{getFileName(item.fileNamePath)}
 																</span>
 															</div>
+															{/* Download */}
 															<button
 																type="button"
-																className="rfq-dv2-file-action"
+																className="rfq-dv2-file-dl-btn"
 																aria-label="Download"
 																onClick={() => downloadFilesOnAzure(item.fileNamePath, getFileName(item.fileNamePath), atoken)}
 															>
 																<HiOutlineDownload />
 															</button>
-															{stagearray.includes(currentStage) && !item.required && (effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.REMOVE) ?? true) && (
+															{/* Delete */}
+															{stagearray.includes(currentStage) && !item.required && (effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.REMOVE) ?? false) && (
 																<button
 																	type="button"
-																	className="rfq-dv2-file-action is-danger"
+																	className="rfq-dv2-file-delete-btn"
 																	aria-label="Delete"
 																	onClick={() => deletePanelAttachment(i, item.id)}
 																>
@@ -6695,6 +6799,24 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															)}
 														</div>
 													))}
+												</div>
+											)}
+
+											{/* ── Update button — same guard as prod: action + READ + EDIT + hasCheckboxChanged ── */}
+											{stagearray.includes(currentStage) &&
+												panelHasCheckboxChanged &&
+												panelSavedAttach.length > 0 &&
+												(effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.READ) ?? false) &&
+												(effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.EDIT) ?? false) && (
+												<div className="rfq-dv2-attach-update-row">
+													<button
+														type="button"
+														className="rfq-dv2-attach-update-btn"
+														onClick={updatePanelAttachments}
+														disabled={panelIsUpdating}
+													>
+														{panelIsUpdating ? 'Updating…' : 'Update'}
+													</button>
 												</div>
 											)}
 										</>
@@ -6814,120 +6936,73 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								<form onSubmit={formik_Action.handleSubmit} autoComplete="off">
 									<div className="row mt-2">
 										<div className="col-12 col-md-12 mb-4">
-											<TextFieldCell
-												id="supplierselected"
-												name="supplierselected"
-												label="Supplier *"
-												placeholder=""
-												maxLength={100}
+											<label className="pe-field-label">Supplier <span style={{ color: "#ef4444" }}>*</span></label>
+											<TextField
+												fullWidth size="small" variant="outlined" id="supplierselected" name="supplierselected"
 												value={`${formik_Action.values.supplier?.contactPerson} | ${formik_Action.values.supplier?.emailId} | ${formik_Action.values.supplier?.companyName}`}
-
-												disabled
+												disabled className="f14" autoComplete="off"
 											/>
 										</div>
 										{selectedAction == "Surrogate RFQ" &&
 											<>
 												<div className="col-12 col-md-6 mb-4">
-													<TextFieldCell
-														id="name"
-														name="name"
-														label="Surrogator Name"
-														placeholder=""
-														maxLength={100}
+													<label className="pe-field-label">Surrogator Name</label>
+													<TextField
+														fullWidth size="small" variant="outlined"
+														id="name" name="name" className="f14" autoComplete="off"
+														inputProps={{ maxLength: 100 }}
 														value={formik_Action.values.name}
-														onChange={(e) => {
-
-															formik_Action.setFieldValue("name", e.target?.value)
-														}}
-														error={
-															formik_Action.touched.name &&
-															Boolean(formik_Action.errors.name)
-														}
-														helperText={
-															formik_Action.touched.name &&
-															formik_Action.errors.name
-														}
+														onChange={(e) => formik_Action.setFieldValue("name", e.target?.value)}
+														error={formik_Action.touched.name && Boolean(formik_Action.errors.name)}
+														helperText={formik_Action.touched.name && formik_Action.errors.name}
 														InputProps={{
 															endAdornment: formik_Action.values.name && (
 																<InputAdornment position="end">
-																	<Typography
-																		variant="body2"
-																		color="textSecondary"
-																	>
+																	<Typography variant="body2" color="textSecondary">
 																		{formik_Action.values?.name?.length}/200
 																	</Typography>
 																</InputAdornment>
 															),
 														}}
-
 													/>
 												</div>
 												<div className="col-12 col-md-6 mb-4">
-													<TextFieldCell
-														id="email"
-														name="email"
-														label="Surrogator Email *"
-														placeholder=""
-														maxLength={100}
+													<label className="pe-field-label">Surrogator Email <span style={{ color: "#ef4444" }}>*</span></label>
+													<TextField
+														fullWidth size="small" variant="outlined"
+														id="email" name="email" className="f14" autoComplete="off"
+														inputProps={{ maxLength: 100 }}
 														value={formik_Action.values.email}
-														onChange={(e) => {
-
-															formik_Action.setFieldValue("email", e.target?.value)
-														}}
-														error={
-															formik_Action.touched.email &&
-															Boolean(formik_Action.errors.email)
-														}
-														helperText={
-															formik_Action.touched.email &&
-															formik_Action.errors.email
-														}
+														onChange={(e) => formik_Action.setFieldValue("email", e.target?.value)}
+														error={formik_Action.touched.email && Boolean(formik_Action.errors.email)}
+														helperText={formik_Action.touched.email && formik_Action.errors.email}
 														InputProps={{
 															endAdornment: formik_Action.values.email && (
 																<InputAdornment position="end">
-																	<Typography
-																		variant="body2"
-																		color="textSecondary"
-																	>
+																	<Typography variant="body2" color="textSecondary">
 																		{formik_Action.values?.email?.length}/200
 																	</Typography>
 																</InputAdornment>
 															),
 														}}
-
 													/>
 												</div>
 											</>
 										}
 										<div className="col-12 col-md-12 mb-4">
-											<TextFieldCell
-												multiline
-												rows={3}
-												id="Reason"
-												name="Reason"
-												label="Remark"
-												placeholder=""
-												maxLength={200}
+											<label className="pe-field-label">Remark</label>
+											<TextField
+												fullWidth size="small" variant="outlined" multiline rows={3}
+												id="Reason" name="Reason" className="f14" autoComplete="off"
+												inputProps={{ maxLength: 200 }}
 												value={formik_Action.values.Reason}
-												onChange={(e) => {
-
-													formik_Action.setFieldValue("Reason", e.target?.value)
-												}}
-												error={
-													formik_Action.touched.Reason &&
-													Boolean(formik_Action.errors.Reason)
-												}
-												helperText={
-													formik_Action.touched.Reason &&
-													formik_Action.errors.Reason
-												}
+												onChange={(e) => formik_Action.setFieldValue("Reason", e.target?.value)}
+												error={formik_Action.touched.Reason && Boolean(formik_Action.errors.Reason)}
+												helperText={formik_Action.touched.Reason && formik_Action.errors.Reason}
 												InputProps={{
 													endAdornment: formik_Action.values.Reason && (
 														<InputAdornment position="end">
-															<Typography
-																variant="body2"
-																color="textSecondary"
-															>
+															<Typography variant="body2" color="textSecondary">
 																{formik_Action.values?.Reason?.length}/200
 															</Typography>
 														</InputAdornment>
@@ -7079,10 +7154,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					<DialogContentText>
 						Do you want to cancel this rfq? Unsaved changes will be lost.
 					</DialogContentText>
+					<label className="pe-field-label">Enter reason <span style={{ color: "#ef4444" }}>*</span></label>
 					<TextField
 						autoFocus
 						margin="dense"
-						label="Enter reason *"
 						type="text"
 						fullWidth
 						value={cancelReason}
@@ -7171,17 +7246,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						<div className="row g-3">
 
 							<div className="col-md-3 ">
+								<label className="pe-field-label">Loading Type</label>
 								<FormControl fullWidth>
-									<InputLabel id="factorType" variant="outlined"
-										InputLabelProps={{
-											shrink: true,
-										}}>Loading Type</InputLabel>
 									<Select
-										labelId="factorType"
 										id="factorType"
 										name="factorType"
 										value={factorType}
-										label="Loading Type"
 										onChange={(e) => {
 											setFactorType(e?.target?.value)
 										}}
@@ -7203,108 +7273,110 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 							<div className="col-md-3  mt-3">
 								{factorType === 'A' ? (
-									<TextField
-										id="loadingAmount"
-										name="loadingAmount"
-										label="Loading Amount"
-										variant="outlined"
-										value={loadingAmount}
-										onChange={(e) => {
-											const value = e?.target?.value;
-											const regex = /^-?[0-9]*\.?[0-9]*$/; // allow negative numbers
-											if (regex.test(value)) {
-												setLoadingAmount(value);
-											}
-										}}
-										inputProps={{
-											maxLength: 9,
-											inputMode: 'decimal',
-											pattern: "-?[0-9]*",
-										}}
-										InputProps={{
-											endAdornment: (
-												<InputAdornment style={{ width: 20 }} position="start">
-													{formik?.values?.baseCurrency}
-												</InputAdornment>
-											),
-										}}
-										onKeyDown={(e) => {
-											if (
-												!/[0-9]/.test(e.key) &&
-												e.key !== 'Backspace' &&
-												e.key !== 'ArrowLeft' &&
-												e.key !== 'ArrowRight' &&
-												e.key !== 'Tab' &&
-												e.key !== '-' // allow minus for Absolute
-											) {
-												e.preventDefault();
-											}
-										}}
-										size="small"
-										error={!!errors.loadingAmount}
-										helperText={errors.loadingAmount}
-									/>
+									<>
+										<label className="pe-field-label">Loading Amount</label>
+										<TextField
+											id="loadingAmount"
+											name="loadingAmount"
+											variant="outlined"
+											value={loadingAmount}
+											onChange={(e) => {
+												const value = e?.target?.value;
+												const regex = /^-?[0-9]*\.?[0-9]*$/; // allow negative numbers
+												if (regex.test(value)) {
+													setLoadingAmount(value);
+												}
+											}}
+											inputProps={{
+												maxLength: 9,
+												inputMode: 'decimal',
+												pattern: "-?[0-9]*",
+											}}
+											InputProps={{
+												endAdornment: (
+													<InputAdornment style={{ width: 20 }} position="start">
+														{formik?.values?.baseCurrency}
+													</InputAdornment>
+												),
+											}}
+											onKeyDown={(e) => {
+												if (
+													!/[0-9]/.test(e.key) &&
+													e.key !== 'Backspace' &&
+													e.key !== 'ArrowLeft' &&
+													e.key !== 'ArrowRight' &&
+													e.key !== 'Tab' &&
+													e.key !== '-' // allow minus for Absolute
+												) {
+													e.preventDefault();
+												}
+											}}
+											size="small"
+											error={!!errors.loadingAmount}
+											helperText={errors.loadingAmount}
+										/>
+									</>
 								) : (
-									<TextField
-										id="factorPerc"
-										name="factorPerc"
-										label="Loading Percent"
-										variant="outlined"
-										value={factorPerc}
-										onChange={(e) => {
-											const value = e?.target?.value;
-											const regex = /^[0-9]*\.?[0-9]{0,3}$/; // Allows up to 3 decimal places
-											if (regex.test(value)) {
-												setFactorPerc(value);
-											}
-										}}
-										inputProps={{
-											maxLength: 7, // e.g. 100.000 (6 chars + 1 extra buffer)
-											inputMode: 'decimal',
-											step: '0.001', // for mobile numeric keyboard precision
-											pattern: "[0-9]*\\.?[0-9]{0,3}",
-										}}
-										InputProps={{
-											endAdornment: (
-												<InputAdornment style={{ width: 20 }} position="start">
-													%
-												</InputAdornment>
-											),
-										}}
-										onKeyDown={(e) => {
-											if (
-												!/[0-9]/.test(e.key) &&
-												e.key !== 'Backspace' &&
-												e.key !== 'ArrowLeft' &&
-												e.key !== 'ArrowRight' &&
-												e.key !== 'Tab' &&
-												e.key !== '.' // allow decimal point
-											) {
-												e.preventDefault();
-											}
-										}}
-										onPaste={(e) => {
-											const paste = e.clipboardData.getData('text');
-											const regex = /^[0-9]*\.?[0-9]{0,3}$/;
-											if (!regex.test(paste)) {
-												e.preventDefault();
-											}
-										}}
-										size="small"
-										error={!!errors.factorPerc}
-										helperText={errors.factorPerc}
-									/>
-
-
+									<>
+										<label className="pe-field-label">Loading Percent</label>
+										<TextField
+											id="factorPerc"
+											name="factorPerc"
+											variant="outlined"
+											value={factorPerc}
+											onChange={(e) => {
+												const value = e?.target?.value;
+												const regex = /^[0-9]*\.?[0-9]{0,3}$/; // Allows up to 3 decimal places
+												if (regex.test(value)) {
+													setFactorPerc(value);
+												}
+											}}
+											inputProps={{
+												maxLength: 7, // e.g. 100.000 (6 chars + 1 extra buffer)
+												inputMode: 'decimal',
+												step: '0.001', // for mobile numeric keyboard precision
+												pattern: "[0-9]*\\.?[0-9]{0,3}",
+											}}
+											InputProps={{
+												endAdornment: (
+													<InputAdornment style={{ width: 20 }} position="start">
+														%
+													</InputAdornment>
+												),
+											}}
+											onKeyDown={(e) => {
+												if (
+													!/[0-9]/.test(e.key) &&
+													e.key !== 'Backspace' &&
+													e.key !== 'ArrowLeft' &&
+													e.key !== 'ArrowRight' &&
+													e.key !== 'Tab' &&
+													e.key !== '.' // allow decimal point
+												) {
+													e.preventDefault();
+												}
+											}}
+											onPaste={(e) => {
+												const paste = e.clipboardData.getData('text');
+												const regex = /^[0-9]*\.?[0-9]{0,3}$/;
+												if (!regex.test(paste)) {
+													e.preventDefault();
+												}
+											}}
+											size="small"
+											error={!!errors.factorPerc}
+											helperText={errors.factorPerc}
+										/>
+									</>
 								)}
 							</div>
 
 							<div className="col-md-6">
+								<label className="pe-field-label">Reason Of Loading Factor</label>
 								<TextField
 									id="factorDesc"
 									name="factorDesc"
 									value={factorDesc}
-									label="Reason Of Loading Factor"
 									variant="outlined"
 									onChange={(e) => {
 										setFactorDesc(e?.target?.value)
@@ -7312,10 +7384,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									error={!!errors.factorDesc}
 									helperText={errors.factorDesc}
 									size="small"
-
-									InputLabelProps={{
-										shrink: true,
-									}}
 								/>
 								<span className="mt-2">
 
@@ -7427,16 +7495,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					<DialogContentText style={{ width: "320px" }}>
 						&nbsp;
 					</DialogContentText>
-					<TextFieldCell
-						id="password"
-						name="password"
-						label="RFQ Template Title"
-						placeholder=""
+					<label className="pe-field-label">RFQ Template Title</label>
+					<TextField
+						fullWidth size="small" variant="outlined"
+						id="password" name="password" className="f14" autoComplete="off"
+						inputProps={{ maxLength: 100 }}
 						value={TemplateTitle}
-						onChange={(e) => {
-							setTemplateTitle(e.target.value)
-						}}
-						maxLength={100}
+						onChange={(e) => setTemplateTitle(e.target.value)}
 					/>
 				</DialogContent>
 				<DialogActions className="pt-0">
@@ -7536,16 +7601,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 														>
 															<div className="col-lg-12 col-12">
+																<label className="pe-field-label">Select Currency <span style={{ color: "#ef4444" }}>*</span></label>
 																<TextField
 																	id={"basecurrencymodal"}
-																	InputLabelProps={{
-																		shrink: true,
-																	}}
 																	name="baseCurrency"
 																	select
 																	className="w-100 f14"
 																	size="small"
-																	label="Select Currency *"
 																	variant="outlined"
 																	SelectProps={{
 																		onOpen: () => {

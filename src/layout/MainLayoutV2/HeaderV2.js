@@ -219,13 +219,13 @@ const HeaderV2 = ({ isExpanded }) => {
             </div>
           }
         >
-          <div className="v2-user-dropdown shadow">
-            <Dropdown.Item as={Link} to="/settings/OrgSetup" className="custom-dropdown-item">
-              <HiOutlineCog size={15} className="me-2" />
+          <div className="v2-profile-dropdown">
+            <Dropdown.Item as={Link} to="/settings/OrgSetup" className="v2-profile-dropdown-item">
+              <HiOutlineCog className="v2-profile-dropdown-icon" />
               My Profile
             </Dropdown.Item>
-            <Dropdown.Item onClick={logout} className="custom-dropdown-item">
-              <HiOutlineLogout size={15} className="me-2" />
+            <Dropdown.Item onClick={logout} className="v2-profile-dropdown-item v2-profile-dropdown-item--danger">
+              <HiOutlineLogout className="v2-profile-dropdown-icon" />
               Logout
             </Dropdown.Item>
           </div>
