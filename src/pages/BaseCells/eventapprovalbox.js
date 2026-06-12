@@ -79,6 +79,16 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 	}, [requestCell, wfupdate, stagelist]);
 
 	const [approverList, setApproverList] = useState([]);
+	const [expandedStages, setExpandedStages] = useState([]);
+
+	const toggleStageExpanded = (i) => {
+		setExpandedStages(prev => {
+			const next = [...prev];
+			next[i] = !next[i];
+			return next;
+		});
+	};
+
 	const fetchEventApprovers = (dataRequest, Version) => {
 
 		dataRequest.Version = Version;
@@ -88,7 +98,24 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 			const updatedvalue = segregatedEventapprover(res, stagelistworkflow);
 			if (updatedvalue?.length) {
 				setApproverList(updatedvalue);
-				setIsAddVisible(new Array(updatedvalue?.length).fill(false))
+				setIsAddVisible(new Array(updatedvalue?.length).fill(false));
+
+				// Determine which stage is currently active and expand only that one.
+				// Active = first stage with a Pending approver, or first stage not fully approved.
+				const normalizedCS = `${currentStage || ""}`.trim().toLowerCase();
+				const hasMatchingStage = updatedvalue.some(s => {
+					const sn = `${s.stage || ""}`.trim().toLowerCase();
+					const csn = `${stagelist.find(sl => sl.wfname === s.stage)?.currentStage || ""}`.trim().toLowerCase();
+					return sn === normalizedCS || csn === normalizedCS;
+				});
+				const expanded = updatedvalue.map((s, i) => {
+					const sn = `${s.stage || ""}`.trim().toLowerCase();
+					const csn = `${stagelist.find(sl => sl.wfname === s.stage)?.currentStage || ""}`.trim().toLowerCase();
+					const isActive = sn === normalizedCS || csn === normalizedCS || (i === 0 && !hasMatchingStage);
+					return isActive;
+				});
+				setExpandedStages(expanded);
+
 				handleEventAppList(res, updatedvalue)
 			}
 
@@ -414,7 +441,7 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 									<div className="">
 
 										<React.Fragment key="eventapprovalbox">
-											<Accordion className="shadow-none mt-2 mb-2 approvalAcordion" key="eventapprovalbox" defaultExpanded >
+											<Accordion className="shadow-none mt-2 mb-2 approvalAcordion" key={`accordion-${i}`} expanded={!!expandedStages[i]} onChange={() => toggleStageExpanded(i)}>
 
 												<AccordionSummary
 													className="ps-2"

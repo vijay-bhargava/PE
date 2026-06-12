@@ -256,6 +256,31 @@
   margin-left: 2px;
 }
 
+/* Primary action button (Add New) */
+.rfq-v2-tbtn-primary {
+  background: #2a68d3;
+  color: #fff;
+  border-color: #2a68d3;
+  padding: 0 14px;
+  font-weight: 600;
+}
+.rfq-v2-tbtn-primary svg {
+  color: #fff !important;
+  font-size: 16px !important;
+}
+.rfq-v2-tbtn-primary:hover:not(:disabled) {
+  background: #1d55b3;
+  border-color: #1d55b3;
+  color: #fff;
+}
+.rfq-v2-tbtn-primary:disabled {
+  background: #93b4e8;
+  border-color: #93b4e8;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
 /* ── Table ── */
 .rfq-v2-table-wrapper {
   flex: 1 1 auto;
