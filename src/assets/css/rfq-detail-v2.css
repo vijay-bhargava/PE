@@ -694,8 +694,8 @@
   .approvalCard.is-active-stage
   .approvalAcordion
   .MuiAccordionSummary-root {
-  border-left-color: #f59e0b;
-  background: #fff8df !important;
+  border-left-color: #2a68d3;
+  background: #eff6ff !important;
 }
 
 .rfq-detail-v2-shell .approvalAcordion .MuiAccordionSummary-content {
@@ -727,7 +727,7 @@
   z-index: 1;
   width: 15px;
   height: 15px;
-  border: 2px solid #f59e0b;
+  border: 2px solid #2a68d3;
   border-radius: 50%;
   background: #ffffff;
   content: "";
@@ -742,7 +742,7 @@
 }
 
 .rfq-detail-v2-shell .approval-stage-title {
-  color: #a25500 !important;
+  color: #2a68d3 !important;
   font-size: 12px !important;
   font-weight: 800 !important;
   line-height: 16px !important;
@@ -859,13 +859,13 @@
 }
 
 .rfq-detail-v2-shell .approverAction.Approved {
-  background: #d9f2df !important;
-  color: #15803d !important;
+  background: #dbeafe !important;
+  color: #1d55b3 !important;
 }
 
 .rfq-detail-v2-shell .approverAction.Pending {
-  background: #fff1b8 !important;
-  color: #a15c00 !important;
+  background: #eff6ff !important;
+  color: #2a68d3 !important;
 }
 
 .rfq-detail-v2-shell .approverAction.Rejected {
@@ -955,23 +955,32 @@
 }
 
 .rfq-detail-v2-shell .rfq-dv2-workflow-actions {
-  display: grid;
-  grid-template-columns: 1fr 54px;
+  display: flex;
   gap: 8px;
 }
 
-.rfq-detail-v2-shell .rfq-dv2-workflow-approve,
-.rfq-detail-v2-shell .rfq-dv2-workflow-reject {
-  height: 32px;
+/* Equal-width base for all action buttons */
+.rfq-detail-v2-shell .rfq-dv2-workflow-btn {
+  flex: 1 1 0;
+  height: 34px;
+  padding: 0;
   border-radius: 6px;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
   line-height: 1;
+  cursor: pointer;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
+}
+.rfq-detail-v2-shell .rfq-dv2-workflow-btn:hover {
+  opacity: 0.88;
 }
 
 .rfq-detail-v2-shell .rfq-dv2-workflow-approve {
-  border: 1px solid #44964d;
-  background: #459b4d;
+  border: 1px solid #2a68d3;
+  background: #2a68d3;
   color: #ffffff;
 }
 
@@ -1044,7 +1053,7 @@
   line-height: 14px !important;
   min-width: 0;
   overflow: hidden;
-  color: #8f3f00 !important;
+  color: #374151 !important;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1056,8 +1065,8 @@
   flex: 0 0 auto;
   padding: 0 7px;
   border-radius: 999px;
-  background: #ffec9f;
-  color: #ad7200;
+  background: #2a68d3;
+  color: #ffffff;
   font-size: 8px;
   font-weight: 900;
   line-height: 1;
@@ -1076,7 +1085,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 6px;
-  color: #8f3f00;
+  color: #374151;
   font-size: 10px;
   font-weight: 800;
   line-height: 13px;
@@ -1646,15 +1655,10 @@
 .rfq-detail-v2-shell .rfq-dv2-workflow-alert {
   margin-bottom: 12px;
   gap: 8px;
-  color: #8f3f00;
+  color: #374151;
   font-size: 14px;
   font-weight: 800;
   line-height: 18px;
-}
-
-.rfq-detail-v2-shell .rfq-dv2-workflow-actions {
-  grid-template-columns: 1fr 51px;
-  gap: 8px;
 }
 
 .rfq-detail-v2-shell .rfq-dv2-workflow-approve,
@@ -1686,8 +1690,8 @@
   .MuiAccordionSummary-root {
   min-height: 62px !important;
   max-height: 62px !important;
-  border-left: 3px solid #f59e0b !important;
-  background: #fff9e8 !important;
+  border-left: 3px solid #2a68d3 !important;
+  background: #eff6ff !important;
 }
 
 .rfq-detail-v2-shell
@@ -1716,9 +1720,9 @@
   .approvalCard.is-active-stage
   .approvalAcordion
   .col-md-10::before {
-  border-color: #f59e0b !important;
+  border-color: #2a68d3 !important;
   box-shadow: inset 0 0 0 3px #ffffff;
-  background: #f59e0b !important;
+  background: #2a68d3 !important;
 }
 
 .rfq-detail-v2-shell .rightContent .approvalCard::before {
@@ -1729,14 +1733,14 @@
 }
 
 .rfq-detail-v2-shell .rightContent .approval-stage-title {
-  color: #8f3f00 !important;
+  color: #374151 !important;
   font-size: 12px !important;
   line-height: 15px !important;
 }
 
 .rfq-detail-v2-shell .rightContent .approval-stage-subtitle {
   margin-top: 3px !important;
-  color: #8f3f00 !important;
+  color: #374151 !important;
   font-size: 10px !important;
 }
 
@@ -2001,17 +2005,17 @@
 
 .rfq-dv2-approval-message {
   padding: 13px 16px;
-  border: 1px solid #bdeac4;
+  border: 1px solid #bfdbfe;
   border-radius: 8px;
-  background: #f1fff3;
-  color: #4a9955;
+  background: #eff6ff;
+  color: #2a68d3;
   font-size: 12px;
   font-weight: 600;
   line-height: 18px;
 }
 
 .rfq-dv2-approval-message strong {
-  color: #33843e;
+  color: #1d4ed8;
   font-weight: 900;
 }
 
@@ -2113,7 +2117,7 @@
   min-width: 142px !important;
   padding: 0 20px !important;
   border: 0 !important;
-  background: #5aa05a !important;
+  background: #2a68d3 !important;
   color: #ffffff !important;
   box-shadow: none !important;
 }
@@ -2127,7 +2131,7 @@
 }
 
 .rfq-dv2-approval-submit.is-reject {
-  background: #d92d20 !important;
+  background: #2a68d3 !important;
 }
 
 .rfq-dv2-approval-submit.is-reject::before {
@@ -2187,10 +2191,6 @@
   line-height: 19px;
 }
 
-.rfq-detail-v2-shell .rfq-dv2-workflow-actions {
-  grid-template-columns: 1fr 60px;
-}
-
 .rfq-detail-v2-shell .rfq-dv2-workflow-approve,
 .rfq-detail-v2-shell .rfq-dv2-workflow-reject {
   height: 36px;
@@ -2206,7 +2206,7 @@
   min-height: 76px !important;
   max-height: 76px !important;
   border-left-width: 3px !important;
-  background: #fff9e8 !important;
+  background: #eff6ff !important;
 }
 
 .rfq-detail-v2-shell
@@ -2348,8 +2348,8 @@
 }
 
 .rfq-detail-v2-shell .rfq-sidebar-status.Approved {
-  background: #d9f2df !important;
-  color: #15803d !important;
+  background: #dbeafe !important;
+  color: #1d55b3 !important;
 }
 
 .rfq-detail-v2-shell .rfq-sidebar-status.Pending {
@@ -2570,23 +2570,23 @@
 }
 
 .rfq-dv2-approval-submit {
-  border: 1px solid #4f8e4f !important;
-  background: #4f8e4f !important;
+  border: 1px solid #2a68d3 !important;
+  background: #2a68d3 !important;
   color: #ffffff !important;
   box-shadow: none !important;
 }
 
 .rfq-dv2-approval-submit:hover {
-  background: #3f7c43 !important;
+  background: #1d55b3 !important;
 }
 
 .rfq-dv2-approval-submit.is-reject {
-  border-color: #d92d20 !important;
-  background: #d92d20 !important;
+  border-color: #2a68d3 !important;
+  background: #2a68d3 !important;
 }
 
 .rfq-dv2-approval-submit.is-reject:hover {
-  background: #b42318 !important;
+  background: #1d55b3 !important;
 }
 
 @media (max-width: 640px) {
@@ -2748,7 +2748,7 @@
   align-items: center !important;
   gap: 10px !important;
   margin-bottom: 12px !important;
-  color: #8f3f00 !important;
+  color: #374151 !important;
   font-size: 15px !important;
   font-weight: 800 !important;
   line-height: 20px !important;
@@ -2760,7 +2760,7 @@
   width: 18px !important;
   height: 18px !important;
   border-radius: 3px !important;
-  background: #f59e0b !important;
+  background: #2a68d3 !important;
   color: #ffffff !important;
   transform: rotate(45deg) !important;
 }
@@ -2796,7 +2796,7 @@
   height: 20px !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: #f59e0b !important;
+  color: #2a68d3 !important;
   transform: none !important;
 }
 
@@ -3090,7 +3090,7 @@
   align-items: center !important;
   gap: 4px !important;
   background: #dcfce7 !important;
-  color: #15803d !important;
+  color: #1d55b3 !important;
   border-radius: 20px !important;
   padding: 2px 8px !important;
   font-size: 10px !important;

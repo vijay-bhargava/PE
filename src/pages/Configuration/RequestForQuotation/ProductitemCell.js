@@ -4,12 +4,10 @@ import { HiOutlineTrash, HiPencilAlt, HiOutlineChevronDown, HiOutlineChevronUp }
 import { useStateValue } from '../../../store';
 import { downloadFilesOnAzure, getFileName } from '../../../utils/common';
 import { DataGrid } from "@mui/x-data-grid";
-
+import '../../../assets/css/manage-rfq-v2.css';
 
 const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempDataForItemService, action, eventType, CurrentVersion }) => {
-    // console.log("itemsListitemsList", itemsList);
-    // console.log('proitemcell', tempDataForItemService);
-    // console.log('eventType::', eventType);
+
     const [{ atoken, rtoken, customerid, roleClaims, userDetail }, dispatch, thousands_separators] =
         useStateValue();
 
@@ -616,61 +614,39 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
     ];
 
     return (
-        <div className="product-cell-container">
-            <div className="product-cell-datagrid-wrapper">
-                <DataGrid
-                    sx={{
-                        "& .MuiDataGrid-row": {
-                            cursor: "pointer",
-                        },
-                        "& .MuiDataGrid-columnHeaderTitle": {
-                            fontSize: "14px",
-                        },
-                        "& .MuiDataGrid-virtualScroller": {
-                            overflowX: "auto",
-                            scrollbarWidth: "thin",
-                            scrollbarColor: "#888 #f1f1f1",
-                        },
-                        "& .MuiDataGrid-virtualScroller::-webkit-scrollbar": {
-                            height: "12px",
-                        },
-                        "& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track": {
-                            backgroundColor: "#f1f1f1",
-                        },
-                        "& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb": {
-                            backgroundColor: "#888",
-                            borderRadius: "6px",
-                        },
-                        "& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb:hover": {
-                            backgroundColor: "#555",
-                        },
-                    }}
-                    rows={createExpandedRows()}
-                    columns={columns}
-                    getRowId={getExpandedRowId}
-                    pageSize={10}
-                    getRowHeight={(params) => {
-                        if (params.model.isDetailRow) {
-                            return 45; // Slightly better height for improved text
-                        }
-                        return 40;
-                    }}
-                    columnHeaderHeight={40}
-                    className="consistent-datagrid bg-white borderless-datagrid"
-                    disableRowSelectionOnClick
-                    disableColumnMenu
-                    disableColumnSorting
-                    sortingOrder={[]}
-                    pageSizeOptions={[10, 25, 50]}
-                    initialState={{
-                        pagination: {
-                            paginationModel: { page: 0, pageSize: 10 },
-                        },
-                    }}
-                    autoHeight
-                    hideFooterSelectedRowCount
-                />
-            </div>
+        <div className="rfq-v2-table-wrapper">
+            <DataGrid
+                className="rfq-v2-datagrid"
+                rows={createExpandedRows()}
+                columns={columns}
+                getRowId={getExpandedRowId}
+                getRowHeight={(params) => params.model.isDetailRow ? 45 : 52}
+                columnHeaderHeight={40}
+                disableRowSelectionOnClick
+                disableColumnMenu
+                disableColumnSorting
+                sortingOrder={[]}
+                pageSizeOptions={[10, 25, 50]}
+                initialState={{
+                    pagination: {
+                        paginationModel: { page: 0, pageSize: 10 },
+                    },
+                }}
+                autoHeight
+                hideFooterSelectedRowCount
+                sx={{
+                    '& .MuiDataGrid-row': { cursor: 'pointer' },
+                    // allow horizontal scroll for wide tables (items has more cols than manage-rfq)
+                    '& .MuiDataGrid-virtualScroller': {
+                        overflowX: 'auto !important',
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: '#d1d5db #f9fafb',
+                    },
+                    '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': { height: 8 },
+                    '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': { background: '#f9fafb' },
+                    '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': { background: '#d1d5db', borderRadius: 4 },
+                }}
+            />
         </div>
     );
 };

@@ -5497,80 +5497,36 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 												)}
 
 												<div className="p-3 pt-0">
-													<div className="">
-														<div className="text-end">
-															{/* Add New Button - controlled by CREATE permission */}
-															<Button
-																variant="text"
-																size="large"
-																startIcon={<HiPlusSm />}
-																className="text-capitalize blue-text font-normal"
-																onClick={toggleDrawer("addProductDrawer", true)}
-																disabled={(!stagearray.includes(currentStage)) || !canCreate}
-															>
-																Add New
-															</Button>
-
-															{/* Clear All Button - controlled by REMOVE permission */}
+													{/* Items/Services toolbar */}
+													<div className="rfq-v2-toolbar" style={{ marginBottom: 12 }}>
+														<span className="f13 fw500" style={{ color: '#1f2937' }}>
+															{rfqItemsList?.length > 0 ? `${rfqItemsList.length} item${rfqItemsList.length !== 1 ? 's' : ''}` : ''}
+														</span>
+														<div className="rfq-v2-toolbar-right">
 															{rfqItemsList?.length > 0 && canRemove && (
 																<Tooltip title="Clear All">
-																	<IconButton
-																		size="small"
-																		className="ms-2 me-3"
-																		color="error"
-																		onClick={() => setConfirmClearAllItems(true)}
-																		disabled={!stagearray.includes(currentStage)}
-																	>
-																		<HiOutlineX />
-																	</IconButton>
+																	<button type="button" className="rfq-v2-tbtn" style={{ color: '#b8232f', borderColor: '#fecaca' }} onClick={() => setConfirmClearAllItems(true)} disabled={!stagearray.includes(currentStage)}>
+																		<HiOutlineX /> Clear All
+																	</button>
 																</Tooltip>
 															)}
-
 															<Dropdown align="end" className="d-inline-block">
-																<Dropdown.Toggle
-																	as="div"
-																	id="gt"
-																	className="round-edit remove-tringle"
-																	role="button"
-																>
-																	<IconButton
-																		size="medium"
-																		className="shadow-sm"
-																		disabled={(!stagearray.includes(currentStage)) || (!canCreate && !canEdit)}
-																	>
-																		<HiOutlineDotsHorizontal className="f17" />
-																	</IconButton>
+																<Dropdown.Toggle as="div" id="gt" className="round-edit remove-tringle" role="button">
+																	<button type="button" className="rfq-v2-tbtn" disabled={(!stagearray.includes(currentStage)) || (!canCreate && !canEdit)}>
+																		<HiOutlineDotsHorizontal /> More
+																	</button>
 																</Dropdown.Toggle>
 																<Dropdown.Menu className="ddl-menu">
-																	{/* Pull PR Data - controlled by CREATE permission */}
-																	<MenuItem
-																		className="f14"
-																		disabled={(!stagearray.includes(currentStage)) || !canCreate}
-																	>
-																		Pull PR Data
-																	</MenuItem>
-																	{/* Excel Upload - controlled by CREATE permission */}
-																	<MenuItem
-																		className="f14"
-																		disabled={(!stagearray.includes(currentStage)) || !canCreate}
-																		onClick={() => canCreate && document.getElementById('itemuploadid').click()}
-
-																	>
-																		Excel Upload
-																	</MenuItem>
-																	{/* Excel Template - controlled by READ permission */}
-																	<MenuItem
-																		className="f14"
-																		onClick={downloadItemsExcel}
-																		disabled={(!stagearray.includes(currentStage)) || !canRead}
-																	>
-																		Excel Template
-																	</MenuItem>
+																	<MenuItem className="f14" disabled={(!stagearray.includes(currentStage)) || !canCreate}>Pull PR Data</MenuItem>
+																	<MenuItem className="f14" disabled={(!stagearray.includes(currentStage)) || !canCreate} onClick={() => canCreate && document.getElementById('itemuploadid').click()}>Excel Upload</MenuItem>
+																	<MenuItem className="f14" onClick={downloadItemsExcel} disabled={(!stagearray.includes(currentStage)) || !canRead}>Excel Template</MenuItem>
 																</Dropdown.Menu>
 															</Dropdown>
+															<button type="button" className="rfq-v2-tbtn rfq-v2-tbtn-primary" onClick={toggleDrawer("addProductDrawer", true)} disabled={(!stagearray.includes(currentStage)) || !canCreate}>
+																<HiPlusSm /> Add New
+															</button>
 														</div>
 													</div>
-
 													<div className="">
 														<ProductitemCell
 															action={stagearray.includes(currentStage) && canEdit}
@@ -6564,33 +6520,54 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								</button>
 							</div>
 						</div>
-						{workflowPanelTab === "workflow" && (
+						{/* Approve/Reject/Forward action panel — only when URL has ActionType param (same as prod) */}
+						{workflowPanelTab === "workflow" && (actionType === "approval" || actionType === "Forward") && (
 							<div className="rfq-dv2-workflow-action-panel">
 								<div className="rfq-dv2-workflow-alert">
 									<PiWarningDiamondFill className="rfq-dv2-workflow-alert-icon" />
-									<span>{normalizedCurrentStage} required for You</span>
+									<span>
+										{actionType === "Forward"
+											? `Forward for Approval required for You`
+											: `${normalizedCurrentStage} required for You`}
+									</span>
 								</div>
 								<div className="rfq-dv2-workflow-actions">
-									<button
-										type="button"
-										className="rfq-dv2-workflow-approve"
-										onClick={(event) => {
-											formik_ApproveReject.setFieldValue("status", "Approved");
-											toggleDrawer("openInvoiceApproved", true)(event);
-										}}
-									>
-										Approve
-									</button>
-									<button
-										type="button"
-										className="rfq-dv2-workflow-reject"
-										onClick={(event) => {
-											formik_ApproveReject.setFieldValue("status", "Rejected");
-											toggleDrawer("openInvoiceApproved", true)(event);
-										}}
-									>
-										Reject
-									</button>
+									{actionType === "approval" && (
+										<>
+											<button
+												type="button"
+												className="rfq-dv2-workflow-btn rfq-dv2-workflow-approve"
+												onClick={(event) => {
+													formik_ApproveReject.setFieldValue("status", "Approved");
+													toggleDrawer("openInvoiceApproved", true)(event);
+												}}
+											>
+												Approve
+											</button>
+											<button
+												type="button"
+												className="rfq-dv2-workflow-btn rfq-dv2-workflow-reject"
+												onClick={(event) => {
+													formik_ApproveReject.setFieldValue("status", "Rejected");
+													toggleDrawer("openInvoiceApproved", true)(event);
+												}}
+											>
+												Reject
+											</button>
+										</>
+									)}
+									{actionType === "Forward" && (
+										<button
+											type="button"
+											className="rfq-dv2-workflow-btn rfq-dv2-workflow-approve"
+											onClick={(event) => {
+												formik_ApproveReject.setFieldValue("status", "Forward");
+												toggleDrawer("openInvoiceApproved", true)(event);
+											}}
+										>
+											Forward
+										</button>
+									)}
 								</div>
 							</div>
 						)}
@@ -6808,17 +6785,17 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 												panelSavedAttach.length > 0 &&
 												(effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.READ) ?? false) &&
 												(effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.EDIT) ?? false) && (
-												<div className="rfq-dv2-attach-update-row">
-													<button
-														type="button"
-														className="rfq-dv2-attach-update-btn"
-														onClick={updatePanelAttachments}
-														disabled={panelIsUpdating}
-													>
-														{panelIsUpdating ? 'Updating…' : 'Update'}
-													</button>
-												</div>
-											)}
+													<div className="rfq-dv2-attach-update-row">
+														<button
+															type="button"
+															className="rfq-dv2-attach-update-btn"
+															onClick={updatePanelAttachments}
+															disabled={panelIsUpdating}
+														>
+															{panelIsUpdating ? 'Updating…' : 'Update'}
+														</button>
+													</div>
+												)}
 										</>
 									)}
 								</div>
@@ -6829,47 +6806,36 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				</div>
 			</div>
 
-			<React.Fragment key="topaddProduct">
-				<Drawer
-					anchor="right"
-					open={state["addProductDrawer"]}
-
-				>
-					<Box sx={{ width: { xs: 480, sm: 580, md: 820 } }}>
-						<div className="flex flex-col">
-							<Box className="bgheaderNotificationCards">
-								<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-									<div className="ms-3 text-white">Add Product</div>
-									<div>
-										<IconButton
-											onClick={toggleDrawer("addProductDrawer", false)}
-											size="small"
-											edge="start"
-											sx={{ mr: 1 }}
-										>
-											<HiOutlineX className="f20 text-white" />
-										</IconButton>
-									</div>
-								</div>
-							</Box>
-							<div className="h50px"></div>
-							<Box sx={{ flexGrow: 1, p: 2, mt: 2 }}>
-								<AddProductsCell
-									idFromURL={idFromURL}
-									UOMMaster={UOMMaster}
-									callbackItemAdd={callbackItemAdd}
-									itemEditTempData={itemEditTempData}
-									handleUomList={handleUomList}
-									action={stagearray.includes(currentStage)}
-									accesslevel={accessLevel?.itemservice?.created}
-									Version={formik?.values?.Version}
-
-								/>
-							</Box>
+			{state["addProductDrawer"] && (
+				<div className="rfq-v2-event-drawer-backdrop" onClick={toggleDrawer("addProductDrawer", false)}>
+					<section className="rfq-v2-event-drawer" onClick={e => e.stopPropagation()}>
+						<header className="rfq-v2-event-drawer-header">
+							<h2 className="rfq-v2-event-drawer-title">{itemEditTempData?.id > 0 ? 'Edit Product / Service' : 'Add Product / Service'}</h2>
+							<div className="rfq-v2-event-drawer-actions">
+								<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={toggleDrawer("addProductDrawer", false)}>Cancel</button>
+								{stagearray.includes(currentStage) && (
+									<>
+										<button type="reset" form="add-product-form" className="rfq-v2-event-btn rfq-v2-event-btn-outline">Reset</button>
+										<button type="submit" form="add-product-form" className="rfq-v2-event-btn rfq-v2-event-btn-primary">{itemEditTempData?.id > 0 ? 'Update' : 'Add'}</button>
+									</>
+								)}
+							</div>
+						</header>
+						<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto' }}>
+							<AddProductsCell
+								idFromURL={idFromURL}
+								UOMMaster={UOMMaster}
+								callbackItemAdd={callbackItemAdd}
+								itemEditTempData={itemEditTempData}
+								handleUomList={handleUomList}
+								action={stagearray.includes(currentStage)}
+								accesslevel={accessLevel?.itemservice?.created}
+								Version={formik?.values?.Version}
+							/>
 						</div>
-					</Box>
-				</Drawer>
-			</React.Fragment>
+					</section>
+				</div>
+			)}
 			<React.Fragment key="qusDrawertr">
 				<Drawer
 					anchor="right"

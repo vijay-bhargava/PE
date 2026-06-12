@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+﻿import React, { useState, useRef, useEffect } from 'react'
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { Autocomplete, Box, IconButton, InputAdornment, MenuItem, TextField, Tooltip, Typography } from '@mui/material'
@@ -494,14 +494,14 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
       if (!isSearch) {
         setSearchDataLoaded(false);
       }
-      
+
       // If in search mode, fetch all records with a large page size
       const effectivePageSize = isSearch ? 10000 : pageSizeVal;
       const effectivePageNumber = isSearch ? 1 : pageNumber;
-      
+
       let apiUrl = `api/ItemMaster/Find?CustomerId=${customerid}&pageNumber=${effectivePageNumber}&pageSize=${effectivePageSize}`;
       const res = await apiClient.get(apiUrl, atoken);
-      
+
       if (!isSearch) {
         setGridloading(false);
       }
@@ -509,7 +509,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
       if (isSearch) {
         setSearchDataLoaded(true);
       }
-      
+
       if (res && res.result) {
         setItemList(res.result);
       } else {
@@ -568,7 +568,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
   return (
 
     <div>
-      <form onSubmit={formik.handleSubmit} autoComplete="off">
+      <form id="add-product-form" onSubmit={formik.handleSubmit} autoComplete="off">
         <input
           id="itemimagefile"
           className="d-none"
@@ -583,18 +583,15 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           onChange={handleItemAttachmentChange}
         />
         <div className='row mt-2'>
-           <div className='col-12 col-md-6 mb-4'>
+          <div className='col-12 col-md-6 mb-4'>
+            <label className="pe-field-label">Item Code</label>
             <TextField
               fullWidth
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-              }}
               size="small"
               className='f14'
               id="itemCode"
               name="itemCode"
-              label="Item Code "
               inputProps={{
                 maxLength: 50,
                 pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
@@ -642,17 +639,14 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
 
           </div>
           <div className='col-12 col-md-6 mb-4'>
+            <label className="pe-field-label">Item / Service Name *</label>
             <TextField
               fullWidth
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-              }}
               size="small"
               className='f14'
               id="itemName"
               name="itemName"
-              label="Item/Service Name *"
               onBlur={() => handleItemPOSearch(formik.values.itemName)}
               inputProps={{ maxLength: 200 }}
               value={formik.values.itemName}
@@ -680,7 +674,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
 																	
 																</div> */}
           </div>
-         
+
           {/* <div className='col-12 col-md-4 mb-4'>
                         <TextField
                             fullWidth
@@ -711,19 +705,16 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                      
                     </div> */}
           <div className='col-12 col-md-12 mb-4'>
+            <label className="pe-field-label">Description *</label>
             <TextField
               fullWidth
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-              }}
               size="small"
               className='f14'
               multiline={true}
               rows={3}
               id="itemDesc"
               name="itemDesc"
-              label="Description *"
               inputProps={{ maxLength: 2000 }}
               value={formik.values.itemDesc}
               onChange={formik.handleChange}
@@ -744,19 +735,16 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </div>
 
           <div className='col-12 col-md-12 mb-4'>
+            <label className="pe-field-label">Remark</label>
             <TextField
               fullWidth
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-              }}
               size="small"
               className='f14'
               multiline={true}
               rows={3}
               id="remarks"
               name="remarks"
-              label="Remark"
               inputProps={{ maxLength: 2000 }}
               value={formik.values.remarks}
               onChange={formik.handleChange}
@@ -776,17 +764,14 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </div>
 
           <div className='col-12 col-md-4 mb-4'>
+            <label className="pe-field-label">Target / Budget Price</label>
             <TextField
               id="targetPrice"
               name="targetPrice"
-              InputLabelProps={{
-                shrink: true,
-              }}
               fullWidth
               variant="outlined"
               size="small"
               className='f14'
-              label="Target/Budget Price"
               value={formik.values.targetPrice}
               disabled={!!itemEditTempData.itemRefId} // Disable when itemRefId exists
               InputProps={{
@@ -813,17 +798,15 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
             />
           </div>
           <div className='col-12 col-md-4 mb-4'>
+            <label className="pe-field-label">Target / Budget Price</label>
+            <label className="pe-field-label">Quantity *</label>
             <TextField
-              InputLabelProps={{
-                shrink: true,
-              }}
               fullWidth
               variant="outlined"
               size="small"
               className='f14'
               id="quantity"
               name="quantity"
-              label="Quantity *"
               value={formik.values.quantity}
               disabled={!!itemEditTempData.itemRefId} // Disable when itemRefId exists
               InputProps={{
@@ -849,6 +832,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </div>
 
           <div className='col-12 col-md-4 mb-4'>
+            <label className="pe-field-label">UOM *</label>
             <Autocomplete
               id="uom"
               name="uom"
@@ -895,7 +879,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 <TextField
                   variant="outlined"
                   {...params}
-                  label="UOM *"
                   error={formik.touched.uom && Boolean(formik.errors.uom)}
                   helperText={formik.touched.uom && formik.errors.uom}
                 />
@@ -903,6 +886,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
             />
           </div>
           <div className='col-12 col-md-6 col-lg-4 mb-3'>
+            <label className="pe-field-label">Item Category</label>
             <Autocomplete
               id="itemCategory"
               name="itemCategory"
@@ -950,7 +934,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 <TextField
                   variant="outlined"
                   {...params}
-                  label="Item Category"
                   shrink={true}
                   error={formik.touched.itemCategory && Boolean(formik.errors.itemCategory)}
                   helperText={formik.touched.itemCategory && formik.errors.itemCategory}
@@ -960,6 +943,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </div>
           {/* added item type */}
           <div className='col-12 col-md-6 col-lg-4 mb-3'>
+            <label className="pe-field-label">Item Type *</label>
             <Autocomplete
               id="itemType"
               name="itemType"
@@ -1009,7 +993,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 <TextField
                   variant="outlined"
                   {...params}
-                  label="Item Type *"
                   shrink={true}
                   error={formik.touched.itemType && Boolean(formik.errors.itemType)}
                   helperText={formik.touched.itemType && formik.errors.itemType}
@@ -1018,18 +1001,15 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
             />
           </div>
           <div className='col-6 col-md-6 col-lg-4 mb-3'>
+            <label className="pe-field-label">Delivery Location</label>
             <TextField
               fullWidth
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-              }}
               size="small"
               className='f14'
               multiline={true}
               id="plant"
               name="plant"
-              label="Delivery Location"
               inputProps={{ maxLength: 100 }}
               value={formik?.values?.plant}
               onChange={formik.handleChange}
@@ -1049,10 +1029,10 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </div>
 
           <div className='col-6 col-md-6 col-lg-4 mb-3'>
+            <label className="pe-field-label">Delivery Date</label>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <MobileDatePicker
                 variant="outlined"
-                label="Delivery Date"
                 size="small"
                 name='deliveryDate'
                 id='deliveryDate'
@@ -1078,17 +1058,14 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
 
 
           <div className='col-6 col-md-6 col-lg-4 mb-3'>
+            <label className="pe-field-label">Item Image</label>
             <TextField
               fullWidth
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-              }}
               size="small"
               className='f14 pointer'
               id="itemImage"
               name="itemImage"
-              label="Item Image "
               inputProps={{
                 maxLength: 50,
                 pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
@@ -1120,17 +1097,14 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
             />
           </div>
           <div className='col-6 col-md-6 col-lg-4 mb-3'>
+            <label className="pe-field-label">Item Attachment</label>
             <TextField
               fullWidth
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-              }}
               size="small"
               className='f14'
               id="itemAttachment"
               name="itemAttachment"
-              label="Item Attachment "
               inputProps={{
                 maxLength: 50,
                 pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
@@ -1261,12 +1235,10 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
             Last PO Details (Optional)
           </div>
           <div className='col-12 col-md-4 mb-4'>
+            <label className="pe-field-label">Target / Budget Price</label>
             <TextField
               fullWidth
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-              }}
               size="small"
               className='f14'
               id="poNumber"
@@ -1386,10 +1358,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </div>
 
           <div className='col-12 col-md-4 mb-4'>
+            <label className="pe-field-label">Target / Budget Price</label>
             <TextField
-              InputLabelProps={{
-                shrink: true,
-              }}
               fullWidth
               variant="outlined"
               size="small"
@@ -1441,10 +1411,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
 
           </div>
           <div className='col-12 col-md-4 mb-4'>
+            <label className="pe-field-label">Target / Budget Price</label>
             <TextField
-              InputLabelProps={{
-                shrink: true,
-              }}
               fullWidth
               variant="outlined"
               size="small"
@@ -1470,28 +1438,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
             />
           </div>
         </div>
-        {action && <div className='text-end'>
-          <LoadingButton
-            // loading
-            variant='outlined'
-            onClick={() => formik.resetForm()}
-            color='primary'
-            className='me-3 text-capitalize'
-            size='small'
-          >
-            Reset
-          </LoadingButton>
-          <LoadingButton
-            loading={loadingSubmit}
-            variant='contained'
-            type="submit"
-            color='primary'
-            className='text-capitalize'
-            size='small'
-          >
-            {itemEditTempData && itemEditTempData?.id > 0 ? 'Update' : 'Add'}
-          </LoadingButton>
-        </div>}
+
         <Modal
           size="xl"
           show={searchItemModal}
@@ -1673,38 +1620,38 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </Modal.Body>
         </Modal>
         {/* modal for item type */}
-                <Modal
-                    size="lg"
-                    show={ItemTypeModal}
-                    backdrop="static"
-                    keyboard={false}
-                    value={"Add NEW ITEM TYPE"}
-                    className="zindex1280"
-                    backdropClassName="zindex1280"
-                    centered
-                    contentClassName="border-0"
-                    onHide={() => CloseItemTypeModal()}
-                >
-                    <Modal.Header className="pt-2 pb-2 bgheaderCards">
-                        <Modal.Title><div className="d-flex align-items-center f14 text-white">
-                            Manage Item Type
-                        </div>
+        <Modal
+          size="lg"
+          show={ItemTypeModal}
+          backdrop="static"
+          keyboard={false}
+          value={"Add NEW ITEM TYPE"}
+          className="zindex1280"
+          backdropClassName="zindex1280"
+          centered
+          contentClassName="border-0"
+          onHide={() => CloseItemTypeModal()}
+        >
+          <Modal.Header className="pt-2 pb-2 bgheaderCards">
+            <Modal.Title><div className="d-flex align-items-center f14 text-white">
+              Manage Item Type
+            </div>
 
-                        </Modal.Title>
-                        <IconButton
-                            onClick={() => CloseItemTypeModal()}
-                            size="small"
-                            edge="start"
-                        >
-                            <HiOutlineX className="f20 text-white" />
-                        </IconButton>
-                    </Modal.Header>
-                    <Modal.Body className="p-0">
-                        <div className="p-3">
-                            <AddEditItemType handleItemTypeList={handleItemTypeList} isModal={true} />
-                        </div>
-                    </Modal.Body>
-                </Modal>
+            </Modal.Title>
+            <IconButton
+              onClick={() => CloseItemTypeModal()}
+              size="small"
+              edge="start"
+            >
+              <HiOutlineX className="f20 text-white" />
+            </IconButton>
+          </Modal.Header>
+          <Modal.Body className="p-0">
+            <div className="p-3">
+              <AddEditItemType handleItemTypeList={handleItemTypeList} isModal={true} />
+            </div>
+          </Modal.Body>
+        </Modal>
       </form>
     </div>
   )
