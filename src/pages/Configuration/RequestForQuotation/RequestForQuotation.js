@@ -296,9 +296,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		if (value == "1" && idFromURL == null) {
 			setApproverShow(false);
 		}
-		else if (value == 6) {
-			setApproverShow(false);
-		}
 		else {
 			// Restore panel once a valid RFQ ID is known
 			if (idFromURL !== null) {
