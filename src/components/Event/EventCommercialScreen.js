@@ -1049,6 +1049,8 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 							<h2 className="rfq-v2-event-drawer-title">Manage Terms</h2>
 							<div className="rfq-v2-event-drawer-actions">
 								<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => toggleOpenDrawer("AddNewTerm", false)}>Cancel</button>
+								<button type="reset" form="manage-terms-form" className="rfq-v2-event-btn rfq-v2-event-btn-outline">Reset</button>
+								<button type="submit" form="manage-terms-form" className="rfq-v2-event-btn rfq-v2-event-btn-primary">{editRecordData ? "Update" : "Submit"}</button>
 							</div>
 						</header>
 						<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto' }}>

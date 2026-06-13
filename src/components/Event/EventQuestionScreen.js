@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+﻿import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { HiPlusSm, HiOutlineDotsHorizontal, HiOutlineX } from "react-icons/hi";
@@ -16,9 +16,10 @@ import {
   DialogContentText,
   DialogActions,
   Box,
-  Drawer,
 } from "@mui/material";
 import "react-quill/dist/quill.snow.css";
+import "../../assets/css/manage-rfq-v2.css";
+import Dropdown from "react-bootstrap/Dropdown";
 import { useStateValue } from "../../store";
 import { api, ApiClient } from "../../Apiclient";
 import { buildQueryParams } from "../../utils/purchaseRequest";
@@ -403,78 +404,47 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
 
   return (
 
-    <div className="p-3 pt-0 ps-0" style={{ overflow: 'hidden' }}>
-      <div className="d-flex justify-content-between align-items-center">
-        <div className="flex-grow-1">
-          <div className="row mt-4">
-            <input className="d-none" id="itemuploadid" ref={fileInputRef} type="file" onChange={handleFileChange} />
-            <div className="col-12 col-md-8 col-lg-8 pe-0">
-              {props.action && <Autocomplete
-                disablePortal
-                id="combo-box-demo"
-                size="small"
-                options={Librarylist ?? []}
-                className="w-100"
-                fullWidth
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    label="Add Questions From Library"
-                  />
-                )}
-                value={selectedLibrary}
-                getOptionLabel={(option) => option.libraryEntity ?? ""}
-                onChange={handleLibraryChange}
-              //disabled={!props.action}
-              />}
-            </div>
-          </div>
+    <div className="p-3 pt-0 ps-0" style={{ overflow: "hidden" }}>
+      <input className="d-none" id="itemuploadid" ref={fileInputRef} type="file" onChange={handleFileChange} />
+      <div className="mb-2">
+        {props.action && <label className="pe-field-label" style={{ color: "#374151" }}>Add Questions From Library</label>}
+      </div>
+      <div className="rfq-v2-toolbar" style={{ marginBottom: 12, alignItems: "flex-end" }}>
+        <div style={{ flex: 1 }}>
+          {props.action && <Autocomplete
+            disablePortal
+            id="combo-box-demo"
+            size="small"
+            options={Librarylist ?? []}
+            style={{ maxWidth: 360 }}
+            renderInput={(params) => (
+              <TextField {...params} InputLabelProps={{ shrink: false }} label="" />
+            )}
+            value={selectedLibrary}
+            getOptionLabel={(option) => option.libraryEntity ?? ""}
+            onChange={handleLibraryChange}
+          />}
         </div>
-
-        <div className="text-end">
-          {props.action && (props.permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false) && <Button
-            variant="text"
-            size="large"
-            startIcon={<HiPlusSm />}
-            className="text-capitalize blue-text  font-normal me-3"
-            onClick={() => setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }))}
-          >
-            Add Question
-          </Button>}
-
-          {props.action && (props.eventtype == "RFQ") && <div className="d-inline-block">
-            <IconButton
-              aria-label="more"
-              id="dropdown-custom-components"
-              aria-controls="long-menu"
-              aria-haspopup="true"
-              aria-expanded={Boolean(anchorEl) ? 'true' : undefined}
-              onClick={handleClickAnchor}
-              size="medium"
-              className="shadow-sm"
-            >
-              <MoreVertIcon className="f17" />
-            </IconButton>
-            {<Menu
-              id="long-menu"
-              anchorEl={anchorEl}
-              keepMounted
-              open={Boolean(anchorEl)}
-              onClose={handleCloseAnchor}
-              className="ddl-menu"
-            >
-              <MenuItem className="f14" onClick={() => document.getElementById('itemuploadid').click()}>
-                Excel Upload
-              </MenuItem>
-              <Divider />
-              <MenuItem className="f14" onClick={handleDownloadExcelTemplate}>
-                Excel Template
-              </MenuItem>
-            </Menu>}
-          </div>}
+        <div className="rfq-v2-toolbar-right">
+          {props.action && (props.eventtype == "RFQ") && (
+            <Dropdown align="end" className="d-inline-block">
+              <Dropdown.Toggle as="div" id="gt" className="round-edit remove-tringle" role="button">
+                <button type="button" className="rfq-v2-tbtn">
+                  <HiOutlineDotsHorizontal /> More
+                </button>
+              </Dropdown.Toggle>
+              <Dropdown.Menu className="ddl-menu">
+                <MenuItem className="f14" onClick={() => document.getElementById("itemuploadid").click()}>Excel Upload</MenuItem>
+                <Divider />
+                <MenuItem className="f14" onClick={handleDownloadExcelTemplate}>Excel Template</MenuItem>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
+          {props.action && (props.permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false) && (
+            <button type="button" className="rfq-v2-tbtn rfq-v2-tbtn-primary" onClick={() => setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }))}>
+              <HiPlusSm /> Add Question
+            </button>
+          )}
         </div>
       </div>
 
@@ -563,44 +533,28 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
           </Button>
         </DialogActions>
       </Dialog>
-      {/*add question component*/}
-      <React.Fragment key="top">
-        <Drawer
-          anchor="right"
-          open={openComponents.addQuestionDrawer}
-          onClose={() => handleCancelChange("addQuestionDrawer")}
-        >
-          <Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-            <div className="flex flex-col">
-              <Box className="bgheaderCards">
-                <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                  <div className="ms-3 text-white">Add Question</div>
-                  <div>
-                    <IconButton
-                      onClick={() => handleCancelChange("addQuestionDrawer")}
-                      size="large"
-                      edge="start"
-                      sx={{ mr: 1 }}
-                    >
-                      <HiOutlineX className="f20 text-white" />
-                    </IconButton>
-                  </div>
-                </div>
-              </Box>
-              <div className="h50px"></div>
-              <Box sx={{ flexGrow: 1, p: 2 }}>
-                <EventAddQuestionScreen
-                  questionlist={questionlist}
-                  eventid={props?.eventid}
-                  eventtype={props?.eventtype}
-                  callback={handleAddQuestion}
-                />
-              </Box>
+      {openComponents.addQuestionDrawer && (
+        <div className="rfq-v2-event-drawer-backdrop" onClick={() => handleCancelChange("addQuestionDrawer")}>
+          <section className="rfq-v2-event-drawer" onClick={e => e.stopPropagation()}>
+            <header className="rfq-v2-event-drawer-header">
+              <h2 className="rfq-v2-event-drawer-title">Add Question</h2>
+              <div className="rfq-v2-event-drawer-actions">
+                <button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => handleCancelChange("addQuestionDrawer")}>Cancel</button>
+                <button type="reset" form="add-question-form" className="rfq-v2-event-btn rfq-v2-event-btn-outline">Reset</button>
+                <button type="submit" form="add-question-form" className="rfq-v2-event-btn rfq-v2-event-btn-primary">Add</button>
+              </div>
+            </header>
+            <div className="rfq-v2-event-drawer-body" style={{ overflowY: "auto" }}>
+              <EventAddQuestionScreen
+                questionlist={questionlist}
+                eventid={props?.eventid}
+                eventtype={props?.eventtype}
+                callback={handleAddQuestion}
+              />
             </div>
-          </Box>
-        </Drawer>
-
-      </React.Fragment>
+          </section>
+        </div>
+      )}
 
     </div>
   );

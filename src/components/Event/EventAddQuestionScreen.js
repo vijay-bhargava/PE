@@ -1,4 +1,4 @@
-import { Autocomplete, Button, Checkbox, FormControlLabel, FormGroup, IconButton, InputAdornment, Radio, RadioGroup, TextField, Tooltip, Typography } from '@mui/material'
+﻿import { Autocomplete, Button, Checkbox, FormControlLabel, FormGroup, IconButton, InputAdornment, Radio, RadioGroup, TextField, Tooltip, Typography } from '@mui/material'
 import { useFormik } from 'formik';
 import React, { useEffect, useState } from 'react'
 import TextFieldCell from '../../pages/BaseCells/TextFieldCell';
@@ -72,7 +72,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 		const data = {
 			RequestedBy: "customer",
 			EventType: "RFQ",
-			EventId:eventid,
+			EventId: eventid,
 			CustomerId: customerid,
 			Description: "Question",
 		};
@@ -157,7 +157,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 		},
 		validationSchema: validationSchema,
 		onSubmit: (values) => {
-			
+
 			const isCheck = questionlist?.some((x) =>
 				x.questionDescription?.trim() === values?.questiondescription
 			);
@@ -172,7 +172,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 				return;
 
 			}
-			
+
 			callback(values)
 			formik?.resetForm();
 		}
@@ -204,7 +204,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 	//##### return ///
 	return (
 
-		<form onSubmit={formik.handleSubmit} autoComplete="off">
+		<form id="add-question-form" onSubmit={formik.handleSubmit} autoComplete="off">
 			<input
 				id="itemattachmentfile"
 				className="d-none"
@@ -213,12 +213,13 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 			/>
 			<div className="row">
 				<div className="col-12 mb-2 pb-0 ">
+					<label className="pe-field-label" style={{ color: "#374151" }}>Question *</label>
 					<TextFieldCell
 						className="pb-0 mb-0 w-100"
 						variant="outlined"
 						id="questiondescription"
 						name="questiondescription"
-						label="Question *"
+						label=""
 
 						multiline
 						maxRows={4}
@@ -246,7 +247,8 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 					/>
 
 				</div>
-				<div className="col-12 col-md-4 col-lg-4 pe-0 mt-4">
+				<div className="col-12 col-md-4 col-lg-4 pe-0 mt-3">
+					<label className="pe-field-label" style={{ color: "#374151" }}>Category</label>
 					<Autocomplete
 						disablePortal
 						id="combo-box-demo"
@@ -257,18 +259,16 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 						renderInput={(params) => (
 							<TextField
 								{...params}
-								InputLabelProps={{
-									shrink: true,
-								}}
-								label="Category"
+								InputLabelProps={{ shrink: false }}
+								label=""
 							/>
 						)}
-						          onOpen={() => {
-        // Call API when dropdown opens
-        if (categorylist.length === 0) {
-            getCategoryList();
-        }
-    }}
+						onOpen={() => {
+							// Call API when dropdown opens
+							if (categorylist.length === 0) {
+								getCategoryList();
+							}
+						}}
 						value={formik?.values.questionCategory}
 						getOptionLabel={(option) => option.questioncategory ?? ""}
 						onChange={
@@ -287,7 +287,8 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 
 					/>
 				</div>
-				<div className="col-12 col-md-4 col-lg-4 pe-0 mt-4">
+				<div className="col-12 col-md-4 col-lg-4 pe-0 mt-3">
+					<label className="pe-field-label" style={{ color: "#374151" }}>Sub Category</label>
 					<Autocomplete
 						disablePortal
 						id="combo-box-demo"
@@ -298,10 +299,8 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 						renderInput={(params) => (
 							<TextField
 								{...params}
-								InputLabelProps={{
-									shrink: true,
-								}}
-								label="Sub category"
+								InputLabelProps={{ shrink: false }}
+								label=""
 							/>
 						)}
 						value={formik?.values.questionSubCategory}
@@ -315,11 +314,12 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 					/>
 				</div>
 
-				<div className="col-12 col-md-4 col-lg-4 pe-0 mt-4">
+				<div className="col-12 col-md-4 col-lg-4 pe-0 mt-3">
+					<label className="pe-field-label" style={{ color: "#374151" }}>Question Weightage (%)</label>
 					<TextFieldCell
 						id="weightage"
 						name="weightage"
-						label="Question Weightage(In Percentage)"
+						label=""
 						maxLength={3}
 
 
@@ -343,11 +343,12 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 				</div>
 
 				<div className="col-12 mb-2 pb-0 mt-4">
+					<label className="pe-field-label" style={{ color: "#374151" }}>Requirement</label>
 					<TextFieldCell
 						className="pb-0 mb-0 w-100"
 						variant="outlined"
 						name="questionRequirement"
-						label="Requirement"
+						label=""
 						id="questionRequirement"
 						multiline
 						rows={2}
@@ -371,18 +372,17 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 					/>
 
 				</div>
-				<div className='col-12 col-md-4 col-lg-4 mt-4 '>
+				<div className='col-12 col-md-4 col-lg-4 mt-3'>
+					<label className="pe-field-label" style={{ color: "#374151" }}>Attachment File</label>
 					<TextField
 						fullWidth
 						variant="outlined"
-						InputLabelProps={{
-							shrink: true,
-						}}
+						InputLabelProps={{ shrink: false }}
 						size="small"
 						className='f14'
 						id="attachedFileName"
 						name="attachedFileName"
-						label="Upload File "
+						label=""
 						inputProps={{
 							maxLength: 50,
 							pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
@@ -528,7 +528,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 										className="w-100"
 										required
 										id={`option-${i}`}
-										label="Option Value"
+										label=""
 										value={x.questionOption}
 										size="small"
 										name="questionOption"
@@ -537,9 +537,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 										inputProps={{
 											style: { padding: "4.5px 14px" }
 										}}
-										InputLabelProps={{
-											shrink: true,
-										}}
+										InputLabelProps={{ shrink: false }}
 									/>
 								</div>
 
@@ -551,7 +549,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 											required
 											id={`weightage-${i}`}
 											name="weightage"
-											label="Score"
+											label=""
 											value={x.weightage}
 											size="small"
 											placeholder="Option Weightage"
@@ -561,9 +559,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 												style: { padding: "4.5px 14px" },
 												maxLength: 3
 											}}
-											InputLabelProps={{
-												shrink: true,
-											}}
+											InputLabelProps={{ shrink: false }}
 										/>
 										<span>
 											<Button
@@ -594,30 +590,6 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 						</div>
 					);
 				})}
-
-				<div className="col-12 text-end mt-4">
-					<LoadingButton
-						variant="text"
-						color="primary"
-						className="me-3 text-capitalize"
-						size="small"
-						onClick={handleReset}
-					>
-						Reset
-					</LoadingButton>
-					<LoadingButton
-						variant="contained"
-						color="primary"
-						className="me-3 text-capitalize"
-						size="small"
-
-						type="submit"
-					>
-						Add
-					</LoadingButton>
-				</div>
-
-
 
 			</div>
 
