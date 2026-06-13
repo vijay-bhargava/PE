@@ -1,4 +1,4 @@
-import { Accordion, AccordionDetails, InputAdornment, AccordionSummary, Alert, Button, IconButton, Typography, Card, Divider, Box, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Switch, FormGroup, FormControlLabel, Menu, MenuItem, Button as MuiButton, Tooltip, TextField, Stack } from '@mui/material';
+﻿import { Accordion, AccordionDetails, InputAdornment, AccordionSummary, Alert, Button, IconButton, Typography, Card, Divider, Box, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Switch, FormGroup, FormControlLabel, Menu, MenuItem, Button as MuiButton, Tooltip, TextField, Stack } from '@mui/material';
 import { HiDownload, HiX, HiOutlineX, HiDotsVertical } from "react-icons/hi";
 import { ExpandMore, Launch } from '@mui/icons-material';
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
@@ -1858,13 +1858,11 @@ const EventQuestionScreenList = ({ questions, callbackDeleteQuesFromList, callba
 								<WhiteTooltip title={`${answer}`} arrow>
 									<TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
 										<TableCell variant="body1"> {answer.slice(0, 501) + '...'}{' '}</TableCell>
-
-
 									</TableRow>
 
 								</WhiteTooltip>
 							</div>
-							{questionOption && questionOption?.length > 0 && <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+							{questionOption && questionOption?.length > 0 && <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
 								<TableContainer sx={{ overflow: 'hidden' }}>
 									<Table size="small" >
 
@@ -1924,7 +1922,7 @@ const EventQuestionScreenList = ({ questions, callbackDeleteQuesFromList, callba
 
 									</WhiteTooltip>
 								}
-								{questionOption && questionOption?.length > 0 && <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+								{questionOption && questionOption?.length > 0 && <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
 									<TableContainer sx={{ overflow: 'hidden' }}>
 										<Table size="small" >
 
@@ -2691,26 +2689,18 @@ const EventQuestionScreenList = ({ questions, callbackDeleteQuesFromList, callba
 						{questions && questions?.length > 0 && <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '100dvw' }}>
 							{/* Hide view mode selector for VQ/SQE events */}
 							{eventtype !== "VQ" && eventtype !== "SQE" && (
-								<>
-									<MuiButton
-										aria-controls="simple-menu"
-										aria-haspopup="true"
-										onClick={handleClick}
-									>
-										{viewMode?.charAt(0).toUpperCase() + viewMode?.slice(1)}
-									</MuiButton>
-									<Menu
-										id="simple-menu"
-										anchorEl={anchorEl}
-										keepMounted
-										open={Boolean(anchorEl)}
-										onClose={handleClose}
-									>
-										{questionresponses && questionresponses.length > 0 && <MenuItem className='text-capitalize' onClick={() => handleViewModeChange('cross-supplier-benchmarking')}>Cross-Supplier Benchmarking</MenuItem>}
-										<MenuItem className='text-capitalize' onClick={() => handleViewModeChange('category-wise')}>Category Wise </MenuItem>
-										<MenuItem className='text-capitalize' onClick={() => handleViewModeChange('question-wise')}>Question Wise</MenuItem>
-									</Menu>
-								</>
+								<Dropdown align="start" className="d-inline-block">
+									<Dropdown.Toggle as="div" id="view-mode-toggle" className="round-edit remove-tringle" role="button">
+										<button type="button" className="rfq-v2-tbtn" style={{ fontSize: "12px", fontWeight: 600, color: "#2a68d3", borderColor: "#dbeafe", background: "#eff6ff" }}>
+											{viewMode ? viewMode.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "Select View"}
+										</button>
+									</Dropdown.Toggle>
+									<Dropdown.Menu className="ddl-menu" style={{ minWidth: "160px", width: "160px" }}>
+										{questionresponses && questionresponses.length > 0 && <Dropdown.Item className="f13" onClick={() => handleViewModeChange("cross-supplier-benchmarking")}>Cross-Supplier Benchmarking</Dropdown.Item>}
+										<Dropdown.Item className="f13" onClick={() => handleViewModeChange("category-wise")}>Category Wise</Dropdown.Item>
+										<Dropdown.Item className="f13" onClick={() => handleViewModeChange("question-wise")}>Question Wise</Dropdown.Item>
+									</Dropdown.Menu>
+								</Dropdown>
 							)}
 							{/* For VQ/SQE events, show a static label */}
 							{(eventtype === "VQ") && (
@@ -2786,10 +2776,10 @@ const EventQuestionScreenList = ({ questions, callbackDeleteQuesFromList, callba
 									<Box >
 										{questions && questions.length > 0 ? (
 											questions.map((item, index) => (
-												<Card key={index} sx={{ marginBottom: 4, padding: 2 }}>
+												<Card key={index} sx={{ marginBottom: "12px", padding: "14px 16px", borderRadius: "10px", border: "1px solid #e5e7eb", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
 													<Box display="flex" justifyContent="space-between" alignItems="center">
 														<div className="d-flex align-items-center gap-5">
-															<Typography variant="body1" sx={{ fontWeight: 'bold' }}>Q{index + 1}: {item.questionDescription}</Typography>
+															<Typography variant="body1" sx={{ fontWeight: 600, fontSize: '13px', color: '#1f2937' }}>Q{index + 1}: {item.questionDescription}</Typography>
 															{item.attachedFileName && (
 																<Tooltip
 																	title={getFileName(item.attachedFileName)}
@@ -2820,7 +2810,7 @@ const EventQuestionScreenList = ({ questions, callbackDeleteQuesFromList, callba
 
 													</Box>
 
-													<Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+													<Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
 														{item.questionRequirement && <Typography variant="body2" color="textSecondary">
 															<strong>Requirement:</strong> {item.questionRequirement}
 														</Typography>}

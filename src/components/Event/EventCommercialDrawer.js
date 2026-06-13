@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+﻿﻿import React, { useState, useEffect } from "react";
 import { LoadingButton } from "@mui/lab";
 import {
   FormControl,
@@ -16,6 +16,7 @@ import { HiOutlineX } from "react-icons/hi";
 import { Modal } from "react-bootstrap";
 import * as yup from "yup";
 import "react-toastify/dist/ReactToastify.css";
+import "../../assets/css/design-system.css";
 import { useFormik } from "formik";
 import { Delete } from "@mui/icons-material";
 import TextFieldCell from "../../pages/BaseCells/TextFieldCell.js";
@@ -387,11 +388,11 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
 
   return (
     <>
-      <form onSubmit={formik.handleSubmit} autoComplete="off">
+      <form id="manage-terms-form" onSubmit={formik.handleSubmit} autoComplete="off">
         <div className="row mt-2">
 
-          <div className="col-12 col-md-6 mb-4">
-            <label className="pe-field-label">Title *</label>
+          <div className="col-6 mb-3">
+            <label className="pe-field-label" style={{ color: "#374151" }}>Title *</label>
             <TextFieldCell
               id="name"
               name="name"
@@ -416,8 +417,8 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
               </div>
             )}
           </div>
-          <div className="col-12 col-md-6 mb-4">
-            <label className="pe-field-label">Field Name</label>
+          <div className="col-6 mb-3">
+            <label className="pe-field-label" style={{ color: "#374151" }}>Field Name</label>
             <TextField
               id="fieldName"
               size="small"
@@ -442,8 +443,8 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
               </div>
             )}
           </div>
-          <div className="col-12 col-md-6 mb-3">
-            <label className="pe-field-label">UOM</label>
+          <div className="col-6 mb-3">
+            <label className="pe-field-label" style={{ color: "#374151" }}>UOM</label>
             <FormControl fullWidth>
               <Select
                 labelId="event"
@@ -486,8 +487,8 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
 
             </FormControl>
           </div>
-          <div className="col-12 col-md-6 mb-4">
-            <label className="pe-field-label">Fixed Value</label>
+          <div className="col-6 mb-3">
+            <label className="pe-field-label" style={{ color: "#374151" }}>Fixed Value</label>
             <TextFieldCell
               id="commValue"
               name="commValue"
@@ -501,102 +502,69 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
             />
 
           </div>
-          <div className="row me-0 pe-0">
-            <div className="col-md-9">
-              <div className="custom-select">
-
-                <div className="options" style={{ maxHeight: '100px', height: "100px", overflowY: 'auto', border: '1px solid #ccc', borderRadius: '4px', padding: '5px' }}>
-                  <div className="f14 fw500">Select Formula Field</div>
-
+          <div className="row me-0 pe-0 mt-2">
+            <div className="col-6 mb-3">
+              <label className="pe-field-label" style={{ color: "#374151" }}>Select Formula Field</label>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={FormulaFieldName.length > 0 ? FormulaFieldName[FormulaFieldName.length - 1] : ""}
+                  onChange={(e) => isFormulaFieldEnabled && handleFieldSelect(e.target.value)}
+                  disabled={!isFormulaFieldEnabled}
+                  displayEmpty
+                  variant="outlined"
+                >
+                  <MenuItem value="" disabled><em>Select a field</em></MenuItem>
                   {LibraryTermsList?.filter(option => option?.fieldName !== fieldName).filter(option => ["Currency", "Percentage"].includes(option.valuetype))
                     .map((option, i) => (
-                      <Tooltip
-                        title={tooltipMessage}
-                        arrow
-                        key={i}
-                      >
-
-                        <div
-                          onClick={() => isFormulaFieldEnabled && handleFieldSelect(option.fieldName)} // Only allow if enabled
-                          className={`option-item ${FormulaFieldName.includes(option.fieldName) ? 'selected' : ''} ${!isFormulaFieldEnabled ? 'disabled' : ''}`} // Add disabled class
-                        >
-
-                          {option.fieldName}
-                        </div>
-                      </Tooltip>
+                      <MenuItem key={i} value={option.fieldName}>{option.fieldName}</MenuItem>
                     ))}
-
-                </div>
-
+                </Select>
+              </FormControl>
+            </div>
+            <div className="col-6 mb-3">
+              <label className="pe-field-label" style={{ color: "#374151" }}>Select Operator</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '6px', background: '#fafafa' }}>
+                {['None', '+', '-', '*', '/', '%', '=', '{', '}', '<', '>', '<=', '>=', '(', ')'].map((operator, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleOperatorSelect(operator)}
+                    style={{
+                      padding: '2px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                      border: selectedOperator === operator ? '1px solid #2a68d3' : '1px solid #d1d5db',
+                      background: selectedOperator === operator ? '#eff6ff' : '#ffffff',
+                      color: selectedOperator === operator ? '#2a68d3' : '#374151'
+                    }}
+                  >
+                    {operator}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="col-md-3 me-0 pe-0  mb-4">
-              <div className="custom-select">
-
-                <div className="options" style={{ maxHeight: '100px', overflowY: 'auto', border: '1px solid #ccc', borderRadius: '4px', padding: '5px' }}>
-                  <div className="f14 fw500">Select Operator</div>
-                  {['None', '+', '-', '*', '/', '%', '=', '{', '}', '<', '>', '<=', '>=', '(', ')'].map((operator, index) => (
-                    <div
-                      key={index}
-                      onClick={() => handleOperatorSelect(operator)}
-                      className={`option-item ${selectedOperator === operator ? 'selected' : ''}`}
-                    >
-                      {operator}
-                    </div>
-                  ))}
-                </div>
+            <div className="col-12 mb-3">
+              <label className="pe-field-label" style={{ color: "#374151" }}>Formula Editor</label>
+              <div className="position-relative">
+                <TextareaAutosize
+                  minRows={3}
+                  id="formulavalue"
+                  name="formulavalue"
+                  placeholder="Build formula by selecting fields and operators above..."
+                  value={formulavalue}
+                  onChange={handleTextareaChange}
+                  style={{ width: '100%', resize: 'vertical', padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '13px', color: '#1f2937', background: '#fff', outline: 'none', fontFamily: 'monospace' }}
+                />
+                {formulavalue && (
+                  <IconButton
+                    className="position-absolute top-0 end-0"
+                    onClick={handleClear}
+                    aria-label="Clear"
+                    size="small"
+                  >
+                    <Delete className="f15 text-danger" />
+                  </IconButton>
+                )}
               </div>
-
             </div>
-
-            <div className="textarea-container position-relative me-0 pe-0">
-              <TextareaAutosize
-                minRows={4}
-                id="formulavalue"
-                name="formulavalue"
-                placeholder="Formula Editor"
-                className="w-100 formulaEditor"
-                value={formulavalue}
-                onChange={handleTextareaChange}
-
-
-              />
-              {formulavalue && (
-                <IconButton
-                  className="position-absolute top-0 end-0"
-                  onClick={handleClear}
-                  aria-label="Clear"
-                >
-                  <Delete className="f17 text-danger" />
-                </IconButton>
-              )}
-            </div>
-          </div>
-
-
-
-          <div className="col-12 text-end mt-2">
-            <LoadingButton
-              variant="text"
-              color="primary"
-              className="me-3 text-capitalize"
-              size="small"
-              onClick={clearfilledCommercial}
-            >
-              Reset
-            </LoadingButton>
-            <LoadingButton
-              // loading
-              loading={loading}
-              type="submit"
-              variant="contained"
-              // onClick={() => router.push(`/sdsdsd/${actibeModuleID}`)}
-              color="primary"
-              className="text-capitalize"
-              size="small"
-            >
-              Submit
-            </LoadingButton>
           </div>
         </div>
         <Modal
