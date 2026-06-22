@@ -4284,10 +4284,108 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			<div className="mainContainer d-flex rfq-modern-shell" style={{ overflow: 'hidden' }}>
 				<div className={`leftContent ${approvershow ? "col-9" : "col-12"} d-flex flex-column`}>
 					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ height: '100%', overflow: 'hidden' }}>
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 rfq-dv2-page-head" style={{ flexShrink: 0 }}>
-							<div className="d-flex rfq-dv2-title-wrap">
+						<div className="rfq-dv2-page-head border-bottom mb-3" style={{ flexShrink: 0 }}>
+							{/* ── Row 1: breadcrumb + action buttons ── */}
+							<div className="rfq-dv2-head-top">
 								{breadcrumb}
-								{/* <span className="rfq-v2-title">{rfqTitle}</span> */}
+								{/* Action Buttons */}
+								<div className="rfq-dv2-actions">
+									{!loading ? (
+										actionType === 'Forward' ||
+											(value === 6 && currentStage !== 'Technical Approval' && currentStage !== 'Open' && actionType === 'approval') ? (
+											<button
+												type="button"
+												className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
+												onClick={toggleDrawer("openInvoiceApproved", true)}
+											>
+												Action
+											</button>
+										) : (
+											<>
+												{/* Cancel — always first */}
+												<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost" onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
+													Cancel
+												</button>
+
+												{/* Secondary actions */}
+												{stagearray.includes(currentStage) && (
+													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Save as Draft')}>
+														Save as Draft
+													</button>
+												)}
+												{idFromURL && currentStage && currentStage !== 'Draft' && (
+													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Save as Templates')}>
+														Save as Template
+													</button>
+												)}
+												{currentStage === 'Allocation' && value == "9" && (
+													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Save & Close')}>
+														Save &amp; Close
+													</button>
+												)}
+												{currentStage === 'Awarded' && (
+													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Send Mail to suppliers')}>
+														Send Mail to suppliers
+													</button>
+												)}
+												{currentStage === 'Awarded' && (
+													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Create NFA')}>
+														Create NFA
+													</button>
+												)}
+												{idFromURL && currentStage && currentStage !== 'Draft' && (() => {
+													const stageInfo = getStageInfo(currentStage, stagelist);
+													if (!actionType && (currentStage === 'Technical Approval' || (currentStage === 'Forward for Approval' && stageInfo?.nextStage !== 'Technical Approval'))) {
+														return (
+															<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Approverforward')}>
+																Forward for approval
+															</button>
+														);
+													}
+													return null;
+												})()}
+
+												{/* Primary action — always last */}
+												{value === "7" && (
+													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={() => handleMenuClick('Publish RFQ')}>
+														Submit
+													</button>
+												)}
+												{currentStage === 'Draft' && value !== "7" && (
+													<button
+														type="button"
+														className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
+														onClick={handleButtonGroup}
+														disabled={(!idFromURL || idFromURL === 'add') ? false : !stagearray.includes(currentStage)}
+													>
+														{value === 5 ? "Save Suppliers" : "Save & Continue"}
+													</button>
+												)}
+												{currentStage === 'Allocation' && value == "9" && (
+													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={() => handleMenuClick('Save')}>
+														Save
+													</button>
+												)}
+											</>
+										)
+									) : (
+										<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" disabled>
+											{value === 6 ? "Publishing..." : "Submit..."}
+										</button>
+									)}
+								</div>
+							</div>
+
+							{/* Stage flow — visible in non-v2 layout, hidden via CSS in v2 shell */}
+							<div className="rfq-dv2-stage-flow-wrap">
+								<MemoizedEventStageFlow
+									stagelist={stagelist}
+									currentStage={currentStage}
+								/>
+							</div>
+
+							{/* ── Row 2: meta info ── */}
+							<div className="rfq-dv2-head-bottom">
 								<div className="rfq-dv2-meta-row">
 									<span className="rfq-dv2-meta-item">
 										<span className="rfq-dv2-meta-label">Status</span>
@@ -4335,12 +4433,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 														: index === currentStatusIndex
 															? "is-current"
 															: "is-future";
-
 												return (
-													<div
-														key={step}
-														className={`rfq-dv2-status-step ${stepClass}`}
-													>
+													<div key={step} className={`rfq-dv2-status-step ${stepClass}`}>
 														<span className="rfq-dv2-status-step-icon" />
 														<span>{step}</span>
 													</div>
@@ -4349,156 +4443,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										</div>
 									</div>
 								</Menu>
-							</div>
-							{/* Stage Flow - centered between title and buttons */}
-							<div className="d-flex justify-content-center flex-grow-1 rfq-dv2-stage-flow">
-								<MemoizedEventStageFlow
-									stagelist={stagelist}
-									currentStage={currentStage}
-								/>
-							</div>
-							{/* Action Button*/}
-							<div className="d-flex align-items-center gap-2 rfq-dv2-actions">
-								{!loading ? (
-									actionType === 'Forward' ||
-										(value === 6 && currentStage !== 'Technical Approval' && currentStage !== 'Open' && actionType === 'approval') ? (
-										<Button
-											type="button"
-											size="small"
-											className="button-text text-white"
-											variant="contained"
-											onClick={toggleDrawer("openInvoiceApproved", true)}
-										>
-											Action
-										</Button>
-									) : (
-										<ButtonGroup variant="contained">
-											<Button
-												variant="contained"
-												className="p-2 pt-1 pb-1"
-												onClick={handleButtonGroup}
-												sx={{ padding: '2px 8px', minHeight: '28px', lineHeight: '1' }}
-												disabled={value == 9
-													? currentStage != 'Allocation'
-													: (!idFromURL || idFromURL === 'add')
-														? false  // always enabled for new RFQ
-														: !stagearray.includes(currentStage)
-												}
-											>
-												<span className="text-capitalize">{selectedMenuItem}</span>
-											</Button>
-
-											<Button
-												variant="contained"
-												className="button-text text-white"
-												onClick={handleMenuOpen}
-												sx={{ padding: '2px 8px', minHeight: '28px', lineHeight: '1' }}
-											>
-												<ExpandMore />
-											</Button>
-
-											<Menu
-												anchorEl={anchorEl}
-												open={Boolean(anchorEl)}
-												onClose={handleMenuClose}
-											>
-												{value === "7" && (
-													<MenuItem onClick={() => handleMenuClick('Publish RFQ')}>
-														<div>
-															<span className="text-capitalize">
-																Submit
-															</span>
-														</div>
-													</MenuItem>
-												)}
-
-												{currentStage == 'Draft' && value !== "7" && (
-													<MenuItem onClick={() => handleMenuClick('Save & Continue')}>
-														<div>
-															<span className="text-capitalize">
-																{value === 5 ? "Save Suppliers" : "Save & Continue"}
-															</span>
-														</div>
-													</MenuItem>
-												)}
-												{currentStage == 'Allocation' && value == "9" && (
-													<MenuItem onClick={() => handleMenuClick('Save')}>
-														<div>
-															<span className="text-capitalize"> Save </span>
-														</div>
-													</MenuItem>
-												)}
-												{currentStage == 'Allocation' && value == "9" && (
-													<MenuItem onClick={() => handleMenuClick('Save & Close')}>
-														<div>
-															<span className="text-capitalize"> Save & Close </span>
-														</div>
-													</MenuItem>
-												)}
-
-												{currentStage == 'Awarded' && (
-													<MenuItem onClick={() => handleMenuClick('Send Mail to suppliers')}>
-														<div>
-															<span className="text-capitalize"> Send Mail to suppliers </span>
-														</div>
-													</MenuItem>
-												)}
-												{currentStage == 'Awarded' && (
-													<MenuItem onClick={() => handleMenuClick('Create NFA')}>
-														<div>
-															<span className="text-capitalize"> Create NFA </span>
-														</div>
-													</MenuItem>
-												)}
-
-												{stagearray.includes(currentStage) && (
-													<MenuItem onClick={() => handleMenuClick('Save as Draft')}>
-														<div>
-															<span className="text-capitalize">Save as Draft</span>
-														</div>
-													</MenuItem>
-												)}
-
-												{idFromURL && currentStage && currentStage !== 'Draft' && (
-													<MenuItem onClick={() => handleMenuClick('Save as Templates')}>
-														<div>
-															<span className="text-capitalize">Save as Templates</span>
-														</div>
-													</MenuItem>
-												)}
-
-												{idFromURL && currentStage && currentStage !== 'Draft' && (() => {
-													const currentStageObj = stagelist?.find(item => item.currentStage === currentStage);
-													const currentIndex = stagelist?.findIndex(item => item.stageSeq === currentStageObj?.stageSeq);
-													const stageInfo = getStageInfo(currentStage, stagelist);
-
-													if (!actionType && (currentStage === 'Technical Approval' || (currentStage == 'Forward for Approval' && stageInfo?.nextStage != 'Technical Approval'))) {
-														return (
-															<MenuItem onClick={() => handleMenuClick('Approverforward')}>
-																<div>
-																	<span className="text-capitalize">Forward for approval</span>
-																</div>
-															</MenuItem>
-														);
-													}
-
-													return null;
-												})()}
-
-												<MenuItem onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
-													<div>
-														<span className="text-capitalize">Cancel</span>
-													</div>
-												</MenuItem>
-											</Menu>
-										</ButtonGroup>
-									)
-								) : (
-									<Button className="button-text text-white">
-										{value === 6 ? "Publishing..." : "Submit..."}
-									</Button>
-								)}
-
 							</div>
 						</div>
 
@@ -4583,7 +4527,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								</Tabs>
 							</Box>
 
-							{showTabSaveContinue && (
+							{false && showTabSaveContinue && (
 								<div className="rfq-dv2-tab-save-action">
 									<Button
 										type="button"
