@@ -170,10 +170,7 @@ const LeftMenuV2 = () => {
       {/* ── Top bar: logo (collapsed) / close (expanded) ── */}
       <div className="v2-sidebar-top">
         <div className="v2-toggle-btn" aria-label="Sidebar toggle">
-          {isExpanded
-            ? <CloseOutlined sx={{ fontSize: 20 }} />
-            : <img src={logo} alt="Logo" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
-          }
+          <img src={logo} alt="Logo" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
         </div>
       </div>
 
@@ -260,7 +257,7 @@ const LeftMenuV2 = () => {
           onClick={() => raiseQueryRef.current?.querySelector('button')?.click()}
           title="Raise Query"
         >
-          <span className="v2-menu-icon"><HiHandRaised style={{ fontSize: 20 }} /></span>
+          <span className="v2-menu-icon"><HiHandRaised style={{ fontSize: 18 }} /></span>
           <span className="v2-menu-label">Raise Query</span>
         </button>
         <button
@@ -269,7 +266,7 @@ const LeftMenuV2 = () => {
           title="AI Assistant"
           aria-label="AI Assistant"
         >
-          <span className="v2-menu-icon"><SmartToyOutlined sx={{ fontSize: 20 }} /></span>
+          <span className="v2-menu-icon"><SmartToyOutlined sx={{ fontSize: 18 }} /></span>
           <span className="v2-menu-label">Abby</span>
         </button>
       </div>
