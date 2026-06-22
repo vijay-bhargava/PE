@@ -754,13 +754,10 @@ const ManageRFQV2 = ({ claimType }) => {
 
         {/* ── Page header ── */}
         <div className="rfq-v2-page-header">
-          <div>
-            <div className="rfq-v2-breadcrumb">
-              <Link to="/app">Home</Link>
-              <span className="rfq-v2-breadcrumb-sep">/</span>
-              <span>Manage RFQ</span>
-            </div>
-            <h1 className="rfq-v2-title">Request for Quotation (RFQ)</h1>
+          <div className="rfq-v2-breadcrumb">
+            <Link to="/app">Home</Link>
+            <span className="rfq-v2-breadcrumb-sep">/</span>
+            <span>Request for Quotation</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

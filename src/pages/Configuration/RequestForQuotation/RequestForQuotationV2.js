@@ -54,7 +54,7 @@ const RequestForQuotationV2 = ({ claimType }) => {
         tabIndex={0}
         onKeyDown={(e) => e.key === 'Enter' && navigate('/configuration/manage-rfq')}
       >
-        Manage RFQ
+        Request for Quotation
       </span>
       <span className="rfq-dv2-sep">/</span>
       <span className="rfq-dv2-breadcrumb-current">{crumbLabel}</span>

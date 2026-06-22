@@ -4287,7 +4287,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 rfq-dv2-page-head" style={{ flexShrink: 0 }}>
 							<div className="d-flex rfq-dv2-title-wrap">
 								{breadcrumb}
-								<span className="rfq-v2-title">{rfqTitle}</span>
+								{/* <span className="rfq-v2-title">{rfqTitle}</span> */}
 								<div className="rfq-dv2-meta-row">
 									<span className="rfq-dv2-meta-item">
 										<span className="rfq-dv2-meta-label">Status</span>

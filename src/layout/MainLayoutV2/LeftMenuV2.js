@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import {
@@ -11,7 +11,6 @@ import {
   SettingsOutlined,
   CorporateFareOutlined,
   PeopleAltOutlined,
-  MenuOutlined,
   CloseOutlined,
 } from '@mui/icons-material';
 import { actionTypes, useStateValue } from '../../store';
@@ -20,6 +19,8 @@ import { goToLoginPage } from '../../utils/common';
 import { getCookieDomain } from '../../utils/common/subdomainHelper';
 import { ApiClient } from '../../Apiclient';
 import Chatbot from '../../components/chatbot';
+import logo from '../../assets/images/chatbotlogo.png';
+import { HiHandRaised } from 'react-icons/hi2';
 
 /*
  * V2MenuIcon — Figma-matched icons per sidebar category.
@@ -48,6 +49,7 @@ const LeftMenuV2 = () => {
   const [openSubmenus, setOpenSubmenus] = useState({});
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const collapseTimer = useRef(null);
+  const raiseQueryRef = useRef(null);
   const location = useLocation();
 
   /* ── Fetch menu on mount ── */
@@ -165,10 +167,13 @@ const LeftMenuV2 = () => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* ── Top bar: toggle icon only (no logo — matches Figma) ── */}
+      {/* ── Top bar: logo (collapsed) / close (expanded) ── */}
       <div className="v2-sidebar-top">
         <div className="v2-toggle-btn" aria-label="Sidebar toggle">
-          {isExpanded ? <CloseOutlined sx={{ fontSize: 20 }} /> : <MenuOutlined sx={{ fontSize: 20 }} />}
+          {isExpanded
+            ? <CloseOutlined sx={{ fontSize: 20 }} />
+            : <img src={logo} alt="Logo" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
+          }
         </div>
       </div>
 
@@ -249,19 +254,29 @@ const LeftMenuV2 = () => {
       {/* ── Bottom actions ── */}
       <div className="v2-sidebar-divider" />
       <div className="v2-sidebar-bottom">
-        <div className="v2-sidebar-utility">
-          <RaiseQueryCell isCollapsed={true} sidebarVariant key="v2-raisequery" />
-        </div>
+        {/* Visible Raise Query button — clicks hidden RaiseQueryCell trigger via ref */}
         <button
-          className="v2-sidebar-action-btn v2-sidebar-utility-btn"
+          className="v2-menu-item"
+          onClick={() => raiseQueryRef.current?.querySelector('button')?.click()}
+          title="Raise Query"
+        >
+          <span className="v2-menu-icon"><HiHandRaised style={{ fontSize: 20 }} /></span>
+          <span className="v2-menu-label">Raise Query</span>
+        </button>
+        <button
+          className={`v2-menu-item${isChatbotOpen ? ' active' : ''}`}
           onClick={() => setIsChatbotOpen(!isChatbotOpen)}
           title="AI Assistant"
           aria-label="AI Assistant"
         >
-          <span className="v2-action-icon">
-            <SmartToyOutlined sx={{ fontSize: 20 }} />
-          </span>
+          <span className="v2-menu-icon"><SmartToyOutlined sx={{ fontSize: 20 }} /></span>
+          <span className="v2-menu-label">Abby</span>
         </button>
+      </div>
+
+      {/* Hidden RaiseQueryCell — provides the modal, button triggered via ref */}
+      <div ref={raiseQueryRef} style={{ display: 'none' }}>
+        <RaiseQueryCell isCollapsed={true} key="v2-raisequery" />
       </div>
 
       <Chatbot isOpen={isChatbotOpen} setIsOpen={setIsChatbotOpen} />

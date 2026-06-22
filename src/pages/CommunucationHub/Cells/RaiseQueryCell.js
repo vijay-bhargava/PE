@@ -1,4 +1,4 @@
-import { Autocomplete, Box, Button, Checkbox, Chip, Drawer, FormControlLabel, IconButton, TextField, Typography } from "@mui/material";
+﻿import { Autocomplete, Box, Button, Checkbox, Chip, Drawer, FormControlLabel, IconButton, TextField, Typography } from "@mui/material";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { HiOutlineChatAlt2, HiOutlineX, HiPaperClip, HiPaperAirplane } from "react-icons/hi";
 import { HiHandRaised } from "react-icons/hi2";
@@ -811,7 +811,7 @@ const RaiseQueryCell = ({ isCollapsed }) => {
 	return (
 		<>
 			<div className="text-center mb-3 ms-1 mt-4">
-				<IconButton 
+				<IconButton
 					onClick={handleShow}
 					sx={{
 						'&:hover': {
@@ -819,7 +819,6 @@ const RaiseQueryCell = ({ isCollapsed }) => {
 						}
 					}}
 				>
-
 					<HiHandRaised style={{ color: "#ffffff" }} className="f14pt" title="Raise Query" />
 					{/* Conditionally render the text based on collapsed state */}
 					{!isCollapsed && <span className="f14 text-black">Raise Query</span>}
@@ -827,7 +826,7 @@ const RaiseQueryCell = ({ isCollapsed }) => {
 			</div>
 
 			<Modal
-				size="md"
+				size="lg"
 				show={show}
 				backdrop="static"
 				keyboard={false}
@@ -835,28 +834,26 @@ const RaiseQueryCell = ({ isCollapsed }) => {
 				backdropClassName='zindex10002'
 				centered
 				contentClassName='border-0 rounded'
+				style={{ fontFamily: '"Inter", "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif' }}
 				onHide={handleClose}
 			>
-				<Modal.Header className='py-2 px-3 border-bottom bgheaderNotificationCards' style={{
-
-					color: '#ffffff',
-
-				}}>
+				<Modal.Header className='py-3 px-4 border-bottom' style={{ backgroundColor: '#ffffff' }}>
 					<Modal.Title style={{
-						fontSize: '14px',
-
+						fontSize: '15px',
+						fontWeight: 600,
+						color: '#1f2937',
 						display: 'flex',
 						alignItems: 'center',
 						gap: '8px'
 					}}>
-						<HiOutlineChatAlt2 style={{ fontSize: '14px' }} />
+						<HiOutlineChatAlt2 style={{ fontSize: '16px', color: '#2a68d3' }} />
 						Raise Query
 					</Modal.Title>
 					<IconButton
 						onClick={handleClose}
 						size="small"
 						style={{
-							color: '#ffffff',
+							color: '#374151',
 							padding: '4px'
 						}}>
 						<HiOutlineX style={{ fontSize: '18px' }} />
@@ -1344,9 +1341,9 @@ const RaiseQueryCell = ({ isCollapsed }) => {
 					</div>
 				</Modal.Body>
 				<Modal.Footer style={{
-					backgroundColor: '#f8f9fa',
+					backgroundColor: '#ffffff',
 					border: 'none',
-					borderTop: '1px solid #dee2e6',
+					borderTop: '1px solid #e5e7eb',
 					padding: '12px 16px',
 					display: 'flex',
 					gap: '12px',
@@ -1408,13 +1405,14 @@ const RaiseQueryCell = ({ isCollapsed }) => {
 							variant="outline-secondary"
 							onClick={handleClose}
 							style={{
-								padding: '6px 16px',
-								fontSize: '10px',
-								fontWeight: '400',
-								borderRadius: '6px',
-								border: '1px solid #dee2e6',
+								padding: '7px 18px',
+								fontSize: '13px',
+								fontWeight: '500',
+								borderRadius: '8px',
+								border: '1px solid #e5e7eb',
 								backgroundColor: '#ffffff',
-								color: '#6c757d'
+								color: '#374151',
+								textTransform: 'none'
 							}}
 						>
 							Cancel
@@ -1424,11 +1422,11 @@ const RaiseQueryCell = ({ isCollapsed }) => {
 							onClick={formik.handleSubmit}
 							disabled={!queryText.trim() || isSending}
 							style={{
-								padding: '6px 20px',
-								fontSize: '10px',
-								fontWeight: '400',
-								borderRadius: '6px',
-								backgroundColor: '#007aff',
+								padding: '7px 20px',
+								fontSize: '13px',
+								fontWeight: '500',
+								borderRadius: '8px',
+								backgroundColor: '#1976d2',
 								color: '#ffffff',
 								display: 'flex',
 								alignItems: 'center',

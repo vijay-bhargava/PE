@@ -58,7 +58,8 @@
 
 .rfq-dv2-breadcrumb-current {
   color: #475467;
-  font-weight: 600;
+  font-weight: 800;
+  font-size: 14px;
 }
 
 .rfq-detail-v2-shell .mainContainer.rfq-modern-shell,
@@ -858,19 +859,12 @@
   text-transform: uppercase;
 }
 
-.rfq-detail-v2-shell .approverAction.Approved {
+.rfq-detail-v2-shell .approverAction.Approved,
+.rfq-detail-v2-shell .approverAction.Pending,
+.rfq-detail-v2-shell .approverAction.Rejected,
+.rfq-detail-v2-shell .approverAction.Completed {
   background: #dbeafe !important;
   color: #1d55b3 !important;
-}
-
-.rfq-detail-v2-shell .approverAction.Pending {
-  background: #eff6ff !important;
-  color: #2a68d3 !important;
-}
-
-.rfq-detail-v2-shell .approverAction.Rejected {
-  background: #ffe3e3 !important;
-  color: #dc2626 !important;
 }
 
 .rfq-detail-v2-shell .delete-button {
@@ -2284,7 +2278,7 @@
 .rfq-detail-v2-shell .rfq-sidebar-approver-card {
   position: relative;
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) 22px;
+  grid-template-columns: 20px minmax(0, 1fr) 24px;
   column-gap: 9px;
   min-height: 76px;
   margin: 0 0 8px !important;
@@ -2347,33 +2341,12 @@
   text-transform: uppercase;
 }
 
-.rfq-detail-v2-shell .rfq-sidebar-status.Approved {
+.rfq-detail-v2-shell .rfq-sidebar-status.Approved,
+.rfq-detail-v2-shell .rfq-sidebar-status.Pending,
+.rfq-detail-v2-shell .rfq-sidebar-status.Rejected,
+.rfq-detail-v2-shell .rfq-sidebar-status.Completed {
   background: #dbeafe !important;
   color: #1d55b3 !important;
-}
-
-.rfq-detail-v2-shell .rfq-sidebar-status.Pending {
-  background: #ffe89a !important;
-  color: #a05f00 !important;
-}
-
-.rfq-detail-v2-shell .rfq-sidebar-status.Approved::before {
-  width: 8px;
-  height: 5px;
-  margin-right: 5px;
-  border-bottom: 1.5px solid currentColor;
-  border-left: 1.5px solid currentColor;
-  content: "";
-  transform: rotate(-45deg);
-}
-
-.rfq-detail-v2-shell .rfq-sidebar-status.Pending::before {
-  width: 9px;
-  height: 9px;
-  margin-right: 5px;
-  border: 1.5px solid currentColor;
-  border-radius: 50%;
-  content: "";
 }
 
 .rfq-detail-v2-shell .rfq-sidebar-approver-role,
@@ -2389,6 +2362,20 @@
 
 .rfq-detail-v2-shell .rfq-sidebar-approver-role {
   margin-top: 2px;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-reminder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #2a68d3;
+  cursor: pointer;
+  margin-bottom: 3px;
 }
 
 .rfq-detail-v2-shell .rfq-sidebar-approver-remove {
