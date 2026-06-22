@@ -464,8 +464,8 @@
 .v2-sidebar-divider {
   height: 1px;
   background: rgba(197, 207, 224, 0.18);
-  width: calc(100% - 48px);
-  margin: 10px auto 12px;
+  width: 100%;
+  /* margin: 0px 0 6px !important; */
   flex-shrink: 0;
 }
 
@@ -477,10 +477,6 @@
   padding: 6px 0 0;
   scrollbar-width: none;
 }
-.v2-sidebar.expanded .v2-menu-scroll {
-  padding-left: 12px;
-  padding-right: 12px;
-}
 .v2-menu-scroll::-webkit-scrollbar {
   display: none;
 }
@@ -488,8 +484,8 @@
 .v2-menu-section-divider {
   height: 1px;
   background: rgba(197, 207, 224, 0.18);
-  width: calc(100% - 48px);
-  margin: 12px auto 10px;
+  width: 100%;
+  margin: 4px 0 6px !important;
 }
 
 /* Menu item (single link or category header) */
@@ -497,8 +493,8 @@
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr) 36px;
   align-items: center;
-  gap: 12px;
-  padding: 0 12px;
+  /* gap: 12px; */
+  padding: 10px 12px;
   cursor: pointer;
   border: none;
   background: transparent;
@@ -515,7 +511,6 @@
   white-space: nowrap;
   overflow: hidden;
   min-height: 52px;
-  margin-bottom: 4px;
 }
 
 .v2-menu-item:hover {
@@ -674,13 +669,13 @@
 /* Bottom actions area */
 .v2-sidebar-bottom {
   width: 100%;
-  padding: 10px 12px 18px;
+  padding: 10px 0 18px;
   border-top: 0;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 10px;
+  /* gap: 10px; */
   box-sizing: border-box;
 }
 
@@ -772,13 +767,7 @@
 /* Item row: keep base grid, allow col-3 chevron to overflow visibly */
 .v2-sidebar.collapsed .v2-menu-item {
   overflow: visible;
-  width: 100%;
-  min-height: 52px;
-  padding: 0 12px;
   gap: 0;
-  margin: 0 0 10px;
-  border-radius: 8px;
-  position: relative;
   background: transparent;
   border-left: none !important;
 }
@@ -865,15 +854,11 @@
 
 .v2-sidebar.expanded .v2-sidebar-bottom {
   align-items: flex-start;
-  padding-left: 12px;
-  padding-right: 12px;
 }
 
 .v2-sidebar.collapsed .v2-sidebar-bottom {
   align-items: center;
-  padding-left: 0;
-  padding-right: 0;
-  gap: 12px;
+  /* gap: 12px; */
 }
 
 .v2-raise-query-trigger {
@@ -890,13 +875,6 @@
 .v2-raise-query-trigger .MuiIconButton-root:hover,
 .v2-sidebar-utility-btn:hover .v2-action-icon {
   color: var(--v2-sidebar-text-active);
-}
-
-.v2-sidebar.collapsed .v2-sidebar-divider,
-.v2-sidebar.collapsed .v2-menu-section-divider {
-  width: 36px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .v2-sidebar.collapsed .v2-sidebar-utility {
