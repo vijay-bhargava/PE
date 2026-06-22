@@ -326,6 +326,7 @@ const ManageRFQV2 = ({ claimType }) => {
   const [rfqprcartmodal, setRFQPRcartmodal] = useState(false);
   const [noQuotesMessage, setNoQuotesMessage] = useState('');
   const [rfqItemSet, setRFQItemSet] = useState([]);
+  const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
   const [rfqVendorInvitedList, setRfqVendorInvitedList] = useState([]);
   const [rfqMultiCurrencyList, setrfqMultiCurrencyList] = useState([]);
   const [action, setAction] = useState(false);
@@ -761,41 +762,6 @@ const ManageRFQV2 = ({ claimType }) => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* Create Event from RFQ (when items selected) */}
-            {rfqItemSet.length > 0 && (
-              <Dropdown>
-                <Dropdown.Toggle
-                  variant="outlined"
-                  size="small"
-                  className="rfq-v2-tbtn"
-                  style={{ borderColor: '#2a68d3', color: '#2a68d3' }}
-                >
-                  Create Event
-                  <span className="rfq-v2-filter-count ms-1">{rfqItemSet.length}</span>
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  <Dropdown.Item onClick={() => setShowAuctionDropdown(true)}>
-                    <span style={{ fontSize: 13 }}>Create Auction</span>
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            )}
-
-            {showAuctionDropdown && (
-              <Dropdown>
-                <Dropdown.Toggle variant="outlined" size="small" className="rfq-v2-tbtn">
-                  Select Auction Type
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  {AUCTION_TYPES.map((o) => (
-                    <Dropdown.Item key={o.bidTypeId} onClick={() => handleAuctionTypeSelection(o)}>
-                      <span style={{ fontSize: 13 }}>{o.label}</span>
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown>
-            )}
-
             <button
               className="rfq-v2-create-btn"
               onClick={() => setModal(true)}
@@ -1274,23 +1240,63 @@ const ManageRFQV2 = ({ claimType }) => {
       {/* ── Floating selection summary box ── */}
       {rfqItemSet.length > 0 && (
         <div className="rfq-v2-float-box">
-          <div className="rfq-v2-float-field">
-            <span className="rfq-v2-float-label">Event type</span>
-            <span className="rfq-v2-float-value">
-              {selectedBidType?.label || <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: 13 }}>Not selected</span>}
-            </span>
+          <div className="rfq-v2-float-info">
+            <div className="rfq-v2-float-field">
+              <span className="rfq-v2-float-label">Event type</span>
+              <span className="rfq-v2-float-value">
+                {selectedBidType?.label || <span className="rfq-v2-float-placeholder">Not selected</span>}
+              </span>
+            </div>
+            <div className="rfq-v2-float-divider" />
+            <div className="rfq-v2-float-field">
+              <span className="rfq-v2-float-label">Total Items</span>
+              <span className="rfq-v2-float-count-badge">{rfqItemSet.length}</span>
+            </div>
           </div>
-          <div className="rfq-v2-float-divider" />
-          <div className="rfq-v2-float-field">
-            <span className="rfq-v2-float-label">Total Items</span>
-            <span className="rfq-v2-float-count-badge">{rfqItemSet.length}</span>
+          <div className="rfq-v2-float-actions">
+            <button
+              className="rfq-v2-float-view-btn"
+              onClick={() => setRFQPRcartmodal(true)}
+            >
+              View Event ({rfqItemSet.length})
+            </button>
+            <button
+              className="rfq-v2-float-discard-btn"
+              onClick={() => setDiscardConfirmOpen(true)}
+            >
+              Discard
+            </button>
           </div>
-          <button
-            className="rfq-v2-float-view-btn"
-            onClick={() => setRFQPRcartmodal(true)}
-          >
-            View Event &nbsp;({rfqItemSet.length})
-          </button>
+        </div>
+      )}
+
+      {/* ── Discard confirmation dialog ── */}
+      {discardConfirmOpen && (
+        <div className="rfq-v2-discard-backdrop">
+          <div className="rfq-v2-discard-dialog">
+            <div className="rfq-v2-discard-header">
+              <span className="rfq-v2-discard-title">Discard Items?</span>
+              <button type="button" className="rfq-v2-discard-close" onClick={() => setDiscardConfirmOpen(false)}>×</button>
+            </div>
+            <div className="rfq-v2-discard-body">
+              <div className="rfq-v2-discard-info">
+                <p>
+                  You have <strong>{rfqItemSet.length} item{rfqItemSet.length !== 1 ? 's' : ''}</strong> selected for <strong>{selectedBidType?.label || 'event'}</strong>. Discarding will clear your entire selection.
+                </p>
+              </div>
+              <div className="rfq-v2-discard-field">
+                <label className="rfq-v2-discard-label">
+                  Comment <span className="rfq-v2-discard-label-opt">(Optional)</span>
+                </label>
+                <textarea className="rfq-v2-discard-textarea" rows={4} placeholder="Add a reason for discarding..." />
+                <p className="rfq-v2-discard-hint">This comment is for your reference only.</p>
+              </div>
+            </div>
+            <div className="rfq-v2-discard-footer">
+              <button type="button" className="rfq-v2-discard-btn-cancel" onClick={() => setDiscardConfirmOpen(false)}>Cancel</button>
+              <button type="button" className="rfq-v2-discard-btn-confirm" onClick={() => { setRFQItemSet([]); setDiscardConfirmOpen(false); }}>Yes, Discard</button>
+            </div>
+          </div>
         </div>
       )}
 
