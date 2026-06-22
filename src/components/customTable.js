@@ -142,9 +142,6 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                                 key={approver.uniqueId}
                                 className={`rfq-sidebar-approver-card ${approver.status === 'Pending' ? 'is-pending' : ''}`}
                               >
-                                <span className="rfq-sidebar-approver-avatar">
-                                  {getInitials(approver.approverName)}
-                                </span>
                                 <div className="rfq-sidebar-approver-body">
                                   <div className="rfq-sidebar-approver-top">
                                     <span className="rfq-sidebar-approver-name">{approver.approverName}</span>
@@ -164,17 +161,7 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                                   )}
                                 </div>
                                 {approver.status === 'Pending' && (
-                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                                    <Tooltip title="Send Reminder" placement="left">
-                                      <button
-                                        type="button"
-                                        className="rfq-sidebar-approver-reminder"
-                                        onClick={() => handleSendReminder(approver)}
-                                        aria-label="Send reminder"
-                                      >
-                                        <NotificationsActiveIcon style={{ fontSize: 12 }} />
-                                      </button>
-                                    </Tooltip>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                                     {onDelete && (
                                       <button
                                         type="button"
@@ -185,6 +172,18 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                                         <HiX />
                                       </button>
                                     )}
+                                    <Tooltip title="Send Reminder" placement="left">
+                                      <button
+                                        type="button"
+                                        className="rfq-sidebar-approver-reminder"
+                                        onClick={() => handleSendReminder(approver)}
+                                        aria-label="Send reminder"
+                                      >
+                                        <svg width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M4.7965 12.8C4.4655 12.8 4.18333 12.6825 3.95 12.4475C3.71667 12.2125 3.6 11.93 3.6 11.6H6C6 11.9333 5.88217 12.2167 5.6465 12.45C5.41083 12.6833 5.1275 12.8 4.7965 12.8ZM0 10.8V9.6H0.8V5.6C0.8 4.63333 1.09722 3.78333 1.69167 3.05C2.28611 2.31667 3.05556 1.86111 4 1.68333V0.8C4 0.577778 4.07778 0.388889 4.23333 0.233333C4.38889 0.0777778 4.57778 0 4.8 0C5.02222 0 5.21111 0.0777778 5.36667 0.233333C5.52222 0.388889 5.6 0.577778 5.6 0.8V1.68333C5.95556 1.75 6.29167 1.86389 6.60833 2.025C6.925 2.18611 7.21111 2.37778 7.46667 2.6L6.6 3.45C6.35556 3.23889 6.08005 3.07778 5.7735 2.96667C5.46694 2.85556 5.14267 2.8 4.80067 2.8C4.02244 2.8 3.36111 3.07222 2.81667 3.61667C2.27222 4.16111 2 4.82222 2 5.6V9.6H9.6V10.8H0ZM8.05 7.1L7.2 6.25C7.32222 6.12778 7.41111 5.99444 7.46667 5.85C7.52222 5.70556 7.55 5.55556 7.55 5.4C7.55 5.24444 7.52222 5.09722 7.46667 4.95833C7.41111 4.81944 7.32222 4.68889 7.2 4.56667L8.05 3.71667C8.27222 3.93889 8.44444 4.19444 8.56667 4.48333C8.68889 4.77222 8.75 5.07778 8.75 5.4C8.75 5.72222 8.68889 6.03056 8.56667 6.325C8.44444 6.61944 8.27222 6.87778 8.05 7.1ZM8.9 7.95C9.24444 7.61667 9.50556 7.23028 9.68333 6.79083C9.86111 6.3515 9.95 5.89067 9.95 5.40833C9.95 4.926 9.86111 4.46517 9.68333 4.02583C9.50556 3.58639 9.24444 3.19444 8.9 2.85L9.75 2C10.2056 2.45556 10.5528 2.975 10.7917 3.55833C11.0306 4.14167 11.15 4.75278 11.15 5.39167C11.15 6.03056 11.0306 6.64444 10.7917 7.23333C10.5528 7.82222 10.2056 8.34444 9.75 8.8L8.9 7.95Z" fill="currentColor" stroke="currentColor" strokeWidth="0.5" strokeLinejoin="round" />
+                                        </svg>
+                                      </button>
+                                    </Tooltip>
                                   </div>
                                 )}
                               </div>

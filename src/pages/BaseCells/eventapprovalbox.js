@@ -460,10 +460,10 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 																	</span>
 																)}
 															</div>
-															<div className="rfq-dv2-stage-waiting">
+															{/* <div className="rfq-dv2-stage-waiting">
 																<span className="rfq-dv2-mini-avatar">RC</span>
 																{pendingCount > 0 ? `Waiting on ${pendingCount}` : "Awaiting prior steps"}
-															</div>
+															</div> */}
 
 														</div>
 														<div className="col-md-2 d-flex align-items-baseline justify-content-end ps-3 me-0 pe-0">
