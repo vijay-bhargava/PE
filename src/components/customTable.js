@@ -163,15 +163,29 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                                     </div>
                                   )}
                                 </div>
-                                {onDelete && approver.status === 'Pending' && (
-                                  <button
-                                    type="button"
-                                    className="rfq-sidebar-approver-remove"
-                                    onClick={() => handleDeleteApprover(approver)}
-                                    aria-label="Remove approver"
-                                  >
-                                    <HiX />
-                                  </button>
+                                {approver.status === 'Pending' && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                    <Tooltip title="Send Reminder" placement="left">
+                                      <button
+                                        type="button"
+                                        className="rfq-sidebar-approver-reminder"
+                                        onClick={() => handleSendReminder(approver)}
+                                        aria-label="Send reminder"
+                                      >
+                                        <NotificationsActiveIcon style={{ fontSize: 12 }} />
+                                      </button>
+                                    </Tooltip>
+                                    {onDelete && (
+                                      <button
+                                        type="button"
+                                        className="rfq-sidebar-approver-remove"
+                                        onClick={() => handleDeleteApprover(approver)}
+                                        aria-label="Remove approver"
+                                      >
+                                        <HiX />
+                                      </button>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             );
@@ -200,28 +214,7 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
 
                                   {/* Status badge right next to name */}
                                   {approver.status && (
-                                    <span
-                                      className={`${approver.status} f12 fw500 approverAction`}
-                                      style={{
-                                        color:
-                                          approver.status === 'Approved'
-                                            ? '#fff'
-                                            : approver.status === 'Rejected'
-                                              ? '#fff'
-                                              : undefined,
-                                        backgroundColor:
-                                          approver.status === 'Approved'
-                                            ? 'green'
-                                            : approver.status === 'Rejected'
-                                              ? 'red'
-                                              : undefined,
-                                        padding: '2px 6px',
-                                        borderRadius: '4px',
-                                        lineHeight: 1.2,
-                                        display: 'inline-block',
-                                        whiteSpace: 'nowrap',
-                                      }}
-                                    >
+                                    <span className={`${approver.status} f12 fw500 approverAction`}>
                                       {approver.status}
                                     </span>
                                   )}

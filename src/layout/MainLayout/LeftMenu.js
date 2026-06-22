@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+﻿import React, { useRef, useEffect, useState } from 'react';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import { Box, Divider, MenuItem, IconButton } from '@mui/material';
 import { Link } from 'react-router-dom';
@@ -189,7 +189,7 @@ const LeftMenu = () => {
         </div>
         <div className="pe-top-divider" />
         <div className='logo-wrapper my-3'>
-          <Link to={`/${customersuffix}`}>
+          <Link to={`/`}>
             <img src={logo} alt='Logo' className='img-fluid sidebar-logo' />
           </Link>
         </div>
@@ -205,7 +205,7 @@ const LeftMenu = () => {
               : menulist;
 
             const key = `menulist${m.MenuName}-${i}`;
-            
+
             // If only one menu item, render as direct link
             if (sortedMenuItems && sortedMenuItems.length === 1) {
               const singleMenuItem = sortedMenuItems[0];
@@ -214,7 +214,7 @@ const LeftMenu = () => {
                   key={key}
                   to={singleMenuItem?.MenuLink}
                   className='sidebaraccmenu myacccmenu ms-1'
-                  style={{ 
+                  style={{
                     border: "none",
                     textDecoration: 'none',
                     display: 'flex',
@@ -232,7 +232,7 @@ const LeftMenu = () => {
                 </Link>
               );
             }
-            
+
             // If multiple menu items, render as dropdown
             return (
               <DropdownButton
@@ -278,9 +278,9 @@ const LeftMenu = () => {
             );
           })}
         </div>
-        <Box 
-          sx={{ 
-            display: 'flex', 
+        <Box
+          sx={{
+            display: 'flex',
             justifyContent: 'center',
             marginTop: 'auto',
             gap: 2,
@@ -291,7 +291,7 @@ const LeftMenu = () => {
           <Box>
             {<RaiseQueryCell isCollapsed={true} key={"raisequery"} />}
             <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <IconButton 
+              <IconButton
                 onClick={() => setIsChatbotOpen(!isChatbotOpen)}
                 title="AI Chatbot - Get Help"
                 sx={{

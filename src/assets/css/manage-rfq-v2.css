@@ -42,8 +42,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 0 6px;
-  font-size: 12px;
+  padding: 0;
+  font-size: 13px;
   color: #8b93a1;
   margin-bottom: 0;
   line-height: 1;

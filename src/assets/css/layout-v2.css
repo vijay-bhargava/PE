@@ -477,6 +477,10 @@
   padding: 6px 0 0;
   scrollbar-width: none;
 }
+.v2-sidebar.expanded .v2-menu-scroll {
+  padding-left: 12px;
+  padding-right: 12px;
+}
 .v2-menu-scroll::-webkit-scrollbar {
   display: none;
 }
@@ -794,8 +798,11 @@
   background: transparent;
 }
 
-.v2-sidebar.collapsed .v2-menu-item:hover .v2-menu-icon {
+.v2-sidebar.collapsed .v2-menu-item:hover {
   background: var(--v2-sidebar-hover);
+}
+.v2-sidebar.collapsed .v2-menu-item:hover .v2-menu-icon {
+  background: transparent;
   color: var(--v2-sidebar-icon-active);
 }
 

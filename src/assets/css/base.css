@@ -1752,11 +1752,12 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
-  background-color: #007bff;
-  color: #fff;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  padding: 12px 16px;
+  background-color: #ffffff;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  border: 1px solid #ccc;
+  font-family: "Inter", "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 .chat-body {
@@ -1764,6 +1765,7 @@ a {
   overflow-y: auto;
   flex-grow: 1;
   background-color: #f5f5f5;
+  font-family: "Inter", "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 .chat-input {
@@ -1771,6 +1773,7 @@ a {
   padding: 8px;
   border-top: 1px solid #ddd;
   background-color: #fff;
+  font-family: "Inter", "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 .message {
