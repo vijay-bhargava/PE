@@ -5459,7 +5459,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																disabled={(!stagearray.includes(currentStage)) || !canCreate}
 																onClick={() => canCreate && document.getElementById('itemuploadid').click()}
 															>
-																Excel Upload | <KeyboardArrowDownOutlined style={{ fontSize: 16 }} />
+																<span>Excel Upload</span>
+																<span className="rfq-question-action-chevron"><KeyboardArrowDownOutlined style={{ fontSize: 16 }} /></span>
 															</button>
 															<button
 																type="button"

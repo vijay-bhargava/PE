@@ -17,6 +17,7 @@ import {
   DialogActions,
   Box,
 } from "@mui/material";
+import { KeyboardArrowDownOutlined } from "@mui/icons-material";
 import "react-quill/dist/quill.snow.css";
 import "../../assets/css/manage-rfq-v2.css";
 import Dropdown from "react-bootstrap/Dropdown";
@@ -190,12 +191,9 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
       if (props.eventtype == "VQ") {
         props.CallbackSelectedQuestionList([...eventquestion, ...data])
       }
-
-
     }
-
-
   }
+
   const [isQuestionListLoading, setIsQuestionListLoading] = useState(false);
   //in order to handle event from parent component
   useImperativeHandle(EventQuestionScreenRef, () => ({
@@ -343,8 +341,6 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
     setOpenComponents(prev => ({ ...prev, [name]: false })); // Close the dialog
   };
 
-
-
   const callbackDeleteQuesFromList = (category, subcategory, questionDescription) => {
 
     setQuestionList((prevQuestions) => {
@@ -399,38 +395,42 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
 
   }
 
-
-
-
   return (
 
     <div className="p-3 pt-0 ps-0" style={{ overflow: "hidden" }}>
       <input className="d-none" id="itemuploadid" ref={fileInputRef} type="file" onChange={handleFileChange} />
-      <div className="mb-2">
-        {props.action && <label className="pe-field-label" style={{ color: "#374151" }}>Add Questions From Library</label>}
-      </div>
-      <div className="rfq-v2-toolbar" style={{ marginBottom: 12, alignItems: "flex-end" }}>
-        <div style={{ flex: 1 }}>
-          {props.action && <Autocomplete
-            disablePortal
-            id="combo-box-demo"
-            size="small"
-            options={Librarylist ?? []}
-            style={{ maxWidth: 360 }}
-            renderInput={(params) => (
-              <TextField {...params} InputLabelProps={{ shrink: false }} label="" />
-            )}
-            value={selectedLibrary}
-            getOptionLabel={(option) => option.libraryEntity ?? ""}
-            onChange={handleLibraryChange}
-          />}
+      <div className="rfq-question-toolbar">
+        <div className="rfq-question-toolbar-left">
+          <div className="rfq-question-library-field">
+            <Autocomplete
+              disablePortal
+              fullWidth
+              id="combo-box-demo"
+              size="small"
+              className="rfq-question-library-select"
+              options={Librarylist ?? []}
+              renderInput={(params) => (
+                <TextField {...params} InputLabelProps={{ shrink: false }} label="" placeholder="Add from Question Library" />
+              )}
+              value={selectedLibrary}
+              getOptionLabel={(option) => option.libraryEntity ?? ""}
+              onChange={handleLibraryChange}
+              disabled={!props.action}
+            />
+          </div>
         </div>
-        <div className="rfq-v2-toolbar-right">
+        <div className="rfq-question-toolbar-right">
+          {props.action && (props.permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false) && (
+            <button type="button" className="rfq-question-action-btn" onClick={() => setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }))}>
+              <HiPlusSm /> Blank Question
+            </button>
+          )}
           {props.action && (props.eventtype == "RFQ") && (
             <Dropdown align="end" className="d-inline-block">
               <Dropdown.Toggle as="div" id="gt" className="round-edit remove-tringle" role="button">
-                <button type="button" className="rfq-v2-tbtn">
-                  <HiOutlineDotsHorizontal /> More
+                <button type="button" className="rfq-question-action-btn rfq-question-action-btn--dropdown">
+                  <HiPlusSm /> <span>Bulk Questions</span>
+                  <span className="rfq-question-action-chevron"><KeyboardArrowDownOutlined style={{ fontSize: 16 }} /></span>
                 </button>
               </Dropdown.Toggle>
               <Dropdown.Menu className="ddl-menu">
@@ -439,11 +439,6 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
                 <MenuItem className="f14" onClick={handleDownloadExcelTemplate}>Excel Template</MenuItem>
               </Dropdown.Menu>
             </Dropdown>
-          )}
-          {props.action && (props.permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false) && (
-            <button type="button" className="rfq-v2-tbtn rfq-v2-tbtn-primary" onClick={() => setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }))}>
-              <HiPlusSm /> Add Question
-            </button>
           )}
         </div>
       </div>

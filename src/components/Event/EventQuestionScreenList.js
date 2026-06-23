@@ -1,5 +1,5 @@
 ﻿import { Accordion, AccordionDetails, InputAdornment, AccordionSummary, Alert, Button, IconButton, Typography, Card, Divider, Box, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Switch, FormGroup, FormControlLabel, Menu, MenuItem, Button as MuiButton, Tooltip, TextField, Stack } from '@mui/material';
-import { HiDownload, HiX, HiOutlineX, HiDotsVertical } from "react-icons/hi";
+import { HiDownload, HiX, HiOutlineX, HiDotsVertical, HiTrash } from "react-icons/hi";
 import { ExpandMore, Launch } from '@mui/icons-material';
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useFormik } from "formik";
@@ -1170,22 +1170,43 @@ const CategoryWiseTable = ({
 		initialState: {
 			density: 'compact',
 		},
+		displayColumnDefOptions: {
+			'mrt-row-expand': {
+				size: 44,
+				muiTableHeadCellProps: {
+					className: 'eq-category-expand-cell',
+				},
+				muiTableBodyCellProps: {
+					className: 'eq-category-expand-cell',
+				},
+			},
+		},
 		muiTableBodyRowProps: ({ row }) => ({
-			sx: {
-				backgroundColor: row.original.type === 'category' ? 'white' :
-					row.original.type === 'subcategory' ? 'white' : 'white'
-			}
+			className: `eq-category-row eq-category-row--${row.original.type || 'question'}`,
 		}),
+		muiTablePaperProps: {
+			className: 'eq-category-table-paper',
+			elevation: 0,
+		},
+		muiTableContainerProps: {
+			className: 'eq-category-table-container',
+		},
+		muiTableHeadCellProps: {
+			className: 'eq-category-head-cell',
+		},
+		muiTableBodyCellProps: {
+			className: 'eq-category-body-cell',
+		},
 		renderDetailPanel: ({ row }) => {
 			const rowData = row.original;
 
 			// Show question options for other event types (not in approval mode)
 			if (!isApprovalMode && rowData.question?.questionOption && rowData.question.questionOption.length > 0) {
 				return (
-					<Box sx={{ p: 2 }}>
-						<Typography variant="subtitle2" sx={{ mb: 1 }}>Question Options:</Typography>
-						<TableContainer component={Paper} sx={{ maxWidth: 600 }}>
-							<Table size="small">
+					<Box className="eq-category-detail-panel">
+						<Typography variant="subtitle2" className="eq-category-detail-title">Question Options:</Typography>
+						<TableContainer component={Paper} className="eq-question-options-table-container eq-category-options-table-container">
+							<Table size="small" className="eq-question-options-table eq-category-options-table">
 								<TableHead>
 									<TableRow>
 										<TableCell><strong>Option</strong></TableCell>
@@ -2661,7 +2682,7 @@ const EventQuestionScreenList = ({ questions, callbackDeleteQuesFromList, callba
 	});
 
 	return (
-		<Box sx={{ paddingBottom: 2, paddingLeft: 2, paddingRight: 2 }}>
+		<Box sx={{ paddingBottom: 2, }}>
 			{(() => {
 				const hasReadPermission = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false;
 				const hasEditPermission = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) ?? false;
@@ -2686,33 +2707,32 @@ const EventQuestionScreenList = ({ questions, callbackDeleteQuesFromList, callba
 
 				return (
 					<>
-						{questions && questions?.length > 0 && <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '100dvw' }}>
-							{/* Hide view mode selector for VQ/SQE events */}
-							{eventtype !== "VQ" && eventtype !== "SQE" && (
-								<Dropdown align="start" className="d-inline-block">
-									<Dropdown.Toggle as="div" id="view-mode-toggle" className="round-edit remove-tringle" role="button">
-										<button type="button" className="rfq-v2-tbtn" style={{ fontSize: "12px", fontWeight: 600, color: "#2a68d3", borderColor: "#dbeafe", background: "#eff6ff" }}>
-											{viewMode ? viewMode.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "Select View"}
+						{questions && questions?.length > 0 && eventtype !== "VQ" && eventtype !== "SQE" && (
+							<Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+								<div className="eq-view-tabs">
+									<button
+										className={`eq-view-tab${viewMode === 'question-wise' ? ' eq-view-tab--active' : ''}`}
+										onClick={() => handleViewModeChange('question-wise')}
+									>
+										Question Wise
+									</button>
+									<button
+										className={`eq-view-tab${viewMode === 'category-wise' ? ' eq-view-tab--active' : ''}`}
+										onClick={() => handleViewModeChange('category-wise')}
+									>
+										Category Wise
+									</button>
+									{questionresponses && questionresponses.length > 0 && (
+										<button
+											className={`eq-view-tab${viewMode === 'cross-supplier-benchmarking' ? ' eq-view-tab--active' : ''}`}
+											onClick={() => handleViewModeChange('cross-supplier-benchmarking')}
+										>
+											Cross-Supplier
 										</button>
-									</Dropdown.Toggle>
-									<Dropdown.Menu className="ddl-menu" style={{ minWidth: "160px", width: "160px" }}>
-										{questionresponses && questionresponses.length > 0 && <Dropdown.Item className="f13" onClick={() => handleViewModeChange("cross-supplier-benchmarking")}>Cross-Supplier Benchmarking</Dropdown.Item>}
-										<Dropdown.Item className="f13" onClick={() => handleViewModeChange("category-wise")}>Category Wise</Dropdown.Item>
-										<Dropdown.Item className="f13" onClick={() => handleViewModeChange("question-wise")}>Question Wise</Dropdown.Item>
-									</Dropdown.Menu>
-								</Dropdown>
-							)}
-							{/* For VQ/SQE events, show a static label */}
-							{(eventtype === "VQ") && (
-								<Typography variant="h6">
-
-								</Typography>
-							)}
-							<div>
-								{/* Buttons moved inline with score input for better UX */}
-							</div>
-
-						</Box>}
+									)}
+								</div>
+							</Box>
+						)}
 
 						{(() => {
 							const useCategoryWise = viewMode === 'category-wise' || currentStage === 'Qualified' || eventtype === "VQ";
@@ -2772,70 +2792,71 @@ const EventQuestionScreenList = ({ questions, callbackDeleteQuesFromList, callba
 							})()
 						)
 							: viewMode === 'question-wise' ? (
-								<div className="mt-2 item-Table  ">
+								<div className="mt-2 item-Table eq-question-list">
 									<Box >
 										{questions && questions.length > 0 ? (
 											questions.map((item, index) => (
-												<Card key={index} sx={{ marginBottom: "12px", padding: "14px 16px", borderRadius: "10px", border: "1px solid #e5e7eb", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
-													<Box display="flex" justifyContent="space-between" alignItems="center">
-														<div className="d-flex align-items-center gap-5">
-															<Typography variant="body1" sx={{ fontWeight: 600, fontSize: '13px', color: '#1f2937' }}>Q{index + 1}: {item.questionDescription}</Typography>
+												<Card key={index} className="eq-question-card">
+													<Box className="eq-question-card-body">
+														<Box className="eq-question-card-content">
+															<Typography variant="body1" className="eq-question-title">
+																Q{index + 1}: {item.questionDescription}
+															</Typography>
+															<Box className="eq-question-meta">
+																{item.questionRequirement && <>
+																	<Typography variant="body2">
+																		<strong>Requirement:</strong> {item.questionRequirement}
+																	</Typography>
+																	<span className="eq-meta-divider">|</span>
+																</>}
+																<Typography variant="body2">
+																	<strong>Attachment:</strong> {item.attachement ? 'Yes' : 'No'}
+																</Typography>
+																<span className="eq-meta-divider">|</span>
+																<Typography variant="body2">
+																	<strong>Mandatory:</strong> {item.mandatory ? 'Yes' : 'No'}
+																</Typography>
+																{item.weightage != "0" && <>
+																	<span className="eq-meta-divider">|</span>
+																	<Typography variant="body2">
+																		<strong>Weightage:</strong> {item.weightage}
+																	</Typography>
+																</>}
+																{item.questionCategory && <>
+																	<span className="eq-meta-divider">|</span>
+																	<Typography variant="body2">
+																		<strong>Category:</strong> {item.questionCategory}
+																	</Typography>
+																</>}
+																{item.questionSubCategory && <>
+																	<span className="eq-meta-divider">|</span>
+																	<Typography variant="body2">
+																		<strong>Sub-Category:</strong> {item.questionSubCategory}
+																	</Typography>
+																</>}
+															</Box>
+														</Box>
+														<Box className="eq-question-actions">
 															{item.attachedFileName && (
-																<Tooltip
-																	title={getFileName(item.attachedFileName)}
-																	arrow
-																	componentsProps={{
-																		tooltip: {
-																			sx: {
-																				fontSize: '14px',
-																				maxWidth: 'none'
-																			}
-																		}
-																	}}
-																>
-																	<IconButton
-																		color="primary"
-																		size="medium"
-																		onClick={() => onClickDownload(item)}
-																		sx={{ fontSize: '20px' }}
-																	>
-																		<HiDownload />
+																<Tooltip title={getFileName(item.attachedFileName)} arrow>
+																	<IconButton size="small" className="eq-question-icon-btn eq-question-icon-btn--download" onClick={() => onClickDownload(item)}>
+																		<HiDownload size={16} />
 																	</IconButton>
 																</Tooltip>
 															)}
-														</div>
-														{action && (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false) && <IconButton onClick={() => callbackDeleteQuesFromList(item?.questionCategory, item?.questionSubCategory, item.questionDescription)} color="error">
-															<HiX />
-														</IconButton>}
-
-													</Box>
-
-													<Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
-														{item.questionRequirement && <Typography variant="body2" color="textSecondary">
-															<strong>Requirement:</strong> {item.questionRequirement}
-														</Typography>}
-														<Typography variant="body2" color="textSecondary">
-															<strong>Attachment:</strong> {item.attachement ? 'Yes' : 'No'}
-														</Typography>
-														<Typography variant="body2" color="textSecondary">
-															<strong>Mandatory:</strong> {item.mandatory ? 'Yes' : 'No'}
-														</Typography>
-														{item.weightage != "0" && <Typography variant="body2" color="textSecondary">
-															<strong>Weightage:</strong> {item.weightage}
-														</Typography>}
-														{item.questionCategory && <Typography variant="body2" color="textSecondary">
-															<strong>Category:</strong> {item.questionCategory}
-														</Typography>}
-														{item.questionSubCategory && <Typography variant="body2" color="textSecondary">
-															<strong>Sub-Category:</strong> {item.questionSubCategory}
-														</Typography>}
+															{action && (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false) && (
+																<IconButton size="small" className="eq-question-icon-btn eq-question-icon-btn--delete" onClick={() => callbackDeleteQuesFromList(item?.questionCategory, item?.questionSubCategory, item.questionDescription)}>
+																	<HiTrash size={15} />
+																</IconButton>
+															)}
+														</Box>
 													</Box>
 
 
 													{item?.questionOption && item?.questionOption.length > 0 && (
-														<Box sx={{ marginTop: 1 }}>
-															<TableContainer component={Paper} sx={{ overflow: 'hidden' }}>
-																<Table size="small" sx={{ minWidth: 650, tableLayout: 'fixed' }}>
+														<Box className="eq-question-options-wrap">
+															<TableContainer component={Paper} className="eq-question-options-table-container">
+																<Table size="small" className="eq-question-options-table">
 																	<TableHead>
 																		<TableRow>
 																			<TableCell align="left" sx={{ width: '30%' }}><strong>Options</strong></TableCell>
