@@ -704,7 +704,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                         />
                      
                     </div> */}
-          <div className='col-12 col-md-12 mb-4'>
+          <div className='col-12 col-md-6 mb-4'>
             <label className="pe-field-label">Description *</label>
             <TextField
               fullWidth
@@ -720,7 +720,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               onChange={formik.handleChange}
               error={formik.touched.itemDesc && Boolean(formik.errors.itemDesc)}
               helperText={formik.touched.itemDesc && formik.errors.itemDesc}
-              disabled={!!itemEditTempData.itemRefId} // Disable when itemRefId exists
+              disabled={!!itemEditTempData.itemRefId}
               InputProps={{
                 endAdornment: formik.values.itemDesc && (
                   <InputAdornment position="end">
@@ -731,10 +731,9 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 ),
               }}
             />
-
           </div>
 
-          <div className='col-12 col-md-12 mb-4'>
+          <div className='col-12 col-md-6 mb-4'>
             <label className="pe-field-label">Remark</label>
             <TextField
               fullWidth
@@ -760,7 +759,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 ),
               }}
             />
-
           </div>
 
           <div className='col-12 col-md-4 mb-4'>
@@ -798,7 +796,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
             />
           </div>
           <div className='col-12 col-md-4 mb-4'>
-            <label className="pe-field-label">Target / Budget Price</label>
             <label className="pe-field-label">Quantity *</label>
             <TextField
               fullWidth
@@ -1042,7 +1039,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 slotProps={{
                   textField: {
                     variant: 'outlined', size: 'small',
-                    InputLabelProps: { shrink: true },
+                    InputLabelProps: { shrink: false },
                     error: formik.touched.deliveryDate && Boolean(formik.errors.deliveryDate),
                     helperText: formik.touched.deliveryDate && formik.errors.deliveryDate
                   }
@@ -1231,11 +1228,11 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
         </div>
         <hr className='mt-0' />
         <div className='row mt-2'>
-          <div className='col-span-12 mt-2 mb-4'>
+          <div className='col-12 mt-2 mb-4 font-bold'>
             Last PO Details (Optional)
           </div>
           <div className='col-12 col-md-4 mb-4'>
-            <label className="pe-field-label">Target / Budget Price</label>
+            <label className="pe-field-label">PO Number</label>
             <TextField
               fullWidth
               variant="outlined"
@@ -1243,7 +1240,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               className='f14'
               id="poNumber"
               name="poNumber"
-              label="PO Number"
               inputProps={{ maxLength: 20 }}
               value={formik?.values?.poNumber}
               onChange={formik?.handleChange}
@@ -1259,9 +1255,9 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 ),
               }}
             />
-
           </div>
-          <div className='col-12 col-md-8 mb-4'>
+          <div className='col-12 col-md-4 mb-4'>
+            <label className="pe-field-label">Supplier Name</label>
             <Autocomplete
               fullWidth
               size="small"
@@ -1342,11 +1338,9 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Supplier Name"
                   variant="outlined"
                   error={formik.touched.poVendorName && Boolean(formik.errors.poVendorName)}
                   helperText={formik.touched.poVendorName && formik.errors.poVendorName}
-                  InputLabelProps={{ shrink: true }}
                   placeholder={
                     formik.values.poVendorName === "" && params.focused
                       ? "Enter supplier name"
@@ -1358,7 +1352,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </div>
 
           <div className='col-12 col-md-4 mb-4'>
-            <label className="pe-field-label">Target / Budget Price</label>
+            <label className="pe-field-label">Unit Rate</label>
             <TextField
               fullWidth
               variant="outlined"
@@ -1366,13 +1360,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               className='f14'
               id="poUnitRate"
               name="poUnitRate"
-              label="Unit Rate "
               value={formik?.values?.poUnitRate}
-              InputProps={{
-                step: 0.0001, // Set the step to 0.01 to allow for two decimal places
-                min: 0,
-                max: 100,
-              }}
+              InputProps={{ step: 0.0001, min: 0, max: 100 }}
               type="number"
               onChange={(e) => {
                 const regex = /^[0-9]*\.?[0-9]{0,4}$/;
@@ -1385,10 +1374,10 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
             />
           </div>
           <div className='col-12 col-md-4 mb-4'>
+            <label className="pe-field-label">PO Date</label>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <MobileDatePicker
                 variant="outlined"
-                label="PO Date"
                 size="small"
                 name='poDate'
                 id='poDate'
@@ -1397,7 +1386,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 slotProps={{
                   textField: {
                     variant: 'outlined', size: 'small',
-                    InputLabelProps: { shrink: true },
+                    InputLabelProps: { shrink: false },
                     error: formik.touched.poDate && Boolean(formik.errors.poDate),
                     helperText: formik.touched.poDate && formik.errors.poDate
                   }
@@ -1405,13 +1394,11 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 onChange={newValue => {
                   formik.setFieldValue('poDate', newValue);
                 }}
-              //   format="L hh:mm a"
               />
             </LocalizationProvider>
-
           </div>
           <div className='col-12 col-md-4 mb-4'>
-            <label className="pe-field-label">Target / Budget Price</label>
+            <label className="pe-field-label">PO Value</label>
             <TextField
               fullWidth
               variant="outlined"
@@ -1419,13 +1406,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               className='f14'
               id="poValue"
               name="poValue"
-              label="PO Value"
               value={formik.values.poValue}
-              InputProps={{
-                step: 0.001, // Set the step to 0.01 to allow for two decimal places
-                min: 0,
-                max: 100,
-              }}
+              InputProps={{ step: 0.001, min: 0, max: 100 }}
               type="number"
               onChange={(e) => {
                 const regex = /^[0-9]*\.?[0-9]{0,4}$/;
