@@ -123,7 +123,6 @@ import {
 	scrollToTargetC,
 	userampm,
 } from "../../../utils/common/utility";
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
 import { DateTimePicker, LocalizationProvider, MobileDateTimePicker, renderTimeViewClock } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -141,14 +140,8 @@ import { ApiClient, api } from "../../../Apiclient";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
 import AttachmentWorkFlow from "../../BaseCells/attachmentworkflow";
 import {
-	ChevronLeft,
-	ChevronRight,
 	Close,
-	DoubleArrow,
-	ExpandMore,
-	KeyboardDoubleArrowLeft,
-	KeyboardDoubleArrowRight,
-	PushPinOutlined,
+	KeyboardArrowDownOutlined,
 } from "@mui/icons-material";
 import EventApprovalBox from "../../BaseCells/eventapprovalbox";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
@@ -4447,7 +4440,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						</div>
 
 						{/* Tab Navigation and Icons Header */}
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 bg-grey">
+						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 bg-grey" style={{ flexShrink: 0 }}>
 							{/* Tab Navigation */}
 							<Box sx={{
 								flexGrow: 1,
@@ -4579,10 +4572,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						</div>
 
 						{/* Tab Content */}
-						<div className={`flex-grow-1 hidden-scrollbar ${(!idFromURL || idFromURL === "add") ? "rfq-dv2-create-form" : ""}`} style={{
-							height: 'calc(100% - 60px)',
-							padding: '20px 16px 16px',
-						}}>
+						<div className={`flex-grow-1 hidden-scrollbar ${(!idFromURL || idFromURL === "add") ? "rfq-dv2-create-form" : ""}`} style={{ overflowY: 'auto', padding: '20px 16px 16px' }}>
 							{/* General Tab Content */}
 							{value === 1 && (
 								<div>
@@ -5392,7 +5382,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 							{/* Items/Services Tab Content */}
 							{value === 2 && (
-								<div>
+								<div className="rfq-items-tab-content">
 									{(() => {
 										// Permission control for Items/Services tab
 										const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false;
@@ -5429,7 +5419,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											);
 										}
 										return (
-											<div className="mb-5">
+											<div>
 												{/* Permission Alert for Items/Services Tab */}
 												{permissionManager && (
 													<div className="pb-0">
@@ -5439,33 +5429,60 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 												<div className="p-3 pt-0">
 													{/* Items/Services toolbar */}
-													<div className="rfq-v2-toolbar" style={{ marginBottom: 12 }}>
-														<span className="f13 fw500" style={{ color: '#1f2937' }}>
-															{rfqItemsList?.length > 0 ? `${rfqItemsList.length} item${rfqItemsList.length !== 1 ? 's' : ''}` : ''}
-														</span>
-														<div className="rfq-v2-toolbar-right">
-															{rfqItemsList?.length > 0 && canRemove && (
-																<Tooltip title="Clear All">
-																	<button type="button" className="rfq-v2-tbtn" style={{ color: '#b8232f', borderColor: '#fecaca' }} onClick={() => setConfirmClearAllItems(true)} disabled={!stagearray.includes(currentStage)}>
-																		<HiOutlineX /> Clear All
-																	</button>
-																</Tooltip>
-															)}
-															<Dropdown align="end" className="d-inline-block">
-																<Dropdown.Toggle as="div" id="gt" className="round-edit remove-tringle" role="button">
-																	<button type="button" className="rfq-v2-tbtn" disabled={(!stagearray.includes(currentStage)) || (!canCreate && !canEdit)}>
-																		<HiOutlineDotsHorizontal /> More
-																	</button>
-																</Dropdown.Toggle>
-																<Dropdown.Menu className="ddl-menu">
-																	<MenuItem className="f14" disabled={(!stagearray.includes(currentStage)) || !canCreate}>Pull PR Data</MenuItem>
-																	<MenuItem className="f14" disabled={(!stagearray.includes(currentStage)) || !canCreate} onClick={() => canCreate && document.getElementById('itemuploadid').click()}>Excel Upload</MenuItem>
-																	<MenuItem className="f14" onClick={downloadItemsExcel} disabled={(!stagearray.includes(currentStage)) || !canRead}>Excel Template</MenuItem>
-																</Dropdown.Menu>
-															</Dropdown>
-															<button type="button" className="rfq-v2-tbtn rfq-v2-tbtn-primary" onClick={toggleDrawer("addProductDrawer", true)} disabled={(!stagearray.includes(currentStage)) || !canCreate}>
-																<HiPlusSm /> Add New
+													<div className="rfq-items-toolbar">
+														{/* <div className="rfq-items-toolbar-left">
+															<span className="rfq-items-count">
+																{rfqItemsList?.length > 0 ? `${rfqItemsList.length} item${rfqItemsList.length !== 1 ? 's' : ''}` : ''}
+															</span>
+														</div> */}
+														<div className="rfq-items-toolbar-right">
+															<button
+																type="button"
+																className="rfq-items-btn rfq-items-btn--primary"
+																onClick={toggleDrawer("addProductDrawer", true)}
+																disabled={(!stagearray.includes(currentStage)) || !canCreate}
+															>
+																<HiPlusSm /> Items/Services
 															</button>
+															<span className="rfq-items-divider" />
+															<button
+																type="button"
+																className="rfq-items-btn rfq-items-btn--secondary"
+																disabled={(!stagearray.includes(currentStage)) || !canCreate}
+															>
+																Pull PR Data
+															</button>
+															<span className="rfq-items-divider" />
+															<button
+																type="button"
+																className="rfq-items-btn rfq-items-btn--secondary rfq-items-btn--with-chevron"
+																disabled={(!stagearray.includes(currentStage)) || !canCreate}
+																onClick={() => canCreate && document.getElementById('itemuploadid').click()}
+															>
+																<span>Excel Upload</span>
+																<span className="rfq-question-action-chevron"><KeyboardArrowDownOutlined style={{ fontSize: 16 }} /></span>
+															</button>
+															<button
+																type="button"
+																className="rfq-items-btn rfq-items-btn--secondary"
+																disabled={(!stagearray.includes(currentStage)) || !canRead}
+																onClick={downloadItemsExcel}
+															>
+																Export Line Items
+															</button>
+															{rfqItemsList?.length > 0 && canRemove && (
+																<>
+																	<span className="rfq-items-divider" />
+																	<button
+																		type="button"
+																		className="rfq-items-btn rfq-items-btn--ghost"
+																		onClick={() => setConfirmClearAllItems(true)}
+																		disabled={!stagearray.includes(currentStage)}
+																	>
+																		Clear
+																	</button>
+																</>
+															)}
 														</div>
 													</div>
 													<div className="">

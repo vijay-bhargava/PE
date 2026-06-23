@@ -726,34 +726,26 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 								}
 
 								return Action && (
-									<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12, padding: "8px 0" }}>
-										<div style={{ flex: 1, maxWidth: 340 }}>
-											<label style={{
-												display: "block",
-												fontSize: 11,
-												fontWeight: 600,
-												color: "#6b7280",
-												marginBottom: 4,
-												textTransform: "none",
-												letterSpacing: "0.05em"
-											}}>
-												Commercial Library
-											</label>
-											<Autocomplete
-												disablePortal
-												id="combo-box-demo"
-												size="small"
-												options={CommercialLibrary || [{ label: "Loading...", id: 0 }]}
-												getOptionLabel={(option) => option?.libraryEntity ?? ""}
-												fullWidth
-												value={SelectedCommercialLibrary}
-												renderOption={(props, option) => (
-													<div {...props}><div style={{ padding: "4px 8px" }}>{option?.libraryEntity || "No selection"}</div></div>
-												)}
-												onChange={(e, values) => { setSelectedCommercialLibrary(values); getLibraryTermsList(values); }}
-												renderInput={(params) => <TextField {...params} label="" InputLabelProps={{ shrink: false }} size="small" />}
-												disabled={!Action}
-											/>
+									<div className="rfq-question-toolbar">
+										<div className="rfq-question-toolbar-left">
+											<div className="rfq-question-library-field">
+												<Autocomplete
+													disablePortal
+													id="combo-box-demo"
+													size="small"
+													className="rfq-question-library-select"
+													options={CommercialLibrary || [{ label: "Loading...", id: 0 }]}
+													getOptionLabel={(option) => option?.libraryEntity ?? ""}
+													fullWidth
+													value={SelectedCommercialLibrary}
+													renderOption={(props, option) => (
+														<div {...props}><div style={{ padding: "4px 8px" }}>{option?.libraryEntity || "No selection"}</div></div>
+													)}
+													onChange={(e, values) => { setSelectedCommercialLibrary(values); getLibraryTermsList(values); }}
+													renderInput={(params) => <TextField {...params} label="" placeholder="Add from Commercial Library" InputLabelProps={{ shrink: false }} size="small" />}
+													disabled={!Action}
+												/>
+											</div>
 										</div>
 										<button
 											type="button"
@@ -786,7 +778,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 
 													return LibraryTermsList.length > 0 ? (
 														<div style={{ overflowX: "auto", overflowY: "auto", maxHeight: "65vh", borderRadius: 8, border: "1px solid #e5e7eb" }}>
-															<table style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse", fontFamily: "\"Inter\",\"Segoe UI\",system-ui,sans-serif" }}>
+															<table style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
 																<thead>
 																	<tr style={{ background: "#f9fafb", position: "sticky", top: 0, zIndex: 2 }}>
 																		<th style={{ width: "22%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left", whiteSpace: "nowrap" }}>
@@ -802,83 +794,73 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																<tbody>
 																	{LibraryTermsList && LibraryTermsList.length > 0 && LibraryTermsList?.map((item, index) => {
 																		return (
-																			<tr key={index} style={{ background: index % 2 === 0 ? "#fff" : "#fafafa", transition: "background 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"} onMouseLeave={e => e.currentTarget.style.background = index % 2 === 0 ? "#fff" : "#fafafa"}>
+																			<tr key={index} style={{ background: "#fff" }}>
 																				<td style={{ padding: "8px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
-																					{(item?.isSelected && (isTermRequiredByFormula(item.fieldName, index) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name))) ? (
-																						<WhiteTooltip
-																							title={
-																								isOnlyNetPriceTerm(item.name)
-																									? "This term cannot be deselected as it is the only available Net Price term. At least one Net Price term must be selected."
-																									: isNetPriceTerm(item.name)
-																										? "This term cannot be deselected as it is selected as the Net Price term"
-																										: "This term cannot be deselected as it is required by other selected formula terms"
-																							}
-																						>
-																							<span>
-																								<Checkbox
-																									checked={item?.isSelected}
-																									onChange={(e) => handleCommercialItemCheck(index, e.target.checked, item, "check")}
-																									disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || (item?.isSelected && (isTermRequiredByFormula(item.fieldName, index) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name)))}
-																								/>
-																							</span>
-																						</WhiteTooltip>
-																					) : (
-																						<Checkbox
-																							checked={item?.isSelected}
-																							onChange={(e) => handleCommercialItemCheck(index, e.target.checked, item, "check")}
-																							disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || (item?.isSelected && (isTermRequiredByFormula(item.fieldName, index) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name)))}
-																						/>
-																					)}
-																					{item?.name}
-																					{item?.formulavalue && (
-																						<Tooltip
-																							title={
-																								<span style={{ fontSize: '12px', fontWeight: '500' }}>
-																									Formula: {item?.formulavalue}
-																								</span>
-																							}
-																							arrow
-																						>
-																							<span style={{ cursor: 'pointer', display: 'inline-block' }}>
-																								<FunctionsIcon className="ms-1 f28 text-info" />
-																							</span>
-																						</Tooltip>
-																					)}
-																					{item?.isSelected && isOnlyNetPriceTerm(item.name) && (
-																						<WhiteTooltip title="Only available Net Price term - required">
-																							{/* <span className="badge bg-danger ms-2 f10">Only Net Price</span> */}
-																						</WhiteTooltip>
-																					)}
 																					{item?.isSelected && isTermRequiredByFormula(item.fieldName, index) && (
-																						<WhiteTooltip title="Required by formula terms">
-																							<span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 4, background: "#dbeafe", color: "#1d4ed8", marginLeft: 6 }}>Required</span>
-																						</WhiteTooltip>
+																						<div style={{ marginBottom: 3 }}>
+																							<span className="comm-required-chip">REQUIRED</span>
+																						</div>
 																					)}
-																					{item?.isSelected && isNetPriceTerm(item.name) && !isOnlyNetPriceTerm(item.name) && (
-																						<WhiteTooltip title="Selected as Net Price term">
-																							<span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 4, background: "#dcfce7", color: "#166534", marginLeft: 6 }}>Net Price</span>
-																						</WhiteTooltip>
-																					)}
-																					{item?.termsId == 0 && Action && (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) && <IconButton
-																						size="small"
-																						className=""
-																						onClick={() => {
-																							setEditRecordData(item);
-																							toggleOpenDrawer("AddNewTerm", true);
-																						}}
-																					>
-																						<HiPencilAlt className="f17 text-primary" />
-																					</IconButton>}
-																					{item?.termsId == 0 && Action && (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.REMOVE) ?? false) && <IconButton
-																						size="small"
-																						className=""
-																						onClick={() => {
-																							setLibraryTermsList(prev => prev.filter((_, i) => i !== index));
-																						}}
-																					>
-																						<HiOutlineX className="f17 text-primary" />
-																					</IconButton>}
-
+																					<div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+																						{(item?.isSelected && (isTermRequiredByFormula(item.fieldName, index) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name))) ? (
+																							<WhiteTooltip
+																								title={
+																									isOnlyNetPriceTerm(item.name)
+																										? "This term cannot be deselected as it is the only available Net Price term. At least one Net Price term must be selected."
+																										: isNetPriceTerm(item.name)
+																											? "This term cannot be deselected as it is selected as the Net Price term"
+																											: "This term cannot be deselected as it is required by other selected formula terms"
+																								}
+																							>
+																								<span>
+																									<Checkbox
+																										checked={item?.isSelected}
+																										onChange={(e) => handleCommercialItemCheck(index, e.target.checked, item, "check")}
+																										disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || (item?.isSelected && (isTermRequiredByFormula(item.fieldName, index) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name)))}
+																									/>
+																								</span>
+																							</WhiteTooltip>
+																						) : (
+																							<Checkbox
+																								checked={item?.isSelected}
+																								onChange={(e) => handleCommercialItemCheck(index, e.target.checked, item, "check")}
+																								disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || (item?.isSelected && (isTermRequiredByFormula(item.fieldName, index) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name)))}
+																							/>
+																						)}
+																						<span>{item?.name}</span>
+																						{item?.formulavalue && (
+																							<Tooltip
+																								title={
+																									<span style={{ fontSize: '12px', fontWeight: '500' }}>
+																										Formula: {item?.formulavalue}
+																									</span>
+																								}
+																								arrow
+																							>
+																								<span style={{ display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer", color: "#1976d2", marginLeft: 40 }}>
+																									<FunctionsIcon style={{ fontSize: 15, color: "#B0B0B0" }} />
+																									<span style={{ fontSize: 12, fontWeight: 600, textDecoration: "underline" }}>View Formula</span>
+																								</span>
+																							</Tooltip>
+																						)}
+																						{item?.isSelected && isNetPriceTerm(item.name) && !isOnlyNetPriceTerm(item.name) && (
+																							<WhiteTooltip title="Selected as Net Price term">
+																								<span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 4, background: "#dcfce7", color: "#166534", marginLeft: 4 }}>Net Price</span>
+																							</WhiteTooltip>
+																						)}
+																						{item?.termsId == 0 && Action && (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) && <IconButton
+																							size="small"
+																							onClick={() => { setEditRecordData(item); toggleOpenDrawer("AddNewTerm", true); }}
+																						>
+																							<HiPencilAlt className="f17 text-primary" />
+																						</IconButton>}
+																						{item?.termsId == 0 && Action && (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.REMOVE) ?? false) && <IconButton
+																							size="small"
+																							onClick={() => { setLibraryTermsList(prev => prev.filter((_, i) => i !== index)); }}
+																						>
+																							<HiOutlineX className="f17 text-primary" />
+																						</IconButton>}
+																					</div>
 																				</td>
 																				<td style={{ padding: "8px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
 																					{item?.valuetype === "Currency" && item?.formulavalue && (
@@ -887,9 +869,6 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																							onChange={(e) => handleGrandTotalCheck(index, e.target.checked, item)}
 																							disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || (item.name == SelectedCommercialLibrary?.grandTotalTermName && isOnlyNetPriceTerm(item.name))}
 																						/>
-
-
-
 																					)}
 																				</td>
 
@@ -925,9 +904,6 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																									</RadioGroup>
 																								</span>
 																							</WhiteTooltip>
-																							<WhiteTooltip title="Level locked due to formula dependency">
-																								<span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 4, background: "#fef9c3", color: "#92400e", marginLeft: 6 }}>Level Locked</span>
-																							</WhiteTooltip>
 																						</div>
 																					) : (
 																						<RadioGroup
@@ -958,53 +934,35 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 
 																				</td>
 																				<td style={{ padding: "8px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
-
 																					{item?.valuetype === "Currency" && item?.name !== item?.grandTotalTermName && (
-																						<div
-																							className="f12 fw600 text-muted d-flex align-items-center"
-																							onClick={() => {
-																								setModal1(true);
-																								setModalCurrencyIndex(index);
-
-																								const multiCurrencyData = EventGeneralDetails?.multicurrencytList?.[0]; // Assuming single entry
-																								if (EventGeneralDetails?.IsMultiCurrency && multiCurrencyData) {
-																									setModalCurrency({
-																										id: multiCurrencyData.id,
-																										baseCurrency: multiCurrencyData.baseCurrency,
-																										currencyConversion: multiCurrencyData.currencyConversion,
-																										rfqId: multiCurrencyData.rfqId
-																									});
-																								} else {
-																									setModalCurrency({
-																										id: "0",
-																										baseCurrency: EventGeneralDetails.baseCurrency || "",
-																										currencyConversion: "1",
-																										rfqId: EventId
-																									});
-																								}
-																							}}
-																							style={{ cursor: "pointer" }}
-																							disabled={!Action}
-																						>
-																							{(EventGeneralDetails?.IsMultiCurrency && (!item?.AcceptedCurrency || !item?.currencyConversion)) ? (
-																								<span style={{ color: "#1987d2" }}>
-																									Set
-																								</span>
-																							) : (
-																								<span style={{ color: "#1987d2" }}>
-																									{`${item?.AcceptedCurrency || EventGeneralDetails?.baseCurrency}/${item?.currencyConversion || "1"}`}
-																								</span>
+																						<div className="d-flex align-items-center gap-1">
+																							<span className="f12 fw600" style={{ color: "#1f2937" }}>
+																								{(EventGeneralDetails?.IsMultiCurrency && (!item?.AcceptedCurrency || !item?.currencyConversion))
+																									? "—"
+																									: `${item?.AcceptedCurrency || EventGeneralDetails?.baseCurrency}/${item?.currencyConversion || "1"}`}
+																							</span>
+																							{Action && (
+																								<button
+																									type="button"
+																									className="comm-uom-update-btn"
+																									onClick={() => {
+																										setModal1(true);
+																										setModalCurrencyIndex(index);
+																										const multiCurrencyData = EventGeneralDetails?.multicurrencytList?.[0];
+																										if (EventGeneralDetails?.IsMultiCurrency && multiCurrencyData) {
+																											setModalCurrency({ id: multiCurrencyData.id, baseCurrency: multiCurrencyData.baseCurrency, currencyConversion: multiCurrencyData.currencyConversion, rfqId: multiCurrencyData.rfqId });
+																										} else {
+																											setModalCurrency({ id: "0", baseCurrency: EventGeneralDetails.baseCurrency || "", currencyConversion: "1", rfqId: EventId });
+																										}
+																									}}
+																								>
+																									Update
+																								</button>
 																							)}
 																						</div>
 																					)}
 																					{item?.valuetype === "Percentage" && item?.name !== item?.grandTotalTermName && (
-																						<div
-																							className="f12 fw600 text-muted d-flex align-items-center"
-																						>
-																							<span style={{ color: "#1987d2" }}>
-																								{`${item?.valuetype}`}
-																							</span>
-																						</div>
+																						<span className="f12 fw600" style={{ color: "#1f2937" }}>Percentage (%)</span>
 																					)}
 																				</td>
 																				<td style={{ padding: "8px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
@@ -1092,187 +1050,71 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 				backdrop="static"
 				keyboard={false}
 				centered
-				contentClassName="border-0 "
+				contentClassName="border-0"
 				onHide={() => handleCloseModal1()}
-				style={{ borderRadius: "5px" }}
 			>
-				<Modal.Header className="bgheaderCards p-2">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14  text-white">
-							Select Currency Mode
+				<div className="comm-currency-modal">
+					<div className="comm-currency-modal-header">
+						<span className="comm-currency-modal-title">Select Currency Mode</span>
+						<IconButton onClick={() => handleCloseModal1()} size="small">
+							<Close style={{ fontSize: 18 }} />
+						</IconButton>
+					</div>
+					<div className="comm-currency-modal-body">
+						<div className="mb-3">
+							<label className="pe-field-label">Select Currency <span className="text-danger">*</span></label>
+							<TextField
+								id="basecurrencymodal"
+								name="baseCurrency"
+								select
+								fullWidth
+								size="small"
+								variant="outlined"
+								value={modalCurrency.baseCurrency}
+								onChange={(e) => {
+									const newValue = e.target.value;
+									if (newValue === "new") { setOpenCurrencyModal(true); return; }
+									setModalCurrency((prev) => {
+										const updated = { ...prev, baseCurrency: newValue };
+										if (newValue === EventGeneralDetails?.baseCurrency) updated.currencyConversion = "1";
+										return updated;
+									});
+								}}
+							>
+								{currencyList && currencyList.map((option) => (
+									<MenuItem key={option.id} value={option?.currencyNm}>{option?.currencyNm}</MenuItem>
+								))}
+								<MenuItem value="new" style={{ fontStyle: 'italic', color: '#1976d2' }}>+ Add New</MenuItem>
+							</TextField>
 						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => handleCloseModal1()}
-						size="small"
-						edge="start"
-						color="white"
-					>
-						<Close className="text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-2">
-						<div className="row">
-							<div className="col-12 col-lg-12 mt-2 ">
-								<form>
-									<div className="row">
-										<div className="col-12">
-											<div className="row">
-												<div className="col-12 col-lg-12 mt-3">
-													{
-														<div
-															className="row d-flex align-items-center w-100 mb-3"
-														>
-															<div className="col-lg-4 col-12">
-																{/* <TextField
-																		id={"basecurrencymodal"}
-																		InputLabelProps={{
-																			shrink: true,
-																		}}
-																		name="baseCurrency"
-																		select
-																		className="w-100 f14"
-																		size="small"
-																		label="Select Currency *"
-																		variant="outlined"
-																		value={modalCurrency.baseCurrency}
-																		onChange={(e) => {
-																			const newValue = e.target?.value;
-																			setModalCurrency((prev) => {
-																				return {
-																					...prev,
-																					baseCurrency: newValue
-																				};
-																			});
-																		}}
-																	>
-																		{currencyList &&
-																			currencyList.map((option) => (
-																				<MenuItem
-																					key={option.id}
-
-																					value={option?.currencyNm}
-																				>
-																					{option?.currencyNm}
-																				</MenuItem>
-																			))}
-																	</TextField> */}
-																<TextField
-																	id={"basecurrencymodal"}
-																	InputLabelProps={{
-																		shrink: true,
-																	}}
-																	name="baseCurrency"
-																	select
-																	className="w-100 f14"
-																	size="small"
-																	label="Select Currency *"
-																	variant="outlined"
-																	value={modalCurrency.baseCurrency}
-																	onChange={(e) => {
-																		const newValue = e.target?.value;
-																		if (newValue === "new") {
-																			setOpenCurrencyModal(true);
-																			return;
-																		}
-																		setModalCurrency((prev) => {
-																			const updated = {
-																				...prev,
-																				baseCurrency: newValue
-																			};
-
-																			// Set conversion to 1 if base currency matches event base currency
-																			if (newValue === EventGeneralDetails?.baseCurrency) {
-																				updated.currencyConversion = "1";
-																			}
-
-																			return updated;
-																		});
-																	}}
-																>
-																	{currencyList &&
-																		currencyList.map((option) => (
-																			<MenuItem
-																				key={option.id}
-																				value={option?.currencyNm}
-																			>
-																				{option?.currencyNm}
-																			</MenuItem>
-																		))}
-																	<MenuItem value="new" style={{ fontStyle: 'italic', color: 'blue', cursor: 'pointer', textDecoration: 'underline' }}>
-																		Add New
-																	</MenuItem>
-																</TextField>
-
-															</div>
-															<div className="col-lg-4 col-12">
-																<TextField
-																	variant="outlined"
-																	InputLabelProps={{
-																		shrink: true,
-																	}}
-																	className="w-100"
-																	required
-																	type="number"
-																	id={"modalcurrencyConversion"}
-																	label="Enter currency conversion factor"
-																	value={modalCurrency.currencyConversion}
-																	size="small"
-																	name="currencyConversion"
-																	placeholder=""
-																	onChange={(e) => {
-																		const newValue = e.target.value;
-
-																		// Allow only up to 4 decimal places
-																		const regex = /^\d*\.?\d{0,4}$/;
-
-																		if (newValue === '' || regex.test(newValue)) {
-																			setModalCurrency((prev) => ({
-																				...prev,
-																				currencyConversion: newValue,
-																			}));
-																		}
-																	}}
-																	disabled={modalCurrency.baseCurrency === EventGeneralDetails?.baseCurrency}
-																/>
-
-															</div>
-															{Action && <div className="col-lg-4 d-flex justify-content-end">
-																<Button
-																	color="primary"
-																	variant="text"
-
-
-																	size="small"
-																	onClick={handleCommercialCurrencyCheck}
-																>
-																	Submit
-																</Button>
-																<Button
-																	color="error"
-																	variant="text"
-																	onClick={() => handleCloseModal1()}
-
-																	size="small"
-																>
-																	Cancel
-																</Button>
-															</div>}
-
-														</div>
-													}
-
-
-												</div>
-											</div>
-										</div>
-									</div>
-								</form>
-							</div>
+						<div className="mb-3">
+							<label className="pe-field-label">Conversion Factor</label>
+							<TextField
+								fullWidth
+								variant="outlined"
+								type="number"
+								id="modalcurrencyConversion"
+								value={modalCurrency.currencyConversion}
+								size="small"
+								name="currencyConversion"
+								disabled={modalCurrency.baseCurrency === EventGeneralDetails?.baseCurrency}
+								onChange={(e) => {
+									const newValue = e.target.value;
+									const regex = /^\d*\.?\d{0,4}$/;
+									if (newValue === '' || regex.test(newValue)) {
+										setModalCurrency((prev) => ({ ...prev, currencyConversion: newValue }));
+									}
+								}}
+							/>
 						</div>
 					</div>
-				</Modal.Body>
+					{Action && (
+						<div className="comm-currency-modal-footer">
+							<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost" onClick={() => handleCloseModal1()}>Cancel</button>
+							<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={handleCommercialCurrencyCheck}>Submit</button>
+						</div>
+					)}
+				</div>
 			</Modal>
 			<Modal
 				size="lg"
