@@ -420,15 +420,10 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
           </div>
         </div>
         <div className="rfq-question-toolbar-right">
-          {props.action && (props.permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false) && (
-            <button type="button" className="rfq-question-action-btn" onClick={() => setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }))}>
-              <HiPlusSm /> Blank Question
-            </button>
-          )}
           {props.action && (props.eventtype == "RFQ") && (
             <Dropdown align="end" className="d-inline-block">
               <Dropdown.Toggle as="div" id="gt" className="round-edit remove-tringle" role="button">
-                <button type="button" className="rfq-question-action-btn rfq-question-action-btn--dropdown">
+                <button type="button" className="pe-btn pe-btn--secondary">
                   <HiPlusSm /> <span>Bulk Questions</span>
                   <span className="rfq-question-action-chevron"><KeyboardArrowDownOutlined style={{ fontSize: 16 }} /></span>
                 </button>
@@ -439,6 +434,11 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
                 <MenuItem className="f14" onClick={handleDownloadExcelTemplate}>Excel Template</MenuItem>
               </Dropdown.Menu>
             </Dropdown>
+          )}
+          {props.action && (props.permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false) && (
+            <button type="button" className="pe-btn pe-btn--primary" onClick={() => setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }))}>
+              <HiPlusSm /> Blank Question
+            </button>
           )}
         </div>
       </div>
@@ -534,9 +534,15 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
             <header className="rfq-v2-event-drawer-header">
               <h2 className="rfq-v2-event-drawer-title">Add Question</h2>
               <div className="rfq-v2-event-drawer-actions">
-                <button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => handleCancelChange("addQuestionDrawer")}>Cancel</button>
-                <button type="reset" form="add-question-form" className="rfq-v2-event-btn rfq-v2-event-btn-outline">Reset</button>
-                <button type="submit" form="add-question-form" className="rfq-v2-event-btn rfq-v2-event-btn-primary">Add</button>
+                <button type="button" className="pe-btn pe-btn--ghost" onClick={() => handleCancelChange("addQuestionDrawer")}>
+                  Cancel
+                </button>
+                <button type="reset" form="add-question-form" className="pe-btn pe-btn--secondary">
+                  Reset
+                </button>
+                <button type="submit" form="add-question-form" className="pe-btn pe-btn--primary">
+                  Add
+                </button>
               </div>
             </header>
             <div className="rfq-v2-event-drawer-body" style={{ overflowY: "auto" }}>

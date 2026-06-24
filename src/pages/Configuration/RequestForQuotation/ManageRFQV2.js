@@ -49,6 +49,7 @@ import { buildQueryParams } from '../../../utils/purchaseRequest';
 import { ApiClient } from '../../../Apiclient';
 import NotFoundPage from '../../../components/NotAllowed';
 import '../../../assets/css/manage-rfq-v2.css';
+import '../../../assets/css/design-system.css';
 
 /* ── Status badge colour map ── */
 const STATUS_CFG = {
@@ -1066,11 +1067,10 @@ const ManageRFQV2 = ({ claimType }) => {
 
       {/* ── Create RFQ modal ── */}
       <Modal
-        size="lg"
         show={modal}
         backdrop="static"
         keyboard={false}
-        className="zindex10002"
+        className="zindex10002 rfq-create-modal"
         backdropClassName="zindex10002"
         centered
         contentClassName="border-0 rounded-default"
@@ -1080,9 +1080,9 @@ const ManageRFQV2 = ({ claimType }) => {
           <Modal.Title>
             <span style={{ fontSize: 14 }}>What would you like to do?</span>
           </Modal.Title>
-          <IconButton onClick={() => setModal(false)} size="small">
-            <HiOutlineX />
-          </IconButton>
+          <button type="button" className="rfq-modal-close-btn" onClick={() => setModal(false)}>
+            <HiOutlineX style={{ fontSize: 16 }} />
+          </button>
         </Modal.Header>
         <Modal.Body className="p-0">
           <div className="p-3">
@@ -1115,16 +1115,9 @@ const ManageRFQV2 = ({ claimType }) => {
               </div>
             )}
 
-            <div className="rfq-v2-modal-footer">
-              <LoadingButton
-                variant="outlined"
-                size="small"
-                color="primary"
-                className="text-capitalize"
-                onClick={handleTemplateNavigation}
-              >
-                Continue
-              </LoadingButton>
+            <div className="col-12 mt-4 d-flex justify-content-end gap-2">
+              <button type="button" className="pe-btn pe-btn--ghost" onClick={() => setModal(false)}>Cancel</button>
+              <button type="button" className="pe-btn pe-btn--primary" onClick={handleTemplateNavigation}>Continue</button>
             </div>
           </div>
         </Modal.Body>
@@ -1146,22 +1139,22 @@ const ManageRFQV2 = ({ claimType }) => {
               <div className="rfq-v2-event-drawer-actions">
                 <button
                   type="button"
-                  className="rfq-v2-event-btn rfq-v2-event-btn-muted"
+                  className="pe-btn pe-btn--ghost"
                   onClick={() => setItemModal(false)}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  className="rfq-v2-event-btn rfq-v2-event-btn-outline"
+                  className="pe-btn pe-btn--secondary"
                   onClick={() => setItemModal(false)}
                 >
-                  <AddOutlined />
+                  <AddOutlined style={{ fontSize: 16 }} />
                   Add more items
                 </button>
                 <button
                   type="button"
-                  className="rfq-v2-event-btn rfq-v2-event-btn-primary"
+                  className="pe-btn pe-btn--primary"
                   onClick={handleEventDrawerSubmit}
                 >
                   Submit ({rfqItemSet.length})

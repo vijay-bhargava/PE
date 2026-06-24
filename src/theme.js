@@ -13,6 +13,7 @@ export const theme = createTheme({
     }
   },
   typography: {
+    fontFamily: '"Inter", "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif',
     fontSize: 13,
     // You can customize the color of text globally for different variants
    

@@ -749,7 +749,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 										</div>
 										<button
 											type="button"
-											className="rfq-v2-tbtn rfq-v2-tbtn-primary"
+											className="pe-btn pe-btn--primary"
 											onClick={() => toggleOpenDrawer("AddNewTerm", true)}
 											disabled={!SelectedCommercialLibrary || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.CREATE) ?? false)}
 										>

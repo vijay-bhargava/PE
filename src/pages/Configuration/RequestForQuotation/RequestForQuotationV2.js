@@ -17,15 +17,15 @@ const RequestForQuotationV2 = ({ claimType }) => {
   const { pageSlug } = useParams();
   const [{ eventCode }] = useStateValue();
 
-  const isNew = pageSlug === 'add';
-  const fallbackCrumbLabel = isNew ? 'New RFQ' : `RFQ-${pageSlug}`;
+  const isNew = !pageSlug || pageSlug === 'add';
+  const fallbackCrumbLabel = isNew ? 'RFQ' : `RFQ-${pageSlug}`;
 
   const [stableEventCode, setStableEventCode] = useState(() =>
     isDisplayableRfqCode(eventCode) ? eventCode : ''
   );
 
   const crumbLabel = useMemo(() => {
-    if (isNew) return 'New RFQ';
+    if (isNew) return 'RFQ';
     return stableEventCode || fallbackCrumbLabel;
   }, [fallbackCrumbLabel, isNew, stableEventCode]);
 
