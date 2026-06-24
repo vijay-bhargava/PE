@@ -4056,3 +4056,330 @@
     height: 30px;
   }
 }
+
+/* ── Supplier Tab 2-column layout ─────────────────────── */
+.sup-two-col {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  margin: 0;
+  padding: 12px;
+  min-height: 0;
+  flex: 1 1 0;
+  background: #fff;
+}
+
+.sup-col-left,
+.sup-col-right {
+  width: calc(50% - 6px);
+  max-width: calc(50% - 6px);
+  flex: 0 0 calc(50% - 6px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #dfe3e8;
+  border-radius: 6px;
+}
+
+.sup-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 9px 12px;
+  flex-shrink: 0;
+}
+
+.sup-col-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.sup-col-count {
+  color: #7b8492;
+  font-size: 10px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.sup-filters {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+  flex-shrink: 0;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sup-filter-field {
+  width: 50%;
+  min-width: 0;
+}
+
+.sup-filter-control .MuiOutlinedInput-root {
+  min-height: 36px;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.sup-filter-control .MuiOutlinedInput-input {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+.sup-filter-control .MuiInputBase-input::placeholder {
+  color: #737373;
+  opacity: 1;
+}
+
+.sup-search-popper.MuiAutocomplete-popper {
+  width: 360px !important;
+  max-width: calc(100vw - 32px);
+}
+
+.sup-search-paper.MuiAutocomplete-paper {
+  margin-top: 4px;
+  overflow: hidden;
+  border: 1px solid #dfe3e8;
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+.sup-search-listbox.MuiAutocomplete-listbox {
+  max-height: 360px;
+  padding: 4px;
+  scrollbar-gutter: stable;
+}
+
+.sup-search-listbox .sup-search-option.MuiAutocomplete-option {
+  display: flex;
+  min-height: 58px;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 7px 8px;
+  border-radius: 4px;
+}
+
+.sup-search-listbox
+  .sup-search-option.MuiAutocomplete-option
+  + .sup-search-option {
+  border-top: 1px solid #f0f2f5;
+}
+
+.sup-search-listbox .sup-search-option.MuiAutocomplete-option:hover,
+.sup-search-listbox .sup-search-option.Mui-focused {
+  background: #f5f9ff;
+}
+
+.sup-search-checkbox.MuiCheckbox-root {
+  flex: 0 0 auto;
+  margin-top: 7px;
+  padding: 2px;
+}
+
+.sup-search-option-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 1px;
+  color: #111827;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.sup-search-option-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sup-search-option-email {
+  overflow: hidden;
+  color: #475467;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sup-search-option-company {
+  color: #667085;
+  overflow-wrap: anywhere;
+}
+
+.sup-list {
+  flex: 1 1 0;
+  overflow-y: auto;
+  min-height: 0;
+  background: #fff;
+}
+
+.sup-list-item {
+  display: flex;
+  align-items: center;
+  min-height: 58px;
+  padding: 12px;
+  border-bottom: 1px solid #edf0f2;
+  gap: 10px;
+}
+
+.sup-list-item:hover {
+  background: #f8fafc;
+}
+
+.sup-row-checkbox.MuiCheckbox-root {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 2px;
+  color: #9aa4b2;
+}
+
+.sup-row-checkbox.Mui-checked {
+  color: #1976d2;
+}
+
+.sup-row-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: wrap;
+}
+
+.sup-row-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.sup-row-actions .MuiIconButton-root {
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  border: 1px solid #e2e6ea;
+  border-radius: 6px;
+}
+
+.sup-row-actions .supplieraccmenu .dropdown-toggle {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.sup-clear-button.MuiButton-root {
+  min-width: auto;
+  padding: 2px 5px;
+  color: #b7791f;
+  font-size: 10px;
+  line-height: 1;
+  text-transform: none;
+}
+
+.sup-pagination {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 40px;
+  padding: 5px 10px;
+  flex-shrink: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sup-pagination .MuiPaginationItem-root {
+  min-width: 30px;
+  height: 30px;
+  margin: 0 1px;
+  font-size: 14px;
+}
+
+@media (max-width: 575px) {
+  .sup-two-col {
+    flex-wrap: wrap;
+  }
+
+  .sup-col-left,
+  .sup-col-right {
+    width: 100%;
+    max-width: 100%;
+    flex-basis: 100%;
+    min-height: 280px;
+  }
+
+  .sup-filters {
+    flex-direction: column;
+  }
+
+  .sup-filter-field {
+    width: 100%;
+  }
+}
+
+/* Supplier action buttons */
+.sup-action-btn > .btn {
+  background: #f3f4f6 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  box-shadow: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sup-action-btn > .btn::after {
+  display: none !important;
+}
+
+.sup-delete-btn.MuiIconButton-root {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.sup-delete-btn.MuiIconButton-root:hover {
+  background: #fbf1f1;
+  border: 1px solid #f9dedd;
+}
+
+.sup-clear-button {
+  background: none;
+  border: 1px solid #d92d20;
+  border-radius: 6px;
+  color: #d92d20;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sup-clear-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sup-filters-right {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  border-bottom: 1px solid #e5e7eb;
+}

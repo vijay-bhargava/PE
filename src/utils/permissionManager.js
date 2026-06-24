@@ -118,7 +118,7 @@ export const CLAIM_TYPES = {
 	SUPPLIER_DETAILS: "Supplier Details",
 	SUPPLIER_QUALIFICATION: "Supplier Qualification",
 	SUPPLIER_USERS: "Supplier Users",
-	SUPPLIERS: "Invite Supplier",
+	SUPPLIERS: "Suppliers",
 	WORK_FLOW: "Work Flow",
 	FINANCIAL_RESPONSES: "Financial Responses",
 	COMMERCIAL_RESPONSES: "Commercial Responses",

@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useRef, useState } from "react";
+﻿﻿import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import IconButton from "@mui/material/IconButton";
@@ -24,10 +24,12 @@ import {
 	HiPlus,
 	HiOutlinePencil,
 	HiDotsVertical,
+	HiDotsHorizontal,
 	HiOutlineInformationCircle,
 	HiOutlineDownload,
 	HiOutlineArrowRight,
 } from "react-icons/hi";
+import { RiDeleteBin6Line } from "react-icons/ri";
 import { LiaUserSolid } from "react-icons/lia";
 import {
 	Autocomplete,
@@ -146,6 +148,7 @@ import {
 import EventApprovalBox from "../../BaseCells/eventapprovalbox";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import SearchIcon from "@mui/icons-material/Search";
 import SelectedSupplierCell from "./SelectedSupplierCell";
 import EventQuestionCell from "../../BaseCells/EventQuestionCell";
 import { sanitizeInput } from "../../../utils/common/santize";
@@ -5602,446 +5605,239 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									{tabloading ? <GridSkeleton /> :
 										<>
 											{issupplierreadDisabled === false &&
-												<div className="p-2 pt-0">
-													<div className="row">
-														<div className="col-12">
-															<div className="">
-																<div className="row align-items-center">
-																	<div className="col-12 col-md-12">
-																		<div className="row mt-2">
-																			<div className="col-12 col-md-6 col-lg-6 mb-3">
-																				<label className="pe-field-label">Category</label>
-																				<Autocomplete
-																					disablePortal
-																					id=""
-																					size="small"
-																					options={categoryList ?? []}
-																					fullWidth
-																					renderInput={(params) => (
-																						<TextField
-																							{...params}
-																						/>
-																					)}
-																					onOpen={() => {
-																						// Call API when dropdown opens
-																						if (categoryList.length === 0) {
-																							getCategorylist();
-																						}
-																					}}
-																					getOptionLabel={(option) =>
-																						option.itemCategory ?? ""
-																					}
-																					value={selectedCategory}
-																					onChange={(e, newvalue) => {
-																						setSelectedCategory(newvalue);
-																						handleSupplierWithCategory(newvalue);
-																					}}
-																				/>
-																			</div>
-
-																			<div className="col-12 col-md-6 col-lg-6 mb-3">
-																				<label className="pe-field-label">Search Supplier by Name</label>
-																				<Autocomplete
-																					id="searchvendorbyname"
-																					options={
-																						totalSupplier?.filter(
-																							(x) => !x.isSelected
-																						) ?? []
-																					}
-																					filterOptions={VendorfilterOptions}
-																					getOptionLabel={(option) => ""}
-																					renderOption={(
-																						props,
-																						option,
-																						{ selected }
-																					) => (
-																						<li {...props}>
-																							{currentStage == "Draft" && (() => {
-																								const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-																								return (
-																									<Checkbox
-																										icon={icon}
-																										checkedIcon={checkedIcon}
-																										style={{ marginRight: 8 }}
-																										disabled={!canCreate}
-																									/>
-																								);
-																							})()}
-																							{`${option.contactPerson} | ${option.email} | ${option?.companyName}` ??
-																								""}
-																						</li>
-																					)}
-																					size="small"
-																					fullWidth
-																					renderInput={(params) => (
-																						<TextField
-																							{...params}
-																						/>
-																					)}
-																					onChange={(e, newvalue) => {
-																						if (newvalue) {
-																							const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-																							if (canCreate) {
-																								handleSelectedSupplier(
-																									newvalue,
-																									e.target.checked
-																								);
-																							}
-																						}
-																					}}
-																				/>
-																			</div>
-
-
-
-																		</div>
-																	</div>
-
-																</div>
-															</div>
+											<div className="sup-two-col">
+												{/* Left column — Select Suppliers */}
+												<div className="sup-col-left">
+													<div className="sup-col-header">
+														<div className="d-flex align-items-center gap-2">
+															<span className="sup-col-title">Select Suppliers</span>
+															<span className="sup-col-count">
+																Total Suppliers: {totalSupplier?.filter((x) => x.isShow)?.length ?? 0}
+															</span>
+															{selectedCategory && (
+																<Badge pill bg="success" text="dark">
+																	{selectedCategory?.categoryName}
+																</Badge>
+															)}
 														</div>
 													</div>
-													<div className="row mt-3 item-Table">
-														<div className="col-12 col-md-12 col-lg-6">
-															<div className="bg-white rounded-default shadow-sm">
-																<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-																	<div className="p-2">
-																		<div className="d-flex align-items-center">
-																			Total Suppliers{" "}
-																			<div className="supplierCount">
-																				{
-																					totalSupplier?.filter((x) => x.isShow)
-																						?.length
-																				}
-																			</div>{" "}
-																			{selectedCategory && (
-																				<Badge pill bg="success" text="dark">
-																					{selectedCategory?.categoryName}
-																				</Badge>
-																			)}
-																		</div>
 
-																	</div>
-
-																</div>
-																<hr className="m-0" />
-																<div className="row">
-																	<div className="col-12">
-																		{(() => {
-																			const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false;
-
-																			if (!canRead) {
-																				return (
-																					<div className="p-3">
-																						<Alert severity="warning">
-																							You don't have permission to view suppliers data.
-																						</Alert>
-																					</div>
-																				);
-																			}
-
-																			return totalSupplier
-																				?.filter((x) => x.isShow)
-																				.slice(
-																					(pageTS - 1) * pageCount,
-																					pageTS * pageCount
-																				)
-																				.map((x, i) => (
-																					<div
-																						className="d-flex border-bottom align-items-center m-0 p-1 pt-0 pb-0"
-																						key={i}
-																					>
-																						{!stagearray.includes(currentStage) &&
-
-																							<Tooltip title={x?.contactPerson}>
-																								<IconButton
-																									size="medium"
-																									className="bg-white ms-0 ps-0 pe-0 me-0"
-
-																								>
-																									<LiaUserSolid className="f17 text-primary" />
-																								</IconButton>
-																							</Tooltip>
-
-																						}
-																						<div className="flex-grow-1 ms-2 text-truncate">
-																							<div className="text-truncate f12">
-																								{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
-																							</div>
-																						</div>
-																						{stagearray.includes(currentStage) && (() => {
-																							const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-																							const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
-
-																							return x?.isSelected == true ? (
-																								<Checkbox
-																									size="small"
-																									checked={x?.isSelected}
-																									disabled={!canRemove}
-																									onChange={(e) =>
-																										handleSelectedSupplier(
-																											x,
-																											e.target.checked
-																										)
-																									}
-																								/>
-																							) : (
-																								<Checkbox
-																									size="small"
-																									checked={false}
-																									disabled={!canCreate}
-																									onChange={(e) =>
-																										handleSelectedSupplier(
-																											x,
-																											e.target.checked
-																										)
-																									}
-																								/>
-																							);
-																						})()}
-
-																					</div>
-																				));
-																		})()}
-																	</div>
-																</div>
-															</div>
-
-															<div className="pagination_wrapper mb-3 mt-3">
-																<div className="d-flex align-items-center">
-																	<div className="flex-grow-1 d-none d-md-block">
-
-																	</div>
-																	<div className="">
-																		<Stack spacing={2}>
-																			<Pagination
-																				count={totalpageTS}
-																				page={pageTS}
-																				onChange={handlePaginationTS}
-																			/>
-																		</Stack>
-																	</div>
-																</div>
-															</div>
+													<div className="sup-filters">
+														<div className="sup-filter-field">
+															<Autocomplete
+																disablePortal
+																size="small"
+																options={categoryList ?? []}
+																fullWidth
+																className="sup-filter-control"
+																popupIcon={<KeyboardArrowDownOutlined style={{ fontSize: 16 }} />}
+																renderInput={(params) => <TextField {...params} placeholder="Sort by Category - All" />}
+																onOpen={() => { if (categoryList.length === 0) getCategorylist(); }}
+																getOptionLabel={(option) => option.itemCategory ?? ""}
+																value={selectedCategory}
+																onChange={(e, newvalue) => {
+																	setSelectedCategory(newvalue);
+																	handleSupplierWithCategory(newvalue);
+																}}
+															/>
 														</div>
-														<div className="col-12 col-md-12 col-lg-6 border-start">
-															<div className="bg-white rounded shadow-sm">
-																<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-																	<div className="p-2">
-																		<div className="d-flex align-items-center">
-																			Selected Suppliers{" "}
-																			<div className="supplierCount">
-																				{selectedSupplier?.length}
-																			</div>
-																		</div>
+														<div className="sup-filter-field">
+															<Autocomplete
+																id="searchvendorbyname"
+																options={totalSupplier?.filter((x) => !x.isSelected) ?? []}
+																filterOptions={VendorfilterOptions}
+																getOptionLabel={(option) => ""}
+																componentsProps={{
+																	popper: { className: "sup-search-popper" },
+																	paper: { className: "sup-search-paper" },
+																}}
+																ListboxProps={{ className: "sup-search-listbox" }}
+																renderOption={(props, option) => (
+																	<li {...props} className={`${props.className ?? ""} sup-search-option`}>
+																		{currentStage == "Draft" && (() => {
+																			const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
+																			return <Checkbox className="sup-search-checkbox" icon={icon} checkedIcon={checkedIcon} disabled={!canCreate} />;
+																		})()}
+																		{`${option.contactPerson} | ${option.email} | ${option?.companyName}` ??
+																			""}
+																	</li>
+																)}
+																size="small"
+																fullWidth
+																className="sup-filter-control"
+																forcePopupIcon={false}
+																renderInput={(params) => (
+																	<TextField
+																		{...params}
+																		placeholder="Search Suppliers"
+																		InputProps={{
+																			...params.InputProps,
+																			endAdornment: (
+																				<>
+																					{params.InputProps.endAdornment}
+																					<SearchIcon style={{ fontSize: 18, color: '#9ca3af' }} />
+																				</>
+																			),
+																		}}
+																	/>
+																)}
+																onChange={(e, newvalue) => {
+																	if (newvalue) {
+																		const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
+																		if (canCreate) handleSelectedSupplier(newvalue, e.target.checked);
+																	}
+																}}
+															/>
+														</div>
+													</div>
 
+													<div className="sup-list">
+														{(() => {
+															const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false;
+															if (!canRead) {
+																return (
+																	<div className="p-3">
+																		<Alert severity="warning">You don't have permission to view suppliers data.</Alert>
 																	</div>
-																	<div className="">
+																);
+															}
+															return totalSupplier
+																?.filter((x) => x.isShow)
+																.slice((pageTS - 1) * pageCount, pageTS * pageCount)
+																.map((x, i) => (
+																	<div className="sup-list-item" key={i}>
+																		{stagearray.includes(currentStage) && (() => {
+																			const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
+																			const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
+																			return x?.isSelected == true ? (
+																				<Checkbox className="sup-row-checkbox" size="small" checked disabled={!canRemove} onChange={(e) => handleSelectedSupplier(x, e.target.checked)} />
+																			) : (
+																				<Checkbox className="sup-row-checkbox" size="small" checked={false} disabled={!canCreate} onChange={(e) => handleSelectedSupplier(x, e.target.checked)} />
+																			);
+																		})()}
+																		<div className="sup-row-copy">
+																			<span>{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}</span>
+																		</div>
+																	</div>
+																));
+														})()}
+													</div>
+													<div className="sup-pagination">
+														<Stack spacing={2}>
+															<Pagination count={totalpageTS} page={pageTS} onChange={handlePaginationTS} />
+														</Stack>
+													</div>
+												</div>
 
-																		<>
+												{/* Right column — Selected Suppliers */}
+												<div className="sup-col-right">
+													<div className="sup-col-header">
+														<div className="d-flex align-items-center gap-2">
+															<span className="sup-col-title">Selected Suppliers</span>
+															<span className="sup-col-count">Total Suppliers: {selectedSupplier?.length ?? 0}</span>
+														</div>
+													</div>
 
+													<div className="sup-filters sup-filters-right">
+														{stagearray.includes(currentStage) && (() => {
+															const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
+															return <button type="button" className="sup-clear-button" onClick={clearALLSelectedSupplier} disabled={!canRemove}>Clear</button>;
+														})()}
+													</div>
 
-
-
+													<div className="sup-list">
+														{(() => {
+															const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false;
+															if (!canRead) {
+																return (
+																	<div className="p-3">
+																		<Alert severity="warning">You don't have permission to view selected suppliers.</Alert>
+																	</div>
+																);
+															}
+															return selectedSupplier
+																.slice((pageSS - 1) * pageCount, pageSS * pageCount)
+																.map((x, i) => (
+																	<div className="sup-list-item" key={i}>
+																		{stagearray.includes(currentStage) && (() => {
+																			const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
+																			return (
+																				<Checkbox
+																					className="sup-row-checkbox"
+																					size="small"
+																					checked
+																					disabled={!canRemove}
+																					onChange={(e) => handleSelectedSupplier(x, e.target.checked)}
+																				/>
+																			);
+																		})()}
+																		<div className="sup-row-copy">
+																			<span>{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}</span>
+																		</div>
+																		<div className="sup-row-actions">
+																			<DropdownButton
+																				as={"div"}
+																				key={"end7"}
+																				id={`myacccmenu`}
+																				className="supplieraccmenu sup-action-btn"
+																				drop={"start"}
+																				variant="outlined"
+																				title={
+																					<Tooltip title={"Action"}>
+																						<HiDotsHorizontal style={{ fontSize: 16, color: '#374151' }} />
+																					</Tooltip>
+																				}
+																			>
+																				<div className="shadow rounded min-width-200px">
+																					{x.id != 0 && (
+																						<MenuItem className="f12 fw500" onClick={() => handleLoadingFactorClick(x, i)}>
+																							Loading Factor
+																						</MenuItem>
+																					)}
+																					{!stagearray.includes(currentStage) && (
+																						<MenuItem className="f12 fw500" onClick={() => handleSupplierAction(x, 'Reopen')}>
+																							Re-Open Quote
+																						</MenuItem>
+																					)}
+																				</div>
+																			</DropdownButton>
 																			{stagearray.includes(currentStage) && (() => {
 																				const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
 																				return (
-																					<LoadingButton
-																						variant="text"
-																						size="small"
-																						className="me-2 rounded-pill"
-																						onClick={clearALLSelectedSupplier}
-																						disabled={!canRemove}
-																					>
-																						<span className="text-capitalize">
-																							Clear All
-																						</span>
-																					</LoadingButton>
+																					<IconButton size="small" className="sup-delete-btn" disabled={!canRemove} onClick={() => clearSelectedSupplier(x, false)}>
+																						<RiDeleteBin6Line style={{ fontSize: 15, color: '#b8232f' }} />
+																					</IconButton>
 																				);
 																			})()}
-																		</>
-
-
-
+																		</div>
 																	</div>
-																</div>
-																<hr className="m-0" />
-																<div className="row">
-																	<div className="col-12">
-																		{(() => {
-																			const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false;
-
-																			if (!canRead) {
-																				return (
-																					<div className="p-3">
-																						<Alert severity="warning">
-																							You don't have permission to view selected suppliers.
-																						</Alert>
-																					</div>
-																				);
-																			}
-
-																			return selectedSupplier
-																				.slice(
-																					(pageSS - 1) * pageCount,
-																					pageSS * pageCount
-																				)
-																				.map((x, i) => {
-
-																					return (
-
-																						<div
-																							className="row border-bottom align-items-center m-0 p-1 pt-0 pb-0"
-																							key={i}
-																						>
-																							<div className="col-md-10">
-																								<div className="d-flex align-items-center ">
-																									{stagearray.includes(currentStage) && (() => {
-																										const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-																										const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
-
-																										return x?.isSelected == true ? (
-																											<Checkbox
-																												size="small"
-																												checked={x?.isSelected}
-																												disabled={!canRemove}
-																												onChange={(e) =>
-																													handleSelectedSupplier(
-																														x,
-																														e.target.checked
-																													)
-																												}
-																											/>
-																										) : (
-																											<Checkbox
-																												size="small"
-																												checked={false}
-																												disabled={!canCreate}
-																												onChange={(e) =>
-																													handleSelectedSupplier(
-																														x,
-																														e.target.checked
-																													)
-																												}
-																											/>
-																										);
-																									})()}
-																									<div className="text-truncate f12">
-																										{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
-																									</div>
-																								</div>
-																							</div>
-																							<div className="col-md-2 justify-content-end d-flex align-items-center">
-																								<div className="col-md-4  d-flex align-items-center justify-content-end">
-																									<DropdownButton
-																										as={"div"}
-																										key={"end7"}
-																										id={`myacccmenu`}
-																										className="supplieraccmenu "
-																										drop={"start"}
-																										variant="outlined"
-																										style={{
-																											backgroundColor: "white",
-																											color: "#2182cde",
-																										}}
-																										title={
-																											<Tooltip title={"Action"}>
-																												<div
-																													style={{
-																														fontSize: "0.8125rem",
-																														color: "#2A68D3",
-																														fontWeight: "500",
-																													}}
-																												>
-																													<HiDotsVertical />{" "}
-																												</div>
-																											</Tooltip>
-																										}
-																									>
-																										<div className="shadow rounded min-width-200px">
-
-
-																											{x.id != 0 && <MenuItem className="f12 fw500" onClick={() => handleLoadingFactorClick(x, i)}>
-																												Loading Factor
-																											</MenuItem>}
-
-																											{!stagearray.includes(currentStage) && (
-																												<MenuItem className="f12 fw500" onClick={() => handleSupplierAction(x, 'Reopen')}>
-																													Re-Open Quote
-																												</MenuItem>
-																											)}
-
-																										</div>
-																									</DropdownButton>
-
-																								</div>
-
-																								{stagearray.includes(currentStage) && (() => {
-																									const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
-																									return (
-																										<div className="col-md-4">
-																											<IconButton
-																												size="medium"
-																												className="bg-white ms-0 ps-0 pe-0 me-0 pb-1"
-																												disabled={!canRemove}
-																												onClick={() =>
-																													clearSelectedSupplier(
-																														x,
-																														false
-																													)
-																												}
-																											>
-																												<HiX className="f17 text-danger" />
-																											</IconButton>
-																										</div>
-																									);
-																								})()}
-																							</div>
-																						</div>
-																					)
-																				}
-																				);
-																		})()}
-																	</div>
-																</div>
-															</div>
-															<div className="pagination_wrapper mb-3 mt-3">
-																<div className="d-flex align-items-center">
-																	<div className="flex-grow-1 d-none d-md-block">
-
-																	</div>
-																	<div className="">
-																		<Stack spacing={2}>
-																			<Pagination
-																				count={totalpageSS}
-																				page={pageSS}
-																				onChange={handlePaginationSS}
-																			/>
-																		</Stack>
-																	</div>
-																</div>
-															</div>
-														</div>
+																));
+														})()}
 													</div>
-												</div>}
+													<div className="sup-pagination">
+														<Stack spacing={2}>
+															<Pagination
+																count={totalpageSS}
+																page={pageSS}
+																onChange={handlePaginationSS}
+															/>
+														</Stack>
+													</div>
+												</div>
+											</div>}
 
-											{((value === 5) && (issupplierreadDisabled === false)) &&
+											{((value === 5) && issupplierreadDisabled === true) &&
 												<NotFoundPage
 													heading={`You Are Not Allowed To View Supplier Tab`}
 													body1={`contact your Administrator for view rights`}
-												/>}
-
+												/>
+											}
 										</>
 									}
-
-
 								</>
 							) : (
-								<>
-
-								</>
+								<></>
 							)}
-
 							{/* {to handle supplier after rfq submitted} */}
 							{value == 5 && currentStage.trim() != "Draft" &&
 								<>
