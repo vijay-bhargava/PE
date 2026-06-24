@@ -148,54 +148,55 @@
   flex-shrink: 0;
 }
 
+/* rfq-dv2-action-btn → aliases pe-btn system */
 .rfq-dv2-action-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   height: 36px;
-  padding: 0 8px;
+  padding: 0 14px;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
   font-family: inherit;
-  transition:
-    background 0.15s,
-    border-color 0.15s,
-    color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   line-height: 1;
-  gap: 4px;
+  gap: 6px;
 }
 
 .rfq-dv2-action-btn--primary {
-  background: #2082db;
+  background: var(--pe-btn-blue, #2082db);
   color: #fff;
-  border: 1px solid #2082db;
-  padding: 0 10px;
+  border: 1px solid var(--pe-btn-blue, #2082db);
 }
 .rfq-dv2-action-btn--primary:hover:not(:disabled) {
-  background: #1a6bbf;
-  border-color: #1a6bbf;
+  background: var(--pe-btn-blue-hover, #1769bb);
+  border-color: var(--pe-btn-blue-hover, #1769bb);
+  color: #fff;
 }
 
 .rfq-dv2-action-btn--secondary {
-  background: #ffffff;
-  color: #2082db;
-  border: 1px solid #bdbdbd;
+  background: transparent;
+  color: var(--pe-btn-blue, #2082db);
+  border: 1px solid var(--pe-btn-blue, #2082db);
 }
 .rfq-dv2-action-btn--secondary:hover:not(:disabled) {
-  background: #f5f5f5;
-  border-color: #9e9e9e;
+  background: var(--pe-btn-blue-light, #e8f1fb);
+  color: var(--pe-btn-blue, #2082db);
+  border-color: var(--pe-btn-blue, #2082db);
 }
 
 .rfq-dv2-action-btn--ghost {
-  background: #ffffff;
-  color: #374151;
-  border: none;
+  background: #fff;
+  color: var(--pe-btn-muted, #616161);
+  border: 1px solid #fff;
 }
 .rfq-dv2-action-btn--ghost:hover:not(:disabled) {
-  background: #eeeeee;
+  background: #fff;
+  color: var(--pe-btn-muted-hover, #424242);
+  border-color: var(--pe-btn-muted-hover, #424242);
 }
 
 .rfq-dv2-action-btn:disabled {

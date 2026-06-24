@@ -83,6 +83,86 @@
   margin: 12px 0;
 }
 
+/* ── Global Button System ────────────────────────────────────────────────── */
+/*
+  Usage:
+    Primary   → <button className="pe-btn pe-btn--primary">Label</button>
+    Secondary → <button className="pe-btn pe-btn--secondary">Label</button>
+    Ghost     → <button className="pe-btn pe-btn--ghost">Label</button>
+*/
+
+:root {
+  --pe-btn-blue: #2082db;
+  --pe-btn-blue-hover: #1769bb;
+  --pe-btn-blue-light: #e8f1fb;
+  --pe-btn-muted: #616161;
+  --pe-btn-muted-hover: #616161;
+}
+
+.pe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+  text-decoration: none;
+}
+
+/* Primary */
+.pe-btn--primary {
+  background: var(--pe-btn-blue);
+  color: #fff;
+  border: 1px solid var(--pe-btn-blue);
+}
+.pe-btn--primary:hover:not(:disabled) {
+  background: var(--pe-btn-blue-hover);
+  border-color: var(--pe-btn-blue-hover);
+  color: #fff;
+}
+
+/* Secondary */
+.pe-btn--secondary {
+  background: transparent;
+  color: var(--pe-btn-blue);
+  border: 1px solid var(--pe-btn-blue);
+}
+.pe-btn--secondary:hover:not(:disabled) {
+  background: var(--pe-btn-blue-light);
+  color: var(--pe-btn-blue);
+  border-color: var(--pe-btn-blue);
+}
+
+/* Ghost */
+.pe-btn--ghost {
+  background: #fafafa;
+  color: var(--pe-btn-muted);
+  border: 1px solid transparent;
+}
+.pe-btn--ghost:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: var(--pe-btn-muted-hover);
+  border-color: #d1d5db;
+}
+
+/* Disabled state — applies to all variants */
+.pe-btn:disabled,
+.pe-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ── Form field label (label above input — replaces MUI floating label) ── */
 .pe-field-label {
   display: block;

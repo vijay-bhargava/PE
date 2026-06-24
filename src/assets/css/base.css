@@ -191,7 +191,7 @@ html,
 body {
   background-color: var(--vz-body-bg);
   font-size: 14px !important;
-  font-family: "Montserrat", sans-serif !important;
+  font-family: "Inter", "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif !important;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
