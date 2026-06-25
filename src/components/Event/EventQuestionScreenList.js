@@ -871,23 +871,14 @@ const CategoryWiseTable = ({
 							variant={rowData.type === 'category' ? (eventtype === 'VQ' ? 'body1' : 'h6') : rowData.type === 'subcategory' ? 'body1' : 'body2'}
 							sx={{
 								fontWeight: rowData.type === 'category' ? 'bold' : rowData.type === 'subcategory' ? 'medium' : 'normal',
-								color: rowData.type === 'category' ? (eventtype === 'VQ' ? 'text.primary' : 'primary.main') : 'text.primary',
-								fontSize: rowData.type === 'category' && eventtype === 'VQ' ? '16px' : undefined
+								color: 'text.primary',
+								fontSize: rowData.type === 'category' && eventtype === 'VQ' ? '16px' : undefined,
+								whiteSpace: 'normal',
+								wordBreak: 'break-word',
 							}}
 						>
 							{cell.getValue()}
 						</Typography>
-						{rowData.question?.attachedFileName && (
-							<Tooltip title={getFileName(rowData.question.attachedFileName)} arrow>
-								<IconButton
-									size="small"
-									color="primary"
-									onClick={() => onClickDownload(rowData.question)}
-								>
-									<HiDownload />
-								</IconButton>
-							</Tooltip>
-						)}
 					</Box>
 				);
 			}
@@ -1130,22 +1121,27 @@ const CategoryWiseTable = ({
 		{
 			accessorKey: 'actions',
 			header: '',
-			size: 80,
+			size: 100,
 			enableSorting: false,
 			Cell: ({ row }) => {
 				const rowData = row.original;
-				if (rowData.question && action && (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false)) {
-					return (
-						<IconButton
-							onClick={() => callbackDeleteQuesFromList(rowData.category, rowData.subcategory, rowData.question.questionDescription)}
-							color="error"
-							size="small"
-						>
-							<HiX />
-						</IconButton>
-					);
-				}
-				return null;
+				if (!rowData.question) return null;
+				return (
+					<Box className="eq-question-actions">
+						{rowData.question?.attachedFileName && (
+							<Tooltip title={getFileName(rowData.question.attachedFileName)} arrow>
+								<IconButton size="small" className="eq-question-icon-btn eq-question-icon-btn--download" onClick={() => onClickDownload(rowData.question)}>
+									<HiDownload size={16} />
+								</IconButton>
+							</Tooltip>
+						)}
+						{action && (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false) && (
+							<IconButton size="small" className="eq-question-icon-btn eq-question-icon-btn--delete" onClick={() => callbackDeleteQuesFromList(rowData.category, rowData.subcategory, rowData.question.questionDescription)}>
+								<HiTrash size={15} />
+							</IconButton>
+						)}
+					</Box>
+				);
 			}
 		}
 	], [onClickDownload, getFileName, callbackDeleteQuesFromList, action, permissionManager, CLAIM_TYPES, ACTIONS, eventtype, currentStage, handleScoreChange, hasEditPermission, SupplierQuestionResponses, setScoreUpdate, handleScoreUpdate, setSupplierQuestionResponses, questionresponses, hasModifiedScores, setHasModifiedScores, userInputScores, setUserInputScores]);
@@ -1183,6 +1179,7 @@ const CategoryWiseTable = ({
 		},
 		muiTableBodyRowProps: ({ row }) => ({
 			className: `eq-category-row eq-category-row--${row.original.type || 'question'}`,
+			hover: false,
 		}),
 		muiTablePaperProps: {
 			className: 'eq-category-table-paper',

@@ -376,6 +376,7 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
   const handleNameChange = (e) => {
     const newName = e.target.value;
     setname(newName);
+    formik.setFieldValue("name", newName);
 
     // Replace spaces with underscores and remove special characters
     const formattedFieldName = newName
@@ -392,7 +393,7 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
         <div className="row mt-2">
 
           <div className="col-6 mb-3">
-            <label className="pe-field-label" style={{ color: "#374151" }}>Title *</label>
+            <label className="pe-field-label">Title <span className="rfq-required-star">*</span></label>
             <TextFieldCell
               id="name"
               name="name"
@@ -400,6 +401,8 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
               value={name}
               maxLength={100}
               onChange={handleNameChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.name && Boolean(formik.errors.name)}
               inputProps={{ maxLength: 100 }}
               InputProps={{
                 endAdornment: (
@@ -411,14 +414,12 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
                 ),
               }}
             />
-            {formik.errors.name && formik.touched.name && (
-              <div className="error error-red" style={{ fontSize: '9px' }}>
-                {formik.errors.name}
-              </div>
+            {formik.touched.name && formik.errors.name && (
+              <span className="rfq-field-error">{formik.errors.name}</span>
             )}
           </div>
           <div className="col-6 mb-3">
-            <label className="pe-field-label" style={{ color: "#374151" }}>Field Name</label>
+            <label className="pe-field-label" >Field Name</label>
             <TextField
               id="fieldName"
               size="small"
@@ -444,7 +445,7 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
             )}
           </div>
           <div className="col-6 mb-3">
-            <label className="pe-field-label" style={{ color: "#374151" }}>UOM</label>
+            <label className="pe-field-label" >UOM</label>
             <FormControl fullWidth>
               <Select
                 labelId="event"
@@ -488,7 +489,7 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
             </FormControl>
           </div>
           <div className="col-6 mb-3">
-            <label className="pe-field-label" style={{ color: "#374151" }}>Fixed Value</label>
+            <label className="pe-field-label" >Fixed Value</label>
             <TextFieldCell
               id="commValue"
               name="commValue"
@@ -504,7 +505,7 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
           </div>
           <div className="row me-0 pe-0 mt-2">
             <div className="col-6 mb-3">
-              <label className="pe-field-label" style={{ color: "#374151" }}>Select Formula Field</label>
+              <label className="pe-field-label" >Select Formula Field</label>
               <FormControl fullWidth size="small">
                 <Select
                   value={FormulaFieldName.length > 0 ? FormulaFieldName[FormulaFieldName.length - 1] : ""}
@@ -522,7 +523,7 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
               </FormControl>
             </div>
             <div className="col-6 mb-3">
-              <label className="pe-field-label" style={{ color: "#374151" }}>Select Operator</label>
+              <label className="pe-field-label" >Select Operator</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '6px', background: '#fafafa' }}>
                 {['None', '+', '-', '*', '/', '%', '=', '{', '}', '<', '>', '<=', '>=', '(', ')'].map((operator, index) => (
                   <button
@@ -542,7 +543,7 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
               </div>
             </div>
             <div className="col-12 mb-3">
-              <label className="pe-field-label" style={{ color: "#374151" }}>Formula Editor</label>
+              <label className="pe-field-label" >Formula Editor</label>
               <div className="position-relative">
                 <TextareaAutosize
                   minRows={3}
