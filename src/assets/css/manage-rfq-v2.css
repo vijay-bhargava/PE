@@ -237,7 +237,7 @@
   min-width: 17px;
   height: 17px;
   border-radius: 10px;
-  background: #f87100;
+  background: #b3261e;
   color: #fff;
   font-size: 10px;
   font-weight: 700;
@@ -715,7 +715,7 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0px 4px 12px 4px rgba(0, 0, 0, 0.12);
   z-index: 200;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .rfq-v2-col-popover-header {
@@ -1352,8 +1352,10 @@
 
 /* ── Filter popover — column/operator/value rows ─────────────────── */
 .rfq-v2-filter-popover {
-  width: 480px !important;
-  min-width: 480px !important;
+  width: 520px !important;
+  min-width: 520px !important;
+  overflow: hidden;
+  border-radius: 8px;
 }
 
 .rfq-v2-filter-rows {
@@ -1756,7 +1758,10 @@
   color: #6b7280;
   cursor: pointer;
   padding: 0;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .rfq-modal-close-btn:hover {

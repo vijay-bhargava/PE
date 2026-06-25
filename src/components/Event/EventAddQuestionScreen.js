@@ -213,7 +213,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 			/>
 			<div className="row">
 				<div className="col-12 mb-2 pb-0 ">
-					<label className="pe-field-label" style={{ color: "#374151" }}>Question *</label>
+					<label className="pe-field-label">Question <span className="rfq-required-star">*</span></label>
 					<TextFieldCell
 						className="pb-0 mb-0 w-100"
 						variant="outlined"
@@ -248,7 +248,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 
 				</div>
 				<div className="col-12 col-md-4 col-lg-4 pe-0 mt-3">
-					<label className="pe-field-label" style={{ color: "#374151" }}>Category</label>
+					<label className="pe-field-label">Category</label>
 					<Autocomplete
 						disablePortal
 						id="combo-box-demo"
@@ -288,7 +288,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 					/>
 				</div>
 				<div className="col-12 col-md-4 col-lg-4 pe-0 mt-3">
-					<label className="pe-field-label" style={{ color: "#374151" }}>Sub Category</label>
+					<label className="pe-field-label">Sub Category</label>
 					<Autocomplete
 						disablePortal
 						id="combo-box-demo"
@@ -315,7 +315,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 				</div>
 
 				<div className="col-12 col-md-4 col-lg-4 pe-0 mt-3">
-					<label className="pe-field-label" style={{ color: "#374151" }}>Question Weightage (%)</label>
+					<label className="pe-field-label">Question Weightage (%)</label>
 					<TextFieldCell
 						id="weightage"
 						name="weightage"
@@ -343,7 +343,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 				</div>
 
 				<div className="col-12 mb-2 pb-0 mt-4">
-					<label className="pe-field-label" style={{ color: "#374151" }}>Requirement</label>
+					<label className="pe-field-label">Requirement</label>
 					<TextFieldCell
 						className="pb-0 mb-0 w-100"
 						variant="outlined"
@@ -373,7 +373,7 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 
 				</div>
 				<div className='col-12 col-md-4 col-lg-4 mt-3'>
-					<label className="pe-field-label" style={{ color: "#374151" }}>Attachment File</label>
+					<label className="pe-field-label">Attachment File</label>
 					<TextField
 						fullWidth
 						variant="outlined"
@@ -415,20 +415,16 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 						}}
 					/>
 				</div>
-				<div className="col-12 col-md-3 col-lg-3 mt-4 ">
-					<FormGroup className="">
+				<div className="col-12 col-md-3 col-lg-3 mt-3">
+					<label className="pe-field-label">&nbsp;</label>
+					<FormGroup>
 						<FormControlLabel
 							control={
 								<Checkbox
 									name="mandatory"
 									id="mandatory"
-									checked={formik?.values?.mandatory} //{formik.values.mandatory}
-
-									onChange={(e) => {
-										const checked = e?.target?.checked;
-										formik?.setFieldValue("mandatory", checked)
-									}}
-
+									checked={formik?.values?.mandatory}
+									onChange={(e) => formik?.setFieldValue("mandatory", e?.target?.checked)}
 								/>
 							}
 							label="Mandatory"
@@ -436,19 +432,16 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 					</FormGroup>
 				</div>
 
-				<div className="col-12 col-md-2 col-lg-2 mt-4">
-					<FormGroup className="">
+				<div className="col-12 col-md-2 col-lg-2 mt-3">
+					<label className="pe-field-label">&nbsp;</label>
+					<FormGroup>
 						<FormControlLabel
 							control={
 								<Checkbox
 									name="attachement"
 									id="attachement"
-									checked={formik?.values?.attachement} //{formik.values.mandatory}
-
-									onChange={(e) => {
-										const checked = e?.target?.checked;
-										formik?.setFieldValue("attachement", checked)
-									}}
+									checked={formik?.values?.attachement}
+									onChange={(e) => formik?.setFieldValue("attachement", e?.target?.checked)}
 								/>
 							}
 							label="Attachment"
@@ -520,9 +513,8 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 				{formik.values.questiontype != 'O' && formik?.values?.questionOption?.map((x, i) => {
 					return (
 						<div className="option" key={i}>
-							<div className="row justify-content-between align-items-center w-100 mb-2 ms-0 p-2">
-
-								<div className="col-md-6">
+							<div className="row align-items-center w-100 mb-2 ms-0 g-3">
+								<div className="col-md-4">
 									<TextField
 										variant="outlined"
 										className="w-100"
@@ -534,57 +526,48 @@ const EventAddQuestionScreen = ({ callback, eventtype, eventid, questionlist }) 
 										name="questionOption"
 										placeholder="Option Value"
 										onChange={(e) => handleInputChange(e, i)}
-										inputProps={{
-											style: { padding: "4.5px 14px" }
-										}}
+										inputProps={{ style: { padding: "8.5px 14px" } }}
 										InputLabelProps={{ shrink: false }}
 									/>
 								</div>
-
-								<div className="col-md-6">
-									<>
-										<TextField
-											variant="outlined"
-											className="w-50"
-											required
-											id={`weightage-${i}`}
-											name="weightage"
-											label=""
-											value={x.weightage}
-											size="small"
-											placeholder="Option Weightage"
-											onChange={(e) => handleInputWeightageChange(e, i)}
-											onInput={(e) => onlyNumbers(e)}
-											inputProps={{
-												style: { padding: "4.5px 14px" },
-												maxLength: 3
-											}}
-											InputLabelProps={{ shrink: false }}
-										/>
-										<span>
-											<Button
-												color="error"
+								<div className="col-md-4">
+									<TextField
+										variant="outlined"
+										className="w-100"
+										required
+										id={`weightage-${i}`}
+										name="weightage"
+										label=""
+										value={x.weightage}
+										size="small"
+										placeholder="Option Weightage"
+										onChange={(e) => handleInputWeightageChange(e, i)}
+										onInput={(e) => onlyNumbers(e)}
+										inputProps={{ style: { padding: "8.5px 14px" }, maxLength: 3 }}
+										InputLabelProps={{ shrink: false }}
+									/>
+								</div>
+								<div className="col-md-2 d-flex align-items-center gap-3 justify-content-end">
+									{formik?.values?.questionOption?.length && formik?.values?.questionOption.length - 1 === i && (
+										<Tooltip title="Add Option" arrow>
+											<IconButton
 												size="small"
-												className="ms-2"
-												onClick={() => handleRemoveClick(i)}
+												className="eq-question-icon-btn eq-question-icon-btn--download"
+												onClick={handleAddClick}
 											>
-												<HiOutlineX className="f16 text-danger" />
-											</Button>
-										</span>
-
-										{formik?.values?.questionOption?.length && formik?.values?.questionOption.length - 1 === i && (
-											<span className="col-md-1">
-												<Button
-													color="primary"
-													size="small"
-													className="ms-2"
-													onClick={handleAddClick}
-												>
-													<HiOutlinePlus className="f16 text-primary" />
-												</Button>
-											</span>
-										)}
-									</>
+												<HiOutlinePlus size={15} />
+											</IconButton>
+										</Tooltip>
+									)}
+									<Tooltip title="Remove Option" arrow>
+										<IconButton
+											size="small"
+											className="eq-question-icon-btn eq-question-icon-btn--delete"
+											onClick={() => handleRemoveClick(i)}
+										>
+											<HiOutlineX size={15} />
+										</IconButton>
+									</Tooltip>
 								</div>
 							</div>
 						</div>

@@ -796,11 +796,6 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																		return (
 																			<tr key={index} style={{ background: "#fff" }}>
 																				<td style={{ padding: "8px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
-																					{item?.isSelected && isTermRequiredByFormula(item.fieldName, index) && (
-																						<div style={{ marginBottom: 3 }}>
-																							<span className="comm-required-chip">REQUIRED</span>
-																						</div>
-																					)}
 																					<div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
 																						{(item?.isSelected && (isTermRequiredByFormula(item.fieldName, index) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name))) ? (
 																							<WhiteTooltip
@@ -828,6 +823,9 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																							/>
 																						)}
 																						<span>{item?.name}</span>
+																						{item?.isSelected && isTermRequiredByFormula(item.fieldName, index) && (
+																							<span className="comm-required-chip">REQUIRED</span>
+																						)}
 																						{item?.formulavalue && (
 																							<Tooltip
 																								title={
@@ -837,7 +835,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																								}
 																								arrow
 																							>
-																								<span style={{ display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer", color: "#1976d2", marginLeft: 40 }}>
+																								<span style={{ display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer", color: "#1976d2", marginLeft: "5px" }}>
 																									<FunctionsIcon style={{ fontSize: 15, color: "#B0B0B0" }} />
 																									<span style={{ fontSize: 12, fontWeight: 600, textDecoration: "underline" }}>View Formula</span>
 																								</span>
@@ -1006,9 +1004,9 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 						<header className="rfq-v2-event-drawer-header">
 							<h2 className="rfq-v2-event-drawer-title">Manage Terms</h2>
 							<div className="rfq-v2-event-drawer-actions">
-								<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => toggleOpenDrawer("AddNewTerm", false)}>Cancel</button>
-								<button type="reset" form="manage-terms-form" className="rfq-v2-event-btn rfq-v2-event-btn-outline">Reset</button>
-								<button type="submit" form="manage-terms-form" className="rfq-v2-event-btn rfq-v2-event-btn-primary">{editRecordData ? "Update" : "Submit"}</button>
+								<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleOpenDrawer("AddNewTerm", false)}>Cancel</button>
+								<button type="reset" form="manage-terms-form" className="pe-btn pe-btn--secondary">Reset</button>
+								<button type="submit" form="manage-terms-form" className="pe-btn pe-btn--primary">{editRecordData ? "Update" : "Submit"}</button>
 							</div>
 						</header>
 						<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto' }}>

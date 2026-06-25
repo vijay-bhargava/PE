@@ -630,8 +630,21 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					}
 					return true; // if sealedBid is false or dates are not defined, validation passes
 				}
-			)
-
+			),
+		purchGrpId: yup.mixed().nullable().test("purchase-group-required", "Purchase Group is required", function (value) {
+			const { purchOrgId } = this.parent;
+			if (purchOrgId?.id > 0 && (!value || !value.id)) {
+				return false;
+			}
+			return true;
+		}),
+		termandcondition: yup.string().test("valid-tc", "Terms & Conditions is required", function (value) {
+			const text = extractTextFromHTML(value ?? "");
+			if (text.trim().length < 1) {
+				return this.createError({ message: "Terms & Conditions is required" });
+			}
+			return true;
+		}),
 	});
 
 
@@ -2010,12 +2023,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		if (value == 1) {
 
 			const currentDate = new Date();
-			if (formik.values.purchOrgId?.id > 0 && !formik.values.purchGrpId) {
-				toast.error("Please fill Purchase Group.", {
-					toastId: "rfq_purchOrgId_error"
-				});
-				return;
-			}
 			if (formik.values.IsMultiCurrency) {
 				if (inputList?.length === 0) {
 					toast.error("Please add multi-currency details.", {
@@ -2044,8 +2051,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					termandcondition: true,
 				});
 
-				// Show error toast for user feedback
-
+				toast.error("Please fill all required fields.", { toastId: "rfq_validation_error" });
 				return;
 			}
 
@@ -4086,6 +4092,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				return handleCreateNFA()
 			case "Send Mail to suppliers":
 				return handleSendMailtoSuppliers()
+			case "Save as Draft":
+				return handleSaveasDraft()
+			case "Publish RFQ":
+				return handleRFQSubmit()
 			default:
 				return ""
 		}
@@ -4358,7 +4368,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										)
 									) : (
 										<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" disabled>
-											{value === 6 ? "Publishing..." : "Submit..."}
+											{value === 6 ? "Publishing..." : "Saving..."}
 										</button>
 									)}
 								</div>
@@ -4569,7 +4579,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						</div>
 
 						{/* Tab Content */}
-						<div className={`flex-grow-1 hidden-scrollbar ${(!idFromURL || idFromURL === "add") ? "rfq-dv2-create-form" : ""}`} style={{ overflowY: 'auto', padding: '20px 16px 16px' }}>
+						<div className="flex-grow-1 hidden-scrollbar" style={{ overflowY: 'auto', padding: '20px 16px 16px' }}>
 							{/* General Tab Content */}
 							{value === 1 && (
 								<div>
@@ -4592,17 +4602,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 												const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false;
 												const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.REMOVE) ?? false;
 
-
-
 												return (
 													<div>
 														{/* Permission Status Alert */}
-
-
-
 														<div className="row mb-3">
 															<div className="col-12">
-																<label className="pe-field-label">RFQ Subject</label>
+																<label className="pe-field-label">RFQ Subject <span className="rfq-required-star">*</span></label>
 																<TextField
 																	fullWidth
 																	size="small"
@@ -4620,21 +4625,25 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																/>
 															</div>
 														</div>
-
-
 														<div className="row mb-3">
 															<div className="col-12">
-																<div className="f12 text-muted mb-1 rfq-dv2-quill-field">
-																	<span>RFQ Description</span>
+																<label className="pe-field-label">RFQ Description <span className="rfq-required-star">*</span></label>
+																<div className={`rfq-dv2-quill-field${formik.touched.description && formik.errors.description ? ' rfq-dv2-quill-error' : ''}`}>
 																	<ReactQuill
 																		theme="snow"
 																		value={formik.values.description || ''}
-																		onChange={(content) => formik.setFieldValue('description', content)}
+																		onChange={(content) => {
+																			formik.setFieldValue('description', content);
+																			if (!formik.touched.description) formik.setFieldTouched('description', true);
+																		}}
 																		readOnly={!canEdit}
 																		placeholder="Enter description..."
 																		style={{ backgroundColor: !canEdit ? '#f5f5f5' : 'white' }}
 																	/>
 																</div>
+																{formik.touched.description && formik.errors.description && (
+																	<span className="rfq-field-error">{formik.errors.description}</span>
+																)}
 															</div>
 														</div>
 
@@ -4697,7 +4706,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 																{/* End Date */}
 																<div className="col-12 col-md-4 col-lg-4 rfq-dv2-end-field">
-																	<label className="pe-field-label">End Date/Time <span style={{ color: "#ef4444" }}>*</span></label>
+																	<label className="pe-field-label">End Date/Time <span className="rfq-required-star">*</span></label>
 																	<MobileDateTimePicker
 																		name="endDate"
 																		id="endDate"
@@ -4724,7 +4733,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															</div>
 														</LocalizationProvider>
 
-														<div className="row mt-4 mb-2">
+														<div className="row mt-4 mb-2 align-items-center">
 															{/* Purchase Org */}
 															{purchaseAllList && (
 																<div className="col-12 col-md-4 col-lg-4 mb-2 rfq-dv2-purchase-org-field">
@@ -4791,7 +4800,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															{/* Purchase Group */}
 															{purchaseGroupAllList && (
 																<div className="col-12 col-md-4 col-lg-4 mb-2 rfq-dv2-purchase-group-field">
-																	<label className="pe-field-label">Purchase Group</label>
+																	<label className="pe-field-label">Purchase Group <span className="rfq-required-star">*</span></label>
 																	<Autocomplete
 																		id="purchGrpId"
 																		name="purchGrpId"
@@ -4832,6 +4841,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																			<TextField
 																				{...params}
 																				variant="outlined"
+																				error={formik.touched.purchGrpId && Boolean(formik.errors.purchGrpId)}
+																				helperText={formik.touched.purchGrpId && formik.errors.purchGrpId}
 																			/>
 																		)}
 																	/>
@@ -4839,7 +4850,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															)}
 															{/* Show Price to Technical Approver */}
 															{stagelist?.some(item => item.currentStage == "Technical Approval") &&
-																(<div className="col-12 col-md-4 col-lg-4 mb-2">
+																(<div className="col-12 col-md-4 col-lg-4 mb-2 mt-3">
 																	<FormGroup>
 																		<FormControlLabel
 																			control={
@@ -4862,8 +4873,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																</div>)
 															}
 														</div>
-
-
 
 														<div className="col-12 mb-1 rfq-dv2-terms-field">
 															<FormControl className="w-100">
@@ -4928,7 +4937,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																									key={i}
 																								>
 																									<div className="col-lg-4 col-12">
-																										<label className="pe-field-label">Select Currency <span style={{ color: "#ef4444" }}>*</span></label>
+																										<label className="pe-field-label">Select Currency <span className="rfq-required-star">*</span></label>
 																										<Autocomplete
 																											id={"baseCurrency" + i}
 																											name="baseCurrency"
@@ -4988,7 +4997,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 																									</div>
 																									<div className="col-lg-4 col-12">
-																										<label className="pe-field-label">Conversion Factor <span style={{ color: "#ef4444" }}>*</span></label>
+																										<label className="pe-field-label">Conversion Factor <span className="rfq-required-star">*</span></label>
 																										<TextField
 																											variant="outlined"
 
@@ -5084,23 +5093,19 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																)}
 														</div>
 														<div className="col-12 mb-1">
-															<div className="f12 text-muted mb-1 rfq-dv2-quill-field">
-																<span>Terms & Conditions *</span>
+															<div className="rfq-dv2-quill-field-header">
+																<span>Terms & Conditions <span className="rfq-required-star">*</span></span>
 																{idFromURL && (
 																	<span>
 																		<Tooltip title="Attachments">
 																			<IconButton
-
 																				size="small"
 																				className="border-primary  bg-white"
 																				onClick={() => {
-
-																					if (attachmentdrawerref.current) {
-																						attachmentdrawerref?.current?.handledrawer()
-																					}
+																					setApproverShow(true);
+																					setWorkflowPanelTab("attachments");
 																				}}
 																			>
-
 																				<Badge
 																					style={{ padding: "0px 4px", fontSize: "10px" }}
 																					// badgeContent={attachmentCount}
@@ -5114,12 +5119,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																		</Tooltip>
 																	</span>
 																)}
-
-
-
 															</div>
-
-
 															<ReactQuill
 																id="termandcondition"
 																theme="snow"
@@ -5157,19 +5157,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																	}/2000`}{" "}
 
 															</div>}
-															{formik.touched.termandcondition &&
-																Boolean(formik.errors.termandcondition) ? (
-																<>
-																	<FormHelperText className="text-danger">
-																		{formik.errors.termandcondition}
-																	</FormHelperText>
-																</>
-															) : (
-																<></>
+															{formik.touched.termandcondition && formik.errors.termandcondition && (
+																<span className="rfq-field-error">{formik.errors.termandcondition}</span>
 															)}
 														</div>
-														<div className="col-12 mb-4 d-flex rfq-dv2-toggle-section">
-															<div className="col-12 col-md-2 col-lg-2 mt-4">
+														<div className="col-12 mb-4 d-flex align-items-center rfq-dv2-toggle-section">
+															<div className="col-12 col-md-2 col-lg-2 mt-3">
 																<FormGroup>
 																	<FormControlLabel
 																		control={
@@ -5184,15 +5177,11 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																		name="sealedBid"
 																		value={formik.values.RFQType}
 																		onChange={(e) => {
-
 																			const newValue = e.target.checked ? "closed" : "open";
 																			formik.setFieldValue("RFQType", newValue);
 
 																			if (newValue === "open") {
 																				formik.setFieldValue("bidOpeningDate", null);
-
-
-
 																			}
 
 																			//versionhistoryhandling
@@ -5203,35 +5192,25 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																				(entry) => entry.version === currentVersion
 																			);
 																			if (newValue === "open") {
-
-
 																				if (index !== -1) {
 																					// Update existing version entry
 																					updatedHistory[index].bidOpeningDate = null;
 																					updatedHistory[index].OpenQuotes = 'Y';
 																					updatedHistory[index].autoOpenEnabled = false;
-
 																				}
 																			}
 																			else {
-
 																				if (index !== -1) {
 																					// Update existing version entry
 
 																					updatedHistory[index].OpenQuotes = 'N';
-
-
 																				}
-
 																			}
-
-
-
 																		}}
 																	/>
 																</FormGroup>
 															</div>
-															{/* <div className="col-12 col-md-2 col-lg-2 mt-4 ms-3">
+															<div className="col-12 col-md-2 col-lg-2 ms-3 mt-3">
 																<FormGroup>
 																	<FormControlLabel
 																		control={
@@ -5246,10 +5225,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																		onChange={(e) => formik.setFieldValue("boqReq", e.target.checked)}
 																	/>
 																</FormGroup>
-															</div>  */}
+															</div>
 															{formik.values.RFQType == "closed" && (
 																<>
-																	<div className="col-12 col-md-6 col-lg-4 mt-4 ms-0 ps-0 me-2">
+																	<div className="col-12 col-md-6 col-lg-4 ms-0 ps-0 me-2">
 																		<LocalizationProvider dateAdapter={AdapterDayjs}>
 																			<label className="pe-field-label">Bid Open Date/Time</label>
 																			<MobileDateTimePicker
@@ -5335,13 +5314,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																		</FormGroup>
 																	</div> */}
 																</>
-
-
-
 															)}
-
-
-
 														</div>
 													</div>
 												);
@@ -5352,10 +5325,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false;
 											const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false;
 											const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false;
-											const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.REMOVE) ?? false;
-
-
-
+												const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.REMOVE) ?? false;
 											if (showGeneralAccessDenied || !idFromURL || idFromURL === 'add') {
 												return null;
 											}
@@ -5372,7 +5342,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 												/>
 											);
 										})()
-
 									)}
 								</div>
 							)}
@@ -5419,9 +5388,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											<div>
 												{/* Permission Alert for Items/Services Tab */}
 												{permissionManager && (
-													<div className="pb-0">
-
-													</div>
+													<div className="pb-0"></div>
 												)}
 
 												<div className="p-3 pt-0">
@@ -5515,9 +5482,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										return (
 											<>
 												{effectivePermissionManager && (
-													<div className="pb-0">
-
-													</div>
+													<div className="pb-0"></div>
 												)}
 												<EventCommercialScreen
 													EventType="RFQ"
@@ -5550,9 +5515,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										return (
 											<>
 												{effectivePermissionManager && (
-													<div className="pb-0">
-
-													</div>
+													<div className="pb-0"></div>
 												)}
 												<EventQuestionScreen
 													props={{
@@ -5588,9 +5551,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										return (
 											<>
 												{effectivePermissionManager && (
-													<div className="pb-0">
-
-													</div>
+													<div className="pb-0"></div>
 												)}
 											</>
 										);
@@ -5845,9 +5806,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										return (
 											<>
 												{effectivePermissionManager && (
-													<div className="pb-0">
-
-													</div>
+													<div className="pb-0"></div>
 												)}
 											</>
 										);
@@ -5920,7 +5879,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										isNFA: false
 									}}
 								/>}
-
 
 							{value == 8 &&
 								<QueryList
@@ -6037,8 +5995,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										</>
 									)}
 
-
-
 									{
 										accessLevel?.find(x => x.claimType == "Commercial Terms")?.claimValue?.Read !== "N" && (
 											<>
@@ -6108,20 +6064,15 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															ref={EventCommercialScreenRef}
 															permissionManager={effectivePermissionManager}
 														/>
-
 													</CardContent>
 												</Card>
-
 											</>
 										)
 									}
 
-
-
 									{
 										accessLevel?.find(x => x.claimType == "Questions")?.claimValue?.Read !== "N" && (
 											<>
-
 												{/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
 												<div className="d-flex justify-content-between align-items-center mb-3" id="rfqquestions">
 													<Typography
@@ -6158,9 +6109,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false;
 
 															return (
-																<>
-
-																</>
+																<></>
 															);
 														})()}
 
@@ -6180,19 +6129,15 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															}}
 															ref={EventQuestionScreenRef}
 														/>
-
 													</CardContent>
 												</Card>
-
 											</>
 										)
 									}
 
-
 									{
 										accessLevel?.find(x => x.claimType == "Invite Vendor")?.claimValue?.Read !== "N" && (
 											<>
-
 												{/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
 												<div className="d-flex justify-content-between align-items-center mb-3" id="invitedsuppliers">
 													<Typography
@@ -6227,15 +6172,11 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 														</div>
 													</CardContent>
 												</Card>
-
 											</>
 										)
 									}
-
-
 								</div>
 							)}
-
 						</div>
 					</div>
 				</div>
@@ -6549,7 +6490,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								</div>
 							)}
 						</div>
-
 					</div>
 				</div>
 			</div>
@@ -6560,11 +6500,11 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						<header className="rfq-v2-event-drawer-header">
 							<h2 className="rfq-v2-event-drawer-title">{itemEditTempData?.id > 0 ? 'Edit Product / Service' : 'Add Product / Service'}</h2>
 							<div className="rfq-v2-event-drawer-actions">
-								<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={toggleDrawer("addProductDrawer", false)}>Cancel</button>
+								<button type="button" className="pe-btn pe-btn--ghost" onClick={toggleDrawer("addProductDrawer", false)}>Cancel</button>
 								{stagearray.includes(currentStage) && (
 									<>
-										<button type="reset" form="add-product-form" className="rfq-v2-event-btn rfq-v2-event-btn-outline">Reset</button>
-										<button type="submit" form="add-product-form" className="rfq-v2-event-btn rfq-v2-event-btn-primary">{itemEditTempData?.id > 0 ? 'Update' : 'Add'}</button>
+										<button type="reset" form="add-product-form" className="pe-btn pe-btn--secondary">Reset</button>
+										<button type="submit" form="add-product-form" className="pe-btn pe-btn--primary">{itemEditTempData?.id > 0 ? 'Update' : 'Add'}</button>
 									</>
 								)}
 							</div>
@@ -6588,7 +6528,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				<Drawer
 					anchor="right"
 					open={state["qusDrawer"]}
-
 				>
 					<Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
 						<div className="flex flex-col">
@@ -6615,7 +6554,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									libraryId={libraryId}
 									questionforedit={questionforedit}
 								/>
-
 							</Box>
 						</div>
 					</Box>
@@ -6625,7 +6563,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				<Drawer
 					anchor="right"
 					open={state["surrogateDrawer"]}
-
 				>
 					<Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
 						<div className="flex flex-col">
@@ -6650,7 +6587,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								<form onSubmit={formik_Action.handleSubmit} autoComplete="off">
 									<div className="row mt-2">
 										<div className="col-12 col-md-12 mb-4">
-											<label className="pe-field-label">Supplier <span style={{ color: "#ef4444" }}>*</span></label>
+											<label className="pe-field-label">Supplier <span className="rfq-required-star">*</span></label>
 											<TextField
 												fullWidth size="small" variant="outlined" id="supplierselected" name="supplierselected"
 												value={`${formik_Action.values.supplier?.contactPerson} | ${formik_Action.values.supplier?.emailId} | ${formik_Action.values.supplier?.companyName}`}
@@ -6681,7 +6618,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 													/>
 												</div>
 												<div className="col-12 col-md-6 mb-4">
-													<label className="pe-field-label">Surrogator Email <span style={{ color: "#ef4444" }}>*</span></label>
+													<label className="pe-field-label">Surrogator Email <span className="rfq-required-star">*</span></label>
 													<TextField
 														fullWidth size="small" variant="outlined"
 														id="email" name="email" className="f14" autoComplete="off"
@@ -6729,9 +6666,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 									<div className="text-end">
 										<LoadingButton
-
 											variant="outlined"
-
 											color="primary"
 											className="me-3 text-capitalize"
 											size="small"
@@ -6739,7 +6674,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											Reset
 										</LoadingButton>
 										<LoadingButton
-
 											variant="contained"
 											type="submit"
 											color="primary"
@@ -6868,7 +6802,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					<DialogContentText>
 						Do you want to cancel this rfq? Unsaved changes will be lost.
 					</DialogContentText>
-					<label className="pe-field-label">Enter reason <span style={{ color: "#ef4444" }}>*</span></label>
+					<label className="pe-field-label">Enter reason <span className="rfq-required-star">*</span></label>
 					<TextField
 						autoFocus
 						margin="dense"
@@ -7280,109 +7214,61 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				backdrop="static"
 				keyboard={false}
 				centered
-				className="zindex1270"
+				className="zindex1270 rfq-create-modal"
 				backdropClassName="zindex1270"
+				contentClassName="border-0 rounded-default"
 				onHide={() => handleCloseModal1()}
-				style={{ borderRadius: "5px" }}
 			>
-				<Modal.Header className="bgheaderCards p-2">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14  text-white">
-							Select Base Currency
-						</div>
+				<Modal.Header className="pt-2 pb-2">
+					<Modal.Title>
+						<span style={{ fontSize: 14 }}>Select Base Currency</span>
 					</Modal.Title>
-					<IconButton
-						onClick={() => handleCloseModal1()}
-						size="small"
-						edge="start"
-						color="white"
-					>
-						<Close className="text-white" />
-					</IconButton>
+					<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseModal1()}>
+						<HiOutlineX style={{ fontSize: 16 }} />
+					</button>
 				</Modal.Header>
 				<Modal.Body className="p-0">
-					<div className="p-2">
-						<div className="row">
-							<div className="col-12 col-lg-12 col-md-12 mt-2 ">
-								<form>
-									<div className="row">
-										<div className="col-12 col-lg-12 col-md-12">
-											<div className="row">
-												<div className="col-12 col-lg-12 mt-3">
-													{
-														<div
-															className="row d-flex align-items-center w-100 mb-3"
-
-														>
-															<div className="col-lg-12 col-12">
-																<label className="pe-field-label">Select Currency <span style={{ color: "#ef4444" }}>*</span></label>
-																<TextField
-																	id={"basecurrencymodal"}
-																	name="baseCurrency"
-																	select
-																	className="w-100 f14"
-																	size="small"
-																	variant="outlined"
-																	SelectProps={{
-																		onOpen: () => {
-																			console.log("Select opened, currencyList length:", currencyList.length, "loadCurrency:", loadCurrency);
-																			if (currencyList.length === 0 && !loadCurrency) {
-																				pullgetCurrency();
-																			}
-																		}
-																	}}
-																	value={formik?.values?.baseCurrency}
-																	onChange={(e) => {
-																		const newValue = e.target?.value;
-																		console.log("Base Currency onChange triggered, newValue:", newValue);
-																		if (newValue === "new") {
-																			console.log("Opening currency modal and closing base currency modal...");
-																			handleCloseModal1();
-																			setTimeout(() => {
-																				setOpenCurrencyModal(true);
-																			}, 100);
-																			return;
-																		}
-																		console.log("Setting base currency to:", newValue);
-																		formik.setFieldValue("baseCurrency", newValue);
-																		handleCloseModal1();
-																	}}
-																>
-																	{loadCurrency ? (
-																		<MenuItem>Loading...</MenuItem>
-																	) : [
-																		...(currencyList || []).map((option) => (
-																			<MenuItem
-																				key={option.id}
-																				value={option?.currencyNm}
-																			>
-																				{option?.currencyNm}
-																			</MenuItem>
-																		)),
-																		<MenuItem
-																			key="new"
-																			value="new"
-																			style={{ fontStyle: "italic", color: "blue", cursor: "pointer", textDecoration: "underline" }}
-																		>
-																			Add New
-																		</MenuItem>
-																	]}
-																</TextField>
-															</div>
-
-
-
-														</div>
-													}
-
-
-												</div>
-											</div>
-										</div>
-									</div>
-								</form>
-							</div>
-						</div>
+					<div className="p-3">
+						<label className="pe-field-label">Select Currency <span className="rfq-required-star">*</span></label>
+						<TextField
+							id="basecurrencymodal"
+							name="baseCurrency"
+							select
+							className="w-100 f14"
+							size="small"
+							variant="outlined"
+							SelectProps={{
+								onOpen: () => {
+									if (currencyList.length === 0 && !loadCurrency) {
+										pullgetCurrency();
+									}
+								}
+							}}
+							value={formik?.values?.baseCurrency}
+							onChange={(e) => {
+								const newValue = e.target?.value;
+								if (newValue === "new") {
+									handleCloseModal1();
+									setTimeout(() => { setOpenCurrencyModal(true); }, 100);
+									return;
+								}
+								formik.setFieldValue("baseCurrency", newValue);
+								handleCloseModal1();
+							}}
+						>
+							{loadCurrency ? (
+								<MenuItem>Loading...</MenuItem>
+							) : [
+								...(currencyList || []).map((option) => (
+									<MenuItem key={option.id} value={option?.currencyNm}>
+										{option?.currencyNm}
+									</MenuItem>
+								)),
+								<MenuItem key="new" value="new" style={{ fontStyle: "italic", color: "blue", cursor: "pointer", textDecoration: "underline" }}>
+									Add New
+								</MenuItem>
+							]}
+						</TextField>
 					</div>
 				</Modal.Body>
 			</Modal>
@@ -7410,7 +7296,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 			{/* Currency Modal */}
 			<Modal
-				size="lg"
+				size="md"
 				show={OpenCurrencyModal}
 				backdrop="static"
 				keyboard={false}

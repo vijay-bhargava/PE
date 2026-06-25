@@ -639,7 +639,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
 
           </div>
           <div className='col-12 col-md-6 mb-4'>
-            <label className="pe-field-label">Item / Service Name *</label>
+            <label className="pe-field-label">Item / Service Name <span className="rfq-required-star">*</span></label>
             <TextField
               fullWidth
               variant="outlined"
@@ -705,7 +705,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                      
                     </div> */}
           <div className='col-12 col-md-6 mb-4'>
-            <label className="pe-field-label">Description *</label>
+            <label className="pe-field-label">Description <span className="rfq-required-star">*</span></label>
             <TextField
               fullWidth
               variant="outlined"
@@ -796,7 +796,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
             />
           </div>
           <div className='col-12 col-md-4 mb-4'>
-            <label className="pe-field-label">Quantity *</label>
+            <label className="pe-field-label">Quantity <span className="rfq-required-star">*</span></label>
             <TextField
               fullWidth
               variant="outlined"
@@ -829,7 +829,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </div>
 
           <div className='col-12 col-md-4 mb-4'>
-            <label className="pe-field-label">UOM *</label>
+            <label className="pe-field-label">UOM <span className="rfq-required-star">*</span></label>
             <Autocomplete
               id="uom"
               name="uom"
@@ -940,7 +940,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </div>
           {/* added item type */}
           <div className='col-12 col-md-6 col-lg-4 mb-3'>
-            <label className="pe-field-label">Item Type *</label>
+            <label className="pe-field-label">Item Type <span className="rfq-required-star">*</span></label>
             <Autocomplete
               id="itemType"
               name="itemType"
