@@ -1108,8 +1108,8 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 					</div>
 					{Action && (
 						<div className="comm-currency-modal-footer">
-							<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost" onClick={() => handleCloseModal1()}>Cancel</button>
-							<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={handleCommercialCurrencyCheck}>Submit</button>
+							<button type="button" className="rfq-dv2-action-btn pe-btn--ghost" onClick={() => handleCloseModal1()}>Cancel</button>
+							<button type="button" className="rfq-dv2-action-btn pe-btn--primary" onClick={handleCommercialCurrencyCheck}>Submit</button>
 						</div>
 					)}
 				</div>

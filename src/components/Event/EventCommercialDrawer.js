@@ -574,8 +574,8 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
           backdrop="static"
           keyboard={false}
           value={"Add NEW CATEGORY"}
-          className="zindex1280"
-          backdropClassName="zindex1280"
+          className="zindex1400"
+          backdropClassName="zindex1400"
           centered
           contentClassName="border-0"
           onHide={() => CloseModalUom()}

@@ -845,7 +845,7 @@
   .MuiTextField-root
   .MuiOutlinedInput-root {
   min-height: 30px !important;
-  border-radius: 7px !important;
+  border-radius: 4px !important;
   font-size: 11px !important;
 }
 
@@ -1110,10 +1110,7 @@
   font-size: 11px !important;
   line-height: 14px !important;
   min-width: 0;
-  overflow: hidden;
   color: #374151 !important;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .rfq-detail-v2-shell .rfq-dv2-stage-count {

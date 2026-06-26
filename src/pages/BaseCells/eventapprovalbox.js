@@ -449,211 +449,18 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 													classes={{ content: 'MuiAccordionSummary-content custom-accordion-summary-content' }}
 													expandIcon={<ExpandMore />}
 												>
-													<div className="row justify-content-between w-100">
-														<div className="col-md-10">
-
-															<div className="rfq-dv2-stage-summary">
-																<span className="approval-stage-title">{x.stage}</span>
-																{totalCount > 0 && (
-																	<span className="rfq-dv2-stage-count">
-																		{approvedCount}/{totalCount} APPROVED
-																	</span>
-																)}
-															</div>
-															{/* <div className="rfq-dv2-stage-waiting">
-																<span className="rfq-dv2-mini-avatar">RC</span>
-																{pendingCount > 0 ? `Waiting on ${pendingCount}` : "Awaiting prior steps"}
-															</div> */}
-
-														</div>
-														<div className="col-md-2 d-flex align-items-baseline justify-content-end ps-3 me-0 pe-0">
-															<div className="d-flex align-items-baseline justify-content-end">
-																{action && (
-																	<div className="text-end mb-2 ps-5 pe-1">
-																		<div>
-																			<span className="d-flex align-items-baseline">
-																				{/* <IconButton
-																					size="small"
-																					onClick={(e) => {
-																						handleIconClick(e, x.stage);
-
-
-																						handleClickOpen();
-																					}}
-																				>
-																					<FaRegFloppyDisk className="f17 text-success" />
-																				</IconButton> */}
-																				{currentStage != "Awarded" &&
-																					(!(x.approvers?.every(approver => approver.status && approver.status !== "Pending")) || x.approvers?.length == 0) &&
-																					<IconButton
-																						size="small"
-																						disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)}
-																						onClick={(e) => {
-																							handleIconClick(e);
-																							toggleAdd(i);
-																						}}
-																					>
-
-																						<HiOutlineUserAdd className="f17 text-primary" />
-																					</IconButton>}
-																			</span>
-																		</div>
-																	</div>
-																)}
-															</div>
+													<div className="col-md-10 wf-stage-col">
+														<div className="rfq-dv2-stage-summary">
+															<span className="approval-stage-title">{stagename || x.stage}</span>
+															{totalCount > 0 && (
+																<span className="rfq-dv2-stage-count">
+																	{approvedCount}/{totalCount} APPROVED
+																</span>
+															)}
 														</div>
 													</div>
 												</AccordionSummary>
 												<AccordionDetails className="approvalAcordionDetails">
-
-													<div className=" rounded  mb-2">
-														<div className="row">
-															<div className="col-md-12">
-																{isAddVisible[i] ? (
-																	<div className="row">
-																		<div className="col-md-7">
-																			<div className="">
-																				<Autocomplete
-																					disablePortal
-																					id="combo-box-demo"
-																					className="pt-1 pb-1"
-																					size="small"
-																					options={userOptions}
-																					fullWidth
-																					disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)}
-																					value={addingApprover}
-																					renderInput={(params) => (
-																						<TextField
-																							{...params}
-																							InputLabelProps={{
-																								shrink: true,
-																							}}
-																							label="Search Approver"
-																						/>
-																					)}
-																					onChange={(event, newvalue) => {
-																						setAddingApprovers(newvalue)
-																						//onChangeApprover(event, newvalue,x);
-																					}}
-																					onOpen={() => {
-																						if (userOptions.length === 0) {
-																							fetchUserList(customerid, requestCell);
-																						}
-																					}}
-																				/>
-																			</div>
-																		</div>
-																		<div className="col-md-4">
-																			<div className="">
-																				<TextField
-																					InputLabelProps={{
-																						shrink: true,
-																					}}
-																					fullWidth
-																					variant="outlined"
-																					size="small"
-																					className="f14 pt-1 pb-1"
-																					id="addingapproversequence"
-																					name="addingapproversequence"
-																					label="Sequence No*"
-																					value={addingApproverSequence}
-																					InputProps={{
-																						step: 1,
-																						min: 0,
-																						max: 100,
-																					}}
-																					type="number"
-																					disabled={addingApprover ? (!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)) : true}
-																					// onChange={(e) => {
-
-																					// 	const inputValue = e.target.value;
-
-																					// 	// Prevent non-numeric characters and negative values using regex
-
-																					// 	if (IntegerRegex.test(inputValue)) {
-																					// 		// Check if input value is greater than allowed sequence length
-
-																					// 		const length = parseInt(approverList.filter(obj => obj.stage === x.stage)[0].approvers?.length) + 1;
-																					// 		if (inputValue == 0) {
-																					// 			return;
-																					// 		}
-																					// 		if (inputValue > length) {
-
-																					// 			return;
-																					// 		}
-
-																					// 		setAddingApproversSequence(inputValue); // Update value if valid
-																					// 	} else {
-																					// 		// Optionally: you could show an error message for invalid input
-																					// 		// toast.error('Only positive numbers allowed');
-																					// 		setAddingApproversSequence("");
-																					// 	}
-																					// }}
-
-																					//#Anurag_Dev change to handle unwanted number
-																					onChange={(e) => {
-
-																						const inputValue = e.target.value;
-
-																						if (!IntegerRegex.test(inputValue)) {
-																							setAddingApproversSequence(""); // Clear invalid input
-																							return;
-																						}
-
-																						const approversForStage =
-																							approverList.find(obj => obj.stage === x.stage)?.approvers || [];
-
-																						const length = approversForStage.length + 1;
-
-																						// If no approvers, allow only "1"
-																						if (approversForStage.length === 0) {
-
-																							if (inputValue === "1") {
-																								setAddingApproversSequence(inputValue);
-																							} else {
-																								setAddingApproversSequence(""); // Disallow anything other than 1
-																							}
-																						} else {
-																							const intVal = parseInt(inputValue);
-																							if (intVal > 0 && intVal <= length) {
-																								setAddingApproversSequence(inputValue);
-																							} else {
-																								setAddingApproversSequence(""); // Disallow out-of-range values
-																							}
-																						}
-																					}}
-																				/>
-																			</div>
-
-																		</div>
-																		<div className="col-md-1 ms-0 ps-0 mt-2">
-																			<div className="text-start">
-																				<LoadingButton
-
-																					variant='standard'
-																					type="submit"
-																					style={{ minWidth: "35px" }}
-																					color='primary'
-																					className='text-capitalize ms-0 ps-0 pe-0 me-0 customButton'
-																					size='small'
-																					disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)}
-																					onClick={(event) => {
-																						onChangeApprover(addingApproverSequence, addingApprover, x, wfstage);
-																					}}
-
-																				>
-																					<HiPlusSm className="f17" />
-																				</LoadingButton>
-																			</div>
-																		</div>
-
-																	</div>
-																) : (
-																	<></>
-																)}
-															</div>
-														</div>
-													</div>
 													<div className="row">
 														<EventApprovalWorkFlow
 															key={`approvalworkflow`}
@@ -671,6 +478,103 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 														/>
 													</div>
 
+													<div className="mt-2 mb-2">
+														<button
+															type="button"
+															className="wf-add-approver-btn"
+															disabled={
+																!action ||
+																currentStage === "Awarded" ||
+																(x.approvers?.every(approver => approver.status && approver.status !== "Pending") && x.approvers?.length > 0) ||
+																!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)
+															}
+															onClick={(e) => {
+																handleIconClick(e);
+																toggleAdd(i);
+															}}
+														>
+															<HiPlusSm className="f15" />
+															Add approver to {stagename || x.stage}
+														</button>
+														{isAddVisible[i] && (
+															<div className="wf-add-approver-form">
+																<div className="row g-2">
+																	<div className="col-6">
+																		<label className="pe-field-label">Search Approver</label>
+																		<Autocomplete
+																			id="wf-approver-autocomplete"
+																			size="small"
+																			options={userOptions}
+																			fullWidth
+																			disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)}
+																			value={addingApprover}
+																			renderInput={(params) => (
+																				<TextField
+																					{...params}
+																					variant="outlined"
+																					size="small"
+																					placeholder="Search approver"
+																					label={null}
+																					InputLabelProps={{ shrink: false }}
+																				/>
+																			)}
+																			onChange={(event, newvalue) => {
+																				setAddingApprovers(newvalue);
+																			}}
+																			onOpen={() => {
+																				if (userOptions.length === 0) {
+																					fetchUserList(customerid, requestCell);
+																				}
+																			}}
+																		/>
+																	</div>
+																	<div className="col-4">
+																		<label className="pe-field-label">Sequence No <span className="rfq-required-star">*</span></label>
+																		<TextField
+																			fullWidth
+																			variant="outlined"
+																			size="small"
+																			className="f14"
+																			id="addingapproversequence"
+																			name="addingapproversequence"
+																			label={null}
+																			placeholder="No."
+																			value={addingApproverSequence}
+																			type="number"
+																			disabled={addingApprover ? (!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)) : true}
+																			onChange={(e) => {
+																				const inputValue = e.target.value;
+																				if (!IntegerRegex.test(inputValue)) {
+																					setAddingApproversSequence("");
+																					return;
+																				}
+																				const approversForStage = approverList.find(obj => obj.stage === x.stage)?.approvers || [];
+																				const nextSeq = approversForStage.length + 1;
+																				const intVal = parseInt(inputValue);
+																				setAddingApproversSequence(intVal === nextSeq ? inputValue : "");
+																			}}
+																		/>
+																	</div>
+																	<div className="col-1 d-flex align-items-end pb-1">
+																		<IconButton
+																			size="small"
+																			className="eq-question-icon-btn eq-question-icon-btn--download"
+																			disabled={
+																				!addingApprover ||
+																				!addingApproverSequence ||
+																				!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)
+																			}
+																			onClick={() => {
+																				onChangeApprover(addingApproverSequence, addingApprover, x, wfstage);
+																			}}
+																		>
+																			<HiPlusSm size={15} />
+																		</IconButton>
+																	</div>
+																</div>
+															</div>
+														)}
+													</div>
 												</AccordionDetails>
 											</Accordion>
 											<Dialog open={open} onClose={handleClose}>

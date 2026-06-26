@@ -1,5 +1,32 @@
 .rfq-modern-shell {
   gap: 16px;
+  height: calc(100vh - 104px);
+  min-height: unset;
+  overflow: hidden;
+  align-items: flex-start;
+}
+
+body:has(.rfq-modern-shell) {
+  overflow: hidden;
+}
+
+.rfq-modern-shell .leftContent {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+.rfq-modern-shell .rightContent {
+  flex: 0 0 25%;
+  width: 25%;
+  min-width: 0;
+  height: 100%;
+}
+
+.rfq-modern-shell .approver-panel {
+  height: 100% !important;
+  max-height: 100% !important;
 }
 
 .rfq-modern-shell .leftContent .rounded-default {
@@ -36,7 +63,7 @@
 
 .rfq-modern-shell .approver-panel {
   background: #fff;
-  border: 1px solid var(--pe-border);
+  border: 1px solid var(--pe-border) !important;
   border-radius: 16px;
 }
 
