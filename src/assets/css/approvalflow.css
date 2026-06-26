@@ -255,7 +255,45 @@
 }
 
 .approvalAcordionDetails {
-  padding: 0px 16px 0px !important;
+  padding: 0px 16px 8px !important;
+}
+
+.wf-stage-col {
+  flex: 1 1 0 !important;
+  max-width: none !important;
+  min-width: 0;
+}
+
+.wf-add-approver-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 93%;
+  padding: 8px 12px;
+  margin: 0px 10px;
+  background: transparent;
+  border: 1px dashed #171717;
+  border-radius: 8px;
+  color: #171717;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.wf-add-approver-btn:hover:not(:disabled) {
+  background: #eef4ff;
+  border-color: #2a68d3;
+  color: #2a68d3;
+}
+
+.wf-add-approver-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wf-add-approver-form {
+  padding: 10px 0 4px;
 }
 
 .approvalType {

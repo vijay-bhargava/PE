@@ -1426,8 +1426,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           show={searchItemModal}
           backdrop="static"
           keyboard={false}
-          className="zindex1280"
-          backdropClassName="zindex1280"
+          className="zindex1400"
+          backdropClassName="zindex1400"
           centered
           contentClassName="border-0"
           onHide={() => { setSearchItemModal(false); setSelectedRows([]); setQuickFilterValue(''); setSearchMode(false); setSearchDataLoaded(false); setPage(0); }}
@@ -1543,8 +1543,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           backdrop="static"
           keyboard={false}
           value={"Add NEW CATEGORY"}
-          className="zindex1280"
-          backdropClassName="zindex1280"
+          className="zindex1400"
+          backdropClassName="zindex1400"
           centered
           contentClassName="border-0"
           onHide={() => CloseUomModal()}
@@ -1575,8 +1575,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           backdrop="static"
           keyboard={false}
           value={"Add NEW CATEGORY"}
-          className="zindex1280"
-          backdropClassName="zindex1280"
+          className="zindex1400"
+          backdropClassName="zindex1400"
           centered
           contentClassName="border-0"
           onHide={() => CloseCategoryModal()}
@@ -1608,8 +1608,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           backdrop="static"
           keyboard={false}
           value={"Add NEW ITEM TYPE"}
-          className="zindex1280"
-          backdropClassName="zindex1280"
+          className="zindex1400"
+          backdropClassName="zindex1400"
           centered
           contentClassName="border-0"
           onHide={() => CloseItemTypeModal()}

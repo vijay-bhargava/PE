@@ -160,7 +160,7 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                                     </div>
                                   )}
                                 </div>
-                                {approver.status === 'Pending' && (
+                                {approver.status !== 'Pending' && (
                                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                                     {onDelete && (
                                       <button

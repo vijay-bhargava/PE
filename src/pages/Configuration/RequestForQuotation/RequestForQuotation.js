@@ -4279,9 +4279,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	//##return
 	return (
 		<>
-			<div className="mainContainer d-flex rfq-modern-shell" style={{ overflow: 'hidden' }}>
-				<div className={`leftContent ${approvershow ? "col-9" : "col-12"} d-flex flex-column`}>
-					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ height: '100%', overflow: 'hidden' }}>
+			<div className="mainContainer d-flex rfq-modern-shell">
+				<div className="leftContent d-flex flex-column">
+					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ overflow: 'hidden', minHeight: 0 }}>
 						<div className="rfq-dv2-page-head border-bottom mb-3" style={{ flexShrink: 0 }}>
 							{/* ── Row 1: breadcrumb + action buttons ── */}
 							<div className="rfq-dv2-head-top">
@@ -4307,27 +4307,27 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 												{/* Secondary actions */}
 												{stagearray.includes(currentStage) && (
-													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Save as Draft')}>
+													<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Draft')}>
 														Save as Draft
 													</button>
 												)}
 												{idFromURL && currentStage && currentStage !== 'Draft' && (
-													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Save as Templates')}>
+													<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Templates')}>
 														Save as Template
 													</button>
 												)}
 												{currentStage === 'Allocation' && value == "9" && (
-													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Save & Close')}>
+													<button type="button" className="rfq-dv2-action-btn pe--secondary" onClick={() => handleMenuClick('Save & Close')}>
 														Save &amp; Close
 													</button>
 												)}
 												{currentStage === 'Awarded' && (
-													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Send Mail to suppliers')}>
+													<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Send Mail to suppliers')}>
 														Send Mail to suppliers
 													</button>
 												)}
 												{currentStage === 'Awarded' && (
-													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Create NFA')}>
+													<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Create NFA')}>
 														Create NFA
 													</button>
 												)}
@@ -5325,7 +5325,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false;
 											const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false;
 											const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false;
-												const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.REMOVE) ?? false;
+											const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.REMOVE) ?? false;
 											if (showGeneralAccessDenied || !idFromURL || idFromURL === 'add') {
 												return null;
 											}
@@ -6182,8 +6182,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				</div>
 
 				{/* Right content - Approval Section */}
-				<div className={`rightContent ${approvershow ? "col-3" : "d-none"}`}>
-					<div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column ms-3 approver-panel" style={{ border: "1px solid #ddd", borderTop: "none", height: 'calc(100vh - 120px)', maxHeight: '100%', overflow: 'hidden' }}>
+				<div className={`rightContent ${approvershow ? "" : "d-none"}`}>
+					<div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column approver-panel" style={{ overflow: 'hidden' }}>
 						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2 flex-shrink-0 rfq-dv2-workflow-head">
 							<div className="rfq-dv2-workflow-tabs">
 								<button
