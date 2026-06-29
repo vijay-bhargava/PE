@@ -26,7 +26,7 @@ import {
 	HiDotsVertical,
 	HiDotsHorizontal,
 	HiOutlineInformationCircle,
-	HiOutlineDownload,
+	HiDownload,
 	HiOutlineArrowRight,
 } from "react-icons/hi";
 import { RiDeleteBin6Line } from "react-icons/ri";
@@ -4766,7 +4766,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																				return userOrg ? [userOrg] : [];
 																			}
 																			// If admin (roleId === 1), show all orgs + "Add New"
-																			return [{ id: "new", orgName: "Add New" }, ...purchaseAllList];
+																			return [{ id: "new", orgName: "ADD NEW" }, ...purchaseAllList];
 																		})()}
 																		value={formik.values.purchOrgId}
 																		getOptionLabel={(option) => option.orgName ?? ""}
@@ -4810,7 +4810,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																		size="small"
 																		className="w-100 f14"
 																		options={[
-																			{ id: "new", groupName: "Add New" },
+																			{ id: "new", groupName: "ADD NEW" },
 																			...purchaseGroupAllList,
 																		]}
 																		value={formik.values?.purchGrpId}
@@ -4932,8 +4932,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																											id={"baseCurrency" + i}
 																											name="baseCurrency"
 																											options={[
+																												{ currencyNm: "ADD NEW", id: "new" },
 																												...(currencyList?.filter(cl => cl.currencyNm !== (formik?.values?.baseCurrency || userDetail?.defaultCurrency)) || []),
-																												{ currencyNm: "Add New", id: "new" }
 																											]}
 																											getOptionLabel={(option) => option.currencyNm}
 																											loading={loadCurrency}
@@ -5005,20 +5005,19 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																									{x.id > 0 ? (
 																										<>
 																											<div className="col-lg-1 col-6 ms-0 ps-0 ">
-																												<Button
+																												<button
+																													type="button"
+																													className="pe-icon-btn pe-icon-btn--delete"
 																													disabled={
 																														inputList?.length ==
 																														1
 																													}
-																													variant="standard"
-																													color="error"
-																													size="medium"
 																													onClick={() =>
 																														handleRemoveClick(i)
 																													}
 																												>
-																													<HiOutlineX className="text-danger" />
-																												</Button>
+																													<HiOutlineX />
+																												</button>
 																											</div>
 																										</>
 																									) : (
@@ -5026,18 +5025,17 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																											{inputList.length !==
 																												1 && (
 																													<div className="col-lg-1 col-6 ms-0 ps-0 ">
-																														<Button
-																															variant="standard"
-																															color="error"
-																															size="medium"
+																														<button
+																															type="button"
+																															className="pe-icon-btn pe-icon-btn--delete"
 																															onClick={() =>
 																																handleRemoveClick(
 																																	i
 																																)
 																															}
 																														>
-																															<HiOutlineX className="text-danger" style={{ fontSize: "0.975rem" }} />
-																														</Button>
+																															<HiOutlineX />
+																														</button>
 																													</div>
 																												)}
 																										</>
@@ -5749,9 +5747,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																				{stagearray.includes(currentStage) && (() => {
 																					const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
 																					return (
-																						<IconButton size="small" className="sup-delete-btn" disabled={!canRemove} onClick={() => clearSelectedSupplier(x, false)}>
-																							<RiDeleteBin6Line style={{ fontSize: 15, color: '#b8232f' }} />
-																						</IconButton>
+																						<button type="button" className="pe-icon-btn pe-icon-btn--delete" disabled={!canRemove} onClick={() => clearSelectedSupplier(x, false)}>
+																							<RiDeleteBin6Line />
+																						</button>
 																					);
 																				})()}
 																			</div>
@@ -5914,13 +5912,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 														</Typography>
 														{/* <h5 className="preview-section-heading text-dark-blue mb-0">RFQ General Details</h5> */}
 														{stagearray.includes(currentStage) && (
-															<IconButton
-																size="small"
-																className="bg-light"
+															<button
+																type="button"
+																className="pe-icon-btn pe-icon-btn--edit"
 																onClick={() => handletabEdit(1)}
 															>
-																<HiPencilAlt className="f17 text-primary" />
-															</IconButton>
+																<HiPencilAlt />
+															</button>
 														)}
 													</div>
 
@@ -5950,13 +5948,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 												</Typography>
 
 												{stagearray.includes(currentStage) && (
-													<IconButton
-														size="small"
-														className="bg-light"
+													<button
+														type="button"
+														className="pe-icon-btn pe-icon-btn--edit"
 														onClick={() => handletabEdit(2)}
 													>
-														<HiPencilAlt className="f17 text-primary" />
-													</IconButton>
+														<HiPencilAlt />
+													</button>
 												)}
 											</div>
 
@@ -6003,13 +6001,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 													</Typography>
 
 													{stagearray.includes(currentStage) && (
-														<IconButton
-															size="small"
-															className="bg-light"
+														<button
+															type="button"
+															className="pe-icon-btn pe-icon-btn--edit"
 															onClick={() => handletabEdit(3)}
 														>
-															<HiPencilAlt className="f17 text-primary" />
-														</IconButton>
+															<HiPencilAlt />
+														</button>
 													)}
 												</div>
 
@@ -6077,13 +6075,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 													</Typography>
 
 													{stagearray.includes(currentStage) && (
-														<IconButton
-															size="small"
-															className="bg-light"
+														<button
+															type="button"
+															className="pe-icon-btn pe-icon-btn--edit"
 															onClick={() => handletabEdit(4)}
 														>
-															<HiPencilAlt className="f17 text-primary" />
-														</IconButton>
+															<HiPencilAlt />
+														</button>
 													)}
 												</div>
 
@@ -6142,13 +6140,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 													</Typography>
 
 													{stagearray.includes(currentStage) && (
-														<IconButton
-															size="small"
-															className="bg-light"
+														<button
+															type="button"
+															className="pe-icon-btn pe-icon-btn--edit"
 															onClick={() => handletabEdit(5)}
 														>
-															<HiPencilAlt className="f17 text-primary" />
-														</IconButton>
+															<HiPencilAlt />
+														</button>
 													)}
 												</div>
 
@@ -6363,7 +6361,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 														/>
 														{panelAttachFile ? (
 															<div className="rfq-dv2-file-chip">
-																<HiOutlineDownload className="rfq-dv2-file-chip-icon" />
+																<HiDownload className="rfq-dv2-file-chip-icon" />
 																<span className="rfq-dv2-file-chip-name">{panelAttachFile.file.name}</span>
 																<button
 																	type="button"
@@ -6436,17 +6434,17 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															{/* Download */}
 															<button
 																type="button"
-																className="rfq-dv2-file-dl-btn"
+																className="pe-icon-btn pe-icon-btn--download"
 																aria-label="Download"
 																onClick={() => downloadFilesOnAzure(item.fileNamePath, getFileName(item.fileNamePath), atoken)}
 															>
-																<HiOutlineDownload />
+																<HiDownload />
 															</button>
 															{/* Delete */}
 															{stagearray.includes(currentStage) && !item.required && (effectivePermissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.REMOVE) ?? false) && (
 																<button
 																	type="button"
-																	className="rfq-dv2-file-delete-btn"
+																	className="pe-icon-btn pe-icon-btn--delete"
 																	aria-label="Delete"
 																	onClick={() => deletePanelAttachment(i, item.id)}
 																>
@@ -6696,14 +6694,14 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									? "Reject this stage?"
 									: "Approve this stage?"}
 							</h3>
-							<IconButton
-								onClick={toggleDrawer("openInvoiceApproved", false, [])}
-								size="small"
+							<button
+								type="button"
+								className="pe-icon-btn pe-icon-btn--close rfq-dv2-approval-close"
 								aria-label="Close approval action"
-								className="rfq-dv2-approval-close"
+								onClick={toggleDrawer("openInvoiceApproved", false, [])}
 							>
 								<HiOutlineX />
-							</IconButton>
+							</button>
 						</div>
 						<div className="rfq-dv2-approval-modal-body">
 							<div
@@ -6836,9 +6834,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				<Modal.Body className="p-0 d-flex flex-column">
 					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
 						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Organization</span>
-						<IconButton onClick={() => ClosePurcgaseOrgModal()} size="small">
-							<HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
-						</IconButton>
+						<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => ClosePurcgaseOrgModal()}>
+							<HiOutlineX />
+						</button>
 					</div>
 					<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
 						<PurchaseOrg isModal={true} handlepurchaseorgList={handlepurchaseorgList} />
@@ -7017,9 +7015,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								/>
 								<span className="mt-2">
 
-									<IconButton variant="outlined" onClick={handleAddLoadingFactor}>
+									<button type="button" className="pe-icon-btn pe-icon-btn--add" onClick={handleAddLoadingFactor}>
 										<HiPlus />
-									</IconButton>
+									</button>
 								</span>
 							</div>
 
@@ -7101,9 +7099,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
 					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
 						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Group</span>
-						<IconButton onClick={() => ClosePurcgaseOrgGrpModal()} size="small">
-							<HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
-						</IconButton>
+						<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => ClosePurcgaseOrgGrpModal()}>
+							<HiOutlineX />
+						</button>
 					</div>
 					<div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
 						<PurchaseOrgGrp isModal />

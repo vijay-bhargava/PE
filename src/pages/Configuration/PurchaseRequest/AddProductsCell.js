@@ -1031,9 +1031,9 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 											</InputAdornment>
 										</Tooltip> : <Tooltip title="remove Image" className='pointer'>
 											<InputAdornment position="end">
-												<IconButton onClick={() => formik.setFieldValue("itemImage", "")}>
+												<button type="button" className="pe-icon-btn pe-icon-btn--delete" onClick={() => formik.setFieldValue("itemImage", "")}>
 													<HiOutlineX />
-												</IconButton>
+												</button>
 											</InputAdornment>
 										</Tooltip>}
 									</>
@@ -1075,9 +1075,9 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 											</InputAdornment>
 										</Tooltip> : <Tooltip title="Remove Attachment" className='pointer'>
 											<InputAdornment position="end" >
-												<IconButton onClick={() => formik.setFieldValue("itemFile", "")}>
+												<button type="button" className="pe-icon-btn pe-icon-btn--delete" onClick={() => formik.setFieldValue("itemFile", "")}>
 													<HiOutlineX />
-												</IconButton>
+												</button>
 
 											</InputAdornment>
 										</Tooltip>}

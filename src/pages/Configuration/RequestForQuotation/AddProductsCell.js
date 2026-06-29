@@ -1514,9 +1514,9 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           <Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
             <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
               <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage UOM</span>
-              <IconButton onClick={() => CloseUomModal()} size="small">
-                <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
-              </IconButton>
+              <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseUomModal()}>
+                <HiOutlineX className="f20" />
+              </button>
             </div>
             <div className="p-3">
               <AddUpdateUom handleUomList={handleUomList} isModal={true} />
@@ -1538,9 +1538,9 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           <Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
             <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
               <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Item Category</span>
-              <IconButton onClick={() => CloseCategoryModal()} size="small">
-                <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
-              </IconButton>
+              <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseCategoryModal()}>
+                <HiOutlineX className="f20" />
+              </button>
             </div>
             <div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
               <AddPrItemCategory handleCategoryList={handleCategoryList} isModal={true} />
@@ -1553,7 +1553,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           show={ItemTypeModal}
           backdrop="static"
           keyboard={false}
-          // value={"Add NEW ITEM TYPE"}
+          value={"Add NEW ITEM TYPE"}
           className="zindex1400"
           backdropClassName="zindex1400"
           centered
@@ -1563,9 +1563,9 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           <Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
             <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
               <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}> Manage Item Type</span>
-              <IconButton onClick={() => CloseItemTypeModal()} size="small">
-                <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
-              </IconButton>
+              <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseItemTypeModal()}>
+                <HiOutlineX className="f20" />
+              </button>
             </div>
             <div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
               <AddEditItemType handleItemTypeList={handleItemTypeList} isModal={true} />

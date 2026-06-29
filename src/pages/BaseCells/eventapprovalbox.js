@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import IconButton from "@mui/material/IconButton";
 import { HiOutlineTrash, HiOutlineUserAdd, HiPlusSm, HiX } from "react-icons/hi";
 import { FaRegFloppyDisk, FaPaperclip } from "react-icons/fa6";
@@ -556,9 +556,9 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 																		/>
 																	</div>
 																	<div className="col-1 d-flex align-items-end pb-1">
-																		<IconButton
-																			size="small"
-																			className="eq-question-icon-btn eq-question-icon-btn--download"
+																		<button
+																			type="button"
+																			className="pe-icon-btn pe-icon-btn--confirm"
 																			disabled={
 																				!addingApprover ||
 																				!addingApproverSequence ||
@@ -567,9 +567,10 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 																			onClick={() => {
 																				onChangeApprover(addingApproverSequence, addingApprover, x, wfstage);
 																			}}
+																			aria-label="Add approver"
 																		>
 																			<HiPlusSm size={15} />
-																		</IconButton>
+																		</button>
 																	</div>
 																</div>
 															</div>

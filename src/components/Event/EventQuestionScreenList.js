@@ -1,5 +1,6 @@
 ﻿import { Accordion, AccordionDetails, InputAdornment, AccordionSummary, Alert, Button, IconButton, Typography, Card, Divider, Box, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Switch, FormGroup, FormControlLabel, Menu, MenuItem, Button as MuiButton, Tooltip, TextField, Stack } from '@mui/material';
-import { HiDownload, HiX, HiOutlineX, HiDotsVertical, HiTrash } from "react-icons/hi";
+import { HiDownload, HiX, HiOutlineX, HiDotsVertical } from "react-icons/hi";
+import { RiDeleteBin6Line } from "react-icons/ri";
 import { ExpandMore, Launch } from '@mui/icons-material';
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useFormik } from "formik";
@@ -1130,15 +1131,15 @@ const CategoryWiseTable = ({
 					<Box className="eq-question-actions">
 						{rowData.question?.attachedFileName && (
 							<Tooltip title={getFileName(rowData.question.attachedFileName)} arrow>
-								<IconButton size="small" className="eq-question-icon-btn eq-question-icon-btn--download" onClick={() => onClickDownload(rowData.question)}>
-									<HiDownload size={16} />
-								</IconButton>
+								<button type="button" className="pe-icon-btn pe-icon-btn--download" onClick={() => onClickDownload(rowData.question)} aria-label="Download attachment">
+									<HiDownload size={14} />
+								</button>
 							</Tooltip>
 						)}
 						{action && (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false) && (
-							<IconButton size="small" className="eq-question-icon-btn eq-question-icon-btn--delete" onClick={() => callbackDeleteQuesFromList(rowData.category, rowData.subcategory, rowData.question.questionDescription)}>
-								<HiTrash size={15} />
-							</IconButton>
+							<button type="button" className="pe-icon-btn pe-icon-btn--delete" onClick={() => callbackDeleteQuesFromList(rowData.category, rowData.subcategory, rowData.question.questionDescription)} aria-label="Delete question">
+								<RiDeleteBin6Line />
+							</button>
 						)}
 					</Box>
 				);
@@ -2836,15 +2837,15 @@ const EventQuestionScreenList = ({ questions, callbackDeleteQuesFromList, callba
 														<Box className="eq-question-actions">
 															{item.attachedFileName && (
 																<Tooltip title={getFileName(item.attachedFileName)} arrow>
-																	<IconButton size="small" className="eq-question-icon-btn eq-question-icon-btn--download" onClick={() => onClickDownload(item)}>
-																		<HiDownload size={16} />
-																	</IconButton>
+																	<button type="button" className="pe-icon-btn pe-icon-btn--download" onClick={() => onClickDownload(item)} aria-label="Download attachment">
+																		<HiDownload size={14} />
+																	</button>
 																</Tooltip>
 															)}
 															{action && (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false) && (
-																<IconButton size="small" className="eq-question-icon-btn eq-question-icon-btn--delete" onClick={() => callbackDeleteQuesFromList(item?.questionCategory, item?.questionSubCategory, item.questionDescription)}>
-																	<HiTrash size={15} />
-																</IconButton>
+																<button type="button" className="pe-icon-btn pe-icon-btn--delete" onClick={() => callbackDeleteQuesFromList(item?.questionCategory, item?.questionSubCategory, item.questionDescription)} aria-label="Delete question">
+																	<RiDeleteBin6Line />
+																</button>
 															)}
 														</Box>
 													</Box>

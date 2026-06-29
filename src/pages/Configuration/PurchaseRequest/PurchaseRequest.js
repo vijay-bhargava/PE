@@ -1600,21 +1600,22 @@ const PurchaseRequest = ({ claimType }) => {
 
                               {prItemsList.length > 0 && hasRemovePermission && (
                                 <Tooltip title="Clear All">
-                                  <IconButton
-                                    size="small"
-                                    className="ms-2 me-3"
-                                    color="error"
-                                    //onClick={handleClearAllPrList}
-                                    onClick={() => setConfirmClearAllItems(true)}
-                                    disabled={
-                                      !(
-                                        stagearray.includes(currentStage) ||
-                                        currentStage === "Under Approval"
-                                      ) || !hasRemovePermission
-                                    }
-                                  >
-                                    <HiOutlineX />
-                                  </IconButton>
+                                  <span>
+                                    <button
+                                      type="button"
+                                      className="pe-icon-btn pe-icon-btn--delete ms-2 me-3"
+                                      //onClick={handleClearAllPrList}
+                                      onClick={() => setConfirmClearAllItems(true)}
+                                      disabled={
+                                        !(
+                                          stagearray.includes(currentStage) ||
+                                          currentStage === "Under Approval"
+                                        ) || !hasRemovePermission
+                                      }
+                                    >
+                                      <HiOutlineX />
+                                    </button>
+                                  </span>
                                 </Tooltip>
                               )}
 
@@ -1701,13 +1702,13 @@ const PurchaseRequest = ({ claimType }) => {
                           }
                           action={
                             stagearray.includes(currentStage) && (
-                              <IconButton
-                                size="small"
-                                sx={{ bgcolor: "#fff", "&:hover": { bgcolor: "#f0f0f0" } }}
+                              <button
+                                type="button"
+                                className="pe-icon-btn pe-icon-btn--edit"
                                 onClick={() => handletabEdit(1)}
                               >
                                 <HiPencilAlt className="f17 text-primary" />
-                              </IconButton>
+                              </button>
                             )
                           }
                           sx={{ backgroundColor: "#fff", py: 1.5 }}
@@ -1788,13 +1789,13 @@ const PurchaseRequest = ({ claimType }) => {
                           }
                           action={
                             stagearray.includes(currentStage) && (
-                              <IconButton
-                                size="small"
-                                sx={{ bgcolor: "#fff", "&:hover": { bgcolor: "#f0f0f0" } }}
+                              <button
+                                type="button"
+                                className="pe-icon-btn pe-icon-btn--edit"
                                 onClick={() => handletabEdit(2)}
                               >
                                 <HiPencilAlt className="f17 text-primary" />
-                              </IconButton>
+                              </button>
                             )
                           }
                           sx={{ backgroundColor: "#fff", py: 1.5 }}
@@ -1851,13 +1852,13 @@ const PurchaseRequest = ({ claimType }) => {
           <div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column ms-3" style={{ border: "1px solid #ddd", borderTop: "none", height: 'calc(108vh - 120px)' }}>
             <div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2">
               <div className="section-heading mb-0 pb-4">Approval Workflow</div>
-              <IconButton
+              <button
+                type="button"
+                className="pe-icon-btn pe-icon-btn--close"
                 onClick={() => handleApprover(false)}
-                size="small"
-                className="text-muted"
               >
                 <HiOutlineX className="f16" />
-              </IconButton>
+              </button>
             </div>
             <div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
               {approvershow && (
@@ -2193,9 +2194,9 @@ const PurchaseRequest = ({ claimType }) => {
         <Modal.Body className="p-0 d-flex flex-column">
           <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
             <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Organization</span>
-            <IconButton onClick={() => ClosePurcgaseOrgModal()} size="small">
-              <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
-            </IconButton>
+            <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => ClosePurcgaseOrgModal()}>
+              <HiOutlineX className="f20" />
+            </button>
           </div>
           <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
             <PurchaseOrg isModal={true} handlepurchaseorgList={handlepurchaseorgList} />
@@ -2217,9 +2218,9 @@ const PurchaseRequest = ({ claimType }) => {
         <Modal.Body className="p-0 d-flex flex-column">
           <div className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-white flex-shrink-0">
             <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Group</span>
-            <IconButton onClick={() => ClosePurcgaseOrgGrpModal()} size="small">
-              <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
-            </IconButton>
+            <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => ClosePurcgaseOrgGrpModal()}>
+              <HiOutlineX className="f20" />
+            </button>
           </div>
           <div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
             <PurchaseOrgGrp isModal />

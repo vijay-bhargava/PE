@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useImperativeHandle, forwardRef } from "react";
+﻿import React, { useEffect, useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { HiUserGroup, HiOutlineX, HiX, HiPlusSm } from "react-icons/hi";
 import {
 	Badge,
@@ -761,14 +761,14 @@ const AttachmentWorkFlow = forwardRef(({ eventtype, eventid, action, handleattac
 																		{(() => {
 																			const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.REMOVE) ?? false;
 																			return (
-																				<IconButton
-																					size="medium"
-																					className="bg-white"
+																				<button
+																					type="button"
+																					className="pe-icon-btn pe-icon-btn--delete"
 																					onClick={() => handleRemoveAdd(index)}
 																					disabled={!canRemove}
 																				>
-																					<HiX className="f17 text-danger" />
-																				</IconButton>
+																					<HiX className="f17" />
+																				</button>
 																			);
 																		})()}
 																	</div>
@@ -828,16 +828,16 @@ const AttachmentWorkFlow = forwardRef(({ eventtype, eventid, action, handleattac
 																{(() => {
 																	const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.DOCUMENT_LIBRARY, ACTIONS.REMOVE) ?? false;
 																	return (
-																		<IconButton
-																			size="large"
-																			className="bg-white"
+																		<button
+																			type="button"
+																			className="pe-icon-btn pe-icon-btn--delete"
 																			onClick={() =>
 																				handleRemoveAttachment(index, item?.id)
 																			}
 																			disabled={!canRemove}
 																		>
-																			<HiX className="f17 text-danger" />
-																		</IconButton>
+																			<HiX className="f17" />
+																		</button>
 																	);
 																})()}
 															</div>) : (<div className="col-md-2"></div>)}

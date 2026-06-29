@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Autocomplete, Avatar, Box, Checkbox, DialogActions, DialogContent, DialogContentText, DialogTitle, Drawer, IconButton, InputAdornment, MenuItem, Pagination, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import { CalendarToday as CalendarIcon } from "@mui/icons-material";
 import { HiDotsVertical, HiOutlineChevronDown, HiOutlineUserAdd, HiOutlineX } from "react-icons/hi";
@@ -9,7 +9,7 @@ import {
 	formatDateViaTime,
 	formattimeoption, getDateFormatPatteronLocale, userampm, VendorfilterOptions
 } from "../../utils/common/utility";
-import {downloadZip} from "../../utils/common/index"
+import { downloadZip } from "../../utils/common/index"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -42,7 +42,7 @@ dayjs.extend(timezone);
 const RFQActionDrawer = ({
 	rfqid,
 	enddate,
-	activityId, handleDraftEvent, rfqtype, EventHeaderDetails, Version, currentStage,downloadExcel }) => {
+	activityId, handleDraftEvent, rfqtype, EventHeaderDetails, Version, currentStage, downloadExcel }) => {
 	const fastApiClient = new FastApiClient()
 	const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 	const checkedIcon = <CheckBoxIcon fontSize="small" />;
@@ -137,17 +137,17 @@ const RFQActionDrawer = ({
 
 
 	useEffect(() => {
-		if( openDrawer.addsupplier && customerid) {
+		if (openDrawer.addsupplier && customerid) {
 			// getTotalSupplier();
 			getSupplierEventWise();
 		}
-	}, [customerid,openDrawer])
+	}, [customerid, openDrawer])
 	useEffect(() => {
-		if(selectedSupplier.length >0){
+		if (selectedSupplier.length > 0) {
 			getTotalSupplier();
 			getCategorylist();
 		}
-	},[selectedSupplier])
+	}, [selectedSupplier])
 	const getCategorylist = async () => {
 		const obj = {
 			CustomerId: customerid,
@@ -158,7 +158,7 @@ const RFQActionDrawer = ({
 			`/api/ItemCategory/Find?${queryParams}`,
 			atoken
 		);
-		
+
 		if (res) {
 			setCategoryList(res?.data?.result || []);
 		}
@@ -199,7 +199,7 @@ const RFQActionDrawer = ({
 		const reqdata = {
 			RFQId: rfqid,
 			Version: Version,
-		//  AccessLevel:issupplierraccesslevel
+			//  AccessLevel:issupplierraccesslevel
 		};
 		const queryParams = buildQueryParams(reqdata);
 		const res = await apiClient.getres(
@@ -207,9 +207,9 @@ const RFQActionDrawer = ({
 			atoken
 		);
 		if (res.status == 200) {
-				
+
 			let vendorItemAnalysisdata = res.data?.result;
-			
+
 			setSelectedSupplier(vendorItemAnalysisdata);
 		}
 	};
@@ -532,132 +532,132 @@ const RFQActionDrawer = ({
 	// 	},
 	// });
 
-const formik_Reinvite = useFormik({
-	enableReinitialize: true,
-	initialValues: {
-		reopenDate: null,
-		deadlineDate: null,
-		bidOpeningDate: null
-	},
-	validationSchema: (openDrawer.reInviteSupplier || openDrawer.openDate || openDrawer.extendEvent)
-		? validationSchemaReinvite
-		: null,
-		
-	onSubmit: async (values) => {
-		setLoading(true);
+	const formik_Reinvite = useFormik({
+		enableReinitialize: true,
+		initialValues: {
+			reopenDate: null,
+			deadlineDate: null,
+			bidOpeningDate: null
+		},
+		validationSchema: (openDrawer.reInviteSupplier || openDrawer.openDate || openDrawer.extendEvent)
+			? validationSchemaReinvite
+			: null,
 
-		let rfqVendorDetails = supplierlist
-			?.filter(v => v.reinvitechecked)
-			.map(v => ({
-				RFQId: rfqid,
-				emailId: v?.emailId,
-				remarks: v?.reinviteremark,
-				vendorId: v?.vendorId,
-				contactId: v?.contactId,
-				customerId: customerid
-			}));
+		onSubmit: async (values) => {
+			setLoading(true);
 
-		let payload = {};
+			let rfqVendorDetails = supplierlist
+				?.filter(v => v.reinvitechecked)
+				.map(v => ({
+					RFQId: rfqid,
+					emailId: v?.emailId,
+					remarks: v?.reinviteremark,
+					vendorId: v?.vendorId,
+					contactId: v?.contactId,
+					customerId: customerid
+				}));
 
-		if (openDrawer.reInviteSupplier) {
-			if (values?.reopenDate?.toISOString() > values?.deadlineDate?.toISOString()) {
-				formik_Reinvite.setFieldError("reopenDate", "Reopen Date should be less than End Date");
+			let payload = {};
+
+			if (openDrawer.reInviteSupplier) {
+				if (values?.reopenDate?.toISOString() > values?.deadlineDate?.toISOString()) {
+					formik_Reinvite.setFieldError("reopenDate", "Reopen Date should be less than End Date");
+					setLoading(false);
+					return;
+				}
+
+				if (
+					values?.bidOpeningDate &&
+					values?.deadlineDate?.toISOString() > values?.bidOpeningDate?.toISOString()
+				) {
+					formik_Reinvite.setFieldError("bidOpeningDate", "Bid Opening Date should be greater than End date Date");
+					setLoading(false);
+					return;
+				}
+
+				payload = {
+					rfqVendorDetails: rfqVendorDetails,
+					supplierActionType: "",
+					currentStage: "Re Invite",
+					ReOpenDate: values?.reopenDate,
+					RFQDeadLine: values?.deadlineDate?.toISOString(),
+					BidOpeningDate: values?.bidOpeningDate?.toISOString()
+				};
+			} else if (openDrawer.NotifySupplier) {
+				payload = {
+					rfqVendorDetails: rfqVendorDetails,
+					supplierActionType: "",
+					currentStage: "Send Reminder"
+				};
+			} else if (openDrawer.extendEvent) {
+				payload = {
+					rfqDeadLine: values?.deadlineDate?.toISOString(),
+					supplierActionType: "",
+					currentStage: "Date Extension"
+				};
+			} else if (openDrawer.openDate) {
+				payload = {
+					bidOpeningDate: values?.deadlineDate?.toISOString(),
+					supplierActionType: "",
+					currentStage: "Open Date"
+				};
+			} else if (openDrawer.reOpenSupplier) {
+				payload = {
+					rfqVendorDetails: rfqVendorDetails,
+					supplierActionType: "",
+					currentStage: "Re Open"
+				};
+			} else {
 				setLoading(false);
 				return;
 			}
+			const res = await apiClient.postres(
+				`/api/RFQManage/${rfqid}/RFQInvitationVersion`,
+				payload,
+				atoken
+			);
 
-			if (
-				values?.bidOpeningDate &&
-				values?.deadlineDate?.toISOString() > values?.bidOpeningDate?.toISOString()
-			) {
-				formik_Reinvite.setFieldError("bidOpeningDate", "Bid Opening Date should be greater than End date Date");
-				setLoading(false);
-				return;
+			if (res) {
+				clearReinviteAll();
+
+				setOpenDrawer(prevState => {
+					const updatedState = Object.keys(prevState).reduce((acc, key) => {
+						acc[key] = false;
+						return acc;
+					}, {});
+					return updatedState;
+				});
+
+				if (openDrawer.extendEvent) {
+					toast.success(`✅ RFQ End Date updated successfully`, {
+						toastId: "updateenddate"
+					});
+					setTimeout(() => {
+						window.location.reload();
+					}, 2000);
+
+					// setActionLockType("updateenddate");
+					// setActionText(`✅ RFQ End Date updated successfully`);
+					// setLocked(true);
+				}
+				else if (openDrawer.openDate) {
+					toast.success(`✅ Bid Opening Date updated successfully`, {
+						toastId: "updateopendate"
+					});
+					setTimeout(() => {
+						window.location.reload();
+					}, 2000);
+				}
+				else {
+					toast.success(`Action Taken Successfully`, {
+						toastId: "reinvitetoast"
+					});
+				}
 			}
 
-			payload = {
-				rfqVendorDetails: rfqVendorDetails,
-				supplierActionType: "",
-				currentStage: "Re Invite",
-				ReOpenDate: values?.reopenDate,
-				RFQDeadLine: values?.deadlineDate?.toISOString(),
-				BidOpeningDate: values?.bidOpeningDate?.toISOString()
-			};
-		} else if (openDrawer.NotifySupplier) {
-			payload = {
-				rfqVendorDetails: rfqVendorDetails,
-				supplierActionType: "",
-				currentStage: "Send Reminder"
-			};
-		} else if (openDrawer.extendEvent) {
-			payload = {
-				rfqDeadLine: values?.deadlineDate?.toISOString(),
-				supplierActionType: "",
-				currentStage: "Date Extension"
-			};
-		} else if (openDrawer.openDate) {
-			payload = {
-				bidOpeningDate: values?.deadlineDate?.toISOString(),
-				supplierActionType: "",
-				currentStage: "Open Date"
-			};
-		} else if (openDrawer.reOpenSupplier) {
-			payload = {
-				rfqVendorDetails: rfqVendorDetails,
-				supplierActionType: "",
-				currentStage: "Re Open"
-			};
-		} else {
 			setLoading(false);
-			return;
 		}
-		const res = await apiClient.postres(
-			`/api/RFQManage/${rfqid}/RFQInvitationVersion`,
-			payload,
-			atoken
-		);
-
-		if (res) {
-			clearReinviteAll();
-
-			setOpenDrawer(prevState => {
-				const updatedState = Object.keys(prevState).reduce((acc, key) => {
-					acc[key] = false;
-					return acc;
-				}, {});
-				return updatedState;
-			});
-
-			if (openDrawer.extendEvent) {
-				toast.success(`✅ RFQ End Date updated successfully`, {
-					toastId: "updateenddate"
-				});
-				setTimeout(() => {
-					window.location.reload();
-				},2000);
-				
-				// setActionLockType("updateenddate");
-				// setActionText(`✅ RFQ End Date updated successfully`);
-				// setLocked(true);
-			}
-			else if(openDrawer.openDate){
-				toast.success(`✅ Bid Opening Date updated successfully`, {
-					toastId: "updateopendate"
-				});
-				setTimeout(() => {
-					window.location.reload();
-				},2000);
-			} 
-			else {
-				toast.success(`Action Taken Successfully`, {
-					toastId: "reinvitetoast"
-				});
-			}
-		}
-
-		setLoading(false);
-	}
-});
+	});
 
 
 
@@ -675,7 +675,7 @@ const formik_Reinvite = useFormik({
 			atoken
 		);
 		if (res) {
-			
+
 			const data = res.data?.result;
 			setSupplierList(data)
 		}
@@ -683,18 +683,18 @@ const formik_Reinvite = useFormik({
 	}
 	const [supplierlist, setSupplierList] = useState([])
 	useEffect(() => {
-		
-		if((openDrawer.reInviteSupplier || openDrawer.loadingFactor || openDrawer.reOpenSupplier
-			|| openDrawer.NotifySupplier || openDrawer.surrogateSupplier) && rfqid && Version){
+
+		if ((openDrawer.reInviteSupplier || openDrawer.loadingFactor || openDrawer.reOpenSupplier
+			|| openDrawer.NotifySupplier || openDrawer.surrogateSupplier) && rfqid && Version) {
 			getEventSupplier();
 		}
-	}, [rfqid, openDrawer,Version])
+	}, [rfqid, openDrawer, Version])
 
 	const handleReinviteCheck = (supplier, value) => {
-		const list = supplierlist.map(s => 
+		const list = supplierlist.map(s =>
 			s.id === supplier.id   // 👈 compare by unique field
-			? { ...s, reinvitechecked: value }
-			: s
+				? { ...s, reinvitechecked: value }
+				: s
 		);
 		setSupplierList(list);
 	};
@@ -709,11 +709,11 @@ const formik_Reinvite = useFormik({
 	const handleReminderAll = (value) => {
 		setSupplierList(prev =>
 			prev.map(supplier =>
-			supplier.version === EventHeaderDetails.version &&
-			supplier.status != "Closed" &&
-			supplier.status != "Regretted"
-				? { ...supplier, reinvitechecked: value } // update only filtered
-				: supplier // keep others same
+				supplier.version === EventHeaderDetails.version &&
+					supplier.status != "Closed" &&
+					supplier.status != "Regretted"
+					? { ...supplier, reinvitechecked: value } // update only filtered
+					: supplier // keep others same
 			)
 		);
 		console.log(supplierlist)
@@ -722,11 +722,11 @@ const formik_Reinvite = useFormik({
 	const handleReOpenAll = (value) => {
 		setSupplierList(prev =>
 			prev.map(supplier =>
-			supplier.version === EventHeaderDetails.version &&
-			supplier.status != "Open" &&
-			supplier.status != "Regretted"
-				? { ...supplier, reinvitechecked: value } // update only filtered
-				: supplier // keep others same
+				supplier.version === EventHeaderDetails.version &&
+					supplier.status != "Open" &&
+					supplier.status != "Regretted"
+					? { ...supplier, reinvitechecked: value } // update only filtered
+					: supplier // keep others same
 			)
 		);
 		// console.log(supplierlist)
@@ -911,7 +911,7 @@ const formik_Reinvite = useFormik({
 				setLoading(false)
 				return
 			}
-			
+
 			const payload = {
 				"name": values?.surrogatename,
 				"vendorId": values?.supplier?.vendorId,
@@ -927,7 +927,7 @@ const formik_Reinvite = useFormik({
 					"orgGroupId": 0
 				}
 			}
-			
+
 			const res = await apiClient.postres(`/api/RFQManage/RFQSurrogate`, payload, atoken)
 			if (res) {
 				setOpenDrawer({ ...openDrawer, surrogateSupplier: false })
@@ -1029,7 +1029,7 @@ const formik_Reinvite = useFormik({
 	}
 
 	useEffect(() => {
-		if(openDrawer.HistoryEvent && rfqid){
+		if (openDrawer.HistoryEvent && rfqid) {
 			pullAuditList();
 		}
 	}, [openDrawer.HistoryEvent, rfqid]);
@@ -1052,8 +1052,8 @@ const formik_Reinvite = useFormik({
 
 		return cleanedInfo?.trim(); // Remove leading/trailing spaces
 	};
-	const handleZipDownload =() => {
-		
+	const handleZipDownload = () => {
+
 		let folderPath = `${customerid}/RFQ/${rfqid}`;
 		downloadZip(folderPath);
 	}
@@ -1101,7 +1101,7 @@ const formik_Reinvite = useFormik({
 						{/* Menu item to open the Add New Supplier drawer */}
 
 						{
-							currentStage != "Awarded" && 
+							currentStage != "Awarded" &&
 							Version == Math.floor(Version) &&
 							<MenuItem
 							>
@@ -1110,7 +1110,7 @@ const formik_Reinvite = useFormik({
 						}
 
 						{/* Menu item to  Reinvite suppliers */}
-						{currentStage &&  !['Draft','Under Pre Approval','Awarded'].includes(currentStage) &&<MenuItem
+						{currentStage && !['Draft', 'Under Pre Approval', 'Awarded'].includes(currentStage) && <MenuItem
 
 						>
 							<LoadingButton size={"small"} onClick={() => toggleDrawer("reInviteSupplier", true)} color="btn" variant="text" className="f12 capitalize"> Reinvite Supplier</LoadingButton>
@@ -1118,42 +1118,42 @@ const formik_Reinvite = useFormik({
 						</MenuItem>}
 						{/* Menu item to  Reopen suppliers */}
 						{currentStage != "Awarded" &&
-						<MenuItem>
-							<LoadingButton size={"small"} onClick={() => toggleDrawer("reOpenSupplier", true)} color="btn" variant="text" className="f12 capitalize">Reopen Supplier</LoadingButton>
+							<MenuItem>
+								<LoadingButton size={"small"} onClick={() => toggleDrawer("reOpenSupplier", true)} color="btn" variant="text" className="f12 capitalize">Reopen Supplier</LoadingButton>
 
 
-						</MenuItem>
+							</MenuItem>
 						}
-							
+
 						{
 							currentStage != "Awarded" &&
-						<MenuItem>
-							<LoadingButton size={"small"} onClick={() => toggleDrawer("surrogateSupplier", true)} color="btn" variant="text" className="f12 capitalize"> Surrogate Supplier</LoadingButton>
+							<MenuItem>
+								<LoadingButton size={"small"} onClick={() => toggleDrawer("surrogateSupplier", true)} color="btn" variant="text" className="f12 capitalize"> Surrogate Supplier</LoadingButton>
 
 
-						</MenuItem>
+							</MenuItem>
 						}
 						{
 							currentStage != "Awarded" &&
-						<MenuItem>
-							<LoadingButton size={"small"} onClick={() => toggleDrawer("NotifySupplier", true)} color="btn" variant="text" className="f12 capitalize"> Send Reminder</LoadingButton>
-						</MenuItem>
+							<MenuItem>
+								<LoadingButton size={"small"} onClick={() => toggleDrawer("NotifySupplier", true)} color="btn" variant="text" className="f12 capitalize"> Send Reminder</LoadingButton>
+							</MenuItem>
 						}
 						<MenuItem>
 							<LoadingButton size={"small"} onClick={() => toggleDrawer("ReinitiateEvent", true)} color="btn" variant="text" className="f12 capitalize"> Reinitiate RFQ</LoadingButton>
 						</MenuItem>
 						{
 							currentStage != "Awarded" &&
-						<MenuItem>
-							<LoadingButton size={"small"} onClick={() => toggleDrawer("extendEvent", true)} color="btn" variant="text" className="f12 capitalize"> Extend End Date</LoadingButton>
+							<MenuItem>
+								<LoadingButton size={"small"} onClick={() => toggleDrawer("extendEvent", true)} color="btn" variant="text" className="f12 capitalize"> Extend End Date</LoadingButton>
 
 
-						</MenuItem>
+							</MenuItem>
 						}
 						<MenuItem>
 							<LoadingButton size={"small"} onClick={() => handleZipDownload()} color="btn" variant="text" className="f12 capitalize"> Download Zip</LoadingButton>
 						</MenuItem>
-						
+
 						{currentStage != "Awarded" && rfqtype == "closed" && <MenuItem>
 							<LoadingButton size={"small"} onClick={() => toggleDrawer("openDate", true)} color="btn" variant="text" className="f12 capitalize">Update Open Date</LoadingButton>
 
@@ -1173,7 +1173,7 @@ const formik_Reinvite = useFormik({
 					<LoadingButton  size={"small"}  loading={loading2} onClick={handleExcelExport} color="btn" variant="text" className="f12 capitalize">Export Comparative</LoadingButton>
 		</MenuItem>	 */}
 
-						{ downloadExcel && <MenuItem >
+						{downloadExcel && <MenuItem >
 							{/* <LoadingButton size={"small"} onClick={generateComparativeReportExcel} color="btn" variant="text" className="f12 capitalize">Download Comparative Excel</LoadingButton> */}
 							<LoadingButton size={"small"} onClick={downloadExcel} color="btn" variant="text" className="f12 capitalize">Download Comparative Excel</LoadingButton>
 						</MenuItem>}
@@ -1340,15 +1340,9 @@ const formik_Reinvite = useFormik({
 														<div className="flex-grow-1 ms-2 text-truncate">
 
 															<div className="text-truncate f12">
-																<IconButton
-																	size="small"
-																	className="ms-2 me-3"
-																	color="primary"
-																	onClick={() => handleCheckRemainingSupplier(x)}
-
-																>
+																<button type="button" className="pe-icon-btn pe-icon-btn--add ms-2 me-3" onClick={() => handleCheckRemainingSupplier(x)}>
 																	<HiOutlineUserAdd />
-																</IconButton>
+																</button>
 
 																{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
 
@@ -1429,15 +1423,9 @@ const formik_Reinvite = useFormik({
 															<div className="d-flex align-items-center ">
 
 																<div className="text-truncate f12">
-																	<IconButton
-																		size="small"
-																		className="ms-2 me-3"
-																		color="error"
-																		onClick={() => handleClearRemainingSupplier(x)}
-
-																	>
+																	<button type="button" className="pe-icon-btn pe-icon-btn--delete ms-2 me-3" onClick={() => handleClearRemainingSupplier(x)}>
 																		<HiOutlineX />
-																	</IconButton>
+																	</button>
 																	{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
 																</div>
 															</div>
@@ -1665,11 +1653,11 @@ const formik_Reinvite = useFormik({
 
 
 																handleReinviteAll(e.target.checked)
-															}} 
-															
-															
-															
-															/></th>
+															}}
+
+
+
+																/></th>
 															<th>Supplier</th>
 															{/* <th style={{width:"4%"}}>Status</th> */}
 															<th style={{ width: "15%" }}>Current Version</th>
@@ -1679,8 +1667,8 @@ const formik_Reinvite = useFormik({
 													<tbody className="retr">
 
 														{supplierlist?.filter((x) => {
-																return x.version == EventHeaderDetails.version && x.status == "Closed"
-															})
+															return x.version == EventHeaderDetails.version && x.status == "Closed"
+														})
 															?.filter((v) => {
 																if (!searchQuery) {
 																	return true; // If searchQuery is empty, return all items
@@ -1690,57 +1678,57 @@ const formik_Reinvite = useFormik({
 																	v?.contactPerson?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
 																	v?.emailId?.toLowerCase()?.includes(searchQuery?.toLowerCase())
 																);
-															})														
-														.map((v, index) => {
+															})
+															.map((v, index) => {
 
-															return (
+																return (
 
-																<tr key={index}>
-																	<td width={10}>
-																		{v?.reinvitechecked == true ? <Checkbox className="p-0" checked={true} size="medium" onChange={(e) => {
+																	<tr key={index}>
+																		<td width={10}>
+																			{v?.reinvitechecked == true ? <Checkbox className="p-0" checked={true} size="medium" onChange={(e) => {
 
-																			handleReinviteCheck(v, e.target.checked)
-																		}} /> : <Checkbox className="p-0" checked={false} size="medium" onChange={(e) => {
+																				handleReinviteCheck(v, e.target.checked)
+																			}} /> : <Checkbox className="p-0" checked={false} size="medium" onChange={(e) => {
 
-																			handleReinviteCheck(v, e.target.checked)
-																		}} />}
-																	</td>
-																	<td width={40}>{`${v.companyName}|${v.contactPerson}|${v.emailId}`}</td>
-																	{/* <td width={10}>                                                      
+																				handleReinviteCheck(v, e.target.checked)
+																			}} />}
+																		</td>
+																		<td width={40}>{`${v.companyName}|${v.contactPerson}|${v.emailId}`}</td>
+																		{/* <td width={10}>                                                      
 			{v?.status =="Closed" }
             </td> */}
-																	<td width={10}>{v?.version}</td>
-																	<td width={40}>
-																		<TextField
-																			variant="outlined"
-																			multiline
-																			minRows={2}
-																			maxRows={4}
-																			fullWidth
-																			placeholder="Enter remarks here"
-																			defaultValue={v.reinviteremark || ''}
-																			onBlur={(e) => {
-																				v.reinviteremark = e.target.value;
-																			}}
-																			sx={{
-																				backgroundColor: '#fff',
-																				borderRadius: 1,
-																				mt: 1,
-																				mb: 1,
-																				'& .MuiOutlinedInput-root': {
-																					padding: '8px',
-																				},
-																				'& .MuiInputLabel-root': {
-																					fontSize: 14,
-																				},
-																			}}
-																		/>
-																	</td>
-																</tr>
-															)
+																		<td width={10}>{v?.version}</td>
+																		<td width={40}>
+																			<TextField
+																				variant="outlined"
+																				multiline
+																				minRows={2}
+																				maxRows={4}
+																				fullWidth
+																				placeholder="Enter remarks here"
+																				defaultValue={v.reinviteremark || ''}
+																				onBlur={(e) => {
+																					v.reinviteremark = e.target.value;
+																				}}
+																				sx={{
+																					backgroundColor: '#fff',
+																					borderRadius: 1,
+																					mt: 1,
+																					mb: 1,
+																					'& .MuiOutlinedInput-root': {
+																						padding: '8px',
+																					},
+																					'& .MuiInputLabel-root': {
+																						fontSize: 14,
+																					},
+																				}}
+																			/>
+																		</td>
+																	</tr>
+																)
 
 
-														})}
+															})}
 													</tbody>
 												</Table>
 
@@ -1905,7 +1893,7 @@ const formik_Reinvite = useFormik({
 										<div className="col-md-12 mt-2">
 											<div className="reMainTable">
 												{/* <Table striped bordered hover > */}
-													<Table bordered hover >
+												<Table bordered hover >
 													<thead className="rethead">
 														<tr>
 															<th style={
@@ -1914,10 +1902,10 @@ const formik_Reinvite = useFormik({
 
 
 																handleReOpenAll(e.target.checked)
-															}} 
-															
-															
-															/></th>
+															}}
+
+
+																/></th>
 															<th>Supplier</th>
 															<th style={{ width: "5%" }}>Status</th>
 															<th style={{ width: "15%" }}>Current Version</th>
@@ -1927,7 +1915,7 @@ const formik_Reinvite = useFormik({
 													<tbody className="retr">
 
 														{supplierlist?.filter(x => x.version == EventHeaderDetails.version && x.status != "Open" && x.status != "Regretted")
-														?.filter((v) => {
+															?.filter((v) => {
 																if (!searchQuery) {
 																	return true; // If searchQuery is empty, return all items
 																}
@@ -1936,52 +1924,52 @@ const formik_Reinvite = useFormik({
 																	v?.contactPerson?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
 																	v?.emailId?.toLowerCase()?.includes(searchQuery?.toLowerCase())
 																);
-															})	
-														
-														?.map((v, index) => {
+															})
 
-															return (
+															?.map((v, index) => {
 
-																<tr key={index}>
-																	<td width={10}>
-																		{v?.reinvitechecked == true ? <Checkbox className="p-0" checked={true} size="medium" onChange={(e) => {
+																return (
 
-																			handleReinviteCheck(v, e.target.checked)
-																		}}
-																		
-																	
-																		
-																		/> : <Checkbox className="p-0" checked={false} size="medium" onChange={(e) => {
+																	<tr key={index}>
+																		<td width={10}>
+																			{v?.reinvitechecked == true ? <Checkbox className="p-0" checked={true} size="medium" onChange={(e) => {
 
-																			handleReinviteCheck(v, e.target.checked)
-																		}} />}
-																	</td>
-																	<td width={40}>{`${v.companyName}|${v.contactPerson}|${v.emailId}`}</td>
-																	<td width={10}>
-																		{v?.status != "Open" ? <Tooltip title={v?.submissionDate ? formatDateViaLocale(v?.submissionDate, "en-GB",
-																			formattimeoption) : ""}><div className="restatus">Quoted</div></Tooltip> : v?.status == "Revert" ? <div className="restatus">
-																				Reverted</div> : <div className="restatus">
-																			Not Quoted </div>}
-																	</td>
-																	<td width="5%">{`${v.version}`}</td>
-																	<td width={40}>
-																		<TextField
-																		variant="outlined"
-																		multiline
-																		minRows={2}
-																		maxRows={4}
-																		fullWidth
-																		placeholder="Remarks"
-																		onBlur={(e) => {
-
-																		v.reinviteremark = e.target.value
-																		}} />
-																	</td>
-																</tr>
-															)
+																				handleReinviteCheck(v, e.target.checked)
+																			}}
 
 
-														})}
+
+																			/> : <Checkbox className="p-0" checked={false} size="medium" onChange={(e) => {
+
+																				handleReinviteCheck(v, e.target.checked)
+																			}} />}
+																		</td>
+																		<td width={40}>{`${v.companyName}|${v.contactPerson}|${v.emailId}`}</td>
+																		<td width={10}>
+																			{v?.status != "Open" ? <Tooltip title={v?.submissionDate ? formatDateViaLocale(v?.submissionDate, "en-GB",
+																				formattimeoption) : ""}><div className="restatus">Quoted</div></Tooltip> : v?.status == "Revert" ? <div className="restatus">
+																					Reverted</div> : <div className="restatus">
+																				Not Quoted </div>}
+																		</td>
+																		<td width="5%">{`${v.version}`}</td>
+																		<td width={40}>
+																			<TextField
+																				variant="outlined"
+																				multiline
+																				minRows={2}
+																				maxRows={4}
+																				fullWidth
+																				placeholder="Remarks"
+																				onBlur={(e) => {
+
+																					v.reinviteremark = e.target.value
+																				}} />
+																		</td>
+																	</tr>
+																)
+
+
+															})}
 													</tbody>
 												</Table>
 
@@ -2061,7 +2049,7 @@ const formik_Reinvite = useFormik({
 									<div className="row">
 										<div className="col-md-12 mt-2">
 											<div className="reMainTable">
-												<Table  bordered hover>
+												<Table bordered hover>
 													<thead className="rethead">
 														<tr>
 															<th style={{ width: "4%" }}>
@@ -2138,29 +2126,29 @@ const formik_Reinvite = useFormik({
 																		<td width={10}>{`${v.version}`}</td>
 																		<td width={40}>
 																			<TextField
-																				
-																			variant="outlined"
-																			multiline
-																			minRows={2}
-																			maxRows={4}
-																			fullWidth
+
+																				variant="outlined"
+																				multiline
+																				minRows={2}
+																				maxRows={4}
+																				fullWidth
 																				// className="formulaEditor w-100"
 																				placeholder="Remarks"
 																				onBlur={(e) => {
 																					v.reinviteremark = e.target.value;
 																				}}
-																					sx={{
-																				backgroundColor: '#fff',
-																				borderRadius: 1,
-																				mt: 1,
-																				mb: 1,
-																				'& .MuiOutlinedInput-root': {
-																					padding: '8px',
-																				},
-																				'& .MuiInputLabel-root': {
-																					fontSize: 14,
-																				},
-																			}}
+																				sx={{
+																					backgroundColor: '#fff',
+																					borderRadius: 1,
+																					mt: 1,
+																					mb: 1,
+																					'& .MuiOutlinedInput-root': {
+																						padding: '8px',
+																					},
+																					'& .MuiInputLabel-root': {
+																						fontSize: 14,
+																					},
+																				}}
 																			/>
 																		</td>
 																	</tr>
@@ -2262,9 +2250,9 @@ const formik_Reinvite = useFormik({
 											size="small"
 											className="w-100 f12"
 											options={supplierlist
-															?.filter((x) => x.version == EventHeaderDetails.version && x.status != "Closed" &&x.status != "Regretted") || []}
+												?.filter((x) => x.version == EventHeaderDetails.version && x.status != "Closed" && x.status != "Regretted") || []}
 											getOptionLabel={(option) =>
-												
+
 												`${option.contactPerson} - ${option.emailId} | ${option.companyName}`
 											}
 											value={formik_Surrogate.values.supplier ?? null}
