@@ -142,7 +142,7 @@
   height: 88vh;
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  overflow: hidden;
   border-radius: 16px;
 }
 
@@ -151,5 +151,12 @@
   min-height: 0;
   overflow: hidden;
   padding: 0;
-  border-radius: 16px;
+}
+
+/* Square hover effect for modal close buttons */
+.modal-close-btn {
+  border-radius: 8px !important;
+}
+.modal-close-btn:hover {
+  background-color: #f3f4f6 !important;
 }

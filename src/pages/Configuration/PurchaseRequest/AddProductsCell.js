@@ -1322,34 +1322,24 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 					</Modal.Body>
 				</Modal>
 				<Modal
-					size="lg"
 					show={PlantModal}
 					backdrop="static"
 					keyboard={false}
-					value={"Add NEW CATEGORY"}
 					className="zindex1280"
 					backdropClassName="zindex1280"
 					centered
-					contentClassName="border-0"
+					dialogClassName="modal-custom-mdlg"
 					onHide={() => ClosePlantModal()}
 				>
-					<Modal.Header className="pt-2 pb-2 bgheaderCards">
-						<Modal.Title id="modal-heading">
-							<div className="d-flex align-items-center f14 text-white">
-								Manage Plant
-							</div>
-						</Modal.Title>
-						<IconButton
-							onClick={() => ClosePlantModal()}
-							size="small"
-							edge="start"
-						>
-							<HiOutlineX className="f20 text-white" />
-						</IconButton>
-					</Modal.Header>
-					<Modal.Body className="p-0">
-						<div className="p-3">
-							<AddPrPlant handlePlantList={handlePlantList} />
+					<Modal.Body className="p-0 d-flex flex-column">
+						<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+							<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Plant</span>
+							<IconButton onClick={() => ClosePlantModal()} size="small" className="modal-close-btn">
+								<HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
+							</IconButton>
+						</div>
+						<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+							<AddPrPlant handlePlantList={handlePlantList} isModal={true} />
 						</div>
 					</Modal.Body>
 				</Modal>

@@ -3169,17 +3169,29 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	});
 
 	const [pageCount, setPageCount] = React.useState(10);
+	const [supplierSearchQuery, setSupplierSearchQuery] = React.useState("");
+
+	const supplierMatchesSearch = (x) => {
+		if (!supplierSearchQuery?.trim()) return true;
+		const q = supplierSearchQuery.toLowerCase();
+		return (
+			x?.contactPerson?.toLowerCase().includes(q) ||
+			x?.email?.toLowerCase().includes(q) ||
+			x?.companyName?.toLowerCase().includes(q)
+		);
+	};
 
 	//pagination for total suppliers
 	const [pageTS, setPageTS] = React.useState(1);
 	const [totalpageTS, setTotalPageTS] = React.useState(3);
 	useEffect(() => {
-
 		handlePaginationTS();
 		setTotalPageTS(
-			Math.ceil(totalSupplier?.filter((x) => x.isShow)?.length / pageCount)
+			Math.ceil(totalSupplier?.filter((x) => x.isShow && supplierMatchesSearch(x))?.length / pageCount)
 		);
-	}, [pageTS, totalSupplier]);
+	}, [pageTS, totalSupplier, supplierSearchQuery]);
+
+	useEffect(() => { setPageTS(1); }, [supplierSearchQuery]);
 
 	const handlePaginationTS = (event, value) => {
 		if (value) {
@@ -4251,15 +4263,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		}
 	};
 
-	const rfqStatusSteps = [
-		"Draft",
-		"Open",
-		"Forward for Approval",
-		"Technical Approval",
-		"Commercial Approval",
-		"Allocation",
-		"Awarded",
-	];
+	// Derive dropdown steps from the same stagelist used by the horizontal stepper
+	const rfqStatusSteps = Array.isArray(stagelist) && stagelist.length > 0
+		? stagelist.map(s => s.stageName || s.currentStage).filter(Boolean)
+		: ["Draft"];
 
 	const normalizedCurrentStage = (currentStage || "Draft").trim();
 	const currentStatusIndex = Math.max(
@@ -4360,12 +4367,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 												})()}
 
 												{/* Primary action — always last */}
-												{value === "7" && (
+												{value === 7 && (
 													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={() => handleMenuClick('Publish RFQ')}>
-														Submit
+														Publish RFQ
 													</button>
 												)}
-												{currentStage === 'Draft' && value !== "7" && (
+												{currentStage === 'Draft' && value !== 7 && (
 													<button
 														type="button"
 														className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
@@ -5492,7 +5499,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 							{/* Questions Tab Content */}
 							{value === 4 && (
-								<div className="mb-5">
+								<div>
 									{(() => {
 										const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false;
 										const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) ?? false;
@@ -5555,7 +5562,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															<div className="d-flex align-items-center gap-2">
 																<span className="sup-col-title">Select Suppliers</span>
 																<span className="sup-col-count">
-																	Total Suppliers: {totalSupplier?.filter((x) => x.isShow)?.length ?? 0}
+																	Total Suppliers: {totalSupplier?.filter((x) => x.isShow && supplierMatchesSearch(x))?.length ?? 0}
 																</span>
 																{selectedCategory && (
 																	<Badge pill bg="success" text="dark">
@@ -5585,50 +5592,22 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																/>
 															</div>
 															<div className="sup-filter-field">
-																<Autocomplete
+																<TextField
 																	id="searchvendorbyname"
-																	options={totalSupplier?.filter((x) => !x.isSelected) ?? []}
-																	filterOptions={VendorfilterOptions}
-																	getOptionLabel={(option) => ""}
-																	componentsProps={{
-																		popper: { className: "sup-search-popper" },
-																		paper: { className: "sup-search-paper" },
-																	}}
-																	ListboxProps={{ className: "sup-search-listbox" }}
-																	renderOption={(props, option) => (
-																		<li {...props} className={`${props.className ?? ""} sup-search-option`}>
-																			{currentStage == "Draft" && (() => {
-																				const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-																				return <Checkbox className="sup-search-checkbox" icon={icon} checkedIcon={checkedIcon} disabled={!canCreate} />;
-																			})()}
-																			{`${option.contactPerson} | ${option.email} | ${option?.companyName}` ??
-																				""}
-																		</li>
-																	)}
+																	placeholder="Search Suppliers"
 																	size="small"
 																	fullWidth
 																	className="sup-filter-control"
-																	forcePopupIcon={false}
-																	renderInput={(params) => (
-																		<TextField
-																			{...params}
-																			placeholder="Search Suppliers"
-																			InputProps={{
-																				...params.InputProps,
-																				endAdornment: (
-																					<>
-																						{params.InputProps.endAdornment}
-																						<SearchIcon style={{ fontSize: 18, color: '#9ca3af' }} />
-																					</>
-																				),
-																			}}
-																		/>
-																	)}
-																	onChange={(e, newvalue) => {
-																		if (newvalue) {
-																			const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-																			if (canCreate) handleSelectedSupplier(newvalue, e.target.checked);
-																		}
+																	value={supplierSearchQuery}
+																	onChange={(e) => setSupplierSearchQuery(e.target.value)}
+																	InputProps={{
+																		endAdornment: supplierSearchQuery ? (
+																			<IconButton size="small" onClick={() => setSupplierSearchQuery("")} style={{ padding: 2 }}>
+																				<HiOutlineX style={{ fontSize: 16, color: '#9ca3af' }} />
+																			</IconButton>
+																		) : (
+																			<SearchIcon style={{ fontSize: 18, color: '#9ca3af' }} />
+																		),
 																	}}
 																/>
 															</div>
@@ -5645,7 +5624,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																	);
 																}
 																return totalSupplier
-																	?.filter((x) => x.isShow)
+																	?.filter((x) => x.isShow && supplierMatchesSearch(x))
 																	.slice((pageTS - 1) * pageCount, pageTS * pageCount)
 																	.map((x, i) => (
 																		<div className="sup-list-item" key={i}>
@@ -6692,7 +6671,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 							<h3>
 								{formik_ApproveReject.values?.status === "Rejected"
 									? "Reject this stage?"
-									: "Approve this stage?"}
+									: formik_ApproveReject.values?.status === "Forward"
+										? "Forward for Approval"
+										: "Approve this stage?"}
 							</h3>
 							<button
 								type="button"
@@ -6710,6 +6691,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								{formik_ApproveReject.values?.status === "Rejected" ? (
 									<>
 										You're rejecting <strong>{normalizedCurrentStage}</strong>. The RFQ will remain in this stage until the rejection is handled.
+									</>
+								) : formik_ApproveReject.values?.status === "Forward" ? (
+									<>
+										You're forwarding <strong>{normalizedCurrentStage}</strong> for approval. The assigned approver will be notified.
 									</>
 								) : (
 									<>
@@ -6729,7 +6714,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									placeholder={
 										formik_ApproveReject.values?.status === "Rejected"
 											? "Add the reason for rejection."
-											: "Looks good - quantities match forecast. Proceed."
+											: formik_ApproveReject.values?.status === "Forward"
+												? "Add a note for the forwarding."
+												: "Add a note for the approval."
 									}
 									inputProps={{ maxLength: 200 }}
 									value={formik_ApproveReject?.values?.approveComment}
@@ -6749,24 +6736,26 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										),
 									}}
 								/>
-								<p>Visible to all approvers and the requisitioner.</p>
 							</div>
 						</div>
 						<div className="rfq-dv2-approval-modal-actions">
 							<button
 								type="button"
-								className="rfq-dv2-approval-cancel"
+								className="pe-btn pe-btn--ghost"
 								onClick={toggleDrawer("openInvoiceApproved", false, [])}
 							>
 								Cancel
 							</button>
-							<LoadingButton
-								loading={loading}
+							<button
 								type="submit"
-								className={`rfq-dv2-approval-submit ${formik_ApproveReject.values?.status === "Rejected" ? "is-reject" : ""}`}
+								className={`pe-btn pe-btn--primary ${formik_ApproveReject.values?.status === "Rejected" ? "is-reject" : ""}`}
 							>
-								<span>{formik_ApproveReject.values?.status === "Rejected" ? "Submit rejection" : "Submit approval"}</span>
-							</LoadingButton>
+								{formik_ApproveReject.values?.status === "Rejected"
+									? "Submit rejection"
+									: formik_ApproveReject.values?.status === "Forward"
+										? "Forward"
+										: "Submit approval"}
+							</button>
 						</div>
 					</form>
 				</Dialog>

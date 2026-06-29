@@ -3773,6 +3773,15 @@
 }
 
 /* ── Question wise cards ── */
+/* Override datagrid.css .item-Table which sets height: 70vh — creates dead space in the tab scroll container */
+.mt-2.item-Table.eq-question-list,
+div.item-Table.eq-question-list {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
 .eq-question-list {
   margin-top: 8px !important;
   height: auto !important;
@@ -4434,5 +4443,4 @@
 
 .css-3dzjca-MuiPaper-root-MuiPopover-paper-MuiMenu-paper{
   max-width: 260px !important;
-  max-height: 300px !important;
 }

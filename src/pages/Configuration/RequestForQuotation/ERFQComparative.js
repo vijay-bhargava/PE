@@ -20,7 +20,7 @@ import {
 	Alert
 } from "@mui/material";
 import { DropdownButton, Fade, Modal, Table } from "react-bootstrap";
-import { useLocation, useNavigate, useParams,useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Button from "@mui/material/Button";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
@@ -34,7 +34,7 @@ import {
 	KeyboardDoubleArrowLeft,
 	PushPinOutlined,
 } from "@mui/icons-material";
-import {InputAdornment,TextField} from "@mui/material"
+import { InputAdornment, TextField } from "@mui/material"
 import {
 	HiChevronDown,
 	HiDotsVertical,
@@ -84,7 +84,7 @@ import styles from '../../../components/Event/ComparisonScreen/ExecutiveSummary.
 import { CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
 import { parse } from "date-fns";
 const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
-	
+
 	const navigate = useNavigate();
 	const location = useLocation();
 	const [anchorEl, setAnchorEl] = useState(null); //state to handle  version dropdown open and close
@@ -148,7 +148,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	const { pageSlug, supplierid } = useParams();
 	const [searchParams, setSearchParams] = useSearchParams();
 
-	const [activityId, setActvityId] = useState(0);	
+	const [activityId, setActvityId] = useState(0);
 	const [stageValue, setStageValue] = useState('');
 	const [actionType, setActionType] = useState("");
 	const [idFromURL, setIdFromURL] = useState(null);
@@ -326,15 +326,15 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			setVersion(actions.rfqheaderversion.toString());
 			setCurrentVersion(actions.rfqheaderversion);
 		}
-		
+
 
 	}, [actions.rfqheaderversion, location])
 	useEffect(() => {
-		if(actions.nfaEventVersion){
+		if (actions.nfaEventVersion) {
 			setVersion(actions.nfaEventVersion.toString());
 			setCurrentVersion(actions.nfaEventVersion);
 		}
-	},[actions.nfaEventVersion])
+	}, [actions.nfaEventVersion])
 	//useeffect
 	useEffect(() => {
 		if (version) getComparativedetailsVersionWise()
@@ -368,11 +368,11 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	const [totalItemSum, setTotalItemSum] = useState(0)
 	const [versionhistory, setVersionhistory] = useState(actions.versionhistory)
 	const [versionWiseData, setVersionWiseData] = useState(actions.RFQVersionHistory);
-	
+
 
 	useEffect(() => {
 		if (versionhistory?.length) {
-			const defaultVersion = versionhistory.find(v => v === "1.x")?? versionhistory[0];
+			const defaultVersion = versionhistory.find(v => v === "1.x") ?? versionhistory[0];
 			if (defaultVersion) {
 				setSelectedVersion(defaultVersion);
 				handleVersionClick(defaultVersion); // optional: auto-load data
@@ -442,7 +442,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	//handle version change
 	const handleVersionClick = (v) => {
 		setVersion(v);
-		setAnchorEl(null);		
+		setAnchorEl(null);
 		// Refresh data for the currently active tab
 		setTimeout(() => {
 			switch (activeTab) {
@@ -607,20 +607,20 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		openInvoiceApproved: false,
 	});
 	const toggleDrawer = (anchor, open) => (event) => {
-        if (
-            event.type === "keydown" &&
-            (event.key === "Tab" || event.key === "Shift")
-        ) {
-            return;
-        }
-        setState({ ...state, [anchor]: open });
-    };
+		if (
+			event.type === "keydown" &&
+			(event.key === "Tab" || event.key === "Shift")
+		) {
+			return;
+		}
+		setState({ ...state, [anchor]: open });
+	};
 
 	const handleApprovalActivity = (supplier) => {
 		setState({ ...state, ["openInvoiceApproved"]: true });
 		formik_ApproveReject.setFieldValue("vendorId", supplier?.id);
 	}
-	
+
 
 
 	const fastApiClient = new FastApiClient()
@@ -737,7 +737,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	const fetchFinancialComparisonData = async (v) => {
 		setIsLoadingFinancialData(true);
 		try {
-			
+
 			let VersionParam;
 			let finalversionparam = false;
 			if (v?.includes("x")) {
@@ -852,7 +852,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	const fetchTechnicalComparisonData = async (v) => {
 		setIsLoadingTechnicalData(true);
 		try {
-			
+
 			let VersionParam;
 			let finalversionparam = true;
 			if (v?.includes("x")) {
@@ -907,7 +907,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	const fetchGeneralData = async () => {
 		setIsLoadingGeneralData(true);
 		try {
-			
+
 			let VersionParam;
 			let finalversionparam = false;
 			if (version?.includes("x")) {
@@ -918,10 +918,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			}
 
 			var reqdata = {
-					rfqId: actions.rfqid,
-					Version: VersionParam,
-					finalversion: actions.isNFA ? true : finalversionparam
-				}
+				rfqId: actions.rfqid,
+				Version: VersionParam,
+				finalversion: actions.isNFA ? true : finalversionparam
+			}
 
 			const queryParams = buildQueryParams(reqdata);
 			// Replace with your actual API endpoint for financial comparison data
@@ -1122,7 +1122,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		const uniqueSuppliers = Array.from(new Set(suppliers));
 
 		// Add header row with static fields and dynamic supplier columns
-		const headerRow = ['SrNo', 'ItemCode', 'Short Name', 'ItemDescription', 'Quantity', 'UOM', 'Delivery Location', 'Target/Budget Price', 'Lowest Item Price', 'Savings (wrt Target Price)','Savings (wrt LPP)'];
+		const headerRow = ['SrNo', 'ItemCode', 'Short Name', 'ItemDescription', 'Quantity', 'UOM', 'Delivery Location', 'Target/Budget Price', 'Lowest Item Price', 'Savings (wrt Target Price)', 'Savings (wrt LPP)'];
 
 		// Add supplier columns (2 columns per supplier: Unit Price, Amount)
 		uniqueSuppliers.forEach(supplier => {
@@ -1154,7 +1154,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		const submissionTimeRow = financialSheet.addRow(subHeaderRow);
 
 		// Add third header row with column names
-		const colHeaderRow = ['', '', '', '', '', '', '', '', '','','']; // Empty cells for static fields
+		const colHeaderRow = ['', '', '', '', '', '', '', '', '', '', '']; // Empty cells for static fields
 		uniqueSuppliers.forEach(supplier => {
 			colHeaderRow.push('Unit Price');
 			colHeaderRow.push('Amount');
@@ -2130,21 +2130,21 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			});
 			column.width = 28;
 		});
-		
+
 		// Create Financial Details sheet using tempData structure (matching original format)
 		if (currentFinancialData) {
-			
+
 			const financialSheet = workbook.addWorksheet('Financial Details');
-			
+
 			// Get unique supplier names from tempData
 			const suppliers = currentFinancialData.suppliers || [];
 			const uniqueSuppliers = suppliers.map(s => s.companyName);
 			const headerRow = [];
 			// Add header row with static fields and dynamic supplier columns (matching original structure)
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq == true) {
 				headerRow.push('SrNo', 'SheetName', 'ItemCode', 'Short Name', 'ItemDescription', 'Quantity', 'UOM', 'Delivery Location', 'Target/Budget Price', 'Lowest Item Price', 'Savings in % (wrt Target Price)', 'Savings in % (wrt LPP)');
 			}
-			else{
+			else {
 				headerRow.push('SrNo', 'ItemCode', 'Short Name', 'ItemDescription', 'Quantity', 'UOM', 'Delivery Location', 'Target/Budget Price', 'Lowest Item Price', 'Savings in % (wrt Target Price)', 'Savings in % (wrt LPP)');
 			}
 
@@ -2160,10 +2160,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			const titleRow = financialSheet.addRow(headerRow);
 			const subHeaderRow = [];
 			// Add second header row with supplier sub-headers and submission time
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq == true) {
 				subHeaderRow.push('', '', '', '', '', '', '', '', '', '', '', '');
 			}
-			else{
+			else {
 				subHeaderRow.push('', '', '', '', '', '', '', '', '', '', '');
 			}
 			uniqueSuppliers.forEach((supplier, index) => {
@@ -2183,10 +2183,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			const submissionTimeRow = financialSheet.addRow(subHeaderRow);
 			const colHeaderRow = [];
 			// Add third header row with column names
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq == true) {
 				colHeaderRow.push('', '', '', '', '', '', '', '', '', '', '', '');
 			}
-			else{
+			else {
 				colHeaderRow.push('', '', '', '', '', '', '', '', '', '', '');
 			}
 			uniqueSuppliers.forEach(supplier => {
@@ -2202,10 +2202,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			// Merge supplier name cells (span across 2 columns for each supplier)
 			uniqueSuppliers.forEach((supplier, index) => {
 				var mergeStartCol = 0;
-				if(actions.EventHeaderDetails?.boqReq == true){
+				if (actions.EventHeaderDetails?.boqReq == true) {
 					mergeStartCol = 13 + (index * 2); // Starting after the 10 static columns (columns A-J, including Delivery Location)
 				}
-				else{
+				else {
 					mergeStartCol = 12 + (index * 2); // Starting after the 9 static columns (columns A-I, including Delivery Location)
 				}
 				const mergeEndCol = mergeStartCol + 1; // Span 2 columns
@@ -2218,10 +2218,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			});
 			var lastPoStartCol = 0;
 			// Merge "Last PO Details" header cell (span across 5 columns: Po No, PO Date, Supplier Name, Unit Rate, PO Value)
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq == true) {
 				lastPoStartCol = 13 + (uniqueSuppliers?.length * 2);
 			}
-			else{
+			else {
 				lastPoStartCol = 12 + (uniqueSuppliers?.length * 2); // After all supplier columns
 			}
 			const lastPoEndCol = lastPoStartCol + 4; // Span 5 columns
@@ -2253,7 +2253,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				const savingsWrtTargetPrice = parseFloat(item?.targetPrice ?? 0) && parseFloat(lowestPrice) ? ((parseFloat(item?.targetPrice ?? 0) - parseFloat(lowestPrice)) / parseFloat(item?.targetPrice ?? 0)) * 100 : 0;
 				const savingsWrtLPP = parseFloat(lowestPrice) && parseFloat(item?.targetPrice ?? 0) ? ((parseFloat(item?.targetPrice ?? 0) - parseFloat(lowestPrice)) / parseFloat(lowestPrice)) * 100 : 0;
 				const row = [];
-				if(actions.EventHeaderDetails?.boqReq == true){
+				if (actions.EventHeaderDetails?.boqReq == true) {
 					debugger
 					row.push(
 						item?.hierarchyCode, // SrNo
@@ -2265,12 +2265,12 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						item?.uom || 'N/A', // UOM
 						item?.plant || 'N/A', // Delivery Location - using default value like original
 						parseFloat(item?.targetPrice ?? 0), // Target/Budget Price as number
-						parseFloat(lowestPrice) || 0 ,// Lowest Item Price as number
+						parseFloat(lowestPrice) || 0,// Lowest Item Price as number
 						savingsWrtTargetPrice.toFixed(4), // Savings (wrt Target Price) as percentage
 						savingsWrtLPP.toFixed(4) // Savings (wrt LPP) as percentage
 					);
 				}
-				else{
+				else {
 					row.push(
 						i + 1, // SrNo
 						item?.itemCode || 'N/A', // ItemCode
@@ -2280,7 +2280,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						item?.uom || 'N/A', // UOM
 						item?.plant || 'N/A', // Delivery Location - using default value like original
 						parseFloat(item?.targetPrice ?? 0), // Target/Budget Price as number
-						parseFloat(lowestPrice) || 0 ,// Lowest Item Price as number
+						parseFloat(lowestPrice) || 0,// Lowest Item Price as number
 						savingsWrtTargetPrice.toFixed(4), // Savings (wrt Target Price) as percentage
 						savingsWrtLPP.toFixed(4) // Savings (wrt LPP) as percentage
 					);
@@ -2336,10 +2336,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 					cell.style = dataRowStyle;
 					var staticColumns = 0;
 					// Bold formatting for minimum unit price columns
-					if(actions.EventHeaderDetails?.boqReq == true){
+					if (actions.EventHeaderDetails?.boqReq == true) {
 						staticColumns = 12; // A to J (including Delivery Location)
 					}
-					else{
+					else {
 						staticColumns = 11; // A to I (including Delivery Location)
 					}
 					const supplierStartCol = staticColumns + 1; // Column J
@@ -2370,7 +2370,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				// Add commercial term rows for this item
 				Array.from(allCommercialTerms).forEach(termName => {
 					const commercialRow = [];
-					if(actions.EventHeaderDetails?.boqReq == true){
+					if (actions.EventHeaderDetails?.boqReq == true) {
 						commercialRow.push(
 							'', // Empty SrNo
 							'', // Empty SheetName
@@ -2387,7 +2387,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 						);
 					}
-					else{
+					else {
 						commercialRow.push(
 							'', // Empty SrNo
 							'', // Empty ItemCode
@@ -2450,21 +2450,21 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				if (lowestPrice === Infinity) lowestPrice = 0;
 				const targetPrice = item?.targetPrice ?? 0;
 				if (!isNaN(targetPrice)) {
-					targetPriceTotal += (parseFloat(targetPrice) * parseFloat(item?.quantity ?? 0)); 
+					targetPriceTotal += (parseFloat(targetPrice) * parseFloat(item?.quantity ?? 0));
 				}
 				if (!isNaN(lowestPrice)) {
-					totalLowestPrice += (parseFloat(lowestPrice) * parseFloat(item?.quantity ?? 0)); 
+					totalLowestPrice += (parseFloat(lowestPrice) * parseFloat(item?.quantity ?? 0));
 				}
 			});
 
 			const totalRow = ['Total'];
 			// Fill empty cells for static columns (2-7) - up to Delivery Location column
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq == true) {
 				for (let i = 2; i <= 8; i++) {
 					totalRow.push('');
 				}
 			}
-			else{
+			else {
 				for (let i = 2; i <= 7; i++) {
 					totalRow.push('');
 				}
@@ -2501,12 +2501,12 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			// Add Loading Factor row
 			const loadingFactorRow = ['Loading Factor'];
 			// Fill empty cells for static columns (2-9)
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq == true) {
 				for (let i = 2; i <= 12; i++) {
 					loadingFactorRow.push('');
 				}
 			}
-			else{
+			else {
 				for (let i = 2; i <= 11; i++) {
 					loadingFactorRow.push('');
 				}
@@ -2527,10 +2527,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			const loadingFactorRowElement = financialSheet.addRow(loadingFactorRow);
 			// Merge cells for "Loading Factor" label across columns A-H
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq == true) {
 				financialSheet.mergeCells(loadingFactorRowElement.number, 1, loadingFactorRowElement.number, 12);
 			}
-			else{
+			else {
 				financialSheet.mergeCells(loadingFactorRowElement.number, 1, loadingFactorRowElement.number, 11);
 			}
 			loadingFactorRowElement.eachCell((cell) => {
@@ -2540,12 +2540,12 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			// Add Amount (Incl. GST/VAT) row
 			const amountInclRow = ['Final Amount'];
 			// Fill empty cells for static columns (2-9)
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq == true) {
 				for (let i = 2; i <= 12; i++) {
 					amountInclRow.push('');
 				}
 			}
-			else{
+			else {
 				for (let i = 2; i <= 11; i++) {
 					amountInclRow.push('');
 				}
@@ -2566,10 +2566,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			const amountInclRowElement = financialSheet.addRow(amountInclRow);
 			// Merge cells for "Amount" label across columns A-H
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq == true) {
 				financialSheet.mergeCells(amountInclRowElement.number, 1, amountInclRowElement.number, 12);
 			}
-			else{
+			else {
 				financialSheet.mergeCells(amountInclRowElement.number, 1, amountInclRowElement.number, 11);
 			}
 			amountInclRowElement.eachCell((cell) => {
@@ -2579,12 +2579,12 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			// Add Commercial Rank row (footer only) - Show ranking in Amount column
 			const commercialRankRow = ['Commercial Rank'];
 			// Fill empty cells for static columns (2-9)
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq == true) {
 				for (let i = 2; i <= 12; i++) {
 					commercialRankRow.push('');
 				}
 			}
-			else{
+			else {
 				for (let i = 2; i <= 11; i++) {
 					commercialRankRow.push('');
 				}
@@ -2605,10 +2605,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			const commercialRankRowElement = financialSheet.addRow(commercialRankRow);
 			// Merge cells for "Commercial Rank" label across columns A-H
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq == true) {
 				financialSheet.mergeCells(commercialRankRowElement.number, 1, commercialRankRowElement.number, 12);
 			}
-			else{
+			else {
 				financialSheet.mergeCells(commercialRankRowElement.number, 1, commercialRankRowElement.number, 11);
 			}
 			commercialRankRowElement.eachCell((cell) => {
@@ -2680,10 +2680,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 					let commercialValue = '';
 
 					// Find the vendor response for this term
-					const vendorResponse = term.vendorPackageCommercial?.find(vpc => 
+					const vendorResponse = term.vendorPackageCommercial?.find(vpc =>
 						vpc.vendorId === supplierData.vendorId
 					);
-					
+
 					commercialValue = vendorResponse?.remarks || vendorResponse?.calculateCommValue || 'N/A';
 					commercialRow.push(commercialValue);
 				});
@@ -2780,7 +2780,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			questions.forEach((question, index) => {
 				const questionRow = [
-					index + 1, 
+					index + 1,
 					question.questionDescription || 'N/A',
 					question.questionRequirement || 'N/A'
 				];
@@ -2792,14 +2792,14 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 					let score = 0;
 
 					// Find the vendor response for this question
-					const vendorResponse = question.vendorQuestionResponse?.find(vqr => 
+					const vendorResponse = question.vendorQuestionResponse?.find(vqr =>
 						vqr.vendorId === supplierData.vendorId
 					);
-					
+
 					if (vendorResponse) {
 						answer = vendorResponse.answer || 'No Response';
 						score = vendorResponse.score !== undefined ? vendorResponse.score : 0;
-						
+
 						// Add to total score
 						totalScores[supplierData.vendorId] += score;
 					}
@@ -2876,7 +2876,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 	// Function to update score
 	const updateScore = async (updatedvalue) => {
-		
+
 		const data = RFQSupplierQuestionsModal(updatedvalue, actions?.rfqid)
 		if (data) {
 			const res = await apiClient.postres(
@@ -2915,22 +2915,22 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	const handleTabChange = (event, newValue) => {
 		setActiveTab(newValue);
 		// Fetch RFQ Summary data when Executive Summary tab (index 0) is clicked
-		if (newValue === 0  && !isLoadingGeneralData && (actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "Y" || actions.rfqtype != "closed")) {
+		if (newValue === 0 && !isLoadingGeneralData && (actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "Y" || actions.rfqtype != "closed")) {
 			fetchGeneralData();
 		}
 
 		// Fetch financial comparison data when Financial Comparison tab (index 1) is clicked
-		if (newValue === 1  && !isLoadingFinancialData && (actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "Y" || actions.rfqtype != "closed")) {
+		if (newValue === 1 && !isLoadingFinancialData && (actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "Y" || actions.rfqtype != "closed")) {
 			fetchFinancialComparisonData(version);
 		}
 
 		// Fetch commercial comparison data when Commercial Comparison tab (index 2) is clicked
-		if (newValue === 2  && !isLoadingCommercialData) {
+		if (newValue === 2 && !isLoadingCommercialData) {
 			fetchCommercialComparisonData(version);
 		}
 
 		// Fetch technical comparison data when Technical Comparison tab (index 3) is clicked
-		if (newValue === 3  && !isLoadingTechnicalData) {
+		if (newValue === 3 && !isLoadingTechnicalData) {
 			fetchTechnicalComparisonData(version);
 		}
 	};
@@ -2963,11 +2963,11 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						</Box>
 					);
 				}
-				if(actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "N" ){
+				if (actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "N") {
 					return (
 						<div className={styles.sectionLock}>
-						  <LockIcon className={styles.bigLockIcon} />
-						  <span className={styles.lockText}>RFQ Closed</span>
+							<LockIcon className={styles.bigLockIcon} />
+							<span className={styles.lockText}>RFQ Closed</span>
 						</div>
 					);
 				}
@@ -2998,15 +2998,15 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						</Box>
 					);
 				}
-				if(actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "N"){
+				if (actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "N") {
 					return (
 						<div className={styles.sectionLock}>
-						  <LockIcon className={styles.bigLockIcon} />
-						  <span className={styles.lockText}>RFQ Closed</span>
+							<LockIcon className={styles.bigLockIcon} />
+							<span className={styles.lockText}>RFQ Closed</span>
 						</div>
-					); 
+					);
 				}
-				return <ComparativeAnalysis data={financialComparisonData} loadingFactor={loadingFactor} handleSupplierModalOpen={handleSupplierModalOpen}/>;
+				return <ComparativeAnalysis data={financialComparisonData} loadingFactor={loadingFactor} handleSupplierModalOpen={handleSupplierModalOpen} />;
 			case 2:
 				const canReadCommercial = actions.permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_RESPONSES, ACTIONS.READ) ?? false;
 				const canEditCommercial = actions.permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_RESPONSES, ACTIONS.EDIT) ?? false;
@@ -3060,16 +3060,16 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						</Box>
 					);
 				}
-				return <TechnicalComparative 
-							data={technicalComparisonData} 
-							updateScore={updateScore} 
-							handleApprovalActivity={handleApprovalActivity} 
-							actionType={actionType}
-							activityId={activityId}
-							handleSupplierModalOpen={handleSupplierModalOpen}
-							isNFA={actions.isNFA}
-							currentStage={actions.currentStage}
-						/>;
+				return <TechnicalComparative
+					data={technicalComparisonData}
+					updateScore={updateScore}
+					handleApprovalActivity={handleApprovalActivity}
+					actionType={actionType}
+					activityId={activityId}
+					handleSupplierModalOpen={handleSupplierModalOpen}
+					isNFA={actions.isNFA}
+					currentStage={actions.currentStage}
+				/>;
 			default:
 				const canReadSummaryDefault = actions.permissionManager?.hasPermission(CLAIM_TYPES.RFQ_SUMMARY, ACTIONS.READ) ?? false;
 				const canEditSummaryDefault = actions.permissionManager?.hasPermission(CLAIM_TYPES.RFQ_SUMMARY, ACTIONS.EDIT) ?? false;
@@ -3089,11 +3089,11 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						</div>
 					);
 				}
-				if(actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "N" ){
+				if (actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "N") {
 					return (
 						<div className={styles.sectionLock}>
-						  <LockIcon className={styles.bigLockIcon} />
-						  <span className={styles.lockText}>RFQ Closed</span>
+							<LockIcon className={styles.bigLockIcon} />
+							<span className={styles.lockText}>RFQ Closed</span>
 						</div>
 					);
 				}
@@ -3176,14 +3176,14 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	// Supplier Individual Summary Modal
 	const [supplierModalOpen, setSupplierModalOpen] = useState(false);
 	const [selectedVendorId, setSelectedVendorId] = useState(null);
-	
+
 	const handleSupplierModalOpen = useCallback(async (vendorId) => {
 		setSelectedVendorId(vendorId);
 		setSupplierModalOpen(true);
-	},[vendorItemAnalysis])
+	}, [vendorItemAnalysis])
 
 	useEffect(() => {
-		if(actions?.rfqid && version){
+		if (actions?.rfqid && version) {
 			fetchGeneralData();
 		}
 	}, [actions?.rfqid, version]);
@@ -3227,7 +3227,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 								padding: '6px 16px'
 							}}
 						/>
-						{ (actions.actionType == 'approval' && (actions.currentStage == 'Open' || actions.currentStage == 'Technical Approval') ? actions.EventHeaderDetails.showPriceTech : true) && 
+						{(actions.actionType == 'approval' && (actions.currentStage == 'Open' || actions.currentStage == 'Technical Approval') ? actions.EventHeaderDetails.showPriceTech : true) &&
 							(<Tab
 								value={1}
 								label="Financial Comparison"
@@ -3264,69 +3264,69 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						/>
 					</Tabs>
 					{actions.isNFA == false && (
-					<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, position: 'relative', zIndex: 1300 }}>
-						<RFQActionDrawer
-							rfqid={actions?.rfqid}
-							enddate={actions?.enddate}
-							activityId={actions?.activityId}
-							handleDraftEvent={actions?.handleDraftEvent}
-							rfqtype={actions?.rfqtype}
-							Version={actions?.rfqheaderversion}
-							EventHeaderDetails={actions?.EventHeaderDetails}
-							downloadExcel={downloadExcel}
-							currentStage={actions?.currentStage}
-						/>
-						<Button
-							aria-controls={Boolean(anchorEl) ? "simple-menu" : undefined}
-							aria-haspopup="true"
-							onClick={handleClick}
-							variant="text"
-							style={{ backgroundColor: "white", color: "#2182cde" }}
-						>
-							<Tooltip title={"Version Control"}>
-								<div
-									style={{
-										fontSize: "0.7125rem",
-										color: "#2A68D3",
-										fontWeight: "500",
-									}}
-								>
-									{`Version ${version}`}
-									<ExpandMore />
-								</div>
-							</Tooltip>
-						</Button>
-						<Menu
-							id="simple-menu"
-							anchorEl={anchorEl}
-							open={Boolean(anchorEl)}
-							onClose={handleClose}
-						>
-							{versionhistory && versionhistory.map((x, i) => {
+						<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, position: 'relative', zIndex: 1300 }}>
+							<RFQActionDrawer
+								rfqid={actions?.rfqid}
+								enddate={actions?.enddate}
+								activityId={actions?.activityId}
+								handleDraftEvent={actions?.handleDraftEvent}
+								rfqtype={actions?.rfqtype}
+								Version={actions?.rfqheaderversion}
+								EventHeaderDetails={actions?.EventHeaderDetails}
+								downloadExcel={downloadExcel}
+								currentStage={actions?.currentStage}
+							/>
+							<Button
+								aria-controls={Boolean(anchorEl) ? "simple-menu" : undefined}
+								aria-haspopup="true"
+								onClick={handleClick}
+								variant="text"
+								style={{ backgroundColor: "white", color: "#2182cde" }}
+							>
+								<Tooltip title={"Version Control"}>
+									<div
+										style={{
+											fontSize: "0.7125rem",
+											color: "#2A68D3",
+											fontWeight: "500",
+										}}
+									>
+										{`Version ${version}`}
+										<ExpandMore />
+									</div>
+								</Tooltip>
+							</Button>
+							<Menu
+								id="simple-menu"
+								anchorEl={anchorEl}
+								open={Boolean(anchorEl)}
+								onClose={handleClose}
+							>
+								{versionhistory && versionhistory.map((x, i) => {
 
 
-								return (<MenuItem 
-									key={x}
-									selected={x === selectedVersion}
-									onClick={() => {
-										setSelectedVersion(x);
-										handleVersionClick(x);
-									}}>
+									return (<MenuItem
+										key={x}
+										selected={x === selectedVersion}
+										onClick={() => {
+											setSelectedVersion(x);
+											handleVersionClick(x);
+										}}>
 										{`Version ${x}`}
 									</MenuItem>)
 
-							})}
+								})}
 
 
 
-						</Menu>
-					</Box>
-					) }
+							</Menu>
+						</Box>
+					)}
 				</Box>
 
 				{/* Tab Content */}
-				<Box sx={{ 
-					marginTop: 0, 
+				<Box sx={{
+					marginTop: 0,
 					paddingTop: 0,
 					flex: 1,
 					minHeight: 0,
@@ -3410,8 +3410,8 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						</div>
 					</Modal.Body>
 				</Modal>
-				{/* Approval Drawer */}
-				<React.Fragment key="key4">
+				{/* Approval Drawer — old flow, replaced by new Dialog popup in RequestForQuotation.js */}
+				{/* <React.Fragment key="key4">
 					<Drawer anchor="right" open={state["openInvoiceApproved"]}>
 						<form onSubmit={formik_ApproveReject.handleSubmit} autoComplete="off">
 							<Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
@@ -3487,21 +3487,6 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 														</TextField>
 													</div>
-													{/* <div>
-														<h5>Supplier :</h5>
-														{matchedSuppliers.map((supplier) => (
-															<div key={supplier.id}>
-															<label>
-																<input
-																type="checkbox"
-																checked={matchedSuppliers.includes(supplier.id)}
-																onChange={() => handleCheckboxChange(supplier.id)}
-																/>
-																{supplier.tradeName}
-															</label>
-															</div>
-														))}
-													</div> */}
 													<div className="col-12 col-md-4 col-lg-12 mb-4">
 														<TextField
 															id="approveComment"
@@ -3560,7 +3545,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 							</Box>
 						</form>
 					</Drawer>
-				</React.Fragment>
+				</React.Fragment> */}
 				{/* Supplier Individual Report Modal */}
 				<SupplierIndividualReport
 					open={supplierModalOpen}
