@@ -165,7 +165,7 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                                     {onDelete && (
                                       <button
                                         type="button"
-                                        className="rfq-sidebar-approver-remove"
+                                        className="pe-icon-btn pe-icon-btn--delete"
                                         onClick={() => handleDeleteApprover(approver)}
                                         aria-label="Remove approver"
                                       >
@@ -175,7 +175,7 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                                     <Tooltip title="Send Reminder" placement="left">
                                       <button
                                         type="button"
-                                        className="rfq-sidebar-approver-reminder"
+                                        className="pe-icon-btn pe-icon-btn--reminder"
                                         onClick={() => handleSendReminder(approver)}
                                         aria-label="Send reminder"
                                       >
@@ -234,33 +234,15 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                                   <span>Designation: {approver.designation}</span>
 
                                   {approver.status === "Pending" && actionType !== 'approval' && (
-                                    <Tooltip
-                                      title="Send Reminder"
-                                      slotProps={{
-                                        popper: {
-                                          sx: {
-                                            '& .MuiTooltip-tooltip': {
-                                              fontSize: '10px',
-                                              fontWeight: 600,
-                                            },
-                                          },
-                                        },
-                                      }}
-                                    >
-                                      <IconButton
-                                        size="small"
+                                    <Tooltip title="Send Reminder">
+                                      <button
+                                        type="button"
+                                        className="pe-icon-btn pe-icon-btn--reminder"
                                         onClick={() => handleSendReminder(approver)}
-                                        sx={{
-                                          padding: '2px',
-                                          backgroundColor: '#F7F1FC',
-                                          color: 'green',
-                                          '&:hover, &:focus, &:active': {
-                                            backgroundColor: '#F7F1FC',
-                                          },
-                                        }}
+                                        aria-label="Send reminder"
                                       >
-                                        <NotificationsActiveIcon fontSize="small" />
-                                      </IconButton>
+                                        <NotificationsActiveIcon style={{ fontSize: 14 }} />
+                                      </button>
                                     </Tooltip>
                                   )}
                                 </div>
@@ -289,15 +271,15 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                               {/* Delete button */}
                               {!approver.status && onDelete && (
                                 <div style={{ flexShrink: 0 }}>
-                                  <Tooltip arrow>
-                                    <IconButton
-                                      className="delete-button"
-                                      color="error"
-                                      size="small"
+                                  <Tooltip arrow title="Remove approver">
+                                    <button
+                                      type="button"
+                                      className="pe-icon-btn pe-icon-btn--delete"
                                       onClick={() => handleDeleteApprover(approver)}
+                                      aria-label="Remove approver"
                                     >
-                                      <HiX className="delete-icon" />
-                                    </IconButton>
+                                      <HiX />
+                                    </button>
                                   </Tooltip>
                                 </div>
                               )}
@@ -370,38 +352,15 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                                   </span>
                                 )}
                                 {approver.status === "Pending" && actionType !== 'approval' && (
-                                  <Tooltip
-                                    title="Send Reminder"
-                                    slotProps={{
-                                      popper: {
-                                        sx: {
-                                          '& .MuiTooltip-tooltip': {
-                                            fontSize: '10px',
-                                            fontWeight: 600,
-                                          },
-                                        },
-                                      },
-                                    }}
-                                  >
-                                    <IconButton
-                                      size="small"
+                                  <Tooltip title="Send Reminder">
+                                    <button
+                                      type="button"
+                                      className="pe-icon-btn pe-icon-btn--reminder"
                                       onClick={() => handleSendReminder(approver)}
-                                      sx={{
-                                        backgroundColor: '#F7F1FC',
-                                        color: 'green',
-                                        '&:hover': {
-                                          backgroundColor: '#F7F1FC',
-                                        },
-                                        '&:focus': {
-                                          backgroundColor: '#F7F1FC',
-                                        },
-                                        '&:active': {
-                                          backgroundColor: '#F7F1FC',
-                                        },
-                                      }}
+                                      aria-label="Send reminder"
                                     >
-                                      <NotificationsActiveIcon />
-                                    </IconButton>
+                                      <NotificationsActiveIcon style={{ fontSize: 14 }} />
+                                    </button>
                                   </Tooltip>
                                 )}
                               </div>
