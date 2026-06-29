@@ -454,7 +454,6 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
                 size="small"
                 id="valuetype"
                 name="valuetype"
-
                 value={valuetype}
                 onOpen={() => {
                   // Call API when dropdown opens
@@ -464,26 +463,17 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
                 }}
                 onChange={handleUomChange}
               >
-
+                <MenuItem
+                  value={"new"}
+                  className="dropdown-add-new"
+                >
+                  <ins>ADD NEW</ins>
+                </MenuItem>
                 {UOMMaster?.map((option, i) => (
                   <MenuItem key={i} value={option?.uom}>
                     {option?.uom}
                   </MenuItem>
                 ))}
-                <MenuItem
-                  value={"new"}
-                  className="bggray"
-                  style={{
-                    color: "blue",
-                    fontSize: "13PX",
-                    fontStyle: "italic",
-                    textDecoration: "underline",
-                    cursor: "pointer",
-                  }}
-
-                >
-                  <ins>ADD NEW</ins>
-                </MenuItem>
               </Select>
 
             </FormControl>
@@ -570,6 +560,7 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
         </div>
         <Modal
           size="lg"
+          dialogClassName="modal-custom-mdlg"
           show={OpenUomModal}
           backdrop="static"
           keyboard={false}
@@ -580,30 +571,19 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
           contentClassName="border-0"
           onHide={() => CloseModalUom()}
         >
-          <Modal.Header className="pt-2 pb-2 bgheaderCards">
-            <Modal.Title id="modal-heading">
-              <div className="d-flex align-items-center f14 text-white">
-                Manage  UOM
-              </div>
-            </Modal.Title>
-            <IconButton
-              onClick={() => CloseModalUom()}
-              size="small"
-              edge="start"
-            >
-              <HiOutlineX className="f20 text-white" />
-            </IconButton>
-          </Modal.Header>
           <Modal.Body className="p-0">
+            <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+              <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage UOM</span>
+              <IconButton onClick={() => CloseModalUom()} size="small">
+                <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
+              </IconButton>
+            </div>
             <div className="p-3">
-
-              <AddUpdateUom handleUomList={handleUomList} />
+              <AddUpdateUom handleUomList={handleUomList} isModal={true} />
             </div>
           </Modal.Body>
         </Modal>
       </form>
-
-
     </>
   );
 };

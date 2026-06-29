@@ -30,6 +30,7 @@ import './assets/css/detailsreport.css';
 import './assets/css/configuremodule.css';
 import './assets/css/design-system.css';
 import './assets/css/rfq-modern.css';
+import './assets/css/master-form-panel.css';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from "react-redux";
 import { store } from "./redux/index";

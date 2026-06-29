@@ -100,7 +100,7 @@ const PurchaseRequest = ({ claimType }) => {
     if (!loadingPermissions && permissionManager) {
       const hasGeneralAccess = permissionManager.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ);
       const hasItemServiceAccess = permissionManager.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ);
-      
+
       // If current tab is General (1) but no access, switch to accessible tab
       if (value === 1 && !hasGeneralAccess && hasItemServiceAccess && idFromURL) {
         setValue(2);
@@ -356,7 +356,7 @@ const PurchaseRequest = ({ claimType }) => {
         if (result?.[0]?.prNumber) {
           formik.setFieldValue("prNumber", result?.[0]?.prNumber);
         }
-        
+
         // Set isBoq from API response boqReq field
         if (result?.[0]?.boqReq !== null && result?.[0]?.boqReq !== undefined) {
           formik.setFieldValue("isBoq", result?.[0]?.boqReq);
@@ -1245,7 +1245,7 @@ const PurchaseRequest = ({ claimType }) => {
 
             {/* Tab Content */}
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
-            {/* <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}> */}
+              {/* <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}> */}
               {loadingPermissions ? (
                 <div className="p-3 d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
                   <GridSkeleton />
@@ -1409,7 +1409,7 @@ const PurchaseRequest = ({ claimType }) => {
                                       const userOrg = purchaseAllList.find(org => org.id === userDetail.purchOrgId);
                                       return userOrg ? [userOrg] : [];
                                     }
-                                    return [...purchaseAllList, { id: "new", orgName: "Add New" }];
+                                    return [{ id: "new", orgName: "Add New" }, ...purchaseAllList];
                                   })()}
                                   value={formik.values.purchOrgId}
                                   disabled={!hasEditPermission}
@@ -1444,20 +1444,7 @@ const PurchaseRequest = ({ claimType }) => {
                                   }}
 
                                   renderOption={(props, option) => (
-                                    <Box
-                                      component="li"
-                                      {...props}
-                                      style={
-                                        option.id === "new"
-                                          ? {
-                                            fontStyle: "italic",
-                                            color: "blue",
-                                            cursor: "pointer",
-                                            textDecoration: "underline",
-                                          }
-                                          : {}
-                                      }
-                                    >
+                                    <Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
                                       {option.orgName}
                                     </Box>
                                   )}
@@ -1484,8 +1471,8 @@ const PurchaseRequest = ({ claimType }) => {
                                   className="w-100 content-text"
                                   sx={{ width: "100%" }}
                                   options={[
-                                    ...purchaseGroupAllList,
                                     { id: "new", groupName: "Add New" },
+                                    ...purchaseGroupAllList,
                                   ]}
                                   getOptionLabel={(option) => option?.groupName ?? ""}
                                   value={formik.values?.purchGrpId}
@@ -1505,20 +1492,7 @@ const PurchaseRequest = ({ claimType }) => {
 
 
                                   renderOption={(props, option) => (
-                                    <Box
-                                      component="li"
-                                      {...props}
-                                      style={
-                                        option.id === "new"
-                                          ? {
-                                            fontStyle: "italic",
-                                            color: "blue",
-                                            cursor: "pointer",
-                                            textDecoration: "underline",
-                                          }
-                                          : {}
-                                      }
-                                    >
+                                    <Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
                                       {option.groupName}
                                     </Box>
                                   )}
@@ -1589,8 +1563,8 @@ const PurchaseRequest = ({ claimType }) => {
                     // If BOQ is enabled, show BOQ screen instead of normal items
                     if (formik.values.isBoq === true) {
                       return (
-                        <BoqScreen 
-                          idFromURL={idFromURL} 
+                        <BoqScreen
+                          idFromURL={idFromURL}
                           readOnly={!hasEditPermission}
                           eventType="PR"
                           CurrentVersion={1}
@@ -1710,147 +1684,147 @@ const PurchaseRequest = ({ claimType }) => {
                     <Box sx={{ p: 3 }}>
                       {/* PR General Details */}
                       <Card sx={{ mb: 3, boxShadow: 2 }}>
-                          <CardHeader
-                            title={
-                              <Typography
-                                sx={{
-                                  color: "#1976d2",
-                                  fontWeight: 400,
-                                  fontSize: "14px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "6px"
-                                }}
+                        <CardHeader
+                          title={
+                            <Typography
+                              sx={{
+                                color: "#1976d2",
+                                fontWeight: 400,
+                                fontSize: "14px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px"
+                              }}
+                            >
+                              📝 PR General Details
+                            </Typography>
+                          }
+                          action={
+                            stagearray.includes(currentStage) && (
+                              <IconButton
+                                size="small"
+                                sx={{ bgcolor: "#fff", "&:hover": { bgcolor: "#f0f0f0" } }}
+                                onClick={() => handletabEdit(1)}
                               >
-                                📝 PR General Details
+                                <HiPencilAlt className="f17 text-primary" />
+                              </IconButton>
+                            )
+                          }
+                          sx={{ backgroundColor: "#fff", py: 1.5 }}
+                        />
+                        <CardContent>
+                          <div className="row">
+                            <div className="col-md-6 mb-3">
+                              <Typography variant="body2" color="textSecondary">
+                                <strong>PR Subject:</strong>
                               </Typography>
-                            }
-                            action={
-                              stagearray.includes(currentStage) && (
-                                <IconButton
-                                  size="small"
-                                  sx={{ bgcolor: "#fff", "&:hover": { bgcolor: "#f0f0f0" } }}
-                                  onClick={() => handletabEdit(1)}
-                                >
-                                  <HiPencilAlt className="f17 text-primary" />
-                                </IconButton>
-                              )
-                            }
-                            sx={{ backgroundColor: "#fff", py: 1.5 }}
-                          />
-                          <CardContent>
-                            <div className="row">
-                              <div className="col-md-6 mb-3">
-                                <Typography variant="body2" color="textSecondary">
-                                  <strong>PR Subject:</strong>
-                                </Typography>
-                                <Typography variant="body1">{formik.values.prSubject || 'Not specified'}</Typography>
-                              </div>
-
-                              <div className="col-md-6 mb-3">
-                                <Typography variant="body2" color="textSecondary">
-                                  <strong>PR Number:</strong>
-                                </Typography>
-                                <Typography variant="body1">{formik?.values?.prNumber || '-'}</Typography>
-                              </div>
-
-                              <div className="col-md-6 mb-3">
-                                <Typography variant="body2" color="textSecondary">
-                                  <strong>Purchase Org:</strong>
-                                </Typography>
-                                <Typography variant="body1">
-                                  {findStringByValueFromArray(purchaseAllList, formik.values?.purchOrgId?.id, "id", "orgName") || '-'}
-                                </Typography>
-                              </div>
-
-                              <div className="col-md-6 mb-3">
-                                <Typography variant="body2" color="textSecondary">
-                                  <strong>Purchase Group:</strong>
-                                </Typography>
-                                <Typography variant="body1">
-                                  {findStringByValueFromArray(purchaseGroupAllList, formik.values?.purchGrpId?.id, "id", "groupName") || '-'}
-                                </Typography>
-                              </div>
-
-                              <div className="col-md-6 mb-3">
-                                <Typography variant="body2" color="textSecondary">
-                                  <strong>BOQ:</strong>
-                                </Typography>
-                                <Typography variant="body1">
-                                  {formik.values.isBoq ? 'Yes' : 'No'}
-                                </Typography>
-                              </div>
-
-                              <div className="col-12">
-                                <Typography variant="body2" color="textSecondary">
-                                  <strong>PR Description:</strong>
-                                </Typography>
-                                <Box
-                                  sx={{ border: '1px solid #e0e0e0', borderRadius: '4px', p: 1, fontSize: '14px' }}
-                                  className="ql-editor"
-                                  dangerouslySetInnerHTML={{ __html: formik.values.prDescription || '<p>No description provided</p>' }}
-                                />
-                              </div>
+                              <Typography variant="body1">{formik.values.prSubject || 'Not specified'}</Typography>
                             </div>
-                          </CardContent>
-                        </Card>
 
-                        {/* PR Items Details */}
-                        <Card sx={{ mb: 3, boxShadow: 2 }}>
-                          <CardHeader
-                            title={
-                              <Typography
-                                sx={{
-                                  color: "#1976d2",
-                                  fontWeight: 400,
-                                  fontSize: "14px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "6px"
-                                }}
-                              >
-                                📝 PR Items Details
+                            <div className="col-md-6 mb-3">
+                              <Typography variant="body2" color="textSecondary">
+                                <strong>PR Number:</strong>
                               </Typography>
-                            }
-                            action={
-                              stagearray.includes(currentStage) && (
-                                <IconButton
-                                  size="small"
-                                  sx={{ bgcolor: "#fff", "&:hover": { bgcolor: "#f0f0f0" } }}
-                                  onClick={() => handletabEdit(2)}
-                                >
-                                  <HiPencilAlt className="f17 text-primary" />
-                                </IconButton>
-                              )
-                            }
-                            sx={{ backgroundColor: "#fff", py: 1.5 }}
-                          />
-                          <CardContent sx={{ p: 0 }}>
-                            {formik.values.isBoq === true ? (
-                              <BoqScreen 
-                                idFromURL={idFromURL} 
-                                readOnly={true}
-                                eventType="PR"
-                                CurrentVersion={1}
-                                onUploadSuccess={() => {
-                                  pullPRtemServiceFind(idFromURL);
-                                }}
+                              <Typography variant="body1">{formik?.values?.prNumber || '-'}</Typography>
+                            </div>
+
+                            <div className="col-md-6 mb-3">
+                              <Typography variant="body2" color="textSecondary">
+                                <strong>Purchase Org:</strong>
+                              </Typography>
+                              <Typography variant="body1">
+                                {findStringByValueFromArray(purchaseAllList, formik.values?.purchOrgId?.id, "id", "orgName") || '-'}
+                              </Typography>
+                            </div>
+
+                            <div className="col-md-6 mb-3">
+                              <Typography variant="body2" color="textSecondary">
+                                <strong>Purchase Group:</strong>
+                              </Typography>
+                              <Typography variant="body1">
+                                {findStringByValueFromArray(purchaseGroupAllList, formik.values?.purchGrpId?.id, "id", "groupName") || '-'}
+                              </Typography>
+                            </div>
+
+                            <div className="col-md-6 mb-3">
+                              <Typography variant="body2" color="textSecondary">
+                                <strong>BOQ:</strong>
+                              </Typography>
+                              <Typography variant="body1">
+                                {formik.values.isBoq ? 'Yes' : 'No'}
+                              </Typography>
+                            </div>
+
+                            <div className="col-12">
+                              <Typography variant="body2" color="textSecondary">
+                                <strong>PR Description:</strong>
+                              </Typography>
+                              <Box
+                                sx={{ border: '1px solid #e0e0e0', borderRadius: '4px', p: 1, fontSize: '14px' }}
+                                className="ql-editor"
+                                dangerouslySetInnerHTML={{ __html: formik.values.prDescription || '<p>No description provided</p>' }}
                               />
-                            ) : (
-                              <Box sx={{ p: 3 }}>
-                                <ProductitemCell
-                                  action={false}
-                                  itemsList={prItemsList}
-                                  handleEditItem={handleEditItem}
-                                  handleDeleteItem={handleDeleteItem}
-                                  eventType="PR"
-                                  accessLevel={accessLevel}
-                                />
-                              </Box>
-                            )}
-                          </CardContent>
-                        </Card>
-                      </Box>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* PR Items Details */}
+                      <Card sx={{ mb: 3, boxShadow: 2 }}>
+                        <CardHeader
+                          title={
+                            <Typography
+                              sx={{
+                                color: "#1976d2",
+                                fontWeight: 400,
+                                fontSize: "14px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px"
+                              }}
+                            >
+                              📝 PR Items Details
+                            </Typography>
+                          }
+                          action={
+                            stagearray.includes(currentStage) && (
+                              <IconButton
+                                size="small"
+                                sx={{ bgcolor: "#fff", "&:hover": { bgcolor: "#f0f0f0" } }}
+                                onClick={() => handletabEdit(2)}
+                              >
+                                <HiPencilAlt className="f17 text-primary" />
+                              </IconButton>
+                            )
+                          }
+                          sx={{ backgroundColor: "#fff", py: 1.5 }}
+                        />
+                        <CardContent sx={{ p: 0 }}>
+                          {formik.values.isBoq === true ? (
+                            <BoqScreen
+                              idFromURL={idFromURL}
+                              readOnly={true}
+                              eventType="PR"
+                              CurrentVersion={1}
+                              onUploadSuccess={() => {
+                                pullPRtemServiceFind(idFromURL);
+                              }}
+                            />
+                          ) : (
+                            <Box sx={{ p: 3 }}>
+                              <ProductitemCell
+                                action={false}
+                                itemsList={prItemsList}
+                                handleEditItem={handleEditItem}
+                                handleDeleteItem={handleDeleteItem}
+                                eventType="PR"
+                                accessLevel={accessLevel}
+                              />
+                            </Box>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Box>
                   )}
                 </>
               )}
@@ -1885,7 +1859,7 @@ const PurchaseRequest = ({ claimType }) => {
                 <HiOutlineX className="f16" />
               </IconButton>
             </div>
-						<div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
+            <div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
               {approvershow && (
                 <EventApprovalBox
                   requestCell={requestCell}
@@ -2207,67 +2181,48 @@ const PurchaseRequest = ({ claimType }) => {
         </DialogActions>
       </Dialog>
       <Modal
-        size="lg"
         show={purchaseOrgModal}
         backdrop="static"
         keyboard={false}
-        value={"Add NEW CATEGORY"}
         className="zindex1280"
         backdropClassName="zindex1280"
         centered
-        contentClassName="border-0"
+        dialogClassName="modal-custom-mdlg"
         onHide={() => ClosePurcgaseOrgModal()}
       >
-        <Modal.Header className="pt-2 pb-2 bgheaderCards">
-          <Modal.Title id="modal-heading">
-            <div className="d-flex align-items-center f14 text-white">
-
-            </div>
-          </Modal.Title>
-          <IconButton
-            onClick={() => ClosePurcgaseOrgModal()}
-            size="small"
-            edge="start"
-          >
-            <HiOutlineX className="f20 text-white" />
-          </IconButton>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <div className="p-3">
+        <Modal.Body className="p-0 d-flex flex-column">
+          <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+            <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Organization</span>
+            <IconButton onClick={() => ClosePurcgaseOrgModal()} size="small">
+              <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
+            </IconButton>
+          </div>
+          <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
             <PurchaseOrg isModal={true} handlepurchaseorgList={handlepurchaseorgList} />
           </div>
         </Modal.Body>
       </Modal>
 
       <Modal
-        size="lg"
         show={purchaseOrgGrpModal}
         backdrop="static"
         keyboard={false}
-        value={"Add NEW CATEGORY"}
+        dialogClassName="modal-custom-mdlg"
         className="zindex1280"
         backdropClassName="zindex1280"
         centered
         contentClassName="border-0"
         onHide={() => ClosePurcgaseOrgGrpModal()}
       >
-        <Modal.Header className="pt-2 pb-2 bgheaderCards">
-          <Modal.Title id="modal-heading">
-            <div className="d-flex align-items-center f14 text-white">
-
-            </div>
-          </Modal.Title>
-          <IconButton
-            onClick={() => ClosePurcgaseOrgGrpModal()}
-            size="small"
-            edge="start"
-          >
-            <HiOutlineX className="f20 text-white" />
-          </IconButton>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <div className="p-3">
-            <PurchaseOrgGrp />
+        <Modal.Body className="p-0 d-flex flex-column">
+          <div className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-white flex-shrink-0">
+            <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Group</span>
+            <IconButton onClick={() => ClosePurcgaseOrgGrpModal()} size="small">
+              <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
+            </IconButton>
+          </div>
+          <div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
+            <PurchaseOrgGrp isModal />
           </div>
         </Modal.Body>
       </Modal>

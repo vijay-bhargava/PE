@@ -786,8 +786,8 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																			Name
 																		</th>
 																		<th style={{ width: "8%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left", whiteSpace: "nowrap" }}>Net Price</th>
-																		<th style={{ width: "14%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left", whiteSpace: "nowrap" }}>Level</th>
-																		<th style={{ width: "10%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left", whiteSpace: "nowrap" }}>UOM</th>
+																		<th style={{ width: "18%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left", whiteSpace: "nowrap" }}>Level</th>
+																		<th style={{ width: "12%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left", whiteSpace: "nowrap" }}>UOM</th>
 																		<th style={{ width: "46%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left" }}>Requirement</th>
 																	</tr>
 																</thead>
@@ -795,7 +795,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																	{LibraryTermsList && LibraryTermsList.length > 0 && LibraryTermsList?.map((item, index) => {
 																		return (
 																			<tr key={index} style={{ background: "#fff" }}>
-																				<td style={{ padding: "8px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
+																				<td style={{ padding: "6px 14px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
 																					<div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
 																						{(item?.isSelected && (isTermRequiredByFormula(item.fieldName, index) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name))) ? (
 																							<WhiteTooltip
@@ -860,7 +860,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																						</IconButton>}
 																					</div>
 																				</td>
-																				<td style={{ padding: "8px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
+																				<td style={{ padding: "6px 14px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
 																					{item?.valuetype === "Currency" && item?.formulavalue && (
 																						<Checkbox
 																							checked={item.name == SelectedCommercialLibrary?.grandTotalTermName}
@@ -870,7 +870,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																					)}
 																				</td>
 
-																				<td style={{ padding: "8px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
+																				<td style={{ padding: "6px 14px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
 
 																					{item?.isSelected && isTermRequiredByFormula(item.fieldName, index) ? (
 																						<div>
@@ -931,7 +931,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																					)}
 
 																				</td>
-																				<td style={{ padding: "8px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
+																				<td style={{ padding: "6px 14px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
 																					{item?.valuetype === "Currency" && item?.name !== item?.grandTotalTermName && (
 																						<div className="d-flex align-items-center gap-1">
 																							<span className="f12 fw600" style={{ color: "#1f2937" }}>
@@ -963,14 +963,14 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																						<span className="f12 fw600" style={{ color: "#1f2937" }}>Percentage (%)</span>
 																					)}
 																				</td>
-																				<td style={{ padding: "8px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
-																					<div style={{ position: "relative" }}>
+																				<td style={{ padding: "6px 14px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
+																					<div style={{ position: "relative", marginBottom: "-5px"}}>
 																						<textarea
 																							placeholder="Your requirement"
 																							value={item.requirement || ""}
 																							onChange={(e) => handleCommercialItemCheck(index, e.target.value, item, "requirement")}
 																							maxLength={200}
-																							rows={2}
+																							rows={1}
 																							disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false)}
 																							style={{ width: "100%", resize: "none", border: "1px solid #e5e7eb", borderRadius: 6, padding: "6px 10px", fontSize: 12, color: "#1f2937", fontFamily: "inherit", background: (!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false)) ? "#f9fafb" : "#fff", outline: "none", lineHeight: 1.5 }}
 																						/>

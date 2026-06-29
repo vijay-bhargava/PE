@@ -94,6 +94,7 @@ import {
 	downloadExcelTemplate,
 	downloadFilesOnAzure,
 	attachmentmodalforevent,
+	eventattachmentmodal,
 	filequeryparam,
 	getFileName,
 	validateFileSize,
@@ -3443,7 +3444,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		if (workflowPanelTab === 'history' && idFromURL) {
 			fetchPanelHistory();
 		}
-		if (workflowPanelTab === 'attachments' && idFromURL) {
+		if (workflowPanelTab === 'attachments') {
 			fetchPanelAttachments();
 		}
 	}, [workflowPanelTab, approvershow, idFromURL]);
@@ -3490,21 +3491,36 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const panelFileInputRef = useRef(null);
 
 	const fetchPanelAttachments = async () => {
-		if (!idFromURL) return;
 		setPanelAttachLoading(true);
 		setPanelHasCheckboxChanged(false);
-		const params = buildQueryParams({ EventType: 'RFQ', EventId: idFromURL, VendorId: 0 });
-		const res = await apiClient.getres(`/api/eventattachment/Find?${params}`, atoken);
-		const resData = res?.data?.result || [];
-		if (resData.length > 0) {
-			const mapped = attachmentmodalforevent(resData, idFromURL, 'RFQ');
-			setPanelSavedAttach(mapped);
-			handleattachmentforevent(mapped);
-			handleAttachmentCount(mapped.length);
+		if (idFromURL) {
+			const params = buildQueryParams({ EventType: 'RFQ', EventId: idFromURL, VendorId: 0 });
+			const res = await apiClient.getres(`/api/eventattachment/Find?${params}`, atoken);
+			const resData = res?.data?.result || [];
+			if (resData.length > 0) {
+				const mapped = attachmentmodalforevent(resData, idFromURL, 'RFQ');
+				setPanelSavedAttach(mapped);
+				handleattachmentforevent(mapped);
+				handleAttachmentCount(mapped.length);
+			} else {
+				setPanelSavedAttach([]);
+				handleattachmentforevent([]);
+				handleAttachmentCount(0);
+			}
 		} else {
-			setPanelSavedAttach([]);
-			handleattachmentforevent([]);
-			handleAttachmentCount(0);
+			const payload = buildQueryParams({ CustomerId: customerid, eventtype: 'RFQ', isactive: 'true' });
+			const res = await apiClient.getres(`/api/Doclib/Find?${payload}`, atoken);
+			const resData = res?.data?.result || [];
+			if (resData.length > 0) {
+				const mapped = eventattachmentmodal(resData, 0, 'RFQ');
+				setPanelSavedAttach(mapped);
+				handleattachmentforevent(mapped);
+				handleAttachmentCount(mapped.length);
+			} else {
+				setPanelSavedAttach([]);
+				handleattachmentforevent([]);
+				handleAttachmentCount(0);
+			}
 		}
 		setPanelAttachLoading(false);
 	};
@@ -4750,7 +4766,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																				return userOrg ? [userOrg] : [];
 																			}
 																			// If admin (roleId === 1), show all orgs + "Add New"
-																			return [...purchaseAllList, { id: "new", orgName: "Add New" }];
+																			return [{ id: "new", orgName: "Add New" }, ...purchaseAllList];
 																		})()}
 																		value={formik.values.purchOrgId}
 																		getOptionLabel={(option) => option.orgName ?? ""}
@@ -4770,20 +4786,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																			setPurchaseGroupAllList([]);
 																		}}
 																		renderOption={(props, option) => (
-																			<Box
-																				component="li"
-																				{...props}
-																				style={
-																					option.id === "new"
-																						? {
-																							fontStyle: "italic",
-																							color: "blue",
-																							cursor: "pointer",
-																							textDecoration: "underline",
-																						}
-																						: {}
-																				}
-																			>
+																			<Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
 																				{option.orgName}
 																			</Box>
 																		)}
@@ -4807,8 +4810,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																		size="small"
 																		className="w-100 f14"
 																		options={[
-																			...purchaseGroupAllList,
 																			{ id: "new", groupName: "Add New" },
+																			...purchaseGroupAllList,
 																		]}
 																		value={formik.values?.purchGrpId}
 																		getOptionLabel={(option) => option?.groupName ?? ""}
@@ -4820,20 +4823,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																			formik.setFieldValue("purchGrpId", value);
 																		}}
 																		renderOption={(props, option) => (
-																			<Box
-																				component="li"
-																				{...props}
-																				style={
-																					option.id === "new"
-																						? {
-																							fontStyle: "italic",
-																							color: "blue",
-																							cursor: "pointer",
-																							textDecoration: "underline",
-																						}
-																						: {}
-																				}
-																			>
+																			<Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
 																				{option.groupName}
 																			</Box>
 																		)}
@@ -6836,29 +6826,21 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			<Modal
 				show={purchaseOrgModal}
 				dialogClassName="modal-custom-mdlg"
+				className="zindex1280"
+				backdropClassName="zindex1280"
 				backdrop="static"
 				keyboard={false}
 				centered
-				contentClassName="border-0"
 				onHide={ClosePurcgaseOrgModal}
 			>
-
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => ClosePurcgaseOrgModal()}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
+				<Modal.Body className="p-0 d-flex flex-column">
+					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Organization</span>
+						<IconButton onClick={() => ClosePurcgaseOrgModal()} size="small">
+							<HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
+						</IconButton>
+					</div>
+					<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
 						<PurchaseOrg isModal={true} handlepurchaseorgList={handlepurchaseorgList} />
 					</div>
 				</Modal.Body>
@@ -7116,24 +7098,15 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				contentClassName="border-0"
 				onHide={ClosePurcgaseOrgGrpModal}
 			>
-
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => ClosePurcgaseOrgGrpModal()}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<PurchaseOrgGrp />
+				<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Group</span>
+						<IconButton onClick={() => ClosePurcgaseOrgGrpModal()} size="small">
+							<HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
+						</IconButton>
+					</div>
+					<div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
+						<PurchaseOrgGrp isModal />
 					</div>
 				</Modal.Body>
 			</Modal>
@@ -7264,7 +7237,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										{option?.currencyNm}
 									</MenuItem>
 								)),
-								<MenuItem key="new" value="new" style={{ fontStyle: "italic", color: "blue", cursor: "pointer", textDecoration: "underline" }}>
+								<MenuItem key="new" value="new" className="dropdown-add-new">
 									Add New
 								</MenuItem>
 							]}
