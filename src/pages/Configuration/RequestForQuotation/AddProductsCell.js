@@ -836,8 +836,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               size="small"
               className='w-100 f14'
               options={[
-                ...UOMMaster,
                 { uom: "ADD NEW", id: "new" },
+                ...UOMMaster,
               ]}
               value={
                 UOMMaster.find(
@@ -855,20 +855,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               onChange={handleUomChange}
               disabled={!!itemEditTempData.itemRefId} // Disable if itemRefId exists
               renderOption={(props, option) => (
-                <Box
-                  component="li"
-                  {...props}
-                  style={
-                    option.id === "new"
-                      ? {
-                        fontStyle: "italic",
-                        color: "blue",
-                        cursor: "pointer",
-                        textDecoration: "underline",
-                      }
-                      : {}
-                  }
-                >
+                <Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
                   {option.uom}
                 </Box>
               )}
@@ -888,12 +875,11 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               id="itemCategory"
               name="itemCategory"
               size="small"
-
               className='w-100 f14'
               sx={{ width: "100%" }}
               options={[
-                ...itemCatAllList,
                 { categoryDescription: "ADD NEW", id: "new" },
+                ...itemCatAllList,
               ]}
               value={
                 itemCatAllList.find(
@@ -910,20 +896,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               }}
               onChange={handleItemCategoryChange}
               renderOption={(props, option) => (
-                <Box
-                  component="li"
-                  {...props}
-                  style={
-                    option.id === "new"
-                      ? {
-                        fontStyle: "italic",
-                        color: "blue",
-                        cursor: "pointer",
-                        textDecoration: "underline",
-                      }
-                      : {}
-                  }
-                >
+                <Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
+
                   {option.categoryDescription}
                 </Box>
               )}
@@ -948,8 +922,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               className='w-100 f14'
               sx={{ width: "100%" }}
               options={[
-                ...itemTypeList,
                 { itemType: "ADD NEW", id: "new" },
+                ...itemTypeList,
               ]}
               value={
                 itemTypeList.find(
@@ -969,20 +943,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               }}
               onChange={handleItemTypeChange}
               renderOption={(props, option) => (
-                <Box
-                  component="li"
-                  {...props}
-                  style={
-                    option.id === "new"
-                      ? {
-                        fontStyle: "italic",
-                        color: "blue",
-                        cursor: "pointer",
-                        textDecoration: "underline",
-                      }
-                      : {}
-                  }
-                >
+                <Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
                   {option.itemType}
                 </Box>
               )}
@@ -1228,7 +1189,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
         </div>
         <hr className='mt-0' />
         <div className='row mt-2'>
-          <div className='col-12 mt-2 mb-4 font-bold'>
+          <div className='col-12 mt-4 mb-4 font-bold'>
             Last PO Details (Optional)
           </div>
           <div className='col-12 col-md-4 mb-4'>
@@ -1539,6 +1500,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
         </Modal>
         <Modal
           size="lg"
+          dialogClassName="modal-custom-mdlg"
           show={UomModal}
           backdrop="static"
           keyboard={false}
@@ -1549,23 +1511,15 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           contentClassName="border-0"
           onHide={() => CloseUomModal()}
         >
-          <Modal.Header className="pt-2 pb-2 bgheaderCards">
-            <Modal.Title id="modal-heading">
-              <div className="d-flex align-items-center f14 text-white">
-                Manage  UOM
-              </div>
-            </Modal.Title>
-            <IconButton
-              onClick={() => CloseUomModal()}
-              size="small"
-              edge="start"
-            >
-              <HiOutlineX className="f20 text-white" />
-            </IconButton>
-          </Modal.Header>
-          <Modal.Body className="p-0">
+          <Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+            <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+              <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage UOM</span>
+              <IconButton onClick={() => CloseUomModal()} size="small">
+                <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
+              </IconButton>
+            </div>
             <div className="p-3">
-              <AddUpdateUom handleUomList={handleUomList} />
+              <AddUpdateUom handleUomList={handleUomList} isModal={true} />
             </div>
           </Modal.Body>
         </Modal>
@@ -1581,22 +1535,14 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           contentClassName="border-0"
           onHide={() => CloseCategoryModal()}
         >
-          <Modal.Header className="pt-2 pb-2 bgheaderCards">
-            <Modal.Title id="modal-heading">
-              {/* <div className="d-flex align-items-center f14 text-white">
-                Manage Item Category
-              </div> */}
-            </Modal.Title>
-            <IconButton
-              onClick={() => CloseCategoryModal()}
-              size="small"
-              edge="start"
-            >
-              <HiOutlineX className="f20 text-white" />
-            </IconButton>
-          </Modal.Header>
-          <Modal.Body className="p-0">
-            <div className="p-3">
+          <Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+            <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+              <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Item Category</span>
+              <IconButton onClick={() => CloseCategoryModal()} size="small">
+                <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
+              </IconButton>
+            </div>
+            <div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
               <AddPrItemCategory handleCategoryList={handleCategoryList} isModal={true} />
             </div>
           </Modal.Body>
@@ -1607,29 +1553,21 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           show={ItemTypeModal}
           backdrop="static"
           keyboard={false}
-          value={"Add NEW ITEM TYPE"}
+          // value={"Add NEW ITEM TYPE"}
           className="zindex1400"
           backdropClassName="zindex1400"
           centered
           contentClassName="border-0"
           onHide={() => CloseItemTypeModal()}
         >
-          <Modal.Header className="pt-2 pb-2 bgheaderCards">
-            <Modal.Title><div className="d-flex align-items-center f14 text-white">
-              Manage Item Type
+          <Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+            <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+              <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}> Manage Item Type</span>
+              <IconButton onClick={() => CloseItemTypeModal()} size="small">
+                <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
+              </IconButton>
             </div>
-
-            </Modal.Title>
-            <IconButton
-              onClick={() => CloseItemTypeModal()}
-              size="small"
-              edge="start"
-            >
-              <HiOutlineX className="f20 text-white" />
-            </IconButton>
-          </Modal.Header>
-          <Modal.Body className="p-0">
-            <div className="p-3">
+            <div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
               <AddEditItemType handleItemTypeList={handleItemTypeList} isModal={true} />
             </div>
           </Modal.Body>

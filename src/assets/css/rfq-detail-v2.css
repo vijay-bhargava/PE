@@ -4431,3 +4431,8 @@
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
+
+.css-3dzjca-MuiPaper-root-MuiPopover-paper-MuiMenu-paper{
+  max-width: 260px !important;
+  max-height: 300px !important;
+}
