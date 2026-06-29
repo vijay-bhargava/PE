@@ -14,11 +14,11 @@ import {
 } from '@mui/material';
 import styles from './UnifiedComparisonTable.module.css';
 import { HiDownload } from "react-icons/hi";
-import { downloadFilesOnAzure ,getFileName} from '../../../utils/common';
+import { downloadFilesOnAzure, getFileName } from '../../../utils/common';
 import { useStateValue } from '../../../store';
 import { formatDateViaLocale, formatDateViaLocale2, formatDateViaLocalet, formatDateViaTime, formatDateViaTimeZone, formattimeoption, renderHtmlAsText } from '../../../utils/common/utility';
 
-const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actionType, activityId, handleSupplierModalOpen ,isNFA,currentStage}) => {
+const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actionType, activityId, handleSupplierModalOpen, isNFA, currentStage }) => {
   const [{ atoken, rtoken, customerid, usertimezone, customersuffix, userdialingcode, roleClaims, userDetail }, dispatch] = useStateValue();
   // State for managing score updates
   const [scoreUpdate, setScoreUpdate] = useState(false);
@@ -50,7 +50,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
     // Transform questionDto to technicalQuestions format
     const technicalQuestions = data.questionDto.map(question => {
       const vendorsObj = {};
-      
+
       // Map each vendor's response for this question
       question.vendorQuestionResponse?.forEach(response => {
         vendorsObj[response.vendorId] = {
@@ -77,7 +77,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
 
     const approvers = data?.techApprovers || [];
 
-    
+
 
     return { vendors, technicalQuestions, approvers };
   }, [data]);
@@ -111,28 +111,28 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
   };
 
   const formatAnswer = (answer, attachedFileName) => {
-    const truncatedAnswer = answer && answer.length > 80 
-      ? `${answer.substring(0, 80)}...` 
+    const truncatedAnswer = answer && answer.length > 80
+      ? `${answer.substring(0, 80)}...`
       : answer;
-    
+
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <Typography className={styles.commercialValue}>
           {formatValue(truncatedAnswer)}
         </Typography>
         {attachedFileName && (
-          <div 
+          <div
             title={getFileName(attachedFileName)}
-            style={{ 
-              cursor: 'pointer', 
-              fontSize: '14px', 
+            style={{
+              cursor: 'pointer',
+              fontSize: '14px',
               color: '#1976d2',
               display: 'flex',
               alignItems: 'center'
             }}
           >
             <HiDownload
-              onClick={() => downloadFilesOnAzure(attachedFileName,getFileName(attachedFileName),atoken)} 
+              onClick={() => downloadFilesOnAzure(attachedFileName, getFileName(attachedFileName), atoken)}
               style={{ cursor: "pointer" }}
             />
           </div>
@@ -143,19 +143,19 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
 
   const handleScoreChange = (vendorId, questionId, newScore) => {
     setScoreUpdate(true);
-    
+
     // Update the local state with the new score
     setTechnicalQuestionResponses(prevQuestions =>
       prevQuestions.map(question =>
         question.id === questionId
           ? {
-              ...question,
-              vendorQuestionResponse: question.vendorQuestionResponse?.map(response =>
-                response.vendorId === vendorId
-                  ? { ...response, score: newScore }
-                  : response
-              )
-            }
+            ...question,
+            vendorQuestionResponse: question.vendorQuestionResponse?.map(response =>
+              response.vendorId === vendorId
+                ? { ...response, score: newScore }
+                : response
+            )
+          }
           : question
       )
     );
@@ -165,7 +165,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
     if (updateScore && technicalQuestionResponses) {
       // Create the updated questions array for the API
       const updatedQuestions = [];
-      
+
       technicalQuestionResponses.forEach(question => {
         question.vendorQuestionResponse?.forEach(response => {
           const updatedQuestion = {
@@ -222,20 +222,20 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
       {/* Update/Reset Buttons */}
       {scoreUpdate && !isNFA && (
         <Box sx={{ display: 'flex', gap: 1, mb: 2, justifyContent: 'flex-end' }}>
-          <Button 
-            className='f10' 
-            variant='text' 
-            color="primary" 
-            size='small' 
+          <Button
+            className='f10'
+            variant='text'
+            color="primary"
+            size='small'
             onClick={handleResetScore}
           >
             Reset Score
           </Button>
-          <Button 
-            className='f10' 
-            variant='outlined' 
-            size='small' 
-            type='button' 
+          <Button
+            className='f10'
+            variant='outlined'
+            size='small'
+            type='button'
             onClick={handleScoreUpdate}
             disabled={!scoreUpdate}
           >
@@ -243,7 +243,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
           </Button>
         </Box>
       )}
-      
+
       <TableContainer className={styles.tableContainer} sx={{ overflowX: 'auto' }}>
         <Table size="small" sx={{ minWidth: `${280 + (vendors.length * 280)}px` }}>
           {/* Header */}
@@ -253,8 +253,8 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
                 TECHNICAL EVALUATION
               </TableCell>
               {vendors.map((vendor, index) => (
-                <TableCell 
-                  key={vendor.id} 
+                <TableCell
+                  key={vendor.id}
                   className={`${styles.headerCell} ${styles.vendorHeader}`}
                   style={{ position: 'relative' }}
                 >
@@ -274,16 +274,15 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
                       }}
                     />
                   )} */}
-                  
-                  {/* Take Action Button - Top Right */}
-                  {vendor.techStatus == 'Pending' && actionType === 'approval' && activityId && handleApprovalActivity && 
+
+                  {/* Take Action Button - old flow, replaced by new Dialog popup in RequestForQuotation.js */}
+                  {/* {vendor.techStatus == 'Pending' && actionType === 'approval' && activityId && handleApprovalActivity &&
                   currentStage != 'Commercial Approval' &&
                   (
                     <Typography
                       variant="contained"
                       size="large"
                       onClick={() => {
-                        // Find the original supplier data from the data prop
                         const supplierData = data?.suppliers?.find(s => s.vendorId === vendor.id);
                         if (supplierData) {
                           handleApprovalActivity(supplierData);
@@ -304,11 +303,11 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
                     >
                       Pending
                     </Typography>
-                  )}
-                  
+                  )} */}
+
                   <div>
                     <div className={styles.vendorNameContainer} style={{ paddingTop: vendor.commercialRanking ? '8px' : '0' }}>
-                      <Typography 
+                      <Typography
                         className={styles.vendorName}
                         style={{ cursor: 'pointer' }}
                         onClick={() => handleSupplierModalOpen(vendor.id)}
@@ -344,20 +343,20 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
                         )}
                       </Typography>
                       {question.attachedFileName && (
-                        <div 
+                        <div
                           title={getFileName(question.attachedFileName)}
-                          style={{ 
-                            cursor: 'pointer', 
-                            fontSize: '14px', 
+                          style={{
+                            cursor: 'pointer',
+                            fontSize: '14px',
                             color: '#1976d2',
                             display: 'flex',
                             alignItems: 'center'
                           }}
                         >
-                        <HiDownload
-                          onClick={() => downloadFilesOnAzure(question.attachedFileName,getFileName(question.attachedFileName), atoken)}
-                          style={{ cursor: "pointer" }}
-                        />
+                          <HiDownload
+                            onClick={() => downloadFilesOnAzure(question.attachedFileName, getFileName(question.attachedFileName), atoken)}
+                            style={{ cursor: "pointer" }}
+                          />
                         </div>
                       )}
                     </div>
@@ -374,7 +373,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
                   const currentScore = currentResponse?.score || 0;
                   // Check if score update is allowed for this vendor response
                   const canUpdateScore = (vendorData?.updateScore || currentResponse?.updateScore || false) && !isNFA;
-                  
+
                   return (
                     <TableCell key={vendor.id} className={styles.dataCell}>
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
@@ -391,19 +390,19 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
                             </Typography>
                           )}
                         </div>
-                        
+
                         {/* Score Input Field on the right */}
-                        <div style={{ 
-                          display: 'flex', 
-                          flexDirection: 'column', 
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
                           alignItems: 'center',
                           minWidth: '80px'
                         }}>
-                          <Typography 
-                            variant="caption" 
-                            style={{ 
-                              fontSize: '11px', 
-                              fontWeight: 'bold', 
+                          <Typography
+                            variant="caption"
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 'bold',
                               marginBottom: '4px',
                               color: '#666'
                             }}
@@ -427,7 +426,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
                             InputLabelProps={{ shrink: true }}
                             variant="outlined"
                             placeholder="0"
-                            style={{ 
+                            style={{
                               width: '70px',
                               '& .MuiOutlinedInput-root': {
                                 height: '32px'
@@ -458,7 +457,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
             <TableBody>
               {approvers.map((approver) => (
                 <TableRow key={approver.id} className={styles.dataRow}>
-                  
+
                   {/* Approver Name Column */}
                   <TableCell className={styles.subRowCell}>
                     <Typography style={{ fontWeight: 'bold' }}>
@@ -479,23 +478,23 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity ,actio
                             {/* Remarks */}
                             <div style={{ flex: 1 }}>
                               {/* <Typography variant="caption"> */}
-                                {approvalData && approvalData.remarks ? formatAnswer(approvalData.remarks) : '-'}
+                              {approvalData && approvalData.remarks ? formatAnswer(approvalData.remarks) : '-'}
                               {/* </Typography> */}
                             </div>
                             {/* Status */}
-                            <div style={{ 
-                          display: 'flex', 
-                          flexDirection: 'column', 
-                          alignItems: 'center',
-                          minWidth: '80px'
-                        }}>
-                            <Chip
-                              label={approvalData.approved == true ? 'Approved' : approvalData.approved == false ? 'Rejected' : 'Pending'}
-                              size="small"
-                              color={approvalData.approved == true ? 'success' : approvalData.approved == false ? 'error' : 'default'}
-                              style={{ width: 'fit-content' }}
-                            />
-                        </div>
+                            <div style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              minWidth: '80px'
+                            }}>
+                              <Chip
+                                label={approvalData.approved == true ? 'Approved' : approvalData.approved == false ? 'Rejected' : 'Pending'}
+                                size="small"
+                                color={approvalData.approved == true ? 'success' : approvalData.approved == false ? 'error' : 'default'}
+                                style={{ width: 'fit-content' }}
+                              />
+                            </div>
                           </div>
                         ) : (
                           <Typography variant="caption">-</Typography>

@@ -305,6 +305,139 @@
   color: #15803d;
 }
 
+/* ─────────────────────────────────────────────
+   pe-icon-btn  —  Global icon button system
+   Usage: <button className="pe-icon-btn pe-icon-btn--delete">
+   Variants: --delete  --close  --edit  --add
+             --download  --expand  --reminder  --confirm
+   ───────────────────────────────────────────── */
+.pe-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-size: 14px;
+  line-height: 1;
+}
+.pe-icon-btn:disabled,
+.pe-icon-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+/* MUI IconButton override — when pe-icon-btn is on a MUI component */
+.MuiIconButton-root.pe-icon-btn {
+  border-radius: 8px !important;
+  padding: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* ── Delete / Remove ── */
+.pe-icon-btn--delete {
+  color: #ef4444;
+  border-color: #fecaca;
+  background: #fff;
+}
+.pe-icon-btn--delete:hover:not(:disabled) {
+  background: #fff5f5;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+/* ── Close / Dismiss (modal, drawer, panel) ── */
+.pe-icon-btn--close {
+  color: #6b7280;
+  border-color: #e5e7eb;
+  background: #fff;
+}
+.pe-icon-btn--close:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+/* ── Edit / Pencil ── */
+.pe-icon-btn--edit {
+  color: #2a68d3;
+  border-color: #bfdbfe;
+  background: #eff4ff;
+}
+.pe-icon-btn--edit:hover:not(:disabled) {
+  background: #dbeafe;
+  border-color: #2a68d3;
+  color: #1d4ed8;
+}
+
+/* ── Add / Plus ── */
+.pe-icon-btn--add {
+  color: #2a68d3;
+  border-color: #bfdbfe;
+  background: #eff4ff;
+}
+.pe-icon-btn--add:hover:not(:disabled) {
+  background: #dbeafe;
+  border-color: #2a68d3;
+  color: #1d4ed8;
+}
+
+/* ── Download ── */
+.pe-icon-btn--download {
+  color: #2a68d3;
+  border-color: #e5e7eb;
+  background: #fff;
+}
+.pe-icon-btn--download:hover:not(:disabled) {
+  background: #eff4ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+/* ── Expand / Collapse (chevron) ── */
+.pe-icon-btn--expand {
+  color: #6b7280;
+  border-color: #e5e7eb;
+  background: #fff;
+}
+.pe-icon-btn--expand:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+/* ── Reminder / Notification ── */
+.pe-icon-btn--reminder {
+  color: #7c3aed;
+  border-color: #ddd6fe;
+  background: #f5f3ff;
+}
+.pe-icon-btn--reminder:hover:not(:disabled) {
+  background: #ede9fe;
+  border-color: #7c3aed;
+  color: #6d28d9;
+}
+
+/* ── Confirm / Submit (checkmark, save) ── */
+.pe-icon-btn--confirm {
+  color: #16a34a;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+.pe-icon-btn--confirm:hover:not(:disabled) {
+  background: #dcfce7;
+  border-color: #16a34a;
+  color: #15803d;
+}
+
 /* ── Form field label (label above input — replaces MUI floating label) ── */
 .pe-field-label {
   display: block;

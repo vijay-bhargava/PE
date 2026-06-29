@@ -14,7 +14,7 @@ import AddUpdateUom from '../../../utils/common/AddUpdateUom';
 import { sanitizeInput } from '../../../utils/common/santize';
 import { toast } from 'react-toastify';
 import { api, ApiClient } from "../../../Apiclient";
-import { FindItemCategory, FindItemType } from '../../../utils/purchaseRequest';
+import { FindItemCategory, FindItemType, FindPlantStorage } from '../../../utils/purchaseRequest';
 import AddPrItemCategory from '../../../utils/common/AddPrItemCategory';
 import { UploadOutlined } from '@mui/icons-material';
 import { getFileName, uploadFilesOnAzure, uploadFilesOnAzure2, validateFileSize } from '../../../utils/common';
@@ -22,13 +22,17 @@ import { uploadFilesOnAzureURL } from '../../../utils/manageParticipants';
 import { UOMMasterList } from '../../../utils/commerciallibrary';
 import AddEditItemType from '../../../utils/common/AddEditITemType';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import AddPrPlant from '../../../utils/common/AddPrPlant';
 
 const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action, accesslevel, Version }) => {
   const [{ atoken, rtoken, customerid, customersuffix, userDetail }, dispatch] = useStateValue();
   const apiClient = new ApiClient(customersuffix);
   const [loadingSubmit, setLoadingSubmit] = useState(false)
   const [UomModal, setUomModal] = useState(false);
+  const [DeliveryLocationModal, setDeliveryLocationModal] = useState(false);
+  const CloseDeliveryLocationModal = () => setDeliveryLocationModal(false);
   const [uom, setuom] = useState("");
+  const [plantAllList, setPlantAllList] = useState([]);
   const [itemFile, setitemFile] = useState("");
   const [attachedFileName, setAttachedFileName] = useState('');
   const [itemImage, setitemImage] = useState("");
@@ -366,6 +370,25 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
     // When receiving list updates (from modal), keep only active items
     const list = Array.isArray(array) ? array.filter(a => a?.isActive) : [];
     setItemTypeList(list);
+  };
+
+  const PullPlantStorage = () => {
+    FindPlantStorage({ CustomerId: customerid }, atoken).then((resp) => {
+      setPlantAllList(Array.isArray(resp) ? resp : []);
+    });
+  };
+
+  const handlePlantChange = (event, value) => {
+    if (value && value.slCode === "new") {
+      setDeliveryLocationModal(true);
+    } else {
+      const selectedOption = plantAllList.find(o => o.slDesc === value?.slDesc);
+      formik.setFieldValue("plant", selectedOption ? `${selectedOption.slDesc} - ${selectedOption.slCode?.trim()}` : (value?.slDesc || ""));
+    }
+  };
+
+  const handleLocationList = (arr) => {
+    setPlantAllList(Array.isArray(arr) ? arr : []);
   };
 
   const CloseCategoryModal = () => setCategoryModal(false);
@@ -960,29 +983,46 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </div>
           <div className='col-6 col-md-6 col-lg-4 mb-3'>
             <label className="pe-field-label">Delivery Location</label>
-            <TextField
-              fullWidth
-              variant="outlined"
-              size="small"
-              className='f14'
-              multiline={true}
+            <Autocomplete
               id="plant"
               name="plant"
-              inputProps={{ maxLength: 100 }}
-              value={formik?.values?.plant}
-              onChange={formik.handleChange}
-              error={formik.touched.plant && Boolean(formik.errors.plant)}
-              helperText={formik.touched.plant && formik.errors.plant}
-              disabled={!!itemEditTempData.itemRefId} // Disable when itemRefId exists
-              InputProps={{
-                endAdornment: formik?.values?.plant && (
-                  <InputAdornment position="end">
-                    <Typography variant="body2" color="textSecondary">
-                      {formik?.values?.plant.length}/100
-                    </Typography>
-                  </InputAdornment>
-                ),
+              size="small"
+              className='w-100 f14'
+              disabled={!!itemEditTempData.itemRefId}
+              options={[
+                { slDesc: "ADD NEW", slCode: "new" },
+                ...plantAllList,
+              ]}
+              value={
+                plantAllList.find(o => `${o.slDesc} - ${o.slCode?.trim()}` === formik.values.plant || o.slDesc === formik.values.plant)
+                || (formik.values.plant ? { slDesc: formik.values.plant, slCode: "" } : null)
+              }
+              getOptionLabel={(option) =>
+                option.slCode?.trim() && option.slCode !== "new"
+                  ? `${option.slDesc} - ${option.slCode.trim()}`
+                  : option.slDesc
+              }
+              onOpen={() => {
+                if (plantAllList.length === 0) PullPlantStorage();
               }}
+              onChange={handlePlantChange}
+              renderOption={(props, option) => (
+                <Box
+                  component="li"
+                  {...props}
+                  className={(props.className || "") + (option.slCode === "new" ? " dropdown-add-new" : "")}
+                >
+                  {option.slCode === "new" ? option.slDesc : option.slCode?.trim() ? `${option.slDesc} - ${option.slCode.trim()}` : option.slDesc}
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  variant="outlined"
+                  {...params}
+                  error={formik.touched.plant && Boolean(formik.errors.plant)}
+                  helperText={formik.touched.plant && formik.errors.plant}
+                />
+              )}
             />
           </div>
 
@@ -1569,6 +1609,30 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
             </div>
             <div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
               <AddEditItemType handleItemTypeList={handleItemTypeList} isModal={true} />
+            </div>
+          </Modal.Body>
+        </Modal>
+
+        {/* Delivery Location Modal */}
+        <Modal
+          show={DeliveryLocationModal}
+          backdrop="static"
+          keyboard={false}
+          className="zindex1400"
+          backdropClassName="zindex1400"
+          centered
+          onHide={CloseDeliveryLocationModal}
+          dialogClassName="modal-custom-mdlg"
+        >
+          <Modal.Body className="p-0 d-flex flex-column">
+            <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+              <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Delivery Location</span>
+              <IconButton onClick={CloseDeliveryLocationModal} size="small" className="modal-close-btn">
+                <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
+              </IconButton>
+            </div>
+            <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+              <AddPrPlant handleLocationList={handleLocationList} isModal={true} />
             </div>
           </Modal.Body>
         </Modal>

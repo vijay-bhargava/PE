@@ -18,6 +18,12 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 	const eventTypeFromItems = (Array.isArray(itemsList) && itemsList.find(item => item?.eventType)?.eventType) || "";
 	const hasCloseDate = Array.isArray(itemsList) && itemsList.some(item => item?.closeDate);
 	const [expandedRows, setExpandedRows] = React.useState({});
+	const hasErpId = Array.isArray(itemsList) && itemsList.some(item => item?.erpSourceId);
+	const hasEventId = Array.isArray(itemsList) && itemsList.some(item => item?.eventId);
+	const hasEventType = Array.isArray(itemsList) && itemsList.some(item => item?.eventType);
+	const eventTypeFromItems = (Array.isArray(itemsList) && itemsList.find(item => item?.eventType)?.eventType) || "";
+	const hasCloseDate = Array.isArray(itemsList) && itemsList.some(item => item?.closeDate);
+	const [expandedRows, setExpandedRows] = React.useState({});
 
 	const handleRowExpand = (rowId) => {
 		console.log('Expanding row:', rowId);
@@ -573,43 +579,40 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 					<div className="d-flex align-items-center gap-2">
 						{action && (
 							<Tooltip title="Edit Item">
-								<button
-									type="button"
-									className="pe-icon-btn pe-icon-btn--edit"
+								<IconButton
+									size="small"
 									onClick={() => handleEditItem(params.row)}
-									aria-label="Edit item"
+									className="text-primary"
 								>
 									<HiPencilAlt />
-								</button>
+								</IconButton>
 							</Tooltip>
 						)}
 						{action && (
 							<Tooltip title="Delete Item">
-								<span>
-									<button
-										type="button"
-										className="pe-icon-btn pe-icon-btn--delete"
-										onClick={() => handleDeleteItem(params.row.id || params.row.itemId)}
-										disabled={itemsList[0]?.bidId && tempDataForItemService[0]?.stage !== 'Draft'}
-										aria-label="Delete item"
-									>
-										<RiDeleteBin6Line />
-									</button>
-								</span>
+								<IconButton
+									size="small"
+									onClick={() => handleDeleteItem(params.row.id || params.row.itemId)}
+									className="text-danger"
+									disabled={
+										itemsList[0]?.bidId && tempDataForItemService[0]?.stage !== 'Draft'
+									}
+								>
+									<HiOutlineTrash />
+								</IconButton>
 							</Tooltip>
 						)}
 						{/* Accordion button */}
 						<Tooltip title={expandedRows[params.row?.id || params.row?.itemId] ? "Collapse Details" : "Expand Details"}>
-							<button
-								type="button"
-								className="pe-icon-btn pe-icon-btn--expand"
+							<IconButton
+								size="small"
 								onClick={() => handleRowExpand(params.row?.id || params.row?.itemId)}
-								aria-label="Toggle details"
+								className="text-secondary"
 							>
 								{expandedRows[params.row?.id || params.row?.itemId] ?
 									<HiOutlineChevronUp /> : <HiOutlineChevronDown />
 								}
-							</button>
+							</IconButton>
 						</Tooltip>
 					</div>
 				);
