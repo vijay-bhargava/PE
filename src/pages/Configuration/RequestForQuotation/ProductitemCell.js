@@ -18,12 +18,6 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 	const eventTypeFromItems = (Array.isArray(itemsList) && itemsList.find(item => item?.eventType)?.eventType) || "";
 	const hasCloseDate = Array.isArray(itemsList) && itemsList.some(item => item?.closeDate);
 	const [expandedRows, setExpandedRows] = React.useState({});
-	const hasErpId = Array.isArray(itemsList) && itemsList.some(item => item?.erpSourceId);
-	const hasEventId = Array.isArray(itemsList) && itemsList.some(item => item?.eventId);
-	const hasEventType = Array.isArray(itemsList) && itemsList.some(item => item?.eventType);
-	const eventTypeFromItems = (Array.isArray(itemsList) && itemsList.find(item => item?.eventType)?.eventType) || "";
-	const hasCloseDate = Array.isArray(itemsList) && itemsList.some(item => item?.closeDate);
-	const [expandedRows, setExpandedRows] = React.useState({});
 
 	const handleRowExpand = (rowId) => {
 		console.log('Expanding row:', rowId);
@@ -598,7 +592,7 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 										itemsList[0]?.bidId && tempDataForItemService[0]?.stage !== 'Draft'
 									}
 								>
-									<HiOutlineTrash />
+									<RiDeleteBin6Line />
 								</IconButton>
 							</Tooltip>
 						)}

@@ -1,4 +1,4 @@
-﻿﻿import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
+﻿import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
 import { ApiClient } from '../../Apiclient';
 import { buildQueryParams, cleanAndConvertToArray } from '../../utils/common/utility';
 import { useStateValue } from '../../store';
@@ -714,7 +714,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 
 	return (
 		<>
-			<div className="mb-5" style={{ overflow: 'hidden' }}>
+			<div className="mb-5" style={{ overflow: 'visible' }}>
 				<div className="p-3 pt-0">
 					<div className="d-flex justify-content-between align-items-center">
 						<div className="flex-grow-1">
@@ -964,7 +964,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 																					)}
 																				</td>
 																				<td style={{ padding: "6px 14px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
-																					<div style={{ position: "relative", marginBottom: "-5px"}}>
+																					<div style={{ position: "relative", marginBottom: "-5px" }}>
 																						<textarea
 																							placeholder="Your requirement"
 																							value={item.requirement || ""}
@@ -985,7 +985,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 															</table>
 														</div>
 													) : (
-														<></>
+														<div style={{ padding: "32px 16px", textAlign: "center", color: "#9ca3af", fontSize: 13 }}>No commercial terms configured for this RFQ.</div>
 													);
 												})()}
 											</div>

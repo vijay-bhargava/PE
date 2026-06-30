@@ -324,7 +324,10 @@
   background: #ffffff;
   color: #6b7280;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
   font-size: 14px;
   line-height: 1;
 }
@@ -416,14 +419,14 @@
 
 /* ── Reminder / Notification ── */
 .pe-icon-btn--reminder {
-  color: #7c3aed;
-  border-color: #ddd6fe;
-  background: #f5f3ff;
+  color: #2a68d3;
+  border-color: #c1d8ff;
+  background: #f4f8ff;
 }
 .pe-icon-btn--reminder:hover:not(:disabled) {
-  background: #ede9fe;
-  border-color: #7c3aed;
-  color: #6d28d9;
+  background: #e8f0ff;
+  border-color: #a4c3fa;
+  color: #2a68d3;
 }
 
 /* ── Confirm / Submit (checkmark, save) ── */

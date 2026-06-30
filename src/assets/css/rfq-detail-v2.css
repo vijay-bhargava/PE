@@ -4441,6 +4441,73 @@ div.item-Table.eq-question-list {
   margin-right: 0 !important;
 }
 
-.css-3dzjca-MuiPaper-root-MuiPopover-paper-MuiMenu-paper{
+/* ── RFQ Actions dropdown button — matches Version button style ── */
+.rfq-actions-dropdown > .btn {
+  color: #374151 !important;
+  background-color: transparent !important;
+  border-color: #d1d5db !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  padding: 4px 10px !important;
+  border-radius: 4px !important;
+  line-height: 1.5 !important;
+}
+.rfq-actions-dropdown > .btn:hover,
+.rfq-actions-dropdown > .btn:focus,
+.rfq-actions-dropdown > .btn:active,
+.rfq-actions-dropdown > .btn.show,
+.rfq-actions-dropdown.show > .btn {
+  color: #374151 !important;
+  background-color: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  box-shadow: none !important;
+}
+/* hide default Bootstrap caret — we use our own chevron icon */
+.rfq-actions-dropdown > .btn::after {
+  display: none !important;
+}
+
+/* ── Preview tab — section cards ────────────────────────────────────────── */
+.rfq-preview-section-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+.rfq-preview-card-body {
+  padding: 16px !important;
+}
+
+/* ── Preview tab — section headings ─────────────────────────────────────── */
+.rfq-preview-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+.rfq-preview-section-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: #6b7280 !important;
+}
+
+.css-3dzjca-MuiPaper-root-MuiPopover-paper-MuiMenu-paper {
   max-width: 260px !important;
+}
+/* Preview tab scroll area — natural height, no forced 55vh */
+.rfq-preview-scroll-area {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 230px);
+  padding-bottom: 16px;
+}
+.rfq-preview-scroll-area::-webkit-scrollbar {
+  width: 6px;
+}
+.rfq-preview-scroll-area::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
 }
