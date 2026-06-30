@@ -1073,29 +1073,18 @@ const RFQActionDrawer = ({
 					as={"div"}
 					key={"actionafterdraft"}
 					id={`actionafterdraft`}
-					className='border-primary bg-white'
-					// className="supplieraccmenu"
+					className='rfq-actions-dropdown'
 					drop={"start"}
-					variant="outlined"
-					style={{
-						backgroundColor: "white",
-						color: "#2182cde",
-					}}
+					variant="outline-primary"
 					title={
-						<Tooltip title={"Action"}>
-							<div
-								style={{
-									fontSize: "0.8125rem",
-									color: "#2A68D3",
-									fontWeight: "500",
-								}}
-							>
-								<HiDotsVertical />{" "}
-							</div>
-						</Tooltip>
+						<span style={{ display: "inline-flex", alignItems: "center", fontSize: "0.8125rem", fontWeight: "500" }}>
+							<span>Actions</span>
+							<span style={{ width: "1px", height: "14px", background: "currentColor", opacity: 0.3, margin: "0 8px", flexShrink: 0 }} />
+							<HiOutlineChevronDown style={{ fontSize: "12px" }} />
+						</span>
 					}
 				>
-					<div className="shadow rounded min-width-200px">
+					<div className="min-width-200px">
 
 
 						{/* Menu item to open the Add New Supplier drawer */}

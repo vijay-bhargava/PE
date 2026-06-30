@@ -1,10 +1,15 @@
-﻿import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import IconButton from "@mui/material/IconButton";
 import HistoryCell from "../../BaseCells/HistoryCell";
 import PersonOutlined from '@mui/icons-material/PersonOutlined';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+import ListAltOutlinedIcon from '@mui/icons-material/ListAltOutlined';
+import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
+import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 
 // Permission Management Imports
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
@@ -5873,22 +5878,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								/>
 							}
 							{value == 7 && rfqpreview && !showGeneralAccessDenied && idFromURL && idFromURL !== 'add' && (
-								<div className="custom-fix">
+								<div className="rfq-preview-scroll-area">
 									{accessLevel?.find(x => x.claimType == "General")?.claimValue?.Read != "N" &&
 										<>
-											<div className="card shadow-sm border-0 mb-3" style={{ borderRadius: '8px' }}>
-												<div className="card-body p-4">
+											<div className="rfq-preview-section-card mb-3">
+												<div className="rfq-preview-card-body">
 													<div className="d-flex justify-content-between align-items-center mb-3" id="generaldetails">
-														<Typography
-															sx={{
-																mb: 3,
-																color: '#1976d2',
-																fontWeight: 400,
-																fontSize: '14px' // set font size to 14px
-															}}
-														>
-															📝 RFQ General Details
-														</Typography>
+														<div className="rfq-preview-section-title"><ArticleOutlinedIcon className="rfq-preview-section-icon" />RFQ General Details</div>
 														{/* <h5 className="preview-section-heading text-dark-blue mb-0">RFQ General Details</h5> */}
 														{stagearray.includes(currentStage) && (
 															<button
@@ -5915,16 +5911,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										<>
 											{/* === SAME STYLE AS RFQ GENERAL DETAILS === */}
 											<div className="d-flex justify-content-between align-items-center mb-3" id="rfqitemsdetails">
-												<Typography
-													sx={{
-														mb: 3,
-														color: "#1976d2",
-														fontWeight: 400,
-														fontSize: "14px" // same size
-													}}
-												>
-													📝 RFQ Items Details
-												</Typography>
+												<div className="rfq-preview-section-title"><ListAltOutlinedIcon className="rfq-preview-section-icon" />RFQ Items Details</div>
 
 												{stagearray.includes(currentStage) && (
 													<button
@@ -5938,8 +5925,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											</div>
 
 											{/* CARD WITHOUT HEADER */}
-											<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-												<CardContent sx={{ p: 2 }}>
+											<div className="rfq-preview-section-card mb-3">
+												<div className="rfq-preview-card-body">
 													{formik.values.boqReq === true ? (
 														<BoqScreen
 															idFromURL={idFromURL}
@@ -5957,8 +5944,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															handleDeleteItem={handleDeleteItem}
 														/>
 													)}
-												</CardContent>
-											</Card>
+												</div>
+											</div>
 										</>
 									)}
 
@@ -5968,16 +5955,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 												{/* === SAME STYLE HEADING LIKE “RFQ General Details” === */}
 												<div className="d-flex justify-content-between align-items-center mb-3" id="rfqcommercialdetails">
-													<Typography
-														sx={{
-															mb: 3,
-															color: "#1976d2",
-															fontWeight: 400,
-															fontSize: "14px" // SAME STYLE
-														}}
-													>
-														📝 RFQ Commercial Details
-													</Typography>
+													<div className="rfq-preview-section-title"><ReceiptLongOutlinedIcon className="rfq-preview-section-icon" />RFQ Commercial Details</div>
 
 													{stagearray.includes(currentStage) && (
 														<button
@@ -5991,33 +5969,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 												</div>
 
 												{/* === CARD WITHOUT HEADER === */}
-												<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-													<CardContent sx={{ p: 2 }}>
-
-														{/* Permissions Info */}
-														{(() => {
-															const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false;
-															const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false;
-															const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.CREATE) ?? false;
-															const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.REMOVE) ?? false;
-
-															return (
-																<>
-																	{effectivePermissionManager && (
-																		<Alert severity="info" sx={{ mb: 2 }}>
-																			<div className="d-flex align-items-center">
-																				<PersonOutlined className="me-2" />
-																				Commercial Terms tab permissions:
-																				{canRead && <span className="badge bg-success ms-1">Read</span>}
-																				{canEdit && <span className="badge bg-warning ms-1">Edit</span>}
-																				{canCreate && <span className="badge bg-primary ms-1">Create</span>}
-																				{canRemove && <span className="badge bg-danger ms-1">Remove</span>}
-																			</div>
-																		</Alert>
-																	)}
-																</>
-															);
-														})()}
+												<div className="rfq-preview-section-card mb-3">
+													<div className="rfq-preview-card-body">
 
 														{/* Component Body */}
 														<EventCommercialScreen
@@ -6031,8 +5984,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															ref={EventCommercialScreenRef}
 															permissionManager={effectivePermissionManager}
 														/>
-													</CardContent>
-												</Card>
+													</div>
+												</div>
 											</>
 										)
 									}
@@ -6042,16 +5995,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											<>
 												{/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
 												<div className="d-flex justify-content-between align-items-center mb-3" id="rfqquestions">
-													<Typography
-														sx={{
-															mb: 3,
-															color: "#1976d2",
-															fontWeight: 400,
-															fontSize: "14px" // SAME LOOK
-														}}
-													>
-														📝 RFQ Questions
-													</Typography>
+													<div className="rfq-preview-section-title"><HelpOutlineOutlinedIcon className="rfq-preview-section-icon" />RFQ Questions</div>
 
 													{stagearray.includes(currentStage) && (
 														<button
@@ -6065,20 +6009,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 												</div>
 
 												{/* === CARD WITHOUT HEADER === */}
-												<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-													<CardContent sx={{ p: 2 }}>
-
-														{/* Permissions Info */}
-														{(() => {
-															const canRead = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false;
-															const canEdit = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) ?? false;
-															const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false;
-															const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false;
-
-															return (
-																<></>
-															);
-														})()}
+												<div className="rfq-preview-section-card mb-3">
+													<div className="rfq-preview-card-body">
 
 														{/* Component */}
 														<EventQuestionScreen
@@ -6096,8 +6028,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															}}
 															ref={EventQuestionScreenRef}
 														/>
-													</CardContent>
-												</Card>
+													</div>
+												</div>
 											</>
 										)
 									}
@@ -6107,16 +6039,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											<>
 												{/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
 												<div className="d-flex justify-content-between align-items-center mb-3" id="invitedsuppliers">
-													<Typography
-														sx={{
-															mb: 3,
-															color: "#1976d2",
-															fontWeight: 400,
-															fontSize: "14px" // SAME STYLE
-														}}
-													>
-														📝 Invited Suppliers
-													</Typography>
+													<div className="rfq-preview-section-title"><GroupOutlinedIcon className="rfq-preview-section-icon" />Invited Suppliers</div>
 
 													{stagearray.includes(currentStage) && (
 														<button
@@ -6130,15 +6053,15 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 												</div>
 
 												{/* === CARD WITHOUT HEADER === */}
-												<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-													<CardContent sx={{ p: 2 }}>
+												<div className="rfq-preview-section-card mb-3">
+													<div className="rfq-preview-card-body">
 														<div className="row">
 															<div className="col-12">
 																<SelectedSupplierCell selectedsupplier={selectedSupplier} />
 															</div>
 														</div>
-													</CardContent>
-												</Card>
+													</div>
+												</div>
 											</>
 										)
 									}

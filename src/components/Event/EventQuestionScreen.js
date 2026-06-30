@@ -399,7 +399,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
 
     <div className="p-3 pt-0 ps-0" style={{ overflow: "hidden" }}>
       <input className="d-none" id="itemuploadid" ref={fileInputRef} type="file" onChange={handleFileChange} />
-      <div className="rfq-question-toolbar">
+      {props.action && <div className="rfq-question-toolbar">
         <div className="rfq-question-toolbar-left">
           <div className="rfq-question-library-field">
             <Autocomplete
@@ -441,7 +441,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
             </button>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* Questions List */}
 

@@ -1,307 +1,141 @@
-/* Executive Summary Styles */
+/* ── Executive Summary — Dashboard-style layout ────────────────────────── */
+
 .executiveSummary {
-  padding: 8px;
-  background-color: transparent;
-  min-height: auto;
-}
-
-.tabContainer {
-  margin-bottom: 24px;
-}
-
-.tabButton {
-  padding: 12px 24px !important;
-  text-transform: none !important;
-  font-weight: 500 !important;
-  border-radius: 8px 8px 0 0 !important;
-  margin-right: 4px !important;
-}
-
-.activeTab {
-  background-color: #ffffff !important;
-  color: #1976d2 !important;
-  border-bottom: 2px solid #1976d2 !important;
-}
-
-.inactiveTab {
-  background-color: #e3f2fd !important;
-  color: #757575 !important;
-}
-
-/* Header Section */
-.headerSection {
-  background: #ffffff;
-  border-radius: 6px;
   padding: 12px;
-  margin-bottom: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background-color: #f3f4f6;
+  min-height: 100%;
 }
 
-.rfqHeader {
+/* ── Header Card ─────────────────────────────────────────────────────────── */
+.headerSection {
+  background: #ffffff !important;
+  border-radius: 10px !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+  margin-bottom: 12px !important;
+}
+
+.headerContent {
+  padding: 16px !important;
+}
+.headerContent:last-child {
+  padding-bottom: 16px !important;
+}
+
+/* Row 1: title left + chip right */
+.titleRow {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.titleLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .rfqTitle {
-  font-size: 20px !important;
-  font-weight: 600 !important;
-  color: #1a1a1a !important;
-  margin-bottom: 4px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .rfqSubtitle {
-  font-size: 13px !important;
-  color: #666666 !important;
-  margin-bottom: 8px !important;
+  font-size: 12px !important;
+  color: #6b7280 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
+/* Status chip — small, top-right */
 .statusBadge {
-  background-color: #e8f5e8 !important;
-  color: #2e7d32 !important;
-  padding: 6px 16px !important;
-  border-radius: 20px !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-}
-
-.headerInfo {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px;
-}
-
-.infoItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.infoIcon {
-  width: 16px;
-  height: 16px;
-  color: #666666;
-}
-
-.infoContent {
-  display: flex;
-  flex-direction: column;
-}
-
-.infoLabel {
-  font-size: 10px !important;
-  color: #888888 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  margin-bottom: 1px !important;
-}
-
-.infoValue {
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  color: #333333 !important;
-}
-
-/* Metrics Cards */
-.metricsSection {
-  margin-bottom: 8px;
-}
-
-.metricsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 8px;
-}
-
-.metricCard {
-  background: #ffffff !important;
-  border-radius: 6px !important;
-  padding: 12px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-}
-
-.metricCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
-}
-
-.metricHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.metricIcon {
-  width: 20px !important;
-  height: 20px !important;
-  padding: 6px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.metricTitle {
-  font-size: 12px !important;
-  color: #666666 !important;
-  font-weight: 500 !important;
-}
-
-.metricValue {
-  font-size: 24px !important;
-  font-weight: 700 !important;
-  color: #1a1a1a !important;
-  margin-bottom: 4px !important;
-  line-height: 1.1 !important;
-}
-
-.metricSubtitle {
+  background-color: #dcfce7 !important;
+  color: #166534 !important;
   font-size: 11px !important;
-  color: #666666 !important;
+  font-weight: 600 !important;
+  height: 20px !important;
+  border-radius: 20px !important;
+  flex-shrink: 0;
+}
+
+/* Row 2: meta items in one clean horizontal line */
+.metaRow {
   display: flex;
   align-items: center;
-  gap: 4px;
+  flex-wrap: nowrap;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.metaRow::-webkit-scrollbar {
+  display: none;
 }
 
-.metricPercentage {
+.metaItem {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-weight: 500 !important;
+  gap: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.trendIcon {
-  width: 14px !important;
-  height: 14px !important;
+.metaIcon {
+  width: 12px !important;
+  height: 12px !important;
+  color: #9ca3af !important;
+  flex-shrink: 0;
 }
 
-
-
-/* Color variants for metrics */
-.greenMetric {
-  background-color: rgba(76, 175, 80, 0.1) !important;
-  color: #4caf50 !important;
+.metaLabel {
+  font-size: 12px !important;
+  color: #9ca3af !important;
 }
 
-.blueMetric {
-  background-color: rgba(25, 118, 210, 0.1) !important;
-  color: #1976d2 !important;
+.metaValue {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
 }
 
-.orangeMetric {
-  background-color: rgba(255, 152, 0, 0.1) !important;
-  color: #ff9800 !important;
+/* Thin vertical divider between meta items */
+.metaDivider {
+  display: inline-block;
+  width: 1px;
+  height: 12px;
+  background: #e5e7eb;
+  margin: 0 10px;
+  flex-shrink: 0;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .executiveSummary {
-    padding: 6px;
-  }
-  
-  .metricsGrid {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-  
-  .headerInfo {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-  }
-  
-  .rfqHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-  
-  .metricCard {
-    padding: 10px !important;
-  }
-  
-  .headerSection {
-    padding: 10px !important;
-    margin-bottom: 6px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .rfqTitle {
-    font-size: 18px !important;
-  }
-  
-  .metricValue {
-    font-size: 20px !important;
-  }
-  
-  .headerInfo {
-    grid-template-columns: 1fr;
-  }
-  
-  .metricTitle {
-    font-size: 11px !important;
-  }
-  
-  .metricSubtitle {
-    font-size: 10px !important;
-  }
-  
-  .chartsSection {
-    margin-top: 6px !important;
-  }
-  
-  .chartCard {
-    height: auto !important;
-    min-height: 300px !important;
-  }
-  
-  .chartTitle {
-    font-size: 12px !important;
-    margin-bottom: 4px !important;
-  }
-}
-
-/* Charts Section Styles */
+/* ── Charts Section — white cards on grey bg ─────────────────────────────── */
 .chartsSection {
-  margin-top: 16px;
-  padding: 0 4px;
+  margin-top: 0;
 }
 
 .chartCard {
-  background: #ffffff;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background: #ffffff !important;
+  border-radius: 10px !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
   height: 100%;
-  min-height: 320px;
+  min-height: 280px;
+  overflow: hidden;
 }
 
-.chartTitle {
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  color: #1a1a1a !important;
-  margin-bottom: 8px !important;
-}
-
-.chartContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  height: 280px;
-  padding: 10px 0;
-  overflow-x: auto;
-  overflow-y: visible;
-}
-
+/* ── Empty / locked states ───────────────────────────────────────────────── */
 .sectionLock {
   width: 100%;
-  height: 100%;
-
   min-height: 320px;
-
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -309,7 +143,7 @@
 }
 
 .bigLockIcon {
-  font-size: 96px; /* BIG lock icon */
+  font-size: 96px;
   color: #9e9e9e;
 }
 

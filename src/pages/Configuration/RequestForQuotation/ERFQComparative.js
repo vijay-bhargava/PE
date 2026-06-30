@@ -3193,78 +3193,53 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 		<>
 			<Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-				{/* Sticky Tab Navigation */}
+				{/* Sticky Sub-Tab Navigation — styled to match main tabs */}
 				<Box
 					sx={{
 						position: 'sticky',
 						top: 0,
 						zIndex: 100,
-						backgroundColor: '#ffffff',
 						borderBottom: 1,
+						borderRadius: "16px 16px 0 0 !important",
 						borderColor: 'divider',
-						marginBottom: 0,
-						paddingBottom: 0,
-						boxShadow: 'none',
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'space-between',
-						paddingRight: 1
+						paddingRight: 1,
+						backgroundColor: "var(--vz-body-bg)",
 					}}
 				>
 					<Tabs
 						value={activeTab}
 						onChange={handleTabChange}
-						sx={{ minHeight: 32, flex: 1 }}
+						textColor="primary"
+						indicatorColor="primary"
+						className="tabstheme"
+						variant="scrollable"
+						allowScrollButtonsMobile
+						sx={{ flex: 1 }}
 					>
 						<Tab
 							value={0}
-							label="RFQ Summary"
-							sx={{
-								textTransform: 'none',
-								fontWeight: 500,
-								minHeight: 32,
-								fontSize: '13px',
-								padding: '6px 16px'
-							}}
+							label={<span className="section-heading">RFQ Summary</span>}
 						/>
 						{(actions.actionType == 'approval' && (actions.currentStage == 'Open' || actions.currentStage == 'Technical Approval') ? actions.EventHeaderDetails.showPriceTech : true) &&
 							(<Tab
 								value={1}
-								label="Financial Comparison"
-								sx={{
-									textTransform: 'none',
-									fontWeight: 500,
-									minHeight: 32,
-									fontSize: '13px',
-									padding: '6px 16px'
-								}}
+								label={<span className="section-heading">Financial Comparison</span>}
 							/>)
 						}
 						<Tab
 							value={2}
-							label="Commercial Comparison"
-							sx={{
-								textTransform: 'none',
-								fontWeight: 500,
-								minHeight: 32,
-								fontSize: '13px',
-								padding: '6px 16px'
-							}}
+							label={<span className="section-heading">Commercial Comparison</span>}
 						/>
 						<Tab
 							value={3}
-							label="Technical Comparison"
-							sx={{
-								textTransform: 'none',
-								fontWeight: 500,
-								minHeight: 32,
-								fontSize: '13px',
-								padding: '6px 16px'
-							}}
+							label={<span className="section-heading">Technical Comparison</span>}
 						/>
 					</Tabs>
 					{actions.isNFA == false && (
-						<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, position: 'relative', zIndex: 1300 }}>
+						<Box sx={{ display: 'flex', alignItems: 'center', gap: 2, position: 'relative', zIndex: 1300, backgroundColor: "var(--vz-body-bg)" }}>
 							<RFQActionDrawer
 								rfqid={actions?.rfqid}
 								enddate={actions?.enddate}
@@ -3280,31 +3255,25 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 								aria-controls={Boolean(anchorEl) ? "simple-menu" : undefined}
 								aria-haspopup="true"
 								onClick={handleClick}
-								variant="text"
-								style={{ backgroundColor: "white", color: "#2182cde" }}
+								variant="outlined"
+								size="small"
+								style={{ color: "#374151", borderColor: "#d1d5db", borderRadius: "4px", padding: "3px 10px", minWidth: 0, textTransform: "none", fontSize: "0.8125rem", fontWeight: 500 }}
+								sx={{ "&:hover": { backgroundColor: "#f3f4f6", borderColor: "#d1d5db", color: "#374151" } }}
 							>
-								<Tooltip title={"Version Control"}>
-									<div
-										style={{
-											fontSize: "0.7125rem",
-											color: "#2A68D3",
-											fontWeight: "500",
-										}}
-									>
-										{`Version ${version}`}
-										<ExpandMore />
-									</div>
-								</Tooltip>
+								<span style={{ display: "inline-flex", alignItems: "center" }}>
+									Version
+									<span style={{ width: "1px", height: "14px", background: "currentColor", opacity: 0.3, margin: "0 8px", flexShrink: 0 }} />
+									<ExpandMore style={{ fontSize: "12px" }} />
+								</span>
 							</Button>
 							<Menu
 								id="simple-menu"
 								anchorEl={anchorEl}
 								open={Boolean(anchorEl)}
 								onClose={handleClose}
+								sx={{maxWidth: 500}}
 							>
 								{versionhistory && versionhistory.map((x, i) => {
-
-
 									return (<MenuItem
 										key={x}
 										selected={x === selectedVersion}
@@ -3314,11 +3283,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 										}}>
 										{`Version ${x}`}
 									</MenuItem>)
-
 								})}
-
-
-
 							</Menu>
 						</Box>
 					)}
@@ -3326,6 +3291,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 				{/* Tab Content */}
 				<Box sx={{
+					backgroundColor: "#F5F5F5",
 					marginTop: 0,
 					paddingTop: 0,
 					flex: 1,
