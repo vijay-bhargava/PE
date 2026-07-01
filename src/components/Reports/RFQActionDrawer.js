@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
-import { Autocomplete, Avatar, Box, Checkbox, DialogActions, DialogContent, DialogContentText, DialogTitle, Drawer, IconButton, InputAdornment, MenuItem, Pagination, Stack, TextField, Tooltip, Typography } from "@mui/material";
+import { Autocomplete, Avatar, Box, Button, Checkbox, DialogActions, DialogContent, DialogContentText, DialogTitle, Drawer, IconButton, InputAdornment, Menu, MenuItem, Pagination, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import { CalendarToday as CalendarIcon } from "@mui/icons-material";
 import { HiDotsVertical, HiOutlineChevronDown, HiOutlineUserAdd, HiOutlineX } from "react-icons/hi";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
@@ -21,7 +21,7 @@ import { InvitedSupplierModal } from "../../utils/common";
 import { LoadingButton } from "@mui/lab";
 import * as yup from "yup";
 import { useFormik } from "formik";
-import { Card, DropdownButton, Table } from "react-bootstrap";
+import { Card, Table } from "react-bootstrap";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DateTimePicker, LocalizationProvider, MobileDateTimePicker, renderTimeViewClock } from "@mui/x-date-pickers";
 import { FastApiClient } from "../../FastApiClient";
@@ -64,6 +64,7 @@ const RFQActionDrawer = ({
 		HistoryEvent: false,
 		OpenSealedBid: false
 	}); // state to track which drawer is open
+	const [actionsAnchorEl, setActionsAnchorEl] = useState(null);
 	// Function to toggle the drawer based on the selected type
 	const toggleDrawer = (anchor, open) => {
 
@@ -1068,111 +1069,60 @@ const RFQActionDrawer = ({
 				actionlocktype={actionlocktype}
 			/>} */}
 			<div>
-				{/* DropdownButton with Action Tooltip */}
-				<DropdownButton
-					as={"div"}
-					key={"actionafterdraft"}
-					id={`actionafterdraft`}
-					className='rfq-actions-dropdown'
-					drop={"start"}
-					variant="outline-primary"
-					title={
-						<span style={{ display: "inline-flex", alignItems: "center", fontSize: "0.8125rem", fontWeight: "500" }}>
-							<span>Actions</span>
-							<span style={{ width: "1px", height: "14px", background: "currentColor", opacity: 0.3, margin: "0 8px", flexShrink: 0 }} />
-							<HiOutlineChevronDown style={{ fontSize: "12px" }} />
-						</span>
-					}
+				{/* Actions dropdown — MUI Button + Menu (consistent with Version button) */}
+				<Button
+					aria-controls={Boolean(actionsAnchorEl) ? "actions-menu" : undefined}
+					aria-haspopup="true"
+					onClick={(e) => setActionsAnchorEl(e.currentTarget)}
+					variant="outlined"
+					size="small"
+					style={{ color: "#374151", borderColor: "#d1d5db", borderRadius: "4px", padding: "3px 10px", minWidth: 0, textTransform: "none", fontSize: "0.8125rem", fontWeight: 500 }}
+					sx={{ "&:hover": { backgroundColor: "#f3f4f6", borderColor: "#d1d5db", color: "#374151" } }}
 				>
-					<div className="min-width-200px">
-
-
-						{/* Menu item to open the Add New Supplier drawer */}
-
-						{
-							currentStage != "Awarded" &&
-							Version == Math.floor(Version) &&
-							<MenuItem
-							>
-								<LoadingButton size={"small"} onClick={() => toggleDrawer("addsupplier", true)} color="btn" variant="text" className="f12 capitalize">Add New Supplier</LoadingButton>
-							</MenuItem>
-						}
-
-						{/* Menu item to  Reinvite suppliers */}
-						{currentStage && !['Draft', 'Under Pre Approval', 'Awarded'].includes(currentStage) && <MenuItem
-
-						>
-							<LoadingButton size={"small"} onClick={() => toggleDrawer("reInviteSupplier", true)} color="btn" variant="text" className="f12 capitalize"> Reinvite Supplier</LoadingButton>
-
-						</MenuItem>}
-						{/* Menu item to  Reopen suppliers */}
-						{currentStage != "Awarded" &&
-							<MenuItem>
-								<LoadingButton size={"small"} onClick={() => toggleDrawer("reOpenSupplier", true)} color="btn" variant="text" className="f12 capitalize">Reopen Supplier</LoadingButton>
-
-
-							</MenuItem>
-						}
-
-						{
-							currentStage != "Awarded" &&
-							<MenuItem>
-								<LoadingButton size={"small"} onClick={() => toggleDrawer("surrogateSupplier", true)} color="btn" variant="text" className="f12 capitalize"> Surrogate Supplier</LoadingButton>
-
-
-							</MenuItem>
-						}
-						{
-							currentStage != "Awarded" &&
-							<MenuItem>
-								<LoadingButton size={"small"} onClick={() => toggleDrawer("NotifySupplier", true)} color="btn" variant="text" className="f12 capitalize"> Send Reminder</LoadingButton>
-							</MenuItem>
-						}
-						<MenuItem>
-							<LoadingButton size={"small"} onClick={() => toggleDrawer("ReinitiateEvent", true)} color="btn" variant="text" className="f12 capitalize"> Reinitiate RFQ</LoadingButton>
-						</MenuItem>
-						{
-							currentStage != "Awarded" &&
-							<MenuItem>
-								<LoadingButton size={"small"} onClick={() => toggleDrawer("extendEvent", true)} color="btn" variant="text" className="f12 capitalize"> Extend End Date</LoadingButton>
-
-
-							</MenuItem>
-						}
-						<MenuItem>
-							<LoadingButton size={"small"} onClick={() => handleZipDownload()} color="btn" variant="text" className="f12 capitalize"> Download Zip</LoadingButton>
-						</MenuItem>
-
-						{currentStage != "Awarded" && rfqtype == "closed" && <MenuItem>
-							<LoadingButton size={"small"} onClick={() => toggleDrawer("openDate", true)} color="btn" variant="text" className="f12 capitalize">Update Open Date</LoadingButton>
-
-						</MenuItem>}
-						{currentStage != "Awarded" && rfqtype == "closed" && <MenuItem>
-							<LoadingButton size={"small"} onClick={() => toggleDrawer("OpenSealedBid", true)} color="btn" variant="text" className="f12 capitalize"> Open Sealed Bid</LoadingButton>
-
-
-						</MenuItem>}
-
-						{/* Menu item to export the  Summary Comparative */}
-						{/* <MenuItem >
-												<LoadingButton size={"small"} loading={loading} onClick={handleExcelExportSummary} color="btn" variant="text" className="f12 capitalize">Export Summary</LoadingButton>
-											</MenuItem> */}
-						{/* Menu item to export the  RFQ Comparative */}
-						{/* <MenuItem >
-					<LoadingButton  size={"small"}  loading={loading2} onClick={handleExcelExport} color="btn" variant="text" className="f12 capitalize">Export Comparative</LoadingButton>
-		</MenuItem>	 */}
-
-						{downloadExcel && <MenuItem >
-							{/* <LoadingButton size={"small"} onClick={generateComparativeReportExcel} color="btn" variant="text" className="f12 capitalize">Download Comparative Excel</LoadingButton> */}
-							<LoadingButton size={"small"} onClick={downloadExcel} color="btn" variant="text" className="f12 capitalize">Download Comparative Excel</LoadingButton>
-						</MenuItem>}
-						{<MenuItem>
-							<LoadingButton size={"small"} onClick={() => toggleDrawer("convertToAuction", true)} color="btn" variant="text" className="f12 capitalize">Convert to Auction</LoadingButton>
-						</MenuItem>}
-
-
-					</div>
-				</DropdownButton>
+					<span style={{ display: "inline-flex", alignItems: "center" }}>
+						Actions
+						<span style={{ width: "1px", height: "14px", background: "currentColor", opacity: 0.3, margin: "0 8px", flexShrink: 0 }} />
+						<HiOutlineChevronDown style={{ fontSize: "12px" }} />
+					</span>
+				</Button>
+				<Menu
+					id="actions-menu"
+					anchorEl={actionsAnchorEl}
+					open={Boolean(actionsAnchorEl)}
+					onClose={() => setActionsAnchorEl(null)}
+					sx={{ maxWidth: 300 }}
+				>
+					{currentStage != "Awarded" && Version == Math.floor(Version) && (
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("addsupplier", true); }} sx={{ fontSize: "0.8125rem" }}>Add New Supplier</MenuItem>
+					)}
+					{currentStage && !['Draft', 'Under Pre Approval', 'Awarded'].includes(currentStage) && (
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("reInviteSupplier", true); }} sx={{ fontSize: "0.8125rem" }}>Reinvite Supplier</MenuItem>
+					)}
+					{currentStage != "Awarded" && (
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("reOpenSupplier", true); }} sx={{ fontSize: "0.8125rem" }}>Reopen Supplier</MenuItem>
+					)}
+					{currentStage != "Awarded" && (
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("surrogateSupplier", true); }} sx={{ fontSize: "0.8125rem" }}>Surrogate Supplier</MenuItem>
+					)}
+					{currentStage != "Awarded" && (
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("NotifySupplier", true); }} sx={{ fontSize: "0.8125rem" }}>Send Reminder</MenuItem>
+					)}
+					<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("ReinitiateEvent", true); }} sx={{ fontSize: "0.8125rem" }}>Reinitiate RFQ</MenuItem>
+					{currentStage != "Awarded" && (
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("extendEvent", true); }} sx={{ fontSize: "0.8125rem" }}>Extend End Date</MenuItem>
+					)}
+					<MenuItem onClick={() => { setActionsAnchorEl(null); handleZipDownload(); }} sx={{ fontSize: "0.8125rem" }}>Download Zip</MenuItem>
+					{currentStage != "Awarded" && rfqtype == "closed" && (
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("openDate", true); }} sx={{ fontSize: "0.8125rem" }}>Update Open Date</MenuItem>
+					)}
+					{currentStage != "Awarded" && rfqtype == "closed" && (
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("OpenSealedBid", true); }} sx={{ fontSize: "0.8125rem" }}>Open Sealed Bid</MenuItem>
+					)}
+					{downloadExcel && (
+						<MenuItem onClick={() => { setActionsAnchorEl(null); downloadExcel(); }} sx={{ fontSize: "0.8125rem" }}>Download Comparative Excel</MenuItem>
+					)}
+					<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("convertToAuction", true); }} sx={{ fontSize: "0.8125rem" }}>Convert to Auction</MenuItem>
+				</Menu>
 
 				{/* Drawer for Add New Supplier */}
 				<Drawer

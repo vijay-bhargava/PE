@@ -1,14 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import {
-  Card,
-  CardContent,
-  Typography,
-  FormControl,
-  Select,
-  MenuItem,
-  Box
-} from '@mui/material';
-import styles from './ExecutiveSummary.module.css';
+import { Typography, FormControl, Select, MenuItem, Box } from '@mui/material';
 
 const SupplierPriceChart = ({ data }) => {
   // Extract unique versions for dropdown
@@ -76,64 +67,38 @@ const SupplierPriceChart = ({ data }) => {
     }
   }, [availableVersions, selectedVersion]);
 
+  const versionDropdown = (
+    <FormControl size="small" sx={{ minWidth: 100 }}>
+      <Select value={selectedVersion} onChange={handleVersionChange} displayEmpty sx={{ fontSize: '12px', height: '28px' }}>
+        {availableVersions.map((version) => (
+          <MenuItem key={version} value={version} sx={{ fontSize: '12px' }}>V{version}</MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+
   if (chartData.length === 0) {
     return (
-      <Card className={styles.chartCard}>
-        <CardContent sx={{ padding: '12px !important', paddingBottom: '12px !important' }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-            <Typography variant="h6" className={styles.chartTitle}>
-              Supplier Prices
-            </Typography>
-            <FormControl size="small" sx={{ minWidth: 100 }}>
-              <Select
-                value={selectedVersion}
-                onChange={handleVersionChange}
-                displayEmpty
-                sx={{ fontSize: '12px', height: '32px' }}
-              >
-                {availableVersions.map((version) => (
-                  <MenuItem key={version} value={version} sx={{ fontSize: '12px' }}>
-                    V{version}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-          <div style={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography color="text.secondary">
-              No supplier price data available for this version
-            </Typography>
-          </div>
-        </CardContent>
-      </Card>
+      <Box sx={{ p: '12px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ flexShrink: 0, mb: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem' }}>Supplier Prices</Typography>
+          {versionDropdown}
+        </Box>
+        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography color="text.secondary">No supplier price data available for this version</Typography>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <Card className={styles.chartCard}>
-      <CardContent sx={{ padding: '12px !important', paddingBottom: '12px !important' }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-          <Typography variant="h6" className={styles.chartTitle}>
-            Supplier Prices by Version
-          </Typography>
-          <FormControl size="small" sx={{ minWidth: 100 }}>
-            <Select
-              value={selectedVersion}
-              onChange={handleVersionChange}
-              displayEmpty
-              sx={{ fontSize: '12px', height: '32px' }}
-            >
-              {availableVersions.map((version) => (
-                <MenuItem key={version} value={version} sx={{ fontSize: '12px' }}>
-                  V{version}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+    <Box sx={{ p: '12px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ flexShrink: 0, mb: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem' }}>Supplier Prices by Version</Typography>
+          {versionDropdown}
         </Box>
-        
-        <div className={styles.chartContainer} style={{ overflowX: 'auto' }}>
-          <svg width={chartWidth} height={300} style={{ minWidth: '300px' }}>
+        <Box sx={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <svg width="100%" height="100%" viewBox={`0 0 ${chartWidth} 300`} preserveAspectRatio="xMidYMid meet" style={{ minWidth: '280px', display: 'block', flex: 1 }}>
             {/* Y-axis */}
             <line x1="40" y1="20" x2="40" y2={chartHeight + 20} stroke="#e0e0e0" strokeWidth="1"/>
             
@@ -312,9 +277,8 @@ const SupplierPriceChart = ({ data }) => {
               </g>
             )}
           </svg>
-        </div>
-      </CardContent>
-    </Card>
+        </Box>
+    </Box>
   );
 };
 

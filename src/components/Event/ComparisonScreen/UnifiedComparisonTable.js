@@ -20,14 +20,16 @@ import {
   KeyboardArrowRight as ArrowRightIcon,
   KeyboardArrowDown as ArrowDownIcon,
   KeyboardArrowLeft as ArrowLeftIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  Check as CheckIcon,
+  PriorityHigh as PriorityHighIcon,
 } from '@mui/icons-material';
 import styles from './UnifiedComparisonTable.module.css';
-import { formatDateViaLocale, formatDateViaLocale2, formatDateViaLocalet, formatDateViaTime, formatDateViaTimeZone, formattimeoption, renderHtmlAsText } from '../../../utils/common/utility';
+import { formatDateViaLocale } from '../../../utils/common/utility';
 import { actionTypes, useStateValue } from '../../../store';
 
-const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) => {
-  const [state,{ atoken, rtoken, customerid, customersuffix, roleClaims, userDetail },thousands_separators] = useStateValue();
+const UnifiedComparisonTable = ({ data, loadingFactor, handleSupplierModalOpen }) => {
+  const [state, { userDetail }] = useStateValue();
   // Transform tempData to match expected format
   const transformedData = React.useMemo(() => {
     if (!data || !data.suppliers || !data.items) {
@@ -154,7 +156,7 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const calculatePackageTagetPrice = () => {
-    if(items && items.length > 0){
+    if (items && items.length > 0) {
       const totalTargetPrice = items.reduce((total, item) => total + ((item.targetPrice * item.quantity) || 0), 0);
       return totalTargetPrice;
     }
@@ -277,14 +279,14 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
 
   const getCommercialTermsKeys = (item) => {
     const termKeys = new Set();
-    
+
     vendors.forEach(vendor => {
-        
+
       const vendorData = item.vendors[vendor.id];
       if (vendorData?.commercialTerms) {
         Object.keys(vendorData.commercialTerms).forEach(key => {
           // Exclude total fields (since they're redundant with the main price)
-          
+
           if (vendorData.commercialTerms[key].name != vendorData.commercialTerms[key].grandTotalTermName) {
 
             termKeys.add(key);
@@ -299,7 +301,7 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
     if (!packageLevel?.packageCommercialTerms || packageLevel.packageCommercialTerms.length === 0) {
       return [];
     }
-    
+
     return packageLevel.packageCommercialTerms
       .filter(term => {
         // Only include terms that have at least one vendor with data
@@ -350,7 +352,7 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
   const calculateSavingsVsTarget = (item) => {
     const lowestPrice = item.min || 0;
     const targetPrice = item.targetPrice || 0;
-    
+
     if (targetPrice === 0 || lowestPrice === 0) {
       return {
         savings: 0,
@@ -358,10 +360,10 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
         isPositive: true
       };
     }
-    
+
     const savings = targetPrice - lowestPrice;
     const percentage = (savings / targetPrice) * 100;
-    
+
     return {
       savings: Math.abs(savings),
       percentage: Math.abs(percentage),
@@ -372,7 +374,7 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
   const calculateSavingsVsUnitRate = (item) => {
     const lowestPrice = item.min || 0;
     const unitRate = item.unitRate || 0;
-    
+
     if (unitRate === 0 || lowestPrice === 0) {
       return {
         savings: 0,
@@ -380,10 +382,10 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
         isPositive: true
       };
     }
-    
+
     const savings = unitRate - lowestPrice;
     const percentage = (savings / unitRate) * 100;
-    
+
     return {
       savings: Math.abs(savings),
       percentage: Math.abs(percentage),
@@ -393,7 +395,7 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
 
   const calculatePackageSavingsVsTarget = (totalTargetPrice, lowestPackagePrice) => {
 
-    if(totalTargetPrice === 0 || lowestPackagePrice === 0){
+    if (totalTargetPrice === 0 || lowestPackagePrice === 0) {
       return {
         savings: 0,
         percentage: 0,
@@ -446,10 +448,10 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
 
     // If current price equals the minimum (lowest), color it green
     if (currentNumeric === minValue) return styles.lowestPrice;
-    
+
     // If current price equals the maximum (highest), color it red
     if (currentNumeric === maxValue) return styles.highestPrice;
-    
+
     return '';
   };
 
@@ -458,20 +460,26 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
     if (!packageLevel?.vendors || packageLevel.vendors.length === 0) {
       return [];
     }
-    
+
     const firstVendor = packageLevel.vendors[0];
-    const fields = Object.keys(firstVendor).filter(key => key !== 'name' && key !== 'vendorId');
-    
+    const fields = Object.keys(firstVendor).filter(
+      key => key !== 'name' && key !== 'vendorId'
+    );
+
     const fieldMapping = {
       packagePrice: 'Package Price',
       loadingFactor: 'Loading Factor',
       amount: 'Final Amount'
     };
-    
-    return fields.map(field => ({
-      key: field,
-      label: fieldMapping[field] || field.charAt(0).toUpperCase() + field.slice(1)
-    }));
+
+    const desiredOrder = ['amount', 'loadingFactor', 'packagePrice'];
+
+    return desiredOrder
+      .filter(field => fields.includes(field))
+      .map(field => ({
+        key: field,
+        label: fieldMapping[field]
+      }));
   };
 
   const packageFields = getPackageFields();
@@ -494,150 +502,89 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
           <TableHead className={styles.tableHeader}>
             <TableRow className={styles.headerRow}>
               <TableCell className={styles.headerCellFirst}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span 
-                    className={styles.comparisonDetailsLink}
-                    onClick={handlePackageToggle}
-                  >
-                    COMPARISON DETAILS
-                  </span>
-                  <IconButton
-                    size="small"
-                    onClick={handleTargetColumnsToggle}
-                    className={styles.expandButton}
-                    style={{ marginLeft: '8px', display: 'flex', alignItems: 'center' }}
-                  >
-                    {showTargetColumns ? (
-                      <>
-                        <ArrowLeftIcon fontSize="small" />
-                        <ArrowLeftIcon fontSize="small" style={{ marginLeft: '-4px' }} />
-                      </>
-                    ) : (
-                      <>
-                        <ArrowRightIcon fontSize="small" />
-                        <ArrowRightIcon fontSize="small" style={{ marginLeft: '-4px' }} />
-                      </>
-                    )}
-                  </IconButton>
-                </div>
+                {/* <div className={styles.comparisonDetailsWrapper}> */}
+                <Typography className={styles.comparisonTitle}>
+                  Comparison Details
+                </Typography>
+
+                <Typography className={styles.comparisonSubTitle}>
+                  TOTAL VENDORS : {vendors.length}
+                </Typography>
+                {/* </div> */}
               </TableCell>
+
               {showTargetColumns && (
                 <>
-                  <TableCell className={styles.stickyTargetHeader}>
-                    Target Price
-                  </TableCell>
-                  <TableCell className={styles.stickyQuantityHeader}>
-                    Quantity
-                  </TableCell>
-                  <TableCell className={styles.stickyDeliveryLocationHeader}>
-                    Delivery Location
-                  </TableCell>
-                  <TableCell className={styles.stickyUnitRateHeader}>
-                    Unit Rate
-                  </TableCell>
+                  <TableCell className={styles.stickyTargetHeader}>Target Price</TableCell>
+                  <TableCell className={styles.stickyQuantityHeader}>Quantity</TableCell>
+                  <TableCell className={styles.stickyDeliveryLocationHeader}>Delivery</TableCell>
+                  <TableCell className={styles.stickyUnitRateHeader}>Unit Rate</TableCell>
                 </>
               )}
+
               {(packageLevel?.vendors || vendors)?.map((vendor, index) => {
-                // Use packageLevel vendors first, fallback to main vendors array
                 const vendorName = vendor.name;
-                const vendorLabel = vendors[index]?.label || vendor.label || vendor.submissionTime || '';
-                // Always get ranking from the main vendors array since we removed it from packageLevel
+                const vendorLabel =
+                  vendors[index]?.label || vendor.label || vendor.submissionTime || "";
                 const ranking = vendors[index]?.commercialRanking;
-                // Get accepted currency from the vendors array
-                const acceptedCurrency = vendors[index]?.acceptedCurrency || 'INR';
+                const acceptedCurrency = vendors[index]?.acceptedCurrency || "INR";
                 const vendorId = vendor.vendorId;
-                
+
                 return (
-                  <TableCell 
-                    key={index} 
-                    className={`${styles.headerCell} ${styles.vendorHeader}`}
-                    style={{ position: 'relative' }}
-                  >
-                    <div>
-                      {/* Ranking badge positioned in top-left corner */}
+                  <TableCell key={index} className={styles.vendorHeaderCell}>
+                    <div className={styles.vendorCard}>
                       {ranking && (
-                        <Chip 
-                          label={ranking} 
-                          className={getRankingBadgeClass(ranking)}
-                          size="small"
-                          style={{
-                            position: 'absolute',
-                            top: '4px',
-                            left: '4px',
-                            zIndex: 1,
-                            minWidth: '28px',
-                            height: '20px',
-                            fontSize: '10px'
-                          }}
-                        />
-                      )}
-                      <div className={styles.vendorNameContainer} style={{ paddingTop: '24px' }}>
-                        <Typography 
-                            className={styles.vendorName}
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => handleSupplierModalOpen(vendorId || vendor.id)}
+                        <div
+                          className={`${styles.rankBadge} ${ranking === "L1"
+                            ? styles.rankL1
+                            : ranking === "L2"
+                              ? styles.rankL2
+                              : styles.rankL3
+                            }`}
                         >
-                          {vendorName}
-                        </Typography>
+                          {ranking}
+                        </div>
+                      )}
+
+                      <div className={styles.vendorLabel}>
+                        VENDOR {index + 1}
                       </div>
-                      <Typography className={styles.vendorSubmission}>
-                        {acceptedCurrency && (
-                          <span style={{ fontWeight: 'bold', color: '#1976d2' }}>
-                            {acceptedCurrency}
-                          </span>
-                        )}
-                        {acceptedCurrency && ' • '}{vendorLabel}
+
+                      <Typography
+                        className={styles.vendorNameNew}
+                        onClick={() =>
+                          handleSupplierModalOpen(vendorId || vendor.id)
+                        }
+                      >
+                        {vendorName?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
                       </Typography>
+
+                      <div className={styles.metaGrid}>
+                        <div className={styles.metaBlock}>
+                          <div className={styles.metaLabel}>Currency:</div>
+                          <div className={styles.metaValue}>{acceptedCurrency}</div>
+                        </div>
+
+                        <div className={styles.metaBlock}>
+                          <div className={styles.metaLabel}>Date:</div>
+                          <div className={styles.metaValue}>{vendorLabel}</div>
+                        </div>
+                      </div>
                     </div>
                   </TableCell>
                 );
               })}
-              <TableCell 
-                className={`${styles.headerCell} ${styles.summaryHeader}`}
-                style={{ 
-                  width: '93px', 
-                  minWidth: '93px', 
-                  maxWidth: '93px',
-                  padding: '8px 12px',
-                  fontWeight: 600,
-                  fontSize: '11px',
-                  color: '#555555',
-                  textAlign: 'center'
-                }}
-              >
+
+              <TableCell className={styles.summaryHeaderNew}>
                 Lowest Price
               </TableCell>
-              <TableCell 
-                className={`${styles.headerCell} ${styles.summaryHeader}`}
-                style={{ 
-                  width: '93px', 
-                  minWidth: '93px', 
-                  maxWidth: '93px',
-                  padding: '8px 12px',
-                  fontWeight: 600,
-                  fontSize: '11px',
-                  color: '#555555',
-                  textAlign: 'center'
-                }}
-              >
-                Savings <br/>
-                (wrt Target Price)
+
+              <TableCell className={styles.summaryHeaderNew}>
+                Savings
               </TableCell>
-              <TableCell 
-                className={`${styles.headerCell} ${styles.summaryHeader}`}
-                style={{ 
-                  width: '93px', 
-                  minWidth: '93px', 
-                  maxWidth: '93px',
-                  padding: '8px 12px',
-                  fontWeight: 600,
-                  fontSize: '11px',
-                  color: '#555555',
-                  textAlign: 'center'
-                }}
-              >
-                Savings <br/>
-                (wrt LPP)
+
+              <TableCell className={styles.summaryHeaderNew}>
+                LPP
               </TableCell>
             </TableRow>
           </TableHead>
@@ -654,309 +601,328 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
               const totalTargetPrice = items.reduce((total, item) => total + ((item.targetPrice * item.quantity) || 0), 0);
               const totalPOUnitRate = items.reduce((total, item) => total + ((item.unitRate * item.quantity) || 0), 0);
 
-              if (field.key == 'ranking'){
-                      return null;
-                    }
+              if (field.key == 'ranking') {
+                return null;
+              }
               return (
                 <Fragment key={`package-${field.key}`}>
-                <TableRow className={styles.packageRow}>
-                  <TableCell className={styles.subRowCell}>
-                    <div className={styles.packageInfo}>
-                      {field.key === 'packagePrice' ? (
-                        <IconButton
-                          size="small"
-                          onClick={hasCommercialTerms ? () => togglePackageRowExpansion(field.key) : undefined}
-                          className={styles.expandButton}
-                          style={{ 
-                            cursor: hasCommercialTerms ? 'pointer' : 'default',
-                            opacity: hasCommercialTerms ? 1 : 0.3
-                          }}
-                        >
-                          {hasCommercialTerms && expandedPackageRows.has(field.key) ? <ArrowDownIcon /> : <ArrowRightIcon />}
-                        </IconButton>
-                      ) : (
-                        <div className={styles.packageSpacer}></div>
-                      )}
-                      <div>
-                        <Typography className={styles.packageLabel}>
-                          {field.label}
-                        </Typography>
-                      </div>
-                    </div>
-                  </TableCell>
-                  {showTargetColumns && (
-                    <>
-                      <TableCell className={styles.stickyTargetCell}>
-                        {field.key === 'packagePrice' ?(
-                          <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
-                          {totalTargetPrice > 0 ? formatPrice(totalTargetPrice) : '-'}
-                        </Typography>
-                        ):(
-                          <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
-                          -
-                        </Typography>
+                  <TableRow className={styles.packageRow}>
+                    <TableCell className={styles.subRowCell}>
+                      <div className={styles.packageInfoNew}>
+                        {field.key === 'packagePrice' ? (
+                          <IconButton
+                            size="small"
+                            onClick={hasCommercialTerms ? () => togglePackageRowExpansion(field.key) : undefined}
+                            className={styles.expandBtnNew}
+                            style={{
+                              cursor: hasCommercialTerms ? 'pointer' : 'default',
+                              opacity: hasCommercialTerms ? 1 : 0.3
+                            }}
+                          >
+                            {hasCommercialTerms && expandedPackageRows.has(field.key) ? <ArrowDownIcon /> : <ArrowRightIcon />}
+                          </IconButton>
+                        ) : (
+                          <div className={styles.packageSpacer}></div>
                         )}
-                      </TableCell>
-                      <TableCell className={styles.stickyQuantityCell}>
-                        <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
-                          -
-                        </Typography>
-                      </TableCell>
-                      <TableCell className={styles.stickyDeliveryLocationCell}>
-                        <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
-                          -
-                        </Typography>
-                      </TableCell>
-                      <TableCell className={styles.stickyUnitRateCell}>
-                        <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
-                          {field.key === 'packagePrice' ?(
-                            <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
-                            {totalPOUnitRate > 0 ? formatPrice(totalPOUnitRate) : '-'}
+                        <div>
+                          <Typography className={styles.packageLabelNew}>
+                            {field.label}
                           </Typography>
-                          ):(
+                        </div>
+                      </div>
+                    </TableCell>
+                    {showTargetColumns && (
+                      <>
+                        <TableCell className={styles.stickyTargetCell}>
+                          {field.key === 'packagePrice' ? (
                             <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
+                              {totalTargetPrice > 0 ? formatPrice(totalTargetPrice) : '-'}
+                            </Typography>
+                          ) : (
+                            <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
+                              -
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell className={styles.stickyQuantityCell}>
+                          <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
                             -
                           </Typography>
-                          )}
-                        </Typography>
-                      </TableCell>
-                    </>
-                  )}
-                  {packageLevel?.vendors?.map((packageVendorData, index) => {
-                    
-                    const fieldValue = packageVendorData?.[field.key];
-                    const priceColorClass = packageVendorData.ranking == 1 ? styles.lowestPrice : '';
-                    
-                    // Get the corresponding vendor ID from the vendors array
-                    const vendorId = vendors[index]?.id;
-                    
-                    return (
-                      <TableCell key={index} className={styles.dataCell}>
-                        <div className={styles.priceContainer}>
-                          {field.key === 'loadingFactor' ? (
-                            <Link
-                              component="button"
-                              onClick={() => loadingFactor(vendorId)}
-                              style={{
-                                textDecoration: 'underline',
-                                color: '#1976d2',
-                                cursor: 'pointer',
-                                fontWeight: '500',
-                                fontSize: '13px',
-                                background: 'none',
-                                border: 'none',
-                                padding: 0,
-                                '&:hover': {
-                                  textDecoration: 'underline',
-                                  color: '#1565c0'
-                                }
-                              }}
-                            >
-                              {fieldValue || 'N/A'}
-                            </Link>
-                          ) : (
-                            <Typography className={`${styles.price} ${priceColorClass}`}>
-                              {formatValue(fieldValue)}
-                            </Typography>
-                          )}
-                        </div>
-                      </TableCell>
-                    );
-                  })}
-                  <TableCell 
-                    className={styles.dataCell}
-                    style={{ 
-                      width: '93px', 
-                      minWidth: '93px', 
-                      maxWidth: '93px',
-                      padding: '8px 12px',
-                      textAlign: 'center'
-                    }}
-                  >
-                    {field.key === 'packagePrice' ? (
-                        <Typography className={styles.summaryPrice}>
-                      {lowestPackagePrice > 0 ? formatPrice(lowestPackagePrice) : '-'}
-                    </Typography>
-                    ) : (
-                        <Typography className={styles.summaryPrice}>
-                        
-                        </Typography>
-                    )}
-                    
-                  </TableCell>
-                  <TableCell 
-                    className={styles.dataCell}
-                    style={{ 
-                      width: '93px', 
-                      minWidth: '93px', 
-                      maxWidth: '93px',
-                      padding: '8px 12px',
-                      textAlign: 'center'
-                    }}
-                  >
-                    {field.key === 'packagePrice' ? (
-                      (() => {
-                        const savingsData = calculatePackageSavingsVsTarget(totalTargetPrice, lowestPackagePrice);
-                        return (
-                          <>
-                            <Typography 
-                              className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
-                              style={{ fontSize: '13px', fontWeight: '500' }}
-                            >
-                              {savingsData.isPositive ? '+' : '-'}{formatTargetPrice(savingsData.savings)}
-                            </Typography>
-                            <Typography 
-                              className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
-                              style={{ fontSize: '11px', marginTop: '2px' }}
-                            >
-                              ({savingsData.percentage.toFixed(1)}%)
-                            </Typography>
-                          </>
-                        );
-                      })()
-                    ):(
-                      <Typography className={styles.summaryPrice}>
-                         -
-                    </Typography>
-                    )}
-                     
-                    
-                     
-                  </TableCell>
-                  <TableCell 
-                    className={styles.dataCell}
-                    style={{ 
-                      width: '93px', 
-                      minWidth: '93px', 
-                      maxWidth: '93px',
-                      padding: '8px 12px',
-                      textAlign: 'center'
-                    }}
-                  >
-                    {field.key === 'packagePrice' ? (
-                      (() => {
-                        const savingsData = calculatePackageSavingsVsTarget(totalPOUnitRate, lowestPackagePrice);
-                        return (
-                          <>
-                            <Typography 
-                              className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
-                              style={{ fontSize: '13px', fontWeight: '500' }}
-                            >
-                              {savingsData.isPositive ? '+' : '-'}{formatTargetPrice(savingsData.savings)}
-                            </Typography>
-                            <Typography 
-                              className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
-                              style={{ fontSize: '11px', marginTop: '2px' }}
-                            >
-                              ({savingsData.percentage.toFixed(1)}%)
-                            </Typography>
-                          </>
-                        );
-                      })()
-                    ):(
-                      <Typography className={styles.summaryPrice}>
-                         -
-                    </Typography>
-                    )}
-                     
-                    
-                     
-                  </TableCell>
-                </TableRow>
-
-                {/* Package Commercial Terms - Show when expanded */}
-                {hasCommercialTerms && expandedPackageRows.has(field.key) && (
-                  <>
-                    {packageCommercialTerms.map((term) => (
-                      <TableRow key={`package-term-${term.id}`} className={styles.expandedRow}>
-                        <TableCell className={styles.subRowCell}>
-                          <div className={styles.packageInfo}>
-                            <div className={styles.termSpacer}></div>
-                            <div>
-                              <Typography className={styles.termName}>
-                                {term.name}
+                        </TableCell>
+                        <TableCell className={styles.stickyDeliveryLocationCell}>
+                          <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
+                            -
+                          </Typography>
+                        </TableCell>
+                        <TableCell className={styles.stickyUnitRateCell}>
+                          <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
+                            {field.key === 'packagePrice' ? (
+                              <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
+                                {totalPOUnitRate > 0 ? formatPrice(totalPOUnitRate) : '-'}
                               </Typography>
-                            </div>
+                            ) : (
+                              <Typography style={{ fontSize: '13px', fontWeight: '500', color: '#333' }}>
+                                -
+                              </Typography>
+                            )}
+                          </Typography>
+                        </TableCell>
+                      </>
+                    )}
+                    {packageLevel?.vendors?.map((packageVendorData, index) => {
+
+                      const fieldValue = packageVendorData?.[field.key];
+                      const priceColorClass = packageVendorData.ranking == 1 ? styles.lowestPrice : '';
+
+                      // Get the corresponding vendor ID from the vendors array
+                      const vendorId = vendors[index]?.id;
+
+                      return (
+                        <TableCell key={index} className={styles.dataCell}>
+                          <div className={styles.priceContainer}>
+                            {field.key === 'loadingFactor' ? (
+                              <Link
+                                component="button"
+                                onClick={() => loadingFactor(vendorId)}
+                                style={{
+                                  textDecoration: 'underline',
+                                  textAlign: 'left !important',
+                                  color: '#292929',
+                                  cursor: 'pointer',
+                                  fontWeight: '500',
+                                  fontSize: '13px',
+                                  background: 'none',
+                                  border: 'none',
+                                  padding: 0,
+                                  '&:hover': {
+                                    textDecoration: 'underline',
+                                    color: '#000000'
+                                  }
+                                }}
+                              >
+                                {fieldValue || 'N/A'}
+                              </Link>
+                            ) : (
+                              <div className={styles.priceWithStatus}>
+                                <Typography className={`${styles.priceNew} ${priceColorClass}`}>
+                                  {formatValue(fieldValue)}
+                                </Typography>
+
+                                {priceColorClass === styles.lowestPrice && (
+                                  <div className={`${styles.statusIcon} ${styles.successIcon}`}> ✓ </div>
+                                )}
+
+                                {priceColorClass === styles.highestPrice && (
+                                  <div className={`${styles.statusIcon} ${styles.dangerIcon}`}> ! </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </TableCell>
-                        {showTargetColumns && (
-                          <>
-                            <TableCell className={styles.stickyTargetCell}>-</TableCell>
-                            <TableCell className={styles.stickyQuantityCell}>-</TableCell>
-                            <TableCell className={styles.stickyDeliveryLocationCell}>-</TableCell>
-                            <TableCell className={styles.stickyUnitRateCell}>-</TableCell>
-                          </>
-                        )}
-                        {vendors.map((vendor) => {
-                          // Find vendor data in packageCommercialTerms
-                          const vendorTermData = term.vendorData.find(
-                            vData => vData.vendorId === vendor.id
-                          );
-                          const termValue = vendorTermData?.enterCommValue;
-                          
-                          // Get all values for this term to determine min/max for color coding
-                          const termValues = term.vendorData
-                            .map(vData => vData.enterCommValue)
-                            .filter(val => val !== undefined && val !== null && val !== 0);
-                          
-                          const priceColorClass = termValue !== undefined && termValue !== 0 ? 
-                            getPriceColor(termValue, termValues) : '';
-                          
-                          // Format the term value based on its type
-                          const formatPackageTermValue = (value, type) => {
-                            if (value === undefined || value === null || value === 0) return 'Not Quoted';
-                            
-                            if (type === 'Percentage') {
-                              return `${value}%`;
-                            } else {
-                              return formatPrice(value);
-                            }
-                          };
-                          
+                      );
+                    })}
+                    <TableCell
+                      className={styles.dataCell}
+                      style={{
+                        width: '93px',
+                        minWidth: '93px',
+                        maxWidth: '93px',
+                        padding: '8px 12px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {field.key === 'packagePrice' ? (
+                        <Typography className={styles.summaryPrice}>
+                          {lowestPackagePrice > 0 ? formatPrice(lowestPackagePrice) : '-'}
+                        </Typography>
+                      ) : (
+                        <Typography className={styles.summaryPrice}>
+
+                        </Typography>
+                      )}
+
+                    </TableCell>
+                    <TableCell
+                      className={styles.dataCell}
+                      style={{
+                        width: '93px',
+                        minWidth: '93px',
+                        maxWidth: '93px',
+                        padding: '8px 12px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {field.key === 'packagePrice' ? (
+                        (() => {
+                          const savingsData = calculatePackageSavingsVsTarget(totalTargetPrice, lowestPackagePrice);
                           return (
-                            <TableCell key={vendor.id} className={styles.dataCell}>
-                              <Typography 
-                                className={`${styles.termValue} ${priceColorClass}`}
+                            <>
+                              <Typography
+                                className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
+                                style={{ fontSize: '13px', fontWeight: '500' }}
                               >
-                                {formatPackageTermValue(termValue, term.valueType)}
+                                {savingsData.isPositive ? '+' : '-'}{formatTargetPrice(savingsData.savings)}
                               </Typography>
-                            </TableCell>
+                              <Typography
+                                className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
+                                style={{ fontSize: '11px', marginTop: '2px' }}
+                              >
+                                ({savingsData.percentage.toFixed(1)}%)
+                              </Typography>
+                            </>
                           );
-                        })}
-                        <TableCell 
-                          className={styles.dataCell}
-                          style={{ 
-                            width: '93px', 
-                            minWidth: '93px', 
-                            maxWidth: '93px',
-                            padding: '8px 12px',
-                            textAlign: 'center'
-                          }}
-                        >-</TableCell>
-                        <TableCell 
-                          className={styles.dataCell}
-                          style={{ 
-                            width: '93px', 
-                            minWidth: '93px', 
-                            maxWidth: '93px',
-                            padding: '8px 12px',
-                            textAlign: 'center'
-                          }}
-                        >-</TableCell>
-                        <TableCell 
-                          className={styles.dataCell}
-                          style={{ 
-                            width: '93px', 
-                            minWidth: '93px', 
-                            maxWidth: '93px',
-                            padding: '8px 12px',
-                            textAlign: 'center'
-                          }}
-                        >-</TableCell>
-                      </TableRow>
-                    ))}
-                  </>
-                )}
+                        })()
+                      ) : (
+                        <Typography className={styles.summaryPrice}>
+                          -
+                        </Typography>
+                      )}
+
+
+
+                    </TableCell>
+                    <TableCell
+                      className={styles.dataCell}
+                      style={{
+                        width: '93px',
+                        minWidth: '93px',
+                        maxWidth: '93px',
+                        padding: '8px 12px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {field.key === 'packagePrice' ? (
+                        (() => {
+                          const savingsData = calculatePackageSavingsVsTarget(totalPOUnitRate, lowestPackagePrice);
+                          return (
+                            <>
+                              <Typography
+                                className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
+                                style={{ fontSize: '13px', fontWeight: '500' }}
+                              >
+                                {savingsData.isPositive ? '+' : '-'}{formatTargetPrice(savingsData.savings)}
+                              </Typography>
+                              <Typography
+                                className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
+                                style={{ fontSize: '11px', marginTop: '2px' }}
+                              >
+                                ({savingsData.percentage.toFixed(1)}%)
+                              </Typography>
+                            </>
+                          );
+                        })()
+                      ) : (
+                        <Typography className={styles.summaryPrice}>
+                          -
+                        </Typography>
+                      )}
+
+
+
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Package Commercial Terms - Show when expanded */}
+                  {hasCommercialTerms && expandedPackageRows.has(field.key) && (
+                    <>
+                      {packageCommercialTerms.map((term) => (
+                        <TableRow key={`package-term-${term.id}`} className={styles.expandedRow}>
+                          <TableCell className={styles.subRowCell}>
+                            <div className={styles.packageInfo}>
+                              <div className={styles.termSpacer}></div>
+                              <div>
+                                <Typography className={styles.termName}>
+                                  {term.name}
+                                </Typography>
+                              </div>
+                            </div>
+                          </TableCell>
+                          {showTargetColumns && (
+                            <>
+                              <TableCell className={styles.stickyTargetCell}>-</TableCell>
+                              <TableCell className={styles.stickyQuantityCell}>-</TableCell>
+                              <TableCell className={styles.stickyDeliveryLocationCell}>-</TableCell>
+                              <TableCell className={styles.stickyUnitRateCell}>-</TableCell>
+                            </>
+                          )}
+                          {vendors.map((vendor) => {
+                            // Find vendor data in packageCommercialTerms
+                            const vendorTermData = term.vendorData.find(
+                              vData => vData.vendorId === vendor.id
+                            );
+                            const termValue = vendorTermData?.enterCommValue;
+
+                            // Get all values for this term to determine min/max for color coding
+                            const termValues = term.vendorData
+                              .map(vData => vData.enterCommValue)
+                              .filter(val => val !== undefined && val !== null && val !== 0);
+
+                            const priceColorClass = termValue !== undefined && termValue !== 0 ?
+                              getPriceColor(termValue, termValues) : '';
+
+                            // Format the term value based on its type
+                            const formatPackageTermValue = (value, type) => {
+                              if (value === undefined || value === null || value === 0) return 'Not Quoted';
+
+                              if (type === 'Percentage') {
+                                return `${value}%`;
+                              } else {
+                                return formatPrice(value);
+                              }
+                            };
+
+                            return (
+                              <TableCell key={vendor.id} className={styles.dataCell}>
+                                <div className={styles.priceWithStatus}>
+                                  <Typography className={`${styles.priceNew} ${priceColorClass}`}>
+                                    {formatPackageTermValue(termValue, term.valueType)}
+                                  </Typography>
+
+                                  {priceColorClass === styles.lowestPrice && (
+                                    <div className={`${styles.statusIcon} ${styles.successIcon}`}> ✓ </div>
+                                  )}
+
+                                  {priceColorClass === styles.highestPrice && (
+                                    <div className={`${styles.statusIcon} ${styles.dangerIcon}`}> ! </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                            );
+                          })}
+                          <TableCell
+                            className={styles.dataCell}
+                            style={{
+                              width: '93px',
+                              minWidth: '93px',
+                              maxWidth: '93px',
+                              padding: '8px 12px',
+                              textAlign: 'center'
+                            }}
+                          >-</TableCell>
+                          <TableCell
+                            className={styles.dataCell}
+                            style={{
+                              width: '93px',
+                              minWidth: '93px',
+                              maxWidth: '93px',
+                              padding: '8px 12px',
+                              textAlign: 'center'
+                            }}
+                          >-</TableCell>
+                          <TableCell
+                            className={styles.dataCell}
+                            style={{
+                              width: '93px',
+                              minWidth: '93px',
+                              maxWidth: '93px',
+                              padding: '8px 12px',
+                              textAlign: 'center'
+                            }}
+                          >-</TableCell>
+                        </TableRow>
+                      ))}
+                    </>
+                  )}
                 </Fragment>
               );
             })}
@@ -966,19 +932,19 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
               <Fragment key={item.id}>
                 <TableRow className={styles.itemRow}>
                   <TableCell className={styles.subRowCell}>
-                    <div className={styles.itemInfo}>
+                    <div className={styles.itemCard}>
                       <IconButton
                         size="small"
                         onClick={() => toggleRowExpansion(item.id)}
-                        className={styles.expandButton}
+                        className={styles.expandBtnNew}
                       >
                         {expandedRows.has(item.id) ? <ArrowDownIcon /> : <ArrowRightIcon />}
                       </IconButton>
                       <div>
-                        <Typography className={styles.itemCode}>
+                        <Typography className={styles.itemCodeNew}>
                           {item.itemCode}
                         </Typography>
-                        <Typography className={styles.itemName}>
+                        <Typography className={styles.itemNameNew}>
                           {item.name}
                         </Typography>
                       </div>
@@ -1007,7 +973,7 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
                             {formatTargetPrice(item.unitRate)}
                           </Typography>
                           {(item.poDetails?.poNumber || item.poDetails?.poValue || item.poDetails?.poDate || item.poDetails?.poVendorName) && (
-                            <Tooltip 
+                            <Tooltip
                               title={createPOTooltipContent(item.poDetails)}
                               placement="top"
                               arrow
@@ -1025,13 +991,13 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
                                 },
                               }}
                             >
-                              <InfoIcon 
-                                style={{ 
-                                  fontSize: '14px', 
-                                  color: '#1976d2', 
+                              <InfoIcon
+                                style={{
+                                  fontSize: '14px',
+                                  color: '#1976d2',
                                   cursor: 'pointer',
                                   opacity: 0.7
-                                }} 
+                                }}
                               />
                             </Tooltip>
                           )}
@@ -1044,43 +1010,46 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
                     // Get all prices for this item to determine min/max for color coding
                     const itemPrices = vendors.map(v => item.vendors[v.id]?.price).filter(Boolean);
                     const priceColorClass = vendorData?.price ? getPriceColor(vendorData.price, itemPrices) : '';
-                    
+
                     return (
                       <TableCell key={vendor.id} className={styles.dataCell}>
                         <div className={styles.priceContainer}>
-                          <div className={styles.newPriceContainer}>
-                            <Typography className={`${styles.price} ${priceColorClass}`}>
-                              {vendorData ? formatPrice(vendorData.price) : 'Not Quoted'}
+                          <div className={styles.priceWithStatus}>
+                            <Typography className={`${styles.priceNew} ${priceColorClass}`}>
+                              {vendorData ? formatPrice(vendorData.price) : "Not Quoted"}
                             </Typography>
-                            <WhiteTooltip title={vendorData.vendorRemarks} >
-                              <span className={styles.infoIcon}>
-                                <BsInfoCircle />
-                              </span>
-                            </WhiteTooltip>
+
+                            {priceColorClass === styles.lowestPrice && (
+                              <div className={`${styles.statusIcon} ${styles.successIcon}`}> ✓</div>
+                            )}
+
+                            {priceColorClass === styles.highestPrice && (
+                              <div className={`${styles.statusIcon} ${styles.dangerIcon}`}> ! </div>
+                            )}
                           </div>
                         </div>
                       </TableCell>
                     );
                   })}
-                  <TableCell 
+                  <TableCell
                     className={styles.dataCell}
-                    style={{ 
-                      width: '93px', 
-                      minWidth: '93px', 
+                    style={{
+                      width: '93px',
+                      minWidth: '93px',
                       maxWidth: '93px',
                       padding: '8px 12px',
                       textAlign: 'center'
                     }}
                   >
-                    <Typography className={styles.summaryPrice}>
+                    <Typography className={styles.summaryPriceNew}>
                       {formatPrice(item.min)}
                     </Typography>
                   </TableCell>
-                  <TableCell 
+                  <TableCell
                     className={styles.dataCell}
-                    style={{ 
-                      width: '93px', 
-                      minWidth: '93px', 
+                    style={{
+                      width: '93px',
+                      minWidth: '93px',
                       maxWidth: '93px',
                       padding: '8px 12px',
                       textAlign: 'center'
@@ -1091,13 +1060,13 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
                         const savingsData = calculateSavingsVsTarget(item);
                         return (
                           <>
-                            <Typography 
+                            <Typography
                               className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
                               style={{ fontSize: '13px', fontWeight: '500' }}
                             >
                               {savingsData.isPositive ? '+' : '-'}{formatTargetPrice(savingsData.savings)}
                             </Typography>
-                            <Typography 
+                            <Typography
                               className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
                               style={{ fontSize: '11px', marginTop: '2px' }}
                             >
@@ -1105,14 +1074,14 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
                             </Typography>
                           </>
                         );
-                      })()} 
+                      })()}
                     </div>
                   </TableCell>
-                  <TableCell 
+                  <TableCell
                     className={styles.dataCell}
-                    style={{ 
-                      width: '93px', 
-                      minWidth: '93px', 
+                    style={{
+                      width: '93px',
+                      minWidth: '93px',
                       maxWidth: '93px',
                       padding: '8px 12px',
                       textAlign: 'center'
@@ -1123,13 +1092,13 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
                         const savingsData = calculateSavingsVsUnitRate(item);
                         return (
                           <>
-                            <Typography 
+                            <Typography
                               className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
                               style={{ fontSize: '13px', fontWeight: '500' }}
                             >
                               {savingsData.isPositive ? '+' : '-'}{formatTargetPrice(savingsData.savings)}
                             </Typography>
-                            <Typography 
+                            <Typography
                               className={`${styles.summaryPrice} ${savingsData.isPositive ? styles.lowestPrice : styles.highestPrice}`}
                               style={{ fontSize: '11px', marginTop: '2px' }}
                             >
@@ -1137,7 +1106,7 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
                             </Typography>
                           </>
                         );
-                      })()} 
+                      })()}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -1151,10 +1120,10 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
                         const vendorData = item.vendors[vendor.id];
                         return vendorData?.commercialTerms?.[termKey]?.name;
                       });
-                      const termName = firstVendorWithTerm ? 
-                        item.vendors[firstVendorWithTerm.id]?.commercialTerms?.[termKey]?.name : 
+                      const termName = firstVendorWithTerm ?
+                        item.vendors[firstVendorWithTerm.id]?.commercialTerms?.[termKey]?.name :
                         termKey;
-                      
+
                       return (
                         <TableRow key={`${item.id}-${termKey}`} className={styles.expandedRow}>
                           <TableCell className={styles.firstColumn}>
@@ -1164,80 +1133,80 @@ const UnifiedComparisonTable = ({ data,loadingFactor,handleSupplierModalOpen }) 
                               </Typography>
                             </div>
                           </TableCell>
-                        {showTargetColumns && (
-                          <>
-                            <TableCell className={styles.stickyTargetCell}>-</TableCell>
-                            <TableCell className={styles.stickyQuantityCell}>-</TableCell>
-                            <TableCell className={styles.stickyDeliveryLocationCell}>-</TableCell>
-                            <TableCell className={styles.stickyUnitRateCell}>-</TableCell>
-                          </>
-                        )}
-                        {vendors.map((vendor) => {
-                          const vendorData = item.vendors[vendor.id];
-                          const termData = vendorData?.commercialTerms?.[termKey];
-                          const termValue = termData?.value;
-                          const valueType = termData?.valueType;
-                          
-                          // Get all values for this commercial term to determine min/max for color coding
-                          const termValues = vendors
-                            .map(v => item.vendors[v.id]?.commercialTerms?.[termKey]?.value)
-                            .filter(val => val !== undefined && val !== null);
-                          
-                          const priceColorClass = termValue !== undefined ? getPriceColor(termValue, termValues) : '';
-                          
-                          // Format the term value based on its type
-                          const formatTermValue = (value, type) => {
-                            if (value === undefined || value === null) return 'Not Quoted';
-                            if (value === 0) return 'Not Quoted';
-                            
-                            if (type === 'Percentage') {
-                              return `${value}%`;
-                            } else {
-                              return formatPrice(value);
-                            }
-                          };
-                          
-                          return (
-                            <TableCell key={vendor.id} className={styles.dataCell}>
-                              <Typography 
-                                className={`${styles.termValue} ${priceColorClass}`}
-                              >
-                                {formatTermValue(termValue, valueType)}
-                              </Typography>
-                            </TableCell>
-                          );
-                        })}
-                        <TableCell 
-                          className={styles.dataCell}
-                          style={{ 
-                            width: '93px', 
-                            minWidth: '93px', 
-                            maxWidth: '93px',
-                            padding: '8px 12px',
-                            textAlign: 'center'
-                          }}
-                        >-</TableCell>
-                        <TableCell 
-                          className={styles.dataCell}
-                          style={{ 
-                            width: '93px', 
-                            minWidth: '93px', 
-                            maxWidth: '93px',
-                            padding: '8px 12px',
-                            textAlign: 'center'
-                          }}
-                        >-</TableCell>
-                        <TableCell 
-                          className={styles.dataCell}
-                          style={{ 
-                            width: '93px', 
-                            minWidth: '93px', 
-                            maxWidth: '93px',
-                            padding: '8px 12px',
-                            textAlign: 'center'
-                          }}
-                        >-</TableCell>
-                      </TableRow>
+                          {showTargetColumns && (
+                            <>
+                              <TableCell className={styles.stickyTargetCell}>-</TableCell>
+                              <TableCell className={styles.stickyQuantityCell}>-</TableCell>
+                              <TableCell className={styles.stickyDeliveryLocationCell}>-</TableCell>
+                              <TableCell className={styles.stickyUnitRateCell}>-</TableCell>
+                            </>
+                          )}
+                          {vendors.map((vendor) => {
+                            const vendorData = item.vendors[vendor.id];
+                            const termData = vendorData?.commercialTerms?.[termKey];
+                            const termValue = termData?.value;
+                            const valueType = termData?.valueType;
+
+                            // Get all values for this commercial term to determine min/max for color coding
+                            const termValues = vendors
+                              .map(v => item.vendors[v.id]?.commercialTerms?.[termKey]?.value)
+                              .filter(val => val !== undefined && val !== null);
+
+                            const priceColorClass = termValue !== undefined ? getPriceColor(termValue, termValues) : '';
+
+                            // Format the term value based on its type
+                            const formatTermValue = (value, type) => {
+                              if (value === undefined || value === null) return 'Not Quoted';
+                              if (value === 0) return 'Not Quoted';
+
+                              if (type === 'Percentage') {
+                                return `${value}%`;
+                              } else {
+                                return formatPrice(value);
+                              }
+                            };
+
+                            return (
+                              <TableCell key={vendor.id} className={styles.dataCell}>
+                                <Typography
+                                  className={`${styles.termValue} ${priceColorClass}`}
+                                >
+                                  {formatTermValue(termValue, valueType)}
+                                </Typography>
+                              </TableCell>
+                            );
+                          })}
+                          <TableCell
+                            className={styles.dataCell}
+                            style={{
+                              width: '93px',
+                              minWidth: '93px',
+                              maxWidth: '93px',
+                              padding: '8px 12px',
+                              textAlign: 'center'
+                            }}
+                          >-</TableCell>
+                          <TableCell
+                            className={styles.dataCell}
+                            style={{
+                              width: '93px',
+                              minWidth: '93px',
+                              maxWidth: '93px',
+                              padding: '8px 12px',
+                              textAlign: 'center'
+                            }}
+                          >-</TableCell>
+                          <TableCell
+                            className={styles.dataCell}
+                            style={{
+                              width: '93px',
+                              minWidth: '93px',
+                              maxWidth: '93px',
+                              padding: '8px 12px',
+                              textAlign: 'center'
+                            }}
+                          >-</TableCell>
+                        </TableRow>
                       );
                     })}
                   </>

@@ -1,10 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  Typography
-} from '@mui/material';
-import styles from './ExecutiveSummary.module.css';
+import { Typography, Box } from '@mui/material';
 
 const HighestLowestPriceChart = ({ data }) => {
   const [hoveredBar, setHoveredBar] = useState(null);
@@ -82,30 +77,24 @@ const HighestLowestPriceChart = ({ data }) => {
 
   if (chartData.length === 0) {
     return (
-      <Card className={styles.chartCard}>
-        <CardContent>
-          <Typography variant="h6" className={styles.chartTitle}>
-            Highest vs Lowest Price
-          </Typography>
-          <div style={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography color="text.secondary">
-              No price data available
-            </Typography>
-          </div>
-        </CardContent>
-      </Card>
+      <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', mb: 1 }}>
+          Highest vs Lowest Price
+        </Typography>
+        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography color="text.secondary">No price data available</Typography>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <Card className={styles.chartCard}>
-      <CardContent sx={{ padding: '12px !important', paddingBottom: '12px !important' }}>
-        <Typography variant="h6" className={styles.chartTitle}>
+    <Box sx={{ p: '12px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', mb: 1, flexShrink: 0 }}>
           Highest vs Lowest Price
         </Typography>
-        
-        <div className={styles.chartContainer} style={{ overflowX: 'auto' }}>
-          <svg width={chartWidth} height={250} style={{ minWidth: '300px' }}>
+        <Box sx={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <svg width="100%" height="100%" viewBox={`0 0 ${chartWidth} 250`} preserveAspectRatio="xMidYMid meet" style={{ minWidth: '280px', display: 'block', flex: 1 }}>
             {/* Y-axis */}
             <line x1="40" y1="20" x2="40" y2={chartHeight + 20} stroke="#e0e0e0" strokeWidth="1"/>
             
@@ -299,9 +288,8 @@ const HighestLowestPriceChart = ({ data }) => {
               </g>
             )}
           </svg>
-        </div>
-      </CardContent>
-    </Card>
+        </Box>
+    </Box>
   );
 };
 

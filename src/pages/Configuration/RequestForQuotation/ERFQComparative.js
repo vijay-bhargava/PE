@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import ReactDOM from "react-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import ExcelJS from 'exceljs';
@@ -83,7 +84,7 @@ import LockIcon from "@mui/icons-material/Lock";
 import styles from '../../../components/Event/ComparisonScreen/ExecutiveSummary.module.css';
 import { CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
 import { parse } from "date-fns";
-const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
+const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef }) => {
 
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -2865,6 +2866,8 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		});
 		saveAs(file, 'rfq-comparative-report-new.xlsx');
 	}, [rfqheaderdetails, userDetail, actions, financialComparisonData, commercialComparisonData, technicalComparisonData, version, pageSlug, atoken, apiClient, fetchFinancialComparisonData]);
+
+
 	// Function to handle Loading Factor
 	const loadingFactor = useCallback(async (vendorId) => {
 		const supplier = vendorItemAnalysis.find(s => s.vendorId == vendorId);
@@ -3189,10 +3192,62 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	}, [actions?.rfqid, version]);
 
 
+	const actionButtons = actions.isNFA === false ? (
+		<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+			<RFQActionDrawer
+				rfqid={actions?.rfqid}
+				enddate={actions?.enddate}
+				activityId={actions?.activityId}
+				handleDraftEvent={actions?.handleDraftEvent}
+				rfqtype={actions?.rfqtype}
+				Version={actions?.rfqheaderversion}
+				EventHeaderDetails={actions?.EventHeaderDetails}
+				downloadExcel={downloadExcel}
+				currentStage={actions?.currentStage}
+			/>
+			<Button
+				aria-controls={Boolean(anchorEl) ? "simple-menu-rfq" : undefined}
+				aria-haspopup="true"
+				onClick={handleClick}
+				variant="outlined"
+				size="small"
+				style={{ color: "#374151", borderColor: "#d1d5db", borderRadius: "4px", padding: "3px 10px", minWidth: 0, textTransform: "none", fontSize: "0.8125rem", fontWeight: 500 }}
+				sx={{ "&:hover": { backgroundColor: "#f3f4f6", borderColor: "#d1d5db", color: "#374151" } }}
+			>
+				<span style={{ display: "inline-flex", alignItems: "center" }}>
+					Version
+					<span style={{ width: "1px", height: "14px", background: "currentColor", opacity: 0.3, margin: "0 8px", flexShrink: 0 }} />
+					<ExpandMore style={{ fontSize: "12px" }} />
+				</span>
+			</Button>
+			<Menu
+				id="simple-menu-rfq"
+				anchorEl={anchorEl}
+				open={Boolean(anchorEl)}
+				onClose={handleClose}
+				sx={{ maxWidth: 500 }}
+			>
+				{versionhistory && versionhistory.map((x) => (
+					<MenuItem
+						key={x}
+						selected={x === selectedVersion}
+						onClick={() => { setSelectedVersion(x); handleVersionClick(x); }}
+					>
+						{`Version ${x}`}
+					</MenuItem>
+				))}
+			</Menu>
+		</Box>
+	) : null;
+
 	return (
 
 		<>
-			<Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+			{headerActionsRef?.current && ReactDOM.createPortal(actionButtons, headerActionsRef.current)}
+			<Box sx={{
+				display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden',
+				marginLeft: "-16px", marginTop: "-16px", marginRight: "-16px", marginBottom: "-20px",
+			}}>
 				{/* Sticky Sub-Tab Navigation — styled to match main tabs */}
 				<Box
 					sx={{
@@ -3200,7 +3255,6 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						top: 0,
 						zIndex: 100,
 						borderBottom: 1,
-						borderRadius: "16px 16px 0 0 !important",
 						borderColor: 'divider',
 						display: 'flex',
 						alignItems: 'center',
@@ -3238,55 +3292,6 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 							label={<span className="section-heading">Technical Comparison</span>}
 						/>
 					</Tabs>
-					{actions.isNFA == false && (
-						<Box sx={{ display: 'flex', alignItems: 'center', gap: 2, position: 'relative', zIndex: 1300, backgroundColor: "var(--vz-body-bg)" }}>
-							<RFQActionDrawer
-								rfqid={actions?.rfqid}
-								enddate={actions?.enddate}
-								activityId={actions?.activityId}
-								handleDraftEvent={actions?.handleDraftEvent}
-								rfqtype={actions?.rfqtype}
-								Version={actions?.rfqheaderversion}
-								EventHeaderDetails={actions?.EventHeaderDetails}
-								downloadExcel={downloadExcel}
-								currentStage={actions?.currentStage}
-							/>
-							<Button
-								aria-controls={Boolean(anchorEl) ? "simple-menu" : undefined}
-								aria-haspopup="true"
-								onClick={handleClick}
-								variant="outlined"
-								size="small"
-								style={{ color: "#374151", borderColor: "#d1d5db", borderRadius: "4px", padding: "3px 10px", minWidth: 0, textTransform: "none", fontSize: "0.8125rem", fontWeight: 500 }}
-								sx={{ "&:hover": { backgroundColor: "#f3f4f6", borderColor: "#d1d5db", color: "#374151" } }}
-							>
-								<span style={{ display: "inline-flex", alignItems: "center" }}>
-									Version
-									<span style={{ width: "1px", height: "14px", background: "currentColor", opacity: 0.3, margin: "0 8px", flexShrink: 0 }} />
-									<ExpandMore style={{ fontSize: "12px" }} />
-								</span>
-							</Button>
-							<Menu
-								id="simple-menu"
-								anchorEl={anchorEl}
-								open={Boolean(anchorEl)}
-								onClose={handleClose}
-								sx={{maxWidth: 500}}
-							>
-								{versionhistory && versionhistory.map((x, i) => {
-									return (<MenuItem
-										key={x}
-										selected={x === selectedVersion}
-										onClick={() => {
-											setSelectedVersion(x);
-											handleVersionClick(x);
-										}}>
-										{`Version ${x}`}
-									</MenuItem>)
-								})}
-							</Menu>
-						</Box>
-					)}
 				</Box>
 
 				{/* Tab Content */}

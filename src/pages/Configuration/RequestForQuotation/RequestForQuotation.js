@@ -160,6 +160,7 @@ import EventQuestionCell from "../../BaseCells/EventQuestionCell";
 import { sanitizeInput } from "../../../utils/common/santize";
 import PurchaseOrgGrp from "../../../utils/common/PurchaseOrgGrp";
 import PurchaseOrg from "../../../utils/common/PurchaseOrg";
+import LoadingFactor from "./LoadingFactor";
 import GridSkeleton from "../../../components/Skeleton/gridSkeleton";
 import { TbExchange } from "react-icons/tb";
 import { PiWarningDiamondFill } from "react-icons/pi";
@@ -254,6 +255,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 		//getRoles(newValue);
 		setValue(newValue);
+		if (newValue != 6 && newValue != "6") setRfqActionsPortalReady(false);
 		if (newValue == "6") {
 			// if (tabshow)
 			// 	setTabShow(false)
@@ -2763,286 +2765,44 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		}
 	};
 
-	//loading factor code start
+
+	// loading factor modal state
+	const [supplierRowMenuAnchor, setSupplierRowMenuAnchor] = useState(null); // { el, vendor }
 	const [storeVId, setStoreVId] = useState('');
-	const [factorDesc, setFactorDesc] = useState('');
-	const [loadingOn, setLoadingOn] = useState('');
+	const [filteredLoadingFactors, setFilteredLoadingFactors] = useState([]);
+	const rfqReportActionsRef = useRef(null);
+	const [rfqActionsPortalReady, setRfqActionsPortalReady] = useState(false);
+	const [isUpdated, setIsUpdated] = useState(false);
+	const [approvershow, setApproverShow] = useState(true);
+	const handleApprover = (booleanvalue) => setApproverShow(booleanvalue);
 
 	const queryParams = new URLSearchParams(location.search);
-	const [factorType, setFactorType] = useState('');
-	const [factorPerc, setFactorPerc] = useState(0);
-	const [loadingAmount, setLoadingAmount] = useState(0);
-	const [loadingFactors, setLoadingFactors] = useState([]);
-	//console.log("loadingFactors::", loadingFactors)
-	const [editIndex, setEditIndex] = useState(null);
-	const [filteredLoadingFactors, setFilteredLoadingFactors] = useState([]);
-	//console.log("filteredLoadingFactors::", filteredLoadingFactors)
-	const [errors, setErrors] = useState({});
 
-
-	const [approvershow, setApproverShow] = useState(true)
-	const handleApprover = (booleanvalue) => {
-		setApproverShow(booleanvalue)
-	}
-
-
-
-	const validationSchemaloading = yup.object({
-		factorDesc: yup.string()
-			.required('Reason of Loading Factor is required'),
-		factorType: yup.string()
-			.required('Loading Type is required'),
-		// loadingOn: yup.string()
-		// 	.required('Loading On is required')
-	});
-
-
-
-	const handleLoadingFactorClick = (vendor, index) => {
-
-		const vendorId = vendor?.vendorId;
-		const rfqLoadingFactor = vendor?.rfqLoadingFactor;
-		setStoreVId(vendorId);
-		setupdatesupplieronloading(0)
-		// Find all entries for the vendor in the rfqVendorInvited array
-		//const vendorDataArray = tempDataEditData?.[0]?.rfqVendorInvited?.filter(v => v.vendorId === vendorId);
-
-
-		//abheedev correction in handling loading factor
-		const vendorDataArray = selectedSupplier?.filter(v => v.vendorId === vendorId);
-
-
-
-		// Flatten the rfqLoadingFactor arrays from all found vendor entries
-		let vendorLoadingFactors = vendorDataArray?.flatMap(vendorData => vendorData.rfqLoadingFactor) || [];
-		if (!vendorLoadingFactors[0]) {
-			vendorLoadingFactors = []
-		}
-
-
-		const combinedLoadingFactors = [
-			...vendorLoadingFactors,
-			...loadingFactors?.filter(factor => factor.vendorId === vendorId)
-		]?.filter((factor, index, self) =>
-			index === self?.findIndex((f) => (
-				f.factorId === factor.factorId
-			))
-		);
-
-
-
-		setFilteredLoadingFactors(rfqLoadingFactor ?? []);
-		setFactorDesc('');
-		setFactorType('');
-		setLoadingOn('');
-		setFactorPerc(0);
-		setLoadingAmount(0);
-		setErrors({});
-		// Open the modal
+	const handleLoadingFactorClick = (vendor) => {
+		setStoreVId(vendor?.vendorId);
+		setupdatesupplieronloading(0);
+		setFilteredLoadingFactors(vendor?.rfqLoadingFactor ?? []);
 		setLoadingModal(true);
 	};
 
-	const [isUpdated, setIsUpdated] = useState(false);
 	const handleLoadingFactorNew = (vendor) => {
-
-		const vendorId = vendor?.vendorId;
-		const newLoadingFactors = JSON.parse(vendor?.loadingFactors);
-		setStoreVId(vendorId);
-		setupdatesupplieronloading(0)
-		// Find all entries for the vendor in the rfqVendorInvited array
-		//const vendorDataArray = tempDataEditData?.[0]?.rfqVendorInvited?.filter(v => v.vendorId === vendorId);
-
-
-		//abheedev correction in handling loading factor
-		const vendorDataArray = selectedSupplier?.filter(v => v.vendorId === vendorId);
-
-		const rfqLoadingFactor = newLoadingFactors?.map((item) => ({
+		const newFactors = JSON.parse(vendor?.loadingFactors ?? '[]').map((item) => ({
 			rfqId: parseInt(idFromURL),
 			version: vendor.version,
 			customerId: vendor.customerId,
-			vendorId: vendorId,
+			vendorId: vendor?.vendorId,
 			factorDesc: item.FactorDesc,
 			factorType: item.FactorType,
 			...(item.FactorType === 'A'
 				? { loadingAmount: parseFloat(item.LoadingAmount) }
 				: { factorPerc: parseFloat(item.FactorPerc) }),
-			loadingOn: "RFQ"
+			loadingOn: 'RFQ',
 		}));
-		// let loadingFactors = JSON.parse(response?.loadingFactors);
-
-
-
-		// Flatten the rfqLoadingFactor arrays from all found vendor entries
-		let vendorLoadingFactors = vendorDataArray?.flatMap(vendorData => vendorData.rfqLoadingFactor) || [];
-		if (!vendorLoadingFactors[0]) {
-			vendorLoadingFactors = []
-		}
-
-
-		const combinedLoadingFactors = [
-			...vendorLoadingFactors,
-			...loadingFactors?.filter(factor => factor.vendorId === vendorId)
-		]?.filter((factor, index, self) =>
-			index === self?.findIndex((f) => (
-				f.factorId === factor.factorId
-			))
-		);
-
-
-
-		setFilteredLoadingFactors(rfqLoadingFactor ?? []);
-		setFactorDesc('');
-		setFactorType('');
-		setLoadingOn('');
-		setFactorPerc(0);
-		setLoadingAmount(0);
-		setErrors({});
-		// Open the modal
+		setStoreVId(vendor?.vendorId);
+		setupdatesupplieronloading(0);
+		setFilteredLoadingFactors(newFactors);
 		setLoadingModal(true);
 	};
-	const validateForm = (values) => {
-		try {
-			validationSchemaloading.validateSync(values, { abortEarly: false });
-			return null; // No errors
-		} catch (err) {
-			const errors = err.inner.reduce((acc, error) => {
-				acc[error.path] = error.message;
-				return acc;
-			}, {});
-			return errors;
-		}
-	};
-
-	const handleAddLoadingFactor = () => {
-		setLoadingUpdateBtn(true)
-		const formValues = {
-			factorDesc,
-			factorType,
-			//factorPerc,
-			...(factorType === 'A' ? { loadingAmount } : { factorPerc }),
-			loadingOn
-		};
-		const validationErrors = validateForm(formValues);
-		if (validationErrors) {
-			setErrors(validationErrors);
-			setLoadingUpdateBtn(false)
-			return; // Stop further processing if there are validation errors
-		}
-
-		const newLoadingFactor = {
-			rfqId: parseInt(idFromURL),
-			version: formik?.values?.Version,
-			customerId: customerid,
-			vendorId: storeVId,
-			factorDesc: factorDesc,
-			factorType: factorType,
-			//factorPerc: parseFloat(factorPerc),
-			...(factorType === 'A' ? { loadingAmount: parseFloat(loadingAmount) } : { factorPerc: parseFloat(factorPerc) }),
-			loadingOn: "RFQ",
-		};
-
-		let updatedLoadingFactors;
-
-		if (editIndex !== null) {
-			updatedLoadingFactors = [...filteredLoadingFactors];
-			updatedLoadingFactors[editIndex] = newLoadingFactor;
-			setEditIndex(null); // Reset edit index after update
-		} else {
-			updatedLoadingFactors = [...filteredLoadingFactors, newLoadingFactor];
-		}
-
-		setLoadingFactors(updatedLoadingFactors);
-
-		// Filter and update the factors for the current vendor
-		const vendorLoadingFactors = updatedLoadingFactors?.filter(factor => factor.vendorId === storeVId);
-		setFilteredLoadingFactors(vendorLoadingFactors ?? []);
-
-		//for updating rfqloadingfactor into supplier
-		const updatedSuppliers = selectedSupplier.map((supplier) => {
-			if (supplier.id === storeVId) {
-				const existingFactors = supplier.rfqLoadingFactor || [];
-				if (editIndex !== null) {
-					// Update the specific factor if in edit mode
-					existingFactors[editIndex] = newLoadingFactor;
-				} else {
-					// Add a new loading factor
-					existingFactors.push(newLoadingFactor);
-				}
-				return { ...supplier, rfqLoadingFactor: existingFactors };
-			}
-			return supplier;
-		});
-
-		setSelectedSupplier(updatedSuppliers);
-
-		// Clear the form fields after adding or editing
-		setFactorDesc('');
-		setFactorType('');
-		setFactorPerc(0);
-		setLoadingOn('');
-		setLoadingAmount('');
-		setErrors({});
-		setLoadingUpdateBtn(true)
-	};
-
-	const handleDeleteLoadingFactor = (index) => {
-		setLoadingUpdateBtn(true)
-		// Remove the loading factor at the specified index
-		const updatedLoadingFactors = filteredLoadingFactors?.filter((_, i) => i !== index);
-		setLoadingFactors(updatedLoadingFactors);
-
-		// Update the filtered loading factors for the currently selected vendor
-		const vendorLoadingFactors = updatedLoadingFactors?.filter(factor => factor.vendorId === storeVId);
-		setFilteredLoadingFactors(vendorLoadingFactors ?? []);
-
-		const updatedSuppliers = selectedSupplier.map((supplier) => {
-			if (supplier.id === storeVId) {
-				// Initialize rfqLoadingFactor to an empty array if it is undefined
-				const existingFactors = supplier.rfqLoadingFactor || [];
-				// Filter out the loading factor at the specified index
-				const updatedFactors = existingFactors?.filter((_, i) => i !== index);
-				return { ...supplier, rfqLoadingFactor: updatedFactors };
-			}
-			return supplier;
-		});
-
-		setSelectedSupplier(updatedSuppliers);
-	};
-	const [loadingupdatebtn, setLoadingUpdateBtn] = useState(false)
-	const handleEditLoadingFactor = (index) => {
-		setLoadingUpdateBtn(true)
-		// Check if loadingFactors array is defined and has the requested index
-		if (filteredLoadingFactors && filteredLoadingFactors.length > index) {
-			const factor = filteredLoadingFactors[index];
-			setFactorDesc(factor.factorDesc || '');
-			setFactorType(factor.factorType || '');
-			//setFactorPerc(factor.factorPerc || 0);
-			if (factor.factorType === 'A') {
-				setLoadingAmount(factor.loadingAmount || 0); // Set loadingAmount for Absolute type
-			} else {
-				setFactorPerc(factor.factorPerc || 0); // Set factorPerc for Percentage type
-			}
-			setLoadingOn(factor.loadingOn || '');
-			setEditIndex(index);
-		} else if (tempDataEditData && tempDataEditData[0]?.rfqVendorInvited) {
-			// Handle case when loading factors are coming from tempDataEditData
-			const vendorData = tempDataEditData[0].rfqVendorInvited.find(v => v.vendorId === storeVId);
-			if (vendorData && vendorData.rfqLoadingFactor && vendorData.rfqLoadingFactor.length > index) {
-				const factor = vendorData.rfqLoadingFactor[index];
-				setFactorDesc(factor.factorDesc || '');
-				setFactorType(factor.factorType || '');
-				setFactorPerc(factor.factorPerc || 0);
-				setLoadingOn(factor.loadingOn || '');
-				setEditIndex(index);
-			} else {
-				console.error('Loading factor data not found or index out of bounds');
-			}
-		} else {
-			console.error('Loading factors or temp data is not properly defined');
-		}
-	};
-
-	//loading factor code end
 
 	const validationSchemaApprover = yup.object().shape({
 		status: yup.string().required("status is required"),
@@ -4207,32 +3967,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		}
 	};
 
-	//Update loading factor for supplier
-	const updateSupplierLoadingFactor = async () => {
-		setIsUpdated(false);
-
-
-		filteredLoadingFactors.forEach(x => {
-			x.id = 0
-		})
-		const data = {
-			VendorId: storeVId,
-			Version: formik?.values?.Version,
-		}
-		const queryParams = buildQueryParams(data)
-		// const res = await apiClient.getres(`/api/auth/UserRoleClaim?${queryParams}`, atoken)
-		const res = await apiClient.postres(`/api/RFQManage/${idFromURL}/RFQLoadingFactor?${queryParams}`, filteredLoadingFactors, atoken)
-		if (res) {
-			toast.success("loading Factor updated successfully", {
-				toastId: "loading_factor_update"
-			})
-			setLoadingUpdateBtn(false)
-			setLoadingModal(false)
-			setupdatesupplieronloading(1)
-			setIsUpdated(true);
-		}
-
-	}
 
 
 
@@ -4317,83 +4051,72 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								{/* Action Buttons */}
 								<div className="rfq-dv2-actions">
 									{!loading ? (
-										actionType === 'Forward' ||
-											(value === 6 && currentStage !== 'Technical Approval' && currentStage !== 'Open' && actionType === 'approval') ? (
-											<button
-												type="button"
-												className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
-												onClick={toggleDrawer("openInvoiceApproved", true)}
-											>
-												Action
+										<>
+											{/* Cancel — always first */}
+											<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost" onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
+												Cancel
 											</button>
-										) : (
-											<>
-												{/* Cancel — always first */}
-												<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost" onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
-													Cancel
+
+											{/* Secondary actions */}
+											{stagearray.includes(currentStage) && (
+												<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Draft')}>
+													Save as Draft
 												</button>
+											)}
+											{idFromURL && currentStage && currentStage !== 'Draft' && (
+												<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Templates')}>
+													Save as Template
+												</button>
+											)}
+											{currentStage === 'Allocation' && value == "9" && (
+												<button type="button" className="rfq-dv2-action-btn pe--secondary" onClick={() => handleMenuClick('Save & Close')}>
+													Save &amp; Close
+												</button>
+											)}
+											{currentStage === 'Awarded' && (
+												<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Send Mail to suppliers')}>
+													Send Mail to suppliers
+												</button>
+											)}
+											{currentStage === 'Awarded' && (
+												<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Create NFA')}>
+													Create NFA
+												</button>
+											)}
+											{idFromURL && currentStage && currentStage !== 'Draft' && (() => {
+												const stageInfo = getStageInfo(currentStage, stagelist);
+												if (!actionType && (currentStage === 'Technical Approval' || (currentStage === 'Forward for Approval' && stageInfo?.nextStage !== 'Technical Approval'))) {
+													return (
+														<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Approverforward')}>
+															Forward for approval
+														</button>
+													);
+												}
+												return null;
+											})()}
 
-												{/* Secondary actions */}
-												{stagearray.includes(currentStage) && (
-													<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Draft')}>
-														Save as Draft
-													</button>
-												)}
-												{idFromURL && currentStage && currentStage !== 'Draft' && (
-													<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Templates')}>
-														Save as Template
-													</button>
-												)}
-												{currentStage === 'Allocation' && value == "9" && (
-													<button type="button" className="rfq-dv2-action-btn pe--secondary" onClick={() => handleMenuClick('Save & Close')}>
-														Save &amp; Close
-													</button>
-												)}
-												{currentStage === 'Awarded' && (
-													<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Send Mail to suppliers')}>
-														Send Mail to suppliers
-													</button>
-												)}
-												{currentStage === 'Awarded' && (
-													<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Create NFA')}>
-														Create NFA
-													</button>
-												)}
-												{idFromURL && currentStage && currentStage !== 'Draft' && (() => {
-													const stageInfo = getStageInfo(currentStage, stagelist);
-													if (!actionType && (currentStage === 'Technical Approval' || (currentStage === 'Forward for Approval' && stageInfo?.nextStage !== 'Technical Approval'))) {
-														return (
-															<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Approverforward')}>
-																Forward for approval
-															</button>
-														);
-													}
-													return null;
-												})()}
-
-												{/* Primary action — always last */}
-												{value === 7 && (
-													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={() => handleMenuClick('Publish RFQ')}>
-														Publish RFQ
-													</button>
-												)}
-												{currentStage === 'Draft' && value !== 7 && (
-													<button
-														type="button"
-														className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
-														onClick={handleButtonGroup}
-														disabled={(!idFromURL || idFromURL === 'add') ? false : !stagearray.includes(currentStage)}
-													>
-														{value === 5 ? "Save Suppliers" : "Save & Continue"}
-													</button>
-												)}
-												{currentStage === 'Allocation' && value == "9" && (
-													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={() => handleMenuClick('Save')}>
-														Save
-													</button>
-												)}
-											</>
-										)
+											{/* Primary action — always last */}
+											{value === 7 && (
+												<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={() => handleMenuClick('Publish RFQ')}>
+													Publish RFQ
+												</button>
+											)}
+											{currentStage === 'Draft' && value !== 7 && (
+												<button
+													type="button"
+													className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
+													onClick={handleButtonGroup}
+													disabled={(!idFromURL || idFromURL === 'add') ? false : !stagearray.includes(currentStage)}
+												>
+													{value === 5 ? "Save Suppliers" : "Save & Continue"}
+												</button>
+											)}
+											{currentStage === 'Allocation' && value == "9" && (
+												<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={() => handleMenuClick('Save')}>
+													Save
+												</button>
+											)}
+										</>
 									) : (
 										<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" disabled>
 											{value === 6 ? "Publishing..." : "Saving..."}
@@ -4568,6 +4291,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									</Button>
 								</div>
 							)}
+
+							{value === 6 && <div ref={(el) => { rfqReportActionsRef.current = el; if (el && !rfqActionsPortalReady) setRfqActionsPortalReady(true); }} style={{ display: 'flex', alignItems: 'center' }} />}
 
 							{/* Top-right icons: History, Attachment, and Approval */}
 							{/* <div className="d-flex align-items-center gap-2"> */}
@@ -5702,32 +5427,32 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																				<span>{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}</span>
 																			</div>
 																			<div className="sup-row-actions">
-																				<DropdownButton
-																					as={"div"}
-																					key={"end7"}
-																					id={`myacccmenu`}
-																					className="supplieraccmenu sup-action-btn"
-																					drop={"start"}
-																					variant="outlined"
-																					title={
-																						<Tooltip title={"Action"}>
-																							<HiDotsHorizontal style={{ fontSize: 16, color: '#374151' }} />
-																						</Tooltip>
-																					}
+																				<Tooltip title="Action">
+																					<IconButton
+																						size="small"
+																						className="sup-action-btn"
+																						onClick={(e) => setSupplierRowMenuAnchor({ el: e.currentTarget, vendor: x })}
+																					>
+																						<HiDotsHorizontal style={{ fontSize: 16, color: '#374151' }} />
+																					</IconButton>
+																				</Tooltip>
+																				<Menu
+																					anchorEl={supplierRowMenuAnchor?.vendor === x ? supplierRowMenuAnchor?.el : null}
+																					open={supplierRowMenuAnchor?.vendor === x && Boolean(supplierRowMenuAnchor?.el)}
+																					onClose={() => setSupplierRowMenuAnchor(null)}
+																					sx={{ maxWidth: 500 }}
 																				>
-																					<div className="shadow rounded min-width-200px">
-																						{x.id != 0 && (
-																							<MenuItem className="f12 fw500" onClick={() => handleLoadingFactorClick(x, i)}>
-																								Loading Factor
-																							</MenuItem>
-																						)}
-																						{!stagearray.includes(currentStage) && (
-																							<MenuItem className="f12 fw500" onClick={() => handleSupplierAction(x, 'Reopen')}>
-																								Re-Open Quote
-																							</MenuItem>
-																						)}
-																					</div>
-																				</DropdownButton>
+																					{x.id != 0 && (
+																						<MenuItem className="f12 fw500" onClick={() => { setSupplierRowMenuAnchor(null); handleLoadingFactorClick(x, i); }}>
+																							Loading Factor
+																						</MenuItem>
+																					)}
+																					{!stagearray.includes(currentStage) && (
+																						<MenuItem className="f12 fw500" onClick={() => { setSupplierRowMenuAnchor(null); handleSupplierAction(x, 'Reopen'); }}>
+																							Re-Open Quote
+																						</MenuItem>
+																					)}
+																				</Menu>
 																				{stagearray.includes(currentStage) && (() => {
 																					const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
 																					return (
@@ -5807,7 +5532,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 							}
 							{value == 6 && idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL)) &&
 
-								<ERFQComparative key={"ERFQComparative"} accessLevel={accessLevel} handleTab={handleTab}
+								<ERFQComparative key={"ERFQComparative"} accessLevel={accessLevel} handleTab={handleTab} headerActionsRef={rfqActionsPortalReady ? rfqReportActionsRef : null}
 
 									actions={{
 										rfqid: idFromURL,
@@ -6756,246 +6481,32 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				</Modal.Body>
 			</Modal>
 			<Modal
-				size="md"
 				show={loadingModal}
+				dialogClassName="modal-custom-mdlg"
+				className="zindex1280"
+				backdropClassName="zindex1280"
 				backdrop="static"
 				keyboard={false}
-				value={"Loading"}
-				className="zindex1280 loading-factor-modal"
-				backdropClassName="zindex1280"
 				centered
-				contentClassName="border-0"
-				onHide={() => CloseLoadingModal()}
+				onHide={CloseLoadingModal}
 			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-							Loading Factor
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => CloseLoadingModal()}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-3" style={{ maxHeight: 'calc(100vh - 200px)', overflow: 'visible' }}>
-					<div>
-						<div className="row g-3">
-
-							<div className="col-md-3 ">
-								<label className="pe-field-label">Loading Type</label>
-								<FormControl fullWidth>
-									<Select
-										id="factorType"
-										name="factorType"
-										value={factorType}
-										onChange={(e) => {
-											setFactorType(e?.target?.value)
-										}}
-										error={!!errors.factorType}
-										size="small"
-
-									>
-										<MenuItem value='A'>Absolute</MenuItem>
-										<MenuItem value='P'>Percentage</MenuItem>
-									</Select>
-									{errors.factorType &&
-										<div className="error-message" style={{ color: 'red', fontSize: '12px' }}>
-											{errors.factorType}
-										</div>
-									}
-
-								</FormControl>
-							</div>
-
-							<div className="col-md-3  mt-3">
-								{factorType === 'A' ? (
-									<>
-										<label className="pe-field-label">Loading Amount</label>
-										<TextField
-											id="loadingAmount"
-											name="loadingAmount"
-											variant="outlined"
-											value={loadingAmount}
-											onChange={(e) => {
-												const value = e?.target?.value;
-												const regex = /^-?[0-9]*\.?[0-9]*$/; // allow negative numbers
-												if (regex.test(value)) {
-													setLoadingAmount(value);
-												}
-											}}
-											inputProps={{
-												maxLength: 9,
-												inputMode: 'decimal',
-												pattern: "-?[0-9]*",
-											}}
-											InputProps={{
-												endAdornment: (
-													<InputAdornment style={{ width: 20 }} position="start">
-														{formik?.values?.baseCurrency}
-													</InputAdornment>
-												),
-											}}
-											onKeyDown={(e) => {
-												if (
-													!/[0-9]/.test(e.key) &&
-													e.key !== 'Backspace' &&
-													e.key !== 'ArrowLeft' &&
-													e.key !== 'ArrowRight' &&
-													e.key !== 'Tab' &&
-													e.key !== '-' // allow minus for Absolute
-												) {
-													e.preventDefault();
-												}
-											}}
-											size="small"
-											error={!!errors.loadingAmount}
-											helperText={errors.loadingAmount}
-										/>
-									</>
-								) : (
-									<>
-										<label className="pe-field-label">Loading Percent</label>
-										<TextField
-											id="factorPerc"
-											name="factorPerc"
-											variant="outlined"
-											value={factorPerc}
-											onChange={(e) => {
-												const value = e?.target?.value;
-												const regex = /^[0-9]*\.?[0-9]{0,3}$/; // Allows up to 3 decimal places
-												if (regex.test(value)) {
-													setFactorPerc(value);
-												}
-											}}
-											inputProps={{
-												maxLength: 7, // e.g. 100.000 (6 chars + 1 extra buffer)
-												inputMode: 'decimal',
-												step: '0.001', // for mobile numeric keyboard precision
-												pattern: "[0-9]*\\.?[0-9]{0,3}",
-											}}
-											InputProps={{
-												endAdornment: (
-													<InputAdornment style={{ width: 20 }} position="start">
-														%
-													</InputAdornment>
-												),
-											}}
-											onKeyDown={(e) => {
-												if (
-													!/[0-9]/.test(e.key) &&
-													e.key !== 'Backspace' &&
-													e.key !== 'ArrowLeft' &&
-													e.key !== 'ArrowRight' &&
-													e.key !== 'Tab' &&
-													e.key !== '.' // allow decimal point
-												) {
-													e.preventDefault();
-												}
-											}}
-											onPaste={(e) => {
-												const paste = e.clipboardData.getData('text');
-												const regex = /^[0-9]*\.?[0-9]{0,3}$/;
-												if (!regex.test(paste)) {
-													e.preventDefault();
-												}
-											}}
-											size="small"
-											error={!!errors.factorPerc}
-											helperText={errors.factorPerc}
-										/>
-									</>
-								)}
-							</div>
-
-							<div className="col-md-6">
-								<label className="pe-field-label">Reason Of Loading Factor</label>
-								<TextField
-									id="factorDesc"
-									name="factorDesc"
-									value={factorDesc}
-									variant="outlined"
-									onChange={(e) => {
-										setFactorDesc(e?.target?.value)
-									}}
-									error={!!errors.factorDesc}
-									helperText={errors.factorDesc}
-									size="small"
-								/>
-								<span className="mt-2">
-
-									<button type="button" className="pe-icon-btn pe-icon-btn--add" onClick={handleAddLoadingFactor}>
-										<HiPlus />
-									</button>
-								</span>
-							</div>
-
-
-
-						</div>
-
-						<div className="mt-3" style={{ overflow: 'visible' }}>
-							<table className="loading-factor-table">
-								<thead>
-									<tr>
-										<th>Reason</th>
-										<th>Loading Type</th>
-										<th>Loading Factor</th>
-										<th>Actions</th>
-									</tr>
-								</thead>
-								<tbody>
-									{filteredLoadingFactors?.map((factor, index) => (
-										<tr key={index}>
-											<td>{factor?.factorDesc}</td>
-											<td>{factor.factorType === 'A' ? 'Absolute' : 'Percentage'}</td>
-
-											{/* Conditionally display loadingAmount for Absolute type, and factorPerc for Percentage */}
-											<td>
-												{factor.factorType === 'A'
-													? factor.loadingAmount
-													: `${factor.factorPerc}%`
-												}
-											</td>
-
-											{/* Conditionally display based on loadingOn */}
-											{/* <td>{factor?.loadingOn === 'rfq' ? 'RFQ' : 'Item-Wise'}</td> */}
-
-											<td>
-												<HiOutlineX
-													className="me-2"
-													style={{ color: "#2A68D3", cursor: 'pointer' }}
-													onClick={() => handleDeleteLoadingFactor(index)}
-												/>
-												<HiOutlinePencil
-													style={{ color: "#2A68D3", cursor: 'pointer' }}
-													onClick={() => handleEditLoadingFactor(index)}
-												/>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-							{loadingupdatebtn && filteredLoadingFactors && filteredLoadingFactors?.length >= 0 && <div className="row mt-2">
-								<div className="col-md-12 text-end">
-									<LoadingButton
-
-										variant="contained"
-										type="button"
-										color="primary"
-										className="text-capitalize"
-										size="small"
-										onClick={updateSupplierLoadingFactor}
-									>
-										Update
-									</LoadingButton>
-								</div>
-							</div>}
-
-						</div>
+				<Modal.Body className="p-0 d-flex flex-column">
+					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Loading Factor</span>
+						<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={CloseLoadingModal}>
+							<HiOutlineX />
+						</button>
+					</div>
+					<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+						<LoadingFactor
+							isModal={true}
+							rfqId={idFromURL}
+							version={formik?.values?.Version}
+							vendorId={storeVId}
+							initialFactors={filteredLoadingFactors}
+							baseCurrency={formik?.values?.baseCurrency}
+							onSubmitSuccess={() => { setupdatesupplieronloading(1); setIsUpdated(true); }}
+						/>
 					</div>
 				</Modal.Body>
 			</Modal>
