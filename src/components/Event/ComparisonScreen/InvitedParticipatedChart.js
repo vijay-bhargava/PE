@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Card, CardContent, Typography, Box } from '@mui/material';
-import styles from './ExecutiveSummary.module.css';
+import { Typography, Box } from '@mui/material';
 
 const InvitedParticipatedChart = ({ data }) => {
   const [hoveredBar, setHoveredBar] = useState(null);
-  
+
   // Transform the data for chart
   const chartData = data?.invitedParticipated?.map(item => ({
     version: item.version,
@@ -14,16 +13,14 @@ const InvitedParticipatedChart = ({ data }) => {
 
   if (chartData.length === 0) {
     return (
-      <Card className={styles.chartCard}>
-        <CardContent>
-          <Typography variant="h6" className={styles.chartTitle}>
-            Invited vs Participated Suppliers
-          </Typography>
-          <Box sx={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography color="text.secondary">No data available</Typography>
-          </Box>
-        </CardContent>
-      </Card>
+      <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', mb: 1 }}>
+          Invited vs Participated Suppliers
+        </Typography>
+        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography color="text.secondary">No data available</Typography>
+        </Box>
+      </Box>
     );
   }
 
@@ -36,20 +33,19 @@ const InvitedParticipatedChart = ({ data }) => {
   const groupSpacing = 25;
 
   return (
-    <Card className={styles.chartCard}>
-      <CardContent sx={{ padding: '12px !important', paddingBottom: '12px !important' }}>
-        <Typography variant="h6" className={styles.chartTitle}>
+    <Box sx={{ p: '12px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', mb: 1, flexShrink: 0 }}>
           Invited vs Participated Suppliers
         </Typography>
-        
-        <div className={styles.chartContainer} style={{ overflowX: 'auto' }}>
-          <svg width={chartWidth} height={250} style={{ minWidth: '300px' }}>
+
+        <Box sx={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <svg width="100%" height="100%" viewBox={`0 0 ${chartWidth} 300`} preserveAspectRatio="xMidYMid meet" style={{ minWidth: '280px', display: 'block', flex: 1 }}>
             {/* Y-axis */}
-            <line x1="40" y1="20" x2="40" y2={chartHeight + 20} stroke="#e0e0e0" strokeWidth="1"/>
-            
+            <line x1="40" y1="20" x2="40" y2={chartHeight + 20} stroke="#e0e0e0" strokeWidth="1" />
+
             {/* X-axis */}
-            <line x1="40" y1={chartHeight + 20} x2={chartWidth - 20} y2={chartHeight + 20} stroke="#333" strokeWidth="1"/>
-            
+            <line x1="40" y1={chartHeight + 20} x2={chartWidth - 20} y2={chartHeight + 20} stroke="#333" strokeWidth="1" />
+
             {/* Horizontal grid lines */}
             {(() => {
               const stepSize = maxValue <= 5 ? 1 : Math.ceil(maxValue / 5);
@@ -57,12 +53,12 @@ const InvitedParticipatedChart = ({ data }) => {
               for (let i = stepSize; i <= maxValue; i += stepSize) {
                 const y = chartHeight + 20 - (i / maxValue) * chartHeight;
                 gridLines.push(
-                  <line key={`grid-${i}`} x1="40" y1={y} x2={chartWidth - 20} y2={y} stroke="#f5f5f5" strokeWidth="1"/>
+                  <line key={`grid-${i}`} x1="40" y1={y} x2={chartWidth - 20} y2={y} stroke="#f5f5f5" strokeWidth="1" />
                 );
               }
               return gridLines;
             })()}
-            
+
             {/* Y-axis labels */}
             {(() => {
               const stepSize = maxValue <= 5 ? 1 : Math.ceil(maxValue / 5);
@@ -73,30 +69,30 @@ const InvitedParticipatedChart = ({ data }) => {
               if (yLabels[yLabels.length - 1] !== maxValue) {
                 yLabels.push(maxValue);
               }
-              
+
               return yLabels.map((value, index) => {
                 const y = chartHeight + 20 - (value / maxValue) * chartHeight;
                 return (
                   <g key={`y-label-${value}`}>
-                    <line x1="35" y1={y} x2="40" y2={y} stroke="#e0e0e0" strokeWidth="1"/>
+                    <line x1="35" y1={y} x2="40" y2={y} stroke="#e0e0e0" strokeWidth="1" />
                     <text x="30" y={y + 3} textAnchor="end" fontSize="10" fill="#666">{value}</text>
                   </g>
                 );
               });
             })()}
-            
+
             {/* X-axis tick marks */}
             {chartData.map((item, index) => {
               const x = 60 + index * (barWidth * 2 + barSpacing + groupSpacing);
-              const centerX = x + barWidth + barSpacing/2 + barWidth/2;
+              const centerX = x + barWidth + barSpacing / 2 + barWidth / 2;
               return (
-                <line 
-                  key={`tick-${index}`} 
-                  x1={centerX} 
-                  y1={chartHeight + 20} 
-                  x2={centerX} 
-                  y2={chartHeight + 25} 
-                  stroke="#333" 
+                <line
+                  key={`tick-${index}`}
+                  x1={centerX}
+                  y1={chartHeight + 20}
+                  x2={centerX}
+                  y2={chartHeight + 25}
+                  stroke="#333"
                   strokeWidth="1"
                 />
               );
@@ -107,7 +103,7 @@ const InvitedParticipatedChart = ({ data }) => {
               const x = 60 + index * (barWidth * 2 + barSpacing + groupSpacing);
               const invitedHeight = maxValue > 0 ? (item.invited / maxValue) * chartHeight : 0;
               const participatedHeight = maxValue > 0 ? (item.participated / maxValue) * chartHeight : 0;
-              
+
               return (
                 <g key={`bars-${index}`}>
                   {/* Invited bar */}
@@ -122,7 +118,7 @@ const InvitedParticipatedChart = ({ data }) => {
                     onMouseLeave={() => setHoveredBar(null)}
                     style={{ cursor: 'pointer' }}
                   />
-                  
+
                   {/* Participated bar */}
                   <rect
                     x={x + barWidth + 5}
@@ -135,10 +131,10 @@ const InvitedParticipatedChart = ({ data }) => {
                     onMouseLeave={() => setHoveredBar(null)}
                     style={{ cursor: 'pointer' }}
                   />
-                  
+
                   {/* Version label - centered between the two bars */}
                   <text
-                    x={x + barWidth + barSpacing/2 + barWidth/2}
+                    x={x + barWidth + barSpacing / 2 + barWidth / 2}
                     y={chartHeight + 40}
                     textAnchor="middle"
                     fontSize="12"
@@ -156,7 +152,7 @@ const InvitedParticipatedChart = ({ data }) => {
               const x = 60 + index * (barWidth * 2 + barSpacing + groupSpacing);
               const invitedHeight = maxValue > 0 ? (item.invited / maxValue) * chartHeight : 0;
               const participatedHeight = maxValue > 0 ? (item.participated / maxValue) * chartHeight : 0;
-              
+
               return (
                 <g key={`tooltips-${index}`}>
                   {/* Invited tooltip */}
@@ -168,21 +164,21 @@ const InvitedParticipatedChart = ({ data }) => {
                         const tooltipTextX = tooltipX + tooltipWidth / 2;
                         return (
                           <>
-                            <rect 
-                              x={tooltipX} 
-                              y={Math.max(5, chartHeight + 20 - invitedHeight - 25)} 
-                              width={tooltipWidth} 
-                              height="20" 
-                              fill="rgba(0,0,0,0.9)" 
+                            <rect
+                              x={tooltipX}
+                              y={Math.max(5, chartHeight + 20 - invitedHeight - 25)}
+                              width={tooltipWidth}
+                              height="20"
+                              fill="rgba(0,0,0,0.9)"
                               rx="3"
                               stroke="rgba(255,255,255,0.3)"
                               strokeWidth="0.5"
                             />
-                            <text 
-                              x={tooltipTextX} 
-                              y={Math.max(18, chartHeight + 20 - invitedHeight - 12)} 
-                              textAnchor="middle" 
-                              fontSize="10" 
+                            <text
+                              x={tooltipTextX}
+                              y={Math.max(18, chartHeight + 20 - invitedHeight - 12)}
+                              textAnchor="middle"
+                              fontSize="10"
                               fill="white"
                               fontWeight="500"
                             >
@@ -193,7 +189,7 @@ const InvitedParticipatedChart = ({ data }) => {
                       })()}
                     </g>
                   )}
-                  
+
                   {/* Participated tooltip */}
                   {hoveredBar === `participated-${index}` && (
                     <g>
@@ -204,21 +200,21 @@ const InvitedParticipatedChart = ({ data }) => {
                         const tooltipTextX = tooltipX + tooltipWidth / 2;
                         return (
                           <>
-                            <rect 
-                              x={tooltipX} 
-                              y={Math.max(5, chartHeight + 20 - participatedHeight - 25)} 
-                              width={tooltipWidth} 
-                              height="20" 
-                              fill="rgba(0,0,0,0.9)" 
+                            <rect
+                              x={tooltipX}
+                              y={Math.max(5, chartHeight + 20 - participatedHeight - 25)}
+                              width={tooltipWidth}
+                              height="20"
+                              fill="rgba(0,0,0,0.9)"
                               rx="3"
                               stroke="rgba(255,255,255,0.3)"
                               strokeWidth="0.5"
                             />
-                            <text 
-                              x={tooltipTextX} 
-                              y={Math.max(18, chartHeight + 20 - participatedHeight - 12)} 
-                              textAnchor="middle" 
-                              fontSize="10" 
+                            <text
+                              x={tooltipTextX}
+                              y={Math.max(18, chartHeight + 20 - participatedHeight - 12)}
+                              textAnchor="middle"
+                              fontSize="10"
                               fill="white"
                               fontWeight="500"
                             >
@@ -233,9 +229,9 @@ const InvitedParticipatedChart = ({ data }) => {
               );
             })}
           </svg>
-          
+
           {/* Legend */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px', fontSize: '11px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px', fontSize: '11px', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', marginRight: '15px' }}>
               <div style={{ width: '12px', height: '12px', backgroundColor: '#2196F3', marginRight: '5px', borderRadius: '2px' }}></div>
               Invited
@@ -245,9 +241,8 @@ const InvitedParticipatedChart = ({ data }) => {
               Participated
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </Box>
+    </Box>
   );
 };
 

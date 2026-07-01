@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardContent, Typography, Box } from '@mui/material';
-import styles from './ExecutiveSummary.module.css';
+import { Typography, Box } from '@mui/material';
 
 const SavingsLineChart = ({ data }) => {
   const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -29,16 +28,14 @@ const SavingsLineChart = ({ data }) => {
 
   if (chartData.length === 0 || chartData.every(item => item.comparePriceLabel === 'No Price Available')) {
     return (
-      <Card className={styles.chartCard}>
-        <CardContent>
-          <Typography variant="h6" className={styles.chartTitle}>
-            Savings Trend Analysis
-          </Typography>
-          <Box sx={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography color="text.secondary">No savings data available</Typography>
-          </Box>
-        </CardContent>
-      </Card>
+      <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', mb: 1 }}>
+          Savings Trend Analysis
+        </Typography>
+        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography color="text.secondary">No savings data available</Typography>
+        </Box>
+      </Box>
     );
   }
 
@@ -113,14 +110,12 @@ const SavingsLineChart = ({ data }) => {
   };
 
   return (
-    <Card className={styles.chartCard}>
-      <CardContent sx={{ padding: '12px !important', paddingBottom: '12px !important' }}>
-        <Typography variant="h6" className={styles.chartTitle}>
+    <Box sx={{ p: '12px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', mb: 1, flexShrink: 0 }}>
           Savings Trend Analysis
         </Typography>
-        
-        <div className={styles.chartContainer} style={{ overflowX: 'auto' }}>
-          <svg width={chartWidth} height={270} style={{ minWidth: '350px' }}>
+        <Box sx={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <svg width="100%" height="100%" viewBox={`0 0 ${chartWidth} 270`} preserveAspectRatio="xMidYMid meet" style={{ minWidth: '280px', display: 'block', flex: 1 }}>
             {/* Y-axis */}
             <line x1={leftMargin} y1="20" x2={leftMargin} y2={chartHeight + 20} stroke="#e0e0e0" strokeWidth="1"/>
             
@@ -252,15 +247,14 @@ const SavingsLineChart = ({ data }) => {
           </svg>
           
           {/* Legend */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px', fontSize: '11px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px', fontSize: '11px', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ width: '20px', height: '3px', backgroundColor: '#FF9800', marginRight: '5px', borderRadius: '2px' }}></div>
               Savings Amount
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </Box>
+    </Box>
   );
 };
 

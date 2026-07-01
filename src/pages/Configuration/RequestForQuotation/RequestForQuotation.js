@@ -255,6 +255,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 		//getRoles(newValue);
 		setValue(newValue);
+		if (newValue != 6 && newValue != "6") setRfqActionsPortalReady(false);
 		if (newValue == "6") {
 			// if (tabshow)
 			// 	setTabShow(false)
@@ -2766,8 +2767,11 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 
 	// loading factor modal state
+	const [supplierRowMenuAnchor, setSupplierRowMenuAnchor] = useState(null); // { el, vendor }
 	const [storeVId, setStoreVId] = useState('');
 	const [filteredLoadingFactors, setFilteredLoadingFactors] = useState([]);
+	const rfqReportActionsRef = useRef(null);
+	const [rfqActionsPortalReady, setRfqActionsPortalReady] = useState(false);
 	const [isUpdated, setIsUpdated] = useState(false);
 	const [approvershow, setApproverShow] = useState(true);
 	const handleApprover = (booleanvalue) => setApproverShow(booleanvalue);
@@ -4288,6 +4292,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								</div>
 							)}
 
+							{value === 6 && <div ref={(el) => { rfqReportActionsRef.current = el; if (el && !rfqActionsPortalReady) setRfqActionsPortalReady(true); }} style={{ display: 'flex', alignItems: 'center' }} />}
+
 							{/* Top-right icons: History, Attachment, and Approval */}
 							{/* <div className="d-flex align-items-center gap-2"> */}
 							<div className="d-flex align-items-center gap-2 rfq-dv2-tab-actions" aria-hidden="true">
@@ -5421,32 +5427,32 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 																				<span>{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}</span>
 																			</div>
 																			<div className="sup-row-actions">
-																				<DropdownButton
-																					as={"div"}
-																					key={"end7"}
-																					id={`myacccmenu`}
-																					className="supplieraccmenu sup-action-btn"
-																					drop={"start"}
-																					variant="outlined"
-																					title={
-																						<Tooltip title={"Action"}>
-																							<HiDotsHorizontal style={{ fontSize: 16, color: '#374151' }} />
-																						</Tooltip>
-																					}
+																				<Tooltip title="Action">
+																					<IconButton
+																						size="small"
+																						className="sup-action-btn"
+																						onClick={(e) => setSupplierRowMenuAnchor({ el: e.currentTarget, vendor: x })}
+																					>
+																						<HiDotsHorizontal style={{ fontSize: 16, color: '#374151' }} />
+																					</IconButton>
+																				</Tooltip>
+																				<Menu
+																					anchorEl={supplierRowMenuAnchor?.vendor === x ? supplierRowMenuAnchor?.el : null}
+																					open={supplierRowMenuAnchor?.vendor === x && Boolean(supplierRowMenuAnchor?.el)}
+																					onClose={() => setSupplierRowMenuAnchor(null)}
+																					sx={{ maxWidth: 500 }}
 																				>
-																					<div className="shadow rounded min-width-200px">
-																						{x.id != 0 && (
-																							<MenuItem className="f12 fw500" onClick={() => handleLoadingFactorClick(x, i)}>
-																								Loading Factor
-																							</MenuItem>
-																						)}
-																						{!stagearray.includes(currentStage) && (
-																							<MenuItem className="f12 fw500" onClick={() => handleSupplierAction(x, 'Reopen')}>
-																								Re-Open Quote
-																							</MenuItem>
-																						)}
-																					</div>
-																				</DropdownButton>
+																					{x.id != 0 && (
+																						<MenuItem className="f12 fw500" onClick={() => { setSupplierRowMenuAnchor(null); handleLoadingFactorClick(x, i); }}>
+																							Loading Factor
+																						</MenuItem>
+																					)}
+																					{!stagearray.includes(currentStage) && (
+																						<MenuItem className="f12 fw500" onClick={() => { setSupplierRowMenuAnchor(null); handleSupplierAction(x, 'Reopen'); }}>
+																							Re-Open Quote
+																						</MenuItem>
+																					)}
+																				</Menu>
 																				{stagearray.includes(currentStage) && (() => {
 																					const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
 																					return (
@@ -5526,7 +5532,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 							}
 							{value == 6 && idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL)) &&
 
-								<ERFQComparative key={"ERFQComparative"} accessLevel={accessLevel} handleTab={handleTab}
+								<ERFQComparative key={"ERFQComparative"} accessLevel={accessLevel} handleTab={handleTab} headerActionsRef={rfqActionsPortalReady ? rfqReportActionsRef : null}
 
 									actions={{
 										rfqid: idFromURL,
