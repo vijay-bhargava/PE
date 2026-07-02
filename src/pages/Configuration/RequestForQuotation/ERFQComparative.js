@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import ReactDOM from "react-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -35,7 +35,7 @@ import {
 	KeyboardDoubleArrowLeft,
 	PushPinOutlined,
 } from "@mui/icons-material";
-import { InputAdornment, TextField } from "@mui/material"
+import { InputAdornment, TextField, Dialog } from "@mui/material"
 import {
 	HiChevronDown,
 	HiDotsVertical,
@@ -59,6 +59,7 @@ import {
 	renderHtmlAsText,
 } from "../../../utils/common/utility";
 import { GrAttachment } from "react-icons/gr";
+import { MdOutlineOpenInFull, MdCloseFullscreen } from "react-icons/md";
 import RFQSummary from "./RFQSummary";
 import { FastApiClient } from "../../../FastApiClient";
 import SupplierAttachmentCell from "./SupplierAttachmentCell";
@@ -84,7 +85,9 @@ import LockIcon from "@mui/icons-material/Lock";
 import styles from '../../../components/Event/ComparisonScreen/ExecutiveSummary.module.css';
 import { CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
 import { parse } from "date-fns";
-const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef }) => {
+import TechnicalComparisonMaximizeView from './TechnicalComparisonMaximizeView';
+import ApprovalConfirmDialog from '../../../components/RFQ/ApprovalConfirmDialog';
+const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, onSubTabChange }) => {
 
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -617,9 +620,11 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef }) 
 		setState({ ...state, [anchor]: open });
 	};
 
-	const handleApprovalActivity = (supplier) => {
+	const handleApprovalActivity = (supplier, action) => {
 		setState({ ...state, ["openInvoiceApproved"]: true });
-		formik_ApproveReject.setFieldValue("vendorId", supplier?.id);
+		formik_ApproveReject.setFieldValue("vendorId", supplier?.id || supplier?.vendorId);
+		if (action === 'Approve') formik_ApproveReject.setFieldValue("status", "Approved");
+		if (action === 'Reject') formik_ApproveReject.setFieldValue("status", "Rejected");
 	}
 
 
@@ -2891,7 +2896,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef }) 
 				toast.success("Score Updated Successfully", {
 					toastId: "rvqsuc"
 				});
-				fetchTechnicalComparisonData();
+				fetchTechnicalComparisonData(version);
 			}
 		}
 	}
@@ -2914,9 +2919,15 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef }) 
 
 
 	const [activeTab, setActiveTab] = useState(0);
+	const [isMaximized, setIsMaximized] = useState(false);
+	const [techScoreDirty, setTechScoreDirty] = useState(false);
+	const techUpdateRef = useRef(null);
+	const techResetRef = useRef(null);
+
 	// Handle tab change
 	const handleTabChange = (event, newValue) => {
 		setActiveTab(newValue);
+		onSubTabChange?.(newValue);
 		// Fetch RFQ Summary data when Executive Summary tab (index 0) is clicked
 		if (newValue === 0 && !isLoadingGeneralData && (actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "Y" || actions.rfqtype != "closed")) {
 			fetchGeneralData();
@@ -3072,6 +3083,9 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef }) 
 					handleSupplierModalOpen={handleSupplierModalOpen}
 					isNFA={actions.isNFA}
 					currentStage={actions.currentStage}
+					onScoreDirtyChange={setTechScoreDirty}
+					updateScoreRef={techUpdateRef}
+					resetScoreRef={techResetRef}
 				/>;
 			default:
 				const canReadSummaryDefault = actions.permissionManager?.hasPermission(CLAIM_TYPES.RFQ_SUMMARY, ACTIONS.READ) ?? false;
@@ -3292,6 +3306,39 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef }) 
 							label={<span className="section-heading">Technical Comparison</span>}
 						/>
 					</Tabs>
+					{activeTab === 3 && !actions.isNFA && (
+						<Box sx={{ display: 'flex', gap: 1, px: 1, alignItems: 'center', flexShrink: 0 }}>
+							<Button
+								size="small"
+								variant="outlined"
+								color="primary"
+								disabled={!techScoreDirty}
+								onClick={() => techResetRef.current?.()}
+								sx={{ fontSize: '12px', textTransform: 'none', height: '30px' }}
+							>
+								Reset Score
+							</Button>
+							<Button
+								size="small"
+								variant="contained"
+								color="primary"
+								disabled={!techScoreDirty}
+								onClick={() => techUpdateRef.current?.()}
+								sx={{ fontSize: '12px', textTransform: 'none', height: '30px' }}
+							>
+								Update Score
+							</Button>
+						</Box>
+					)}
+					<button
+						type="button"
+						className="pe-icon-btn"
+						title="Maximize"
+						onClick={() => setIsMaximized(true)}
+						style={{ marginLeft: '4px', marginRight: '4px', flexShrink: 0 }}
+					>
+						<MdOutlineOpenInFull style={{ fontSize: '14px' }} />
+					</button>
 				</Box>
 
 				{/* Tab Content */}
@@ -3310,6 +3357,21 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef }) 
 					{renderTabContent()}
 				</Box>
 			</Box>
+
+			{/* ── Maximize / Full-screen Dialog ── */}
+			<TechnicalComparisonMaximizeView
+				open={isMaximized}
+				onClose={() => setIsMaximized(false)}
+				rfqCode={rfqheaderdetails?.[0]?.eventCode || `RFQ-${pageSlug}`}
+				activeTab={activeTab}
+				onTabChange={handleTabChange}
+				actions={actions}
+				techScoreDirty={techScoreDirty}
+				techResetRef={techResetRef}
+				techUpdateRef={techUpdateRef}
+				renderTabContent={renderTabContent}
+			/>
+
 			<>
 				{/* {PO modal} */}
 				<Modal
@@ -3381,6 +3443,17 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef }) 
 						</div>
 					</Modal.Body>
 				</Modal>
+				{/* Technical approval confirmation dialog */}
+				<ApprovalConfirmDialog
+					open={state["openInvoiceApproved"]}
+					onClose={toggleDrawer("openInvoiceApproved", false, [])}
+					onSubmit={formik_ApproveReject.handleSubmit}
+					status={formik_ApproveReject.values?.status}
+					stageName="Technical Approval"
+					comment={formik_ApproveReject.values?.approveComment}
+					onCommentChange={(val) => formik_ApproveReject.setFieldValue("approveComment", val)}
+					zIndex={1500}
+				/>
 				{/* Approval Drawer — old flow, replaced by new Dialog popup in RequestForQuotation.js */}
 				{/* <React.Fragment key="key4">
 					<Drawer anchor="right" open={state["openInvoiceApproved"]}>

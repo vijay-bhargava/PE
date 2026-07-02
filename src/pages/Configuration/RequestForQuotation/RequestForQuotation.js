@@ -13,6 +13,7 @@ import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 
 // Permission Management Imports
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
+import ApprovalConfirmDialog from '../../../components/RFQ/ApprovalConfirmDialog';
 import {
 	Alert, Card,
 	CardHeader,
@@ -2772,6 +2773,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const [filteredLoadingFactors, setFilteredLoadingFactors] = useState([]);
 	const rfqReportActionsRef = useRef(null);
 	const [rfqActionsPortalReady, setRfqActionsPortalReady] = useState(false);
+	const [erfqActiveSubTab, setErfqActiveSubTab] = useState(0);
 	const [isUpdated, setIsUpdated] = useState(false);
 	const [approvershow, setApproverShow] = useState(true);
 	const handleApprover = (booleanvalue) => setApproverShow(booleanvalue);
@@ -3061,13 +3063,22 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		if (stagelist && stagelist.length > 0) {
 			return;
 		}
+		// pageSlug is synchronously available from useParams() at mount time.
+		// idFromURL cannot be used here because it starts as null and is set via
+		// setIdFromURL() inside another useEffect — so it's always null when this runs.
+		// When an existing RFQ is open, the [idFromURL] effect fetches event-specific stages.
+		// Running this generic (EventId: 0) call in parallel races and can overwrite the
+		// correct stagelist with template stages, causing wrong stage display in both the
+		// status dropdown and workflow panel (EventApprovalBox also receives stagelist).
+		if (pageSlug && pageSlug !== 'add') {
+			return;
+		}
 		const urlparams = {
 			EventType: "RFQ",
 			CustomerId: customerid,
 			EventId: 0,
 			OrgId: 0,
 			OrgGroupId: 0,
-
 		}
 		getEventStages(urlparams);
 	}, [])
@@ -5532,8 +5543,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 							}
 							{value == 6 && idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL)) &&
 
-								<ERFQComparative key={"ERFQComparative"} accessLevel={accessLevel} handleTab={handleTab} headerActionsRef={rfqActionsPortalReady ? rfqReportActionsRef : null}
-
+								<ERFQComparative
+									key={"ERFQComparative"}
+									accessLevel={accessLevel}
+									handleTab={handleTab}
+									headerActionsRef={rfqActionsPortalReady ? rfqReportActionsRef : null}
+									onSubTabChange={setErfqActiveSubTab}
 									actions={{
 										rfqid: idFromURL,
 										categoryList: categoryList,
@@ -5825,7 +5840,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 							</div>
 						</div>
 						{/* Approve/Reject/Forward action panel — only when URL has ActionType param (same as prod) */}
-						{workflowPanelTab === "workflow" && (actionType === "approval" || actionType === "Forward") && (
+						{/* Hidden on Technical Comparison sub-tab (erfqActiveSubTab===3) because that tab has inline Approve/Reject per vendor */}
+						{workflowPanelTab === "workflow" && (actionType === "approval" || actionType === "Forward") && erfqActiveSubTab !== 3 && (
 							<div className="rfq-dv2-workflow-action-panel">
 								<div className="rfq-dv2-workflow-alert">
 									<PiWarningDiamondFill className="rfq-dv2-workflow-alert-icon" />
@@ -6307,106 +6323,15 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			</React.Fragment>
 			<React.Fragment key="key4">
 
-				<Dialog
+				<ApprovalConfirmDialog
 					open={state["openInvoiceApproved"]}
 					onClose={toggleDrawer("openInvoiceApproved", false, [])}
-					maxWidth={false}
-					PaperProps={{ className: "rfq-dv2-approval-modal" }}
-					BackdropProps={{ className: "rfq-dv2-approval-backdrop" }}
-				>
-					<form onSubmit={formik_ApproveReject.handleSubmit} autoComplete="off">
-						<div className="rfq-dv2-approval-modal-head">
-							<h3>
-								{formik_ApproveReject.values?.status === "Rejected"
-									? "Reject this stage?"
-									: formik_ApproveReject.values?.status === "Forward"
-										? "Forward for Approval"
-										: "Approve this stage?"}
-							</h3>
-							<button
-								type="button"
-								className="pe-icon-btn pe-icon-btn--close rfq-dv2-approval-close"
-								aria-label="Close approval action"
-								onClick={toggleDrawer("openInvoiceApproved", false, [])}
-							>
-								<HiOutlineX />
-							</button>
-						</div>
-						<div className="rfq-dv2-approval-modal-body">
-							<div
-								className={`rfq-dv2-approval-message ${formik_ApproveReject.values?.status === "Rejected" ? "is-reject" : ""}`}
-							>
-								{formik_ApproveReject.values?.status === "Rejected" ? (
-									<>
-										You're rejecting <strong>{normalizedCurrentStage}</strong>. The RFQ will remain in this stage until the rejection is handled.
-									</>
-								) : formik_ApproveReject.values?.status === "Forward" ? (
-									<>
-										You're forwarding <strong>{normalizedCurrentStage}</strong> for approval. The assigned approver will be notified.
-									</>
-								) : (
-									<>
-										You're approving <strong>{normalizedCurrentStage}</strong>. The RFQ will move to the next stage once all approvers in this stage approve.
-									</>
-								)}
-							</div>
-							<div className="rfq-dv2-approval-field">
-								<label htmlFor="approveComment">Comment (optional)</label>
-								<TextField
-									id="approveComment"
-									multiline
-									rows={1}
-									name="approveComment"
-									fullWidth
-									variant="outlined"
-									placeholder={
-										formik_ApproveReject.values?.status === "Rejected"
-											? "Add the reason for rejection."
-											: formik_ApproveReject.values?.status === "Forward"
-												? "Add a note for the forwarding."
-												: "Add a note for the approval."
-									}
-									inputProps={{ maxLength: 200 }}
-									value={formik_ApproveReject?.values?.approveComment}
-									onChange={(e) =>
-										formik_ApproveReject.setFieldValue(
-											"approveComment",
-											e.target.value
-										)
-									}
-									InputProps={{
-										endAdornment: formik_ApproveReject?.values?.approveComment && (
-											<InputAdornment position="end">
-												<Typography variant="body2" color="textSecondary">
-													{formik_ApproveReject?.values?.approveComment?.length}/200
-												</Typography>
-											</InputAdornment>
-										),
-									}}
-								/>
-							</div>
-						</div>
-						<div className="rfq-dv2-approval-modal-actions">
-							<button
-								type="button"
-								className="pe-btn pe-btn--ghost"
-								onClick={toggleDrawer("openInvoiceApproved", false, [])}
-							>
-								Cancel
-							</button>
-							<button
-								type="submit"
-								className={`pe-btn pe-btn--primary ${formik_ApproveReject.values?.status === "Rejected" ? "is-reject" : ""}`}
-							>
-								{formik_ApproveReject.values?.status === "Rejected"
-									? "Submit rejection"
-									: formik_ApproveReject.values?.status === "Forward"
-										? "Forward"
-										: "Submit approval"}
-							</button>
-						</div>
-					</form>
-				</Dialog>
+					onSubmit={formik_ApproveReject.handleSubmit}
+					status={formik_ApproveReject.values?.status}
+					stageName={normalizedCurrentStage}
+					comment={formik_ApproveReject.values?.approveComment}
+					onCommentChange={(val) => formik_ApproveReject.setFieldValue("approveComment", val)}
+				/>
 			</React.Fragment>
 
 			<Dialog open={confirmDelete} onClose={handleCloseDelete}>

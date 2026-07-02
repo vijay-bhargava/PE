@@ -160,18 +160,18 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                                     </div>
                                   )}
                                 </div>
-                                {approver.status !== 'Pending' && (
-                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                                    {onDelete && (
-                                      <button
-                                        type="button"
-                                        className="pe-icon-btn pe-icon-btn--delete"
-                                        onClick={() => handleDeleteApprover(approver)}
-                                        aria-label="Remove approver"
-                                      >
-                                        <HiX />
-                                      </button>
-                                    )}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                                  {!approver.status && onDelete && (
+                                    <button
+                                      type="button"
+                                      className="pe-icon-btn pe-icon-btn--delete"
+                                      onClick={() => handleDeleteApprover(approver)}
+                                      aria-label="Remove approver"
+                                    >
+                                      <HiX />
+                                    </button>
+                                  )}
+                                  {approver.status === 'Pending' && actionType !== 'approval' && (
                                     <Tooltip title="Send Reminder" placement="left">
                                       <button
                                         type="button"
@@ -184,8 +184,8 @@ const CustomTable = ({ data, onDelete, accessLevel, stagelist, eventCode, eventS
                                         </svg>
                                       </button>
                                     </Tooltip>
-                                  </div>
-                                )}
+                                  )}
+                                </div>
                               </div>
                             );
                           }

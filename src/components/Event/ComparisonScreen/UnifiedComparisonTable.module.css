@@ -150,7 +150,6 @@
   padding: 10px !important;
   background: #ddefff !important;
   border-right: 1px solid #d6dae1 !important;
-  border-bottom: 5px solid #2082DB !important;
 }
 
 .vendorCard {
@@ -417,16 +416,6 @@
   border-bottom: 1px solid #e5e7eb !important;
 }
 
-.termName {
-  font-size: 12px !important;
-  color: #6b7280 !important;
-}
-
-.termValue {
-  font-size: 12px !important;
-  font-weight: 600 !important;
-}
-
 /* =========================
    PAGINATION
 ========================= */
@@ -658,12 +647,6 @@
   min-width: 28px;
 }
 
-.termName {
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  color: #666666 !important;
-}
-
 .packageSpacer {
   width: 28px;
   height: 28px;
@@ -832,9 +815,9 @@
 }
 
 .termName {
-  font-size: 11px !important;
-  color: #666666 !important;
-  font-weight: 500 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #171717 !important;
 }
 
 .termValue {
@@ -895,9 +878,9 @@
 }
 
 .termRemarks {
-  font-size: 9px !important;
-  color: #888888 !important;
-  font-style: italic !important;
+  font-size: 11px !important;
+  color: #959595 !important;
+  font-weight: 500 !important;
 }
 
 .commercialTermContainer {
