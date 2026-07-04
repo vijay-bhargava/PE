@@ -55,11 +55,6 @@ const ExecutiveSummary = ({ data }) => {
                 {rfqInfo.subject || ''}
               </Typography>
             </div>
-            <Chip
-              label={rfqInfo.stage || 'N/A'}
-              size="small"
-              className={styles.statusBadge}
-            />
           </div>
 
           {/* Row 2: meta items — fixed horizontal row */}

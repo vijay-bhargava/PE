@@ -203,11 +203,6 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
               {vendors.map((vendor, index) => (
                 <TableCell key={vendor.id} className={styles.vendorHeaderCell}>
                   <div className={styles.vendorCard}>
-                    {vendor.commercialRanking && (
-                      <div className={`${styles.rankBadge} ${getRankClass(vendor.commercialRanking)}`}>
-                        {vendor.commercialRanking}
-                      </div>
-                    )}
                     <div className={styles.vendorLabel}>VENDOR {String(index + 1).padStart(2, '0')}</div>
                     <Typography
                       className={styles.vendorNameNew}
@@ -392,14 +387,14 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
                             <Chip
                               icon={
                                 status === 'Approved' ? <MdOutlineCheck style={{ fontSize: '16px' }} /> :
-                                status === 'Rejected' ? <MdClose style={{ fontSize: '16px' }} /> :
-                                <FaRegCircleDot style={{ fontSize: '12px' }} />
+                                  status === 'Rejected' ? <MdClose style={{ fontSize: '16px' }} /> :
+                                    <FaRegCircleDot style={{ fontSize: '12px' }} />
                               }
                               label={status === 'Approved' ? 'Approved' : status === 'Rejected' ? 'Rejected' : 'Pending'}
                               size="small"
                               variant={effectivelyPending ? 'outlined' : 'filled'}
                               color={status === 'Rejected' ? 'error' : effectivelyPending ? 'default' : 'primary'}
-                              sx={{ fontSize: '10px', height: '22px', width: 'fit-content', fontWeight: 700, padding: "10px", borderRadius:"6px" }}
+                              sx={{ fontSize: '10px', height: '22px', width: 'fit-content', fontWeight: 700, padding: "10px", borderRadius: "6px" }}
                             />
                           ) : (
                             <Typography variant="caption" color="text.secondary">-</Typography>

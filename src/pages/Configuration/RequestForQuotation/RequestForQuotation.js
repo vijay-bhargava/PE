@@ -5840,8 +5840,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 							</div>
 						</div>
 						{/* Approve/Reject/Forward action panel — only when URL has ActionType param (same as prod) */}
-						{/* Hidden on Technical Comparison sub-tab (erfqActiveSubTab===3) because that tab has inline Approve/Reject per vendor */}
-						{workflowPanelTab === "workflow" && (actionType === "approval" || actionType === "Forward") && erfqActiveSubTab !== 3 && (
+						{/* Hidden when stage is Technical Approval — that stage uses inline per-vendor Approve/Reject in Technical Comparison tab */}
+						{workflowPanelTab === "workflow" && (actionType === "approval" || actionType === "Forward") && currentStage !== 'Technical Approval' && (
 							<div className="rfq-dv2-workflow-action-panel">
 								<div className="rfq-dv2-workflow-alert">
 									<PiWarningDiamondFill className="rfq-dv2-workflow-alert-icon" />
@@ -6190,137 +6190,74 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					</Box>
 				</Drawer>
 			</React.Fragment>
-			<React.Fragment key="setSurrogate">
-				<Drawer
-					anchor="right"
-					open={state["surrogateDrawer"]}
-				>
-					<Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-						<div className="flex flex-col">
-							<Box className="bgheaderCards">
-								<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-									<div className="ms-3 text-white">{selectedAction}</div>
-									<div>
-										<IconButton
-											onClick={toggleDrawer("surrogateDrawer", false)}
-											size="small"
-											edge="start"
-											sx={{ mr: 1 }}
-										>
-											<HiOutlineX className="f20 text-white" />
-										</IconButton>
+			{state["surrogateDrawer"] && (
+				<div className="rfq-v2-event-drawer-backdrop" onClick={toggleDrawer("surrogateDrawer", false)}>
+					<section className="rfq-v2-event-drawer" onClick={e => e.stopPropagation()}>
+						<header className="rfq-v2-event-drawer-header">
+							<h2 className="rfq-v2-event-drawer-title">{selectedAction}</h2>
+							<div className="rfq-v2-event-drawer-actions">
+								<button type="button" className="pe-btn pe-btn--ghost" onClick={toggleDrawer("surrogateDrawer", false)}>Cancel</button>
+								<button type="button" className="pe-btn pe-btn--secondary" onClick={() => formik_Action.resetForm()}>Reset</button>
+								<button type="submit" form="surrogate-action-form" className="pe-btn pe-btn--primary">Submit</button>
+							</div>
+						</header>
+						<div className="rfq-v2-event-drawer-body">
+							<form id="surrogate-action-form" onSubmit={formik_Action.handleSubmit} autoComplete="off">
+								<div className="row">
+									<div className="col-12 mb-4">
+										<label className="pe-field-label">Supplier <span className="rfq-required-star">*</span></label>
+										<TextField
+											fullWidth size="small" variant="outlined" id="supplierselected" name="supplierselected"
+											value={`${formik_Action.values.supplier?.contactPerson} | ${formik_Action.values.supplier?.emailId} | ${formik_Action.values.supplier?.companyName}`}
+											disabled className="f14" autoComplete="off"
+										/>
+									</div>
+									{selectedAction === "Surrogate RFQ" && (
+										<>
+											<div className="col-12 col-md-6 mb-4">
+												<label className="pe-field-label">Surrogator Name</label>
+												<TextField
+													fullWidth size="small" variant="outlined"
+													id="name" name="name" className="f14" autoComplete="off"
+													inputProps={{ maxLength: 100 }}
+													value={formik_Action.values.name}
+													onChange={(e) => formik_Action.setFieldValue("name", e.target?.value)}
+													error={formik_Action.touched.name && Boolean(formik_Action.errors.name)}
+													helperText={formik_Action.touched.name && formik_Action.errors.name}
+												/>
+											</div>
+											<div className="col-12 col-md-6 mb-4">
+												<label className="pe-field-label">Surrogator Email <span className="rfq-required-star">*</span></label>
+												<TextField
+													fullWidth size="small" variant="outlined"
+													id="email" name="email" className="f14" autoComplete="off"
+													inputProps={{ maxLength: 100 }}
+													value={formik_Action.values.email}
+													onChange={(e) => formik_Action.setFieldValue("email", e.target?.value)}
+													error={formik_Action.touched.email && Boolean(formik_Action.errors.email)}
+													helperText={formik_Action.touched.email && formik_Action.errors.email}
+												/>
+											</div>
+										</>
+									)}
+									<div className="col-12 mb-4">
+										<label className="pe-field-label">Remark</label>
+										<TextField
+											fullWidth size="small" variant="outlined" multiline rows={4}
+											id="Reason" name="Reason" className="f14" autoComplete="off"
+											inputProps={{ maxLength: 200 }}
+											value={formik_Action.values.Reason}
+											onChange={(e) => formik_Action.setFieldValue("Reason", e.target?.value)}
+											error={formik_Action.touched.Reason && Boolean(formik_Action.errors.Reason)}
+											helperText={formik_Action.touched.Reason && formik_Action.errors.Reason}
+										/>
 									</div>
 								</div>
-							</Box>
-							<div className="h50px"></div>
-
-							<Box sx={{ flexGrow: 1, p: 2, mt: 2 }}>
-								<form onSubmit={formik_Action.handleSubmit} autoComplete="off">
-									<div className="row mt-2">
-										<div className="col-12 col-md-12 mb-4">
-											<label className="pe-field-label">Supplier <span className="rfq-required-star">*</span></label>
-											<TextField
-												fullWidth size="small" variant="outlined" id="supplierselected" name="supplierselected"
-												value={`${formik_Action.values.supplier?.contactPerson} | ${formik_Action.values.supplier?.emailId} | ${formik_Action.values.supplier?.companyName}`}
-												disabled className="f14" autoComplete="off"
-											/>
-										</div>
-										{selectedAction == "Surrogate RFQ" &&
-											<>
-												<div className="col-12 col-md-6 mb-4">
-													<label className="pe-field-label">Surrogator Name</label>
-													<TextField
-														fullWidth size="small" variant="outlined"
-														id="name" name="name" className="f14" autoComplete="off"
-														inputProps={{ maxLength: 100 }}
-														value={formik_Action.values.name}
-														onChange={(e) => formik_Action.setFieldValue("name", e.target?.value)}
-														error={formik_Action.touched.name && Boolean(formik_Action.errors.name)}
-														helperText={formik_Action.touched.name && formik_Action.errors.name}
-														InputProps={{
-															endAdornment: formik_Action.values.name && (
-																<InputAdornment position="end">
-																	<Typography variant="body2" color="textSecondary">
-																		{formik_Action.values?.name?.length}/200
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-													/>
-												</div>
-												<div className="col-12 col-md-6 mb-4">
-													<label className="pe-field-label">Surrogator Email <span className="rfq-required-star">*</span></label>
-													<TextField
-														fullWidth size="small" variant="outlined"
-														id="email" name="email" className="f14" autoComplete="off"
-														inputProps={{ maxLength: 100 }}
-														value={formik_Action.values.email}
-														onChange={(e) => formik_Action.setFieldValue("email", e.target?.value)}
-														error={formik_Action.touched.email && Boolean(formik_Action.errors.email)}
-														helperText={formik_Action.touched.email && formik_Action.errors.email}
-														InputProps={{
-															endAdornment: formik_Action.values.email && (
-																<InputAdornment position="end">
-																	<Typography variant="body2" color="textSecondary">
-																		{formik_Action.values?.email?.length}/200
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-													/>
-												</div>
-											</>
-										}
-										<div className="col-12 col-md-12 mb-4">
-											<label className="pe-field-label">Remark</label>
-											<TextField
-												fullWidth size="small" variant="outlined" multiline rows={3}
-												id="Reason" name="Reason" className="f14" autoComplete="off"
-												inputProps={{ maxLength: 200 }}
-												value={formik_Action.values.Reason}
-												onChange={(e) => formik_Action.setFieldValue("Reason", e.target?.value)}
-												error={formik_Action.touched.Reason && Boolean(formik_Action.errors.Reason)}
-												helperText={formik_Action.touched.Reason && formik_Action.errors.Reason}
-												InputProps={{
-													endAdornment: formik_Action.values.Reason && (
-														<InputAdornment position="end">
-															<Typography variant="body2" color="textSecondary">
-																{formik_Action.values?.Reason?.length}/200
-															</Typography>
-														</InputAdornment>
-													),
-												}}
-											/>
-										</div>
-									</div>
-									<hr className="mt-0" />
-
-									<div className="text-end">
-										<LoadingButton
-											variant="outlined"
-											color="primary"
-											className="me-3 text-capitalize"
-											size="small"
-										>
-											Reset
-										</LoadingButton>
-										<LoadingButton
-											variant="contained"
-											type="submit"
-											color="primary"
-											className="text-capitalize"
-											size="small"
-										>
-											Submit
-										</LoadingButton>
-									</div>
-								</form>
-							</Box>
-
+							</form>
 						</div>
-					</Box>
-				</Drawer>
-			</React.Fragment>
+					</section>
+				</div>
+			)}
 			<React.Fragment key="key4">
 
 				<ApprovalConfirmDialog
@@ -6456,34 +6393,46 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					</div>
 				</Modal.Body>
 			</Modal>
-			<Dialog open={open} onClose={handleClose}>
-				<DialogTitle className="pb-0 f14">Save As</DialogTitle>
-				<DialogContent className="pb-0">
-					<DialogContentText style={{ width: "320px" }}>
-						&nbsp;
-					</DialogContentText>
-					<label className="pe-field-label">RFQ Template Title</label>
-					<TextField
-						fullWidth size="small" variant="outlined"
-						id="password" name="password" className="f14" autoComplete="off"
-						inputProps={{ maxLength: 100 }}
-						value={TemplateTitle}
-						onChange={(e) => setTemplateTitle(e.target.value)}
-					/>
-				</DialogContent>
-				<DialogActions className="pt-0">
-					<Button
-						onClick={handleClose}
-						className="text-muted text-capitalize"
-						style={{ fontSize: "0.75rem" }}
-					>
-						Cancel
-					</Button>
-					<Button onClick={handleSaveTemplate} className="text-capitalize " style={{ fontSize: "0.75rem" }} disabled={!idFromURL}>
-						Save
-					</Button>
-				</DialogActions>
-			</Dialog>
+
+			{/* ── Save as Template modal ── */}
+			<Modal
+				show={open}
+				backdrop="static"
+				keyboard={false}
+				className="zindex10002 rfq-create-modal"
+				backdropClassName="zindex10002"
+				centered
+				contentClassName="border-0 rounded-default"
+				onHide={handleClose}
+			>
+				<Modal.Header className="pt-2 pb-2">
+					<Modal.Title>
+						<span style={{ fontSize: 14 }}>Save as Template</span>
+					</Modal.Title>
+					<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={handleClose}>
+						<HiOutlineX style={{ fontSize: 16 }} />
+					</button>
+				</Modal.Header>
+				<Modal.Body className="p-0">
+					<div className="p-3">
+						<label className="pe-field-label" htmlFor="rfqTemplateTitle">RFQ Template Title</label>
+						<TextField
+							id="rfqTemplateTitle"
+							fullWidth
+							size="small"
+							variant="outlined"
+							autoComplete="off"
+							inputProps={{ maxLength: 100 }}
+							value={TemplateTitle}
+							onChange={(e) => setTemplateTitle(e.target.value)}
+						/>
+						<div className="col-12 mt-4 d-flex justify-content-end gap-2">
+							<button type="button" className="pe-btn pe-btn--ghost" onClick={handleClose}>Cancel</button>
+							<button type="button" className="pe-btn pe-btn--primary" onClick={handleSaveTemplate} disabled={!idFromURL}>Save</button>
+						</div>
+					</div>
+				</Modal.Body>
+			</Modal>
 			{confirmEventUpdate && (
 				<Dialog open={confirmEventUpdate} onClose={() => handleCloseEventUpdate(false)}>
 					<DialogTitle>{"Are you sure?"}</DialogTitle>
@@ -6504,12 +6453,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 			)}
 
-
-
-
 			<input className="d-none" id="itemuploadid" ref={fileInputRef} type="file" onChange={handleFileChange} />
-
-
 
 			<Dialog open={confirmClearAllItems} onClose={() => handleClearAllItems(false)}>
 				<DialogTitle>{"Are you sure?"}</DialogTitle>

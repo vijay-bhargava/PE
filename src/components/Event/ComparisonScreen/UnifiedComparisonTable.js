@@ -673,7 +673,6 @@ const UnifiedComparisonTable = ({ data, loadingFactor, handleSupplierModalOpen }
 
                       const fieldValue = packageVendorData?.[field.key];
                       const priceColorClass = packageVendorData.ranking == 1 ? styles.lowestPrice : '';
-
                       // Get the corresponding vendor ID from the vendors array
                       const vendorId = vendors[index]?.id;
 
@@ -707,14 +706,6 @@ const UnifiedComparisonTable = ({ data, loadingFactor, handleSupplierModalOpen }
                                 <Typography className={`${styles.priceNew} ${priceColorClass}`}>
                                   {formatValue(fieldValue)}
                                 </Typography>
-
-                                {priceColorClass === styles.lowestPrice && (
-                                  <div className={`${styles.statusIcon} ${styles.successIcon}`}> ✓ </div>
-                                )}
-
-                                {priceColorClass === styles.highestPrice && (
-                                  <div className={`${styles.statusIcon} ${styles.dangerIcon}`}> ! </div>
-                                )}
                               </div>
                             )}
                           </div>
@@ -777,9 +768,6 @@ const UnifiedComparisonTable = ({ data, loadingFactor, handleSupplierModalOpen }
                           -
                         </Typography>
                       )}
-
-
-
                     </TableCell>
                     <TableCell
                       className={styles.dataCell}
@@ -816,9 +804,6 @@ const UnifiedComparisonTable = ({ data, loadingFactor, handleSupplierModalOpen }
                           -
                         </Typography>
                       )}
-
-
-
                     </TableCell>
                   </TableRow>
 
@@ -877,14 +862,6 @@ const UnifiedComparisonTable = ({ data, loadingFactor, handleSupplierModalOpen }
                                   <Typography className={`${styles.priceNew} ${priceColorClass}`}>
                                     {formatPackageTermValue(termValue, term.valueType)}
                                   </Typography>
-
-                                  {priceColorClass === styles.lowestPrice && (
-                                    <div className={`${styles.statusIcon} ${styles.successIcon}`}> ✓ </div>
-                                  )}
-
-                                  {priceColorClass === styles.highestPrice && (
-                                    <div className={`${styles.statusIcon} ${styles.dangerIcon}`}> ! </div>
-                                  )}
                                 </div>
                               </TableCell>
                             );
@@ -1018,14 +995,6 @@ const UnifiedComparisonTable = ({ data, loadingFactor, handleSupplierModalOpen }
                             <Typography className={`${styles.priceNew} ${priceColorClass}`}>
                               {vendorData ? formatPrice(vendorData.price) : "Not Quoted"}
                             </Typography>
-
-                            {priceColorClass === styles.lowestPrice && (
-                              <div className={`${styles.statusIcon} ${styles.successIcon}`}> ✓</div>
-                            )}
-
-                            {priceColorClass === styles.highestPrice && (
-                              <div className={`${styles.statusIcon} ${styles.dangerIcon}`}> ! </div>
-                            )}
                           </div>
                         </div>
                       </TableCell>

@@ -87,11 +87,6 @@ const CommercialComparative = ({ data, handleSupplierModalOpen }) => {
               {vendors.map((vendor, index) => (
                 <TableCell key={vendor.id} className={styles.vendorHeaderCell}>
                   <div className={styles.vendorCard}>
-                    {vendor.commercialRanking && (
-                      <div className={`${styles.rankBadge} ${getRankClass(vendor.commercialRanking)}`}>
-                        {vendor.commercialRanking}
-                      </div>
-                    )}
                     <div className={styles.vendorLabel}>VENDOR {String(index + 1).padStart(2, '0')}</div>
                     <Typography
                       className={styles.vendorNameNew}
