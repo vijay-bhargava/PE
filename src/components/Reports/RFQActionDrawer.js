@@ -1069,59 +1069,54 @@ const RFQActionDrawer = ({
 				actionlocktype={actionlocktype}
 			/>} */}
 			<div>
-				{/* Actions dropdown — MUI Button + Menu (consistent with Version button) */}
-				<Button
+				<button type="button" className="rfq-v2-tbtn rfq-v2-tbtn-export"
 					aria-controls={Boolean(actionsAnchorEl) ? "actions-menu" : undefined}
 					aria-haspopup="true"
 					onClick={(e) => setActionsAnchorEl(e.currentTarget)}
-					variant="outlined"
-					size="small"
-					style={{ color: "#374151", borderColor: "#d1d5db", borderRadius: "4px", padding: "3px 10px", minWidth: 0, textTransform: "none", fontSize: "0.8125rem", fontWeight: 500 }}
-					sx={{ "&:hover": { backgroundColor: "#f3f4f6", borderColor: "#d1d5db", color: "#374151" } }}
 				>
-					<span style={{ display: "inline-flex", alignItems: "center" }}>
-						Actions
-						<span style={{ width: "1px", height: "14px", background: "currentColor", opacity: 0.3, margin: "0 8px", flexShrink: 0 }} />
-						<HiOutlineChevronDown style={{ fontSize: "12px" }} />
+					<span>Actions</span>
+					<span style={{ width: 1, alignSelf: 'stretch', background: '#e5e7eb', }} />
+					<span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+						<HiOutlineChevronDown style={{ fontSize: 16 }} />
 					</span>
-				</Button>
+				</button>
 				<Menu
 					id="actions-menu"
 					anchorEl={actionsAnchorEl}
 					open={Boolean(actionsAnchorEl)}
 					onClose={() => setActionsAnchorEl(null)}
-					sx={{ maxWidth: 300 }}
+					sx={{ maxWidth: 800, padding: "30px" }}
 				>
 					{currentStage != "Awarded" && Version == Math.floor(Version) && (
-						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("addsupplier", true); }} sx={{ fontSize: "0.8125rem" }}>Add New Supplier</MenuItem>
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("addsupplier", true); }} sx={{ fontSize: "14px" }}>Add New Supplier</MenuItem>
 					)}
 					{currentStage && !['Draft', 'Under Pre Approval', 'Awarded'].includes(currentStage) && (
-						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("reInviteSupplier", true); }} sx={{ fontSize: "0.8125rem" }}>Reinvite Supplier</MenuItem>
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("reInviteSupplier", true); }} sx={{ fontSize: "14px" }}>Reinvite Supplier</MenuItem>
 					)}
 					{currentStage != "Awarded" && (
-						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("reOpenSupplier", true); }} sx={{ fontSize: "0.8125rem" }}>Reopen Supplier</MenuItem>
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("reOpenSupplier", true); }} sx={{ fontSize: "14px" }}>Reopen Supplier</MenuItem>
 					)}
 					{currentStage != "Awarded" && (
-						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("surrogateSupplier", true); }} sx={{ fontSize: "0.8125rem" }}>Surrogate Supplier</MenuItem>
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("surrogateSupplier", true); }} sx={{ fontSize: "14px" }}>Surrogate Supplier</MenuItem>
 					)}
 					{currentStage != "Awarded" && (
-						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("NotifySupplier", true); }} sx={{ fontSize: "0.8125rem" }}>Send Reminder</MenuItem>
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("NotifySupplier", true); }} sx={{ fontSize: "14px" }}>Send Reminder</MenuItem>
 					)}
-					<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("ReinitiateEvent", true); }} sx={{ fontSize: "0.8125rem" }}>Reinitiate RFQ</MenuItem>
+					<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("ReinitiateEvent", true); }} sx={{ fontSize: "14px" }}>Reinitiate RFQ</MenuItem>
 					{currentStage != "Awarded" && (
-						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("extendEvent", true); }} sx={{ fontSize: "0.8125rem" }}>Extend End Date</MenuItem>
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("extendEvent", true); }} sx={{ fontSize: "14px" }}>Extend End Date</MenuItem>
 					)}
-					<MenuItem onClick={() => { setActionsAnchorEl(null); handleZipDownload(); }} sx={{ fontSize: "0.8125rem" }}>Download Zip</MenuItem>
+					<MenuItem onClick={() => { setActionsAnchorEl(null); handleZipDownload(); }} sx={{ fontSize: "14px" }}>Download Zip</MenuItem>
 					{currentStage != "Awarded" && rfqtype == "closed" && (
-						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("openDate", true); }} sx={{ fontSize: "0.8125rem" }}>Update Open Date</MenuItem>
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("openDate", true); }} sx={{ fontSize: "14px" }}>Update Open Date</MenuItem>
 					)}
 					{currentStage != "Awarded" && rfqtype == "closed" && (
-						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("OpenSealedBid", true); }} sx={{ fontSize: "0.8125rem" }}>Open Sealed Bid</MenuItem>
+						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("OpenSealedBid", true); }} sx={{ fontSize: "14px" }}>Open Sealed Bid</MenuItem>
 					)}
 					{downloadExcel && (
-						<MenuItem onClick={() => { setActionsAnchorEl(null); downloadExcel(); }} sx={{ fontSize: "0.8125rem" }}>Download Comparative Excel</MenuItem>
+						<MenuItem onClick={() => { setActionsAnchorEl(null); downloadExcel(); }} sx={{ fontSize: "14px" }}>Download Comparative Excel</MenuItem>
 					)}
-					<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("convertToAuction", true); }} sx={{ fontSize: "0.8125rem" }}>Convert to Auction</MenuItem>
+					<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("convertToAuction", true); }} sx={{ fontSize: "14px" }}>Convert to Auction</MenuItem>
 				</Menu>
 
 				{/* Drawer for Add New Supplier */}
@@ -1133,7 +1128,6 @@ const RFQActionDrawer = ({
 					<div
 						style={{
 							width: 600,
-
 							display: "flex",
 							flexDirection: "column",
 

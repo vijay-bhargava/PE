@@ -4,9 +4,9 @@ import { useStateValue } from '../../../store';
 import RequestForQuotation from './RequestForQuotation';
 import '../../../assets/css/rfq-detail-v2.css';
 
-const isDisplayableRfqCode = (code) => {
-  return typeof code === 'string' && code.trim() && !code.includes('/');
-};
+const isDisplayableRfqCode = (code) => typeof code === 'string' && !!code.trim();
+
+const normalizeRfqCode = (code) => code.replace(/\//g, '-');
 
 /**
  * Thin V2 wrapper around the existing RequestForQuotation component.
@@ -21,7 +21,7 @@ const RequestForQuotationV2 = ({ claimType }) => {
   const fallbackCrumbLabel = isNew ? 'RFQ' : `RFQ-${pageSlug}`;
 
   const [stableEventCode, setStableEventCode] = useState(() =>
-    isDisplayableRfqCode(eventCode) ? eventCode : ''
+    isDisplayableRfqCode(eventCode) ? normalizeRfqCode(eventCode) : ''
   );
 
   const crumbLabel = useMemo(() => {
@@ -31,7 +31,7 @@ const RequestForQuotationV2 = ({ claimType }) => {
 
   useEffect(() => {
     if (isDisplayableRfqCode(eventCode)) {
-      setStableEventCode(eventCode);
+      setStableEventCode(normalizeRfqCode(eventCode));
     }
   }, [eventCode]);
 

@@ -3219,21 +3219,18 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, on
 				downloadExcel={downloadExcel}
 				currentStage={actions?.currentStage}
 			/>
-			<Button
+			<button type="button"
+				className="rfq-v2-tbtn rfq-v2-tbtn-export"
+				onClick={handleClick}
 				aria-controls={Boolean(anchorEl) ? "simple-menu-rfq" : undefined}
 				aria-haspopup="true"
-				onClick={handleClick}
-				variant="outlined"
-				size="small"
-				style={{ color: "#374151", borderColor: "#d1d5db", borderRadius: "4px", padding: "3px 10px", minWidth: 0, textTransform: "none", fontSize: "0.8125rem", fontWeight: 500 }}
-				sx={{ "&:hover": { backgroundColor: "#f3f4f6", borderColor: "#d1d5db", color: "#374151" } }}
 			>
-				<span style={{ display: "inline-flex", alignItems: "center" }}>
-					Version
-					<span style={{ width: "1px", height: "14px", background: "currentColor", opacity: 0.3, margin: "0 8px", flexShrink: 0 }} />
-					<ExpandMore style={{ fontSize: "12px" }} />
+				<span>Version {selectedVersion}</span>
+				<span style={{ width: 1, alignSelf: 'stretch', background: '#e5e7eb', }} />
+				<span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+					<ExpandMore style={{ fontSize: 16 }} />
 				</span>
-			</Button>
+			</button>
 			<Menu
 				id="simple-menu-rfq"
 				anchorEl={anchorEl}

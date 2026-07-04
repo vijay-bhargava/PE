@@ -1080,7 +1080,7 @@ const ManageRFQV2 = ({ claimType }) => {
           <Modal.Title>
             <span style={{ fontSize: 14 }}>What would you like to do?</span>
           </Modal.Title>
-          <button type="button" className="rfq-modal-close-btn" onClick={() => setModal(false)}>
+          <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => setModal(false)}>
             <HiOutlineX style={{ fontSize: 16 }} />
           </button>
         </Modal.Header>
@@ -1099,15 +1099,17 @@ const ManageRFQV2 = ({ claimType }) => {
             </FormControl>
 
             {value === 'template' && (
-              <div className="mt-2">
+              <div className="mt-3">
+                <label className="pe-field-label">Select Template</label>
                 <Autocomplete
                   disablePortal
                   size="small"
+                  fullWidth
+                  className="w-100 f14"
                   options={templatelist ?? []}
                   getOptionLabel={(o) => o.templateTitle ?? ''}
-                  fullWidth
                   renderInput={(params) => (
-                    <TextField {...params} label="Select Template" InputLabelProps={{ shrink: true }} />
+                    <TextField {...params} InputLabelProps={{ shrink: true }} />
                   )}
                   onChange={(_, v) => setSelectedTemplate(v)}
                   onOpen={() => { if (!templatelist.length) getTemplateList(); }}
