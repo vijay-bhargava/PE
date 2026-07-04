@@ -1,7 +1,7 @@
 // RFQAccordionModal.js
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Modal, Box, Accordion, AccordionSummary, AccordionDetails, Typography,IconButton
+  Modal, Box, Accordion, AccordionSummary, AccordionDetails, Typography, IconButton
 } from '@mui/material';
 import { HiUserGroup, HiOutlineX, HiX } from "react-icons/hi";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -31,15 +31,17 @@ const modalStyle = {
   transform: 'translate(-50%, -50%)',
   width: '90%',
   maxHeight: '90vh',
-  overflowY: 'auto',
   bgcolor: 'background.paper',
-  borderRadius: 2,
-  boxShadow: 24,
-  p: 4,
+  borderRadius: '14px',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+  overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+  p: 0,
 };
 
 
-const SupplierIndividualReport = ({ open, onClose, vendorId,rfqid,version, permissionManager,isBoq }) => {
+const SupplierIndividualReport = ({ open, onClose, vendorId, rfqid, version, permissionManager, isBoq }) => {
   const [expanded, setExpanded] = React.useState(false);
   const handleAccordionChange = (panel) => (_event, isExpanded) => {
     setExpanded(isExpanded ? panel : false);
@@ -152,10 +154,10 @@ const SupplierIndividualReport = ({ open, onClose, vendorId,rfqid,version, permi
   const getEventStages = async () => {
     let VersionParam;
     if (version?.includes("x")) {
-				VersionParam = version.split(".")[0];
-			} else {
-				VersionParam = version;
-			}
+      VersionParam = version.split(".")[0];
+    } else {
+      VersionParam = version;
+    }
     const urlparams = {
       EventType: "RFQ",
       CustomerId: customerid,
@@ -342,31 +344,71 @@ const SupplierIndividualReport = ({ open, onClose, vendorId,rfqid,version, permi
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Box
-        sx={{
-          ...modalStyle,
+      <Box sx={modalStyle}>
+        {/* Modal Header */}
+        <div style={{
           display: 'flex',
-          flexDirection: 'row',
-          gap: 2,
-        }}
-      >
-        
-        {/* Left: Accordions */}
-        <Box sx={{ flex: 1, overflowY: 'auto', maxHeight: '80vh' }}>
-          <Typography variant="h6" gutterBottom>
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '14px 20px',
+          borderBottom: '1px solid var(--pe-border, #dfe3e8)',
+          background: '#fff',
+          flexShrink: 0,
+        }}>
+          <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--pe-text, #1f2937)', letterSpacing: 0 }}>
             {supplierdetails?.[0]?.tradeName}
-          </Typography>
-          {/* Financial Comparative */}
-          {isBoq == false && 
-            <Accordion expanded={expanded === 'panel1'} onChange={handleAccordionChange('panel1')}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography>Financial Details</Typography>
+          </span>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <HistoryCell eventtype="RFQ" eventId={rfqid} permissionManager={permissionManager} />
+            <IconButton className="sup-action-btn" size="small" onClick={onClose}>
+              <HiOutlineX style={{ fontSize: 16 }} />
+            </IconButton>
+          </div>
+        </div>
+
+        {/* Modal Body */}
+        <Box sx={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          {/* Left: Accordions */}
+          <Box sx={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+            {/* Financial Comparative */}
+            {isBoq == false &&
+              <Accordion
+                expanded={expanded === 'panel1'}
+                onChange={handleAccordionChange('panel1')}
+                elevation={0}
+                sx={{ border: '1px solid var(--pe-border, #dfe3e8)', borderRadius: '8px !important', mb: 1, '&:before': { display: 'none' } }}
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />} sx={{ minHeight: 44, fontSize: 13, fontWeight: 600, color: 'var(--pe-text, #1f2937)', px: 2 }}>
+                  Financial Details
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: 2, pt: 0, pb: 2 }}>
+                  <ItemDetails
+                    rfqItemsList={rfqItemsList}
+                    linewiseItemLowest={linewiseItemLowest}
+                    vendorItemAnalysis={supplierdetails}
+                    rfqheaderdetails={rfqheader}
+                    openQuotes={openQuotes}
+                    vendorId={vendorId}
+                    permissionManager={permissionManager}
+                  />
+                </AccordionDetails>
+              </Accordion>
+            }
+            {/* Commercial Comparative */}
+            <Accordion
+              expanded={expanded === 'panel2'}
+              onChange={handleAccordionChange('panel2')}
+              elevation={0}
+              sx={{ border: '1px solid var(--pe-border, #dfe3e8)', borderRadius: '8px !important', mb: 1, '&:before': { display: 'none' } }}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />} sx={{ minHeight: 44, fontSize: 13, fontWeight: 600, color: 'var(--pe-text, #1f2937)', px: 2 }}>
+                Commercial Details
               </AccordionSummary>
-              <AccordionDetails>
-                <ItemDetails
+              <AccordionDetails sx={{ px: 2, pt: 0, pb: 2 }}>
+                <CommercialDetails
                   rfqItemsList={rfqItemsList}
-                  linewiseItemLowest={linewiseItemLowest}
                   vendorItemAnalysis={supplierdetails}
+                  rfqPackageCommercial={rfqheader?.[0]?.rfqPackageCommercial?.filter(x => x.valuetype != "Percentage" && x.valuetype != "Currency")}
                   rfqheaderdetails={rfqheader}
                   openQuotes={openQuotes}
                   vendorId={vendorId}
@@ -374,124 +416,88 @@ const SupplierIndividualReport = ({ open, onClose, vendorId,rfqid,version, permi
                 />
               </AccordionDetails>
             </Accordion>
-          }
-          {/* Commercial Comparative */}
-          <Accordion expanded={expanded === 'panel2'} onChange={handleAccordionChange('panel2')}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Commercial Details</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <CommercialDetails
-                rfqItemsList={rfqItemsList}
-                vendorItemAnalysis={supplierdetails}
-                rfqPackageCommercial={rfqheader?.[0]?.rfqPackageCommercial?.filter(x => x.valuetype != "Percentage" && x.valuetype != "Currency")}
-                rfqheaderdetails={rfqheader}
-                openQuotes={openQuotes}
-                vendorId={vendorId}
-                permissionManager={permissionManager}
-              />
-            </AccordionDetails>
-          </Accordion>
-          {/* Technical Comparative */}
-          <Accordion expanded={expanded === 'panel3'} onChange={handleAccordionChange('panel3')}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Technical Questions</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <QuestionDetails
-                  eventid= {rfqid}
+            {/* Technical Questions */}
+            <Accordion
+              expanded={expanded === 'panel3'}
+              onChange={handleAccordionChange('panel3')}
+              elevation={0}
+              sx={{ border: '1px solid var(--pe-border, #dfe3e8)', borderRadius: '8px !important', mb: 1, '&:before': { display: 'none' } }}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />} sx={{ minHeight: 44, fontSize: 13, fontWeight: 600, color: 'var(--pe-text, #1f2937)', px: 2 }}>
+                Technical Questions
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 2, pt: 0, pb: 2 }}>
+                <QuestionDetails
+                  eventid={rfqid}
                   eventtype={'RFQ'}
-                  librarytype= {'QuestionLibrary'}
+                  librarytype={'QuestionLibrary'}
                   action={false}
                   Version={version}
                   vendorId={vendorId}
-                  stagelist= {stagelist}
+                  stagelist={stagelist}
                   questionresponses={QuestionResponses}
-                  permissionManager= {permissionManager}
-              />
-            </AccordionDetails>
-          </Accordion>
-          {/* Attachments */}
-          <Accordion expanded={expanded === 'panel4'} onChange={handleAccordionChange('panel4')}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Attachments</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <SupplierAttachmentCell
-                eventid={rfqid}
-                eventtype="RFQ"
-                satoken={atoken}
-                vendorid={vendorId}
-                action={false}
-              />
-            </AccordionDetails>
-          </Accordion>
-          {/* Queries */}
-          <Accordion expanded={expanded === 'panel5'} onChange={handleAccordionChange('panel5')}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Queries</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <QueryList
-                pageSlug={rfqid}
-                key={"QueryList"}
-                accessLevel={accessLevel}
-                fromEventPage={true} // or better: fromEventPage={true}
-                EventId={rfqid} // assuming pageSlug is RFQ ID
-                EventType={"RFQ"} // set the event type
-              />
-            </AccordionDetails>
-          </Accordion>
-        </Box>
+                  permissionManager={permissionManager}
+                />
+              </AccordionDetails>
+            </Accordion>
+            {/* Attachments */}
+            <Accordion
+              expanded={expanded === 'panel4'}
+              onChange={handleAccordionChange('panel4')}
+              elevation={0}
+              sx={{ border: '1px solid var(--pe-border, #dfe3e8)', borderRadius: '8px !important', mb: 1, '&:before': { display: 'none' } }}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />} sx={{ minHeight: 44, fontSize: 13, fontWeight: 600, color: 'var(--pe-text, #1f2937)', px: 2 }}>
+                Attachments
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 2, pt: 0, pb: 2 }}>
+                <SupplierAttachmentCell
+                  eventid={rfqid}
+                  eventtype="RFQ"
+                  satoken={atoken}
+                  vendorid={vendorId}
+                  action={false}
+                />
+              </AccordionDetails>
+            </Accordion>
+            {/* Queries */}
+            <Accordion
+              expanded={expanded === 'panel5'}
+              onChange={handleAccordionChange('panel5')}
+              elevation={0}
+              sx={{ border: '1px solid var(--pe-border, #dfe3e8)', borderRadius: '8px !important', mb: 1, '&:before': { display: 'none' } }}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />} sx={{ minHeight: 44, fontSize: 13, fontWeight: 600, color: 'var(--pe-text, #1f2937)', px: 2 }}>
+                Queries
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 2, pt: 0, pb: 2 }}>
+                <QueryList
+                  pageSlug={rfqid}
+                  key={"QueryList"}
+                  accessLevel={accessLevel}
+                  fromEventPage={true}
+                  EventId={rfqid}
+                  EventType={"RFQ"}
+                />
+              </AccordionDetails>
+            </Accordion>
+          </Box>
 
-        {/* Right: Fixed Component (only if approvers exist) */}
-        {/* {Array.isArray(eventAppList) && eventAppList.length > 0 && ( */}
-          {/* <Box
-            sx={{
-              width: eventAppList?.length > 0 ? '300px' : 0,
-              flexShrink: 0,
-              borderLeft: eventAppList?.length > 0 ? '1px solid #ccc' : 'none',
-              pl: eventAppList?.length > 0 ? 2 : 0,
-              pr: eventAppList?.length > 0 ? 2 : 0,
-              maxHeight: '80vh',
-              overflowY: 'auto',
-            }}
-          > */}
-            <EventApprovalBoxRFQ
-              requestCell={requestCell}
-              handleEventAppList={handleEventAppList}
-              wfupdate={wfupdate}
-              action={stagearray.includes(currentStage)}
-              stagelist={stagelist}
-              accessLevel={accessLevel}
-              Version={version}
-              vendorId={vendorId}
-              permissionManager={permissionManager}
-            />
-              <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 1 }}>
-          <HistoryCell eventtype="RFQ" eventId={rfqid} permissionManager={permissionManager} />
-          <IconButton
-            onClick={onClose}
-            edge="start"
-          >
-            <HiOutlineX className="f20" />
-          </IconButton>
+          {/* Right: Approval panel */}
+          <EventApprovalBoxRFQ
+            requestCell={requestCell}
+            handleEventAppList={handleEventAppList}
+            wfupdate={wfupdate}
+            action={stagearray.includes(currentStage)}
+            stagelist={stagelist}
+            accessLevel={accessLevel}
+            Version={version}
+            vendorId={vendorId}
+            permissionManager={permissionManager}
+          />
         </Box>
- 
-          {/* </Box> */}
-        {/* )} */}
-        {/* If no approvers, left section should take full width (handled by flex: 1 above) */}
-        {/* <IconButton
-          onClick={onClose}
-          edge="start"
-          sx={{ mr: 1,top:8, right:8, position:'absolute' }}
-        >
-          <HiOutlineX className="f20" />
-        </IconButton> */}
       </Box>
-      
     </Modal>
-
   );
 };
 

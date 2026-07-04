@@ -293,7 +293,8 @@
 }
 
 .wf-add-approver-form {
-  padding: 10px 0 4px;
+  padding: 10px 0 10px 8px;
+  margin-bottom: 5px;
 }
 
 .approvalType {

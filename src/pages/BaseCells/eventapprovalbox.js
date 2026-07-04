@@ -452,15 +452,124 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 													<div className="col-md-10 wf-stage-col">
 														<div className="rfq-dv2-stage-summary">
 															<span className="approval-stage-title">{stagename || x.stage}</span>
-															{totalCount > 0 && (
-																<span className="rfq-dv2-stage-count">
-																	{approvedCount}/{totalCount} APPROVED
-																</span>
-															)}
 														</div>
 													</div>
+													<Tooltip title={`Add approver to ${stagename || x.stage}`}>
+														<span>
+															<IconButton
+																size="small"
+																sx={{
+																	width: "28px", height: "28px",
+																	backgroundColor: "transparent",
+																	padding: 0,
+																	marginRight:"5px",
+																	flexShrink: 0,
+																	borderRadius: "8px",
+																	border: "1px solid #c2d4f9",
+																	color: "#6b7280",
+																	cursor: "pointer",
+																	"&:hover": {
+																		backgroundColor: "#eaf0ff",
+																		color: "#4b66a1",
+																	}
+																}}
+																disabled={
+																	!action ||
+																	currentStage === "Awarded" ||
+																	(x.approvers?.every(approver => approver.status && approver.status !== "Pending") && x.approvers?.length > 0) ||
+																	!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)
+																}
+																onClick={(e) => {
+																	e.stopPropagation();
+																	handleIconClick(e);
+																	toggleAdd(i);
+																}}
+															>
+																<HiOutlineUserAdd />
+															</IconButton>
+														</span>
+													</Tooltip>
 												</AccordionSummary>
 												<AccordionDetails className="approvalAcordionDetails">
+													{isAddVisible[i] && (
+														<div className="wf-add-approver-form">
+															<div className="row g-2">
+																<div className="col-6">
+																	<label className="pe-field-label">Search Approver</label>
+																	<Autocomplete
+																		id="wf-approver-autocomplete"
+																		size="small"
+																		options={userOptions}
+																		fullWidth
+																		disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)}
+																		value={addingApprover}
+																		renderInput={(params) => (
+																			<TextField
+																				{...params}
+																				variant="outlined"
+																				size="small"
+																				placeholder="Search approver"
+																				label={null}
+																				InputLabelProps={{ shrink: false }}
+																			/>
+																		)}
+																		onChange={(event, newvalue) => {
+																			setAddingApprovers(newvalue);
+																		}}
+																		onOpen={() => {
+																			if (userOptions.length === 0) {
+																				fetchUserList(customerid, requestCell);
+																			}
+																		}}
+																	/>
+																</div>
+																<div className="col-4">
+																	<label className="pe-field-label">Sequence No <span className="rfq-required-star">*</span></label>
+																	<TextField
+																		fullWidth
+																		variant="outlined"
+																		size="small"
+																		className="f14"
+																		id="addingapproversequence"
+																		name="addingapproversequence"
+																		label={null}
+																		placeholder="No."
+																		value={addingApproverSequence}
+																		type="number"
+																		disabled={addingApprover ? (!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)) : true}
+																		onChange={(e) => {
+																			const inputValue = e.target.value;
+																			if (!IntegerRegex.test(inputValue)) {
+																				setAddingApproversSequence("");
+																				return;
+																			}
+																			const approversForStage = approverList.find(obj => obj.stage === x.stage)?.approvers || [];
+																			const nextSeq = approversForStage.length + 1;
+																			const intVal = parseInt(inputValue);
+																			setAddingApproversSequence(intVal === nextSeq ? inputValue : "");
+																		}}
+																	/>
+																</div>
+																<div className="col-1 d-flex align-items-end pb-1">
+																	<button
+																		type="button"
+																		className="pe-icon-btn pe-icon-btn--confirm"
+																		disabled={
+																			!addingApprover ||
+																			!addingApproverSequence ||
+																			!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)
+																		}
+																		onClick={() => {
+																			onChangeApprover(addingApproverSequence, addingApprover, x, wfstage);
+																		}}
+																		aria-label="Add approver"
+																	>
+																		<HiPlusSm />
+																	</button>
+																</div>
+															</div>
+														</div>
+													)}
 													<div className="row">
 														<EventApprovalWorkFlow
 															key={`approvalworkflow`}
@@ -476,105 +585,6 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 															endDate={endDate}
 															variant="rfq-sidebar"
 														/>
-													</div>
-
-													<div className="mt-2 mb-2">
-														<button
-															type="button"
-															className="wf-add-approver-btn"
-															disabled={
-																!action ||
-																currentStage === "Awarded" ||
-																(x.approvers?.every(approver => approver.status && approver.status !== "Pending") && x.approvers?.length > 0) ||
-																!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)
-															}
-															onClick={(e) => {
-																handleIconClick(e);
-																toggleAdd(i);
-															}}
-														>
-															<HiPlusSm className="f15" />
-															Add approver to {stagename || x.stage}
-														</button>
-														{isAddVisible[i] && (
-															<div className="wf-add-approver-form">
-																<div className="row g-2">
-																	<div className="col-6">
-																		<label className="pe-field-label">Search Approver</label>
-																		<Autocomplete
-																			id="wf-approver-autocomplete"
-																			size="small"
-																			options={userOptions}
-																			fullWidth
-																			disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)}
-																			value={addingApprover}
-																			renderInput={(params) => (
-																				<TextField
-																					{...params}
-																					variant="outlined"
-																					size="small"
-																					placeholder="Search approver"
-																					label={null}
-																					InputLabelProps={{ shrink: false }}
-																				/>
-																			)}
-																			onChange={(event, newvalue) => {
-																				setAddingApprovers(newvalue);
-																			}}
-																			onOpen={() => {
-																				if (userOptions.length === 0) {
-																					fetchUserList(customerid, requestCell);
-																				}
-																			}}
-																		/>
-																	</div>
-																	<div className="col-4">
-																		<label className="pe-field-label">Sequence No <span className="rfq-required-star">*</span></label>
-																		<TextField
-																			fullWidth
-																			variant="outlined"
-																			size="small"
-																			className="f14"
-																			id="addingapproversequence"
-																			name="addingapproversequence"
-																			label={null}
-																			placeholder="No."
-																			value={addingApproverSequence}
-																			type="number"
-																			disabled={addingApprover ? (!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)) : true}
-																			onChange={(e) => {
-																				const inputValue = e.target.value;
-																				if (!IntegerRegex.test(inputValue)) {
-																					setAddingApproversSequence("");
-																					return;
-																				}
-																				const approversForStage = approverList.find(obj => obj.stage === x.stage)?.approvers || [];
-																				const nextSeq = approversForStage.length + 1;
-																				const intVal = parseInt(inputValue);
-																				setAddingApproversSequence(intVal === nextSeq ? inputValue : "");
-																			}}
-																		/>
-																	</div>
-																	<div className="col-1 d-flex align-items-end pb-1">
-																		<button
-																			type="button"
-																			className="pe-icon-btn pe-icon-btn--confirm"
-																			disabled={
-																				!addingApprover ||
-																				!addingApproverSequence ||
-																				!(permissionManager?.hasPermission(CLAIM_TYPES.WORK_FLOW, ACTIONS.CREATE) ?? false)
-																			}
-																			onClick={() => {
-																				onChangeApprover(addingApproverSequence, addingApprover, x, wfstage);
-																			}}
-																			aria-label="Add approver"
-																		>
-																			<HiPlusSm size={15} />
-																		</button>
-																	</div>
-																</div>
-															</div>
-														)}
 													</div>
 												</AccordionDetails>
 											</Accordion>
@@ -612,9 +622,7 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 									</div>
 								</Card.Body>
 							</Card>)
-
 						}
-
 						)}
 					</>
 				);
@@ -626,7 +634,3 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 };
 
 export default EventApprovalBox;
-
-
-
-

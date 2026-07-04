@@ -3074,19 +3074,23 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, on
 						</Box>
 					);
 				}
-				return <TechnicalComparative
-					data={technicalComparisonData}
-					updateScore={updateScore}
-					handleApprovalActivity={handleApprovalActivity}
-					actionType={actionType}
-					activityId={activityId}
-					handleSupplierModalOpen={handleSupplierModalOpen}
-					isNFA={actions.isNFA}
-					currentStage={actions.currentStage}
-					onScoreDirtyChange={setTechScoreDirty}
-					updateScoreRef={techUpdateRef}
-					resetScoreRef={techResetRef}
-				/>;
+				return (
+					<Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+						<TechnicalComparative
+							data={technicalComparisonData}
+							updateScore={updateScore}
+							handleApprovalActivity={handleApprovalActivity}
+							actionType={actionType}
+							activityId={activityId}
+							handleSupplierModalOpen={handleSupplierModalOpen}
+							isNFA={actions.isNFA}
+							currentStage={actions.currentStage}
+							onScoreDirtyChange={setTechScoreDirty}
+							updateScoreRef={techUpdateRef}
+							resetScoreRef={techResetRef}
+						/>
+					</Box>
+				);
 			default:
 				const canReadSummaryDefault = actions.permissionManager?.hasPermission(CLAIM_TYPES.RFQ_SUMMARY, ACTIONS.READ) ?? false;
 				const canEditSummaryDefault = actions.permissionManager?.hasPermission(CLAIM_TYPES.RFQ_SUMMARY, ACTIONS.EDIT) ?? false;
@@ -3256,8 +3260,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, on
 		<>
 			{headerActionsRef?.current && ReactDOM.createPortal(actionButtons, headerActionsRef.current)}
 			<Box sx={{
-				display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden',
-				marginLeft: "-16px", marginTop: "-16px", marginRight: "-16px", marginBottom: "-20px",
+				display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden',
 			}}>
 				{/* Sticky Sub-Tab Navigation — styled to match main tabs */}
 				<Box
@@ -3345,7 +3348,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, on
 					paddingTop: 0,
 					flex: 1,
 					minHeight: 0,
-					overflow: 'auto',
+					overflow: activeTab === 3 ? 'hidden' : 'auto',
 					scrollbarWidth: 'none',
 					'&::-webkit-scrollbar': {
 						display: 'none',
