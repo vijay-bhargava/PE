@@ -186,11 +186,14 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
     return <div>No technical comparative data available</div>;
   }
 
-  return (
-    <div className={styles.unifiedComparisonTable}>
+  const tableMinWidth = `${280 + vendors.length * 280}px`;
 
-      <TableContainer className={styles.tableContainer} sx={{ overflowX: 'auto' }}>
-        <Table size="small" sx={{ minWidth: `${280 + vendors.length * 280}px` }}>
+  return (
+    <div className={styles.unifiedComparisonTable} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+
+      {/* Top: Technical Evaluation — fills remaining space, internally scrollable */}
+      <TableContainer sx={{ flex: 1, minHeight: 0, overflowX: 'auto', overflowY: 'auto', background: '#fff', border: '1px solid #d8dde6', borderBottom: 'none', borderRadius: '6px 6px 0 0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+        <Table size="small" sx={{ minWidth: tableMinWidth }}>
 
           {/* Header */}
           <TableHead className={styles.tableHeader}>
@@ -311,21 +314,26 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
             ))}
           </TableBody>
 
-          {/* Approver Decisions section */}
-          {approvers.length > 0 && (
+        </Table>
+      </TableContainer>
+
+      {/* Bottom: Approver Decisions — fixed height, stuck to bottom */}
+      {approvers.length > 0 && (
+        <TableContainer sx={{ flexShrink: 0, overflowX: 'auto', overflowY: 'auto', background: '#fff', border: '1px solid #d8dde6', borderTop: '2px solid #e5e7eb', borderRadius: '0 0 6px 6px' }}>
+          <Table size="small" sx={{ minWidth: tableMinWidth }}>
             <TableBody>
               {/* Section label row */}
               <TableRow>
                 <TableCell
                   className={styles.subRowCell}
-                  sx={{ background: '#f8fafc', borderTop: '2px solid #e5e7eb', py: 1, px: 2 }}
+                  sx={{ background: '#f3f4f6', py: 1, px: 2, borderRight: '1px solid #e5e7eb' }}
                 >
                   <Typography sx={{ fontSize: '13px', fontWeight: 600, color: '#000000' }}>
                     Approver Decisions
                   </Typography>
                 </TableCell>
                 {vendors.map((vendor) => (
-                  <TableCell key={vendor.id} sx={{ background: '#f8fafc', borderTop: '2px solid #e5e7eb' }} />
+                  <TableCell key={vendor.id} sx={{ background: '#f8fafc' }} />
                 ))}
               </TableRow>
 
@@ -347,75 +355,114 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
                       : null;
                     const isPending = status === 'Pending';
 
-                    // No approvalData entry = vendor not yet acted on = effectively Pending
                     const effectivelyPending = !approvalData || isPending;
 
                     const isCurrentUser = approver.approverName === userDetail?.name;
                     const showActionButtons = effectivelyPending && canTakeApprovalAction && isCurrentUser;
 
                     return (
-                      <TableCell key={vendor.id} className={styles.dataCell} sx={{ backgroundColor: '#fff' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
-                          {showActionButtons ? (
-                            <Box sx={{ display: 'flex', justifyContent: "center", gap: 1, flexWrap: 'wrap', alignItems: 'center', margin: "auto" }}>
-                              <Button
-                                size="small"
-                                variant="contained"
-                                color="primary"
-                                sx={{ fontSize: '12px', py: 1, px: 4, minWidth: 0, textTransform: 'none', height: '28px', borderRadius: "8px" }}
-                                onClick={() => {
-                                  const supplierData = data?.suppliers?.find(s => s.vendorId === vendor.id);
-                                  if (supplierData) handleApprovalActivity(supplierData, 'Approve');
-                                }}
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                color="primary"
-                                sx={{ fontSize: '12px', py: 1, px: 4, minWidth: 0, textTransform: 'none', height: '28px', borderRadius: "8px" }}
-                                onClick={() => {
-                                  const supplierData = data?.suppliers?.find(s => s.vendorId === vendor.id);
-                                  if (supplierData) handleApprovalActivity(supplierData, 'Reject');
-                                }}
-                              >
-                                Reject
-                              </Button>
-                            </Box>
-                          ) : approvalData || effectivelyPending ? (
-                            <Chip
-                              icon={
-                                status === 'Approved' ? <MdOutlineCheck style={{ fontSize: '16px' }} /> :
-                                  status === 'Rejected' ? <MdClose style={{ fontSize: '16px' }} /> :
-                                    <FaRegCircleDot style={{ fontSize: '12px' }} />
-                              }
-                              label={status === 'Approved' ? 'Approved' : status === 'Rejected' ? 'Rejected' : 'Pending'}
+                      <TableCell key={vendor.id} className={styles.dataCell} sx={{ backgroundColor: '#fff', }}>
+                        {showActionButtons ? (
+                          <Box sx={{ display: 'flex', justifyContent: "center", gap: 1, alignItems: 'center', }}>
+                            <Button
                               size="small"
-                              variant={effectivelyPending ? 'outlined' : 'filled'}
-                              color={status === 'Rejected' ? 'error' : effectivelyPending ? 'default' : 'primary'}
-                              sx={{ fontSize: '10px', height: '22px', width: 'fit-content', fontWeight: 700, padding: "10px", borderRadius: "6px" }}
-                            />
-                          ) : (
-                            <Typography variant="caption" color="text.secondary">-</Typography>
-                          )}
+                              variant="contained"
+                              color="success"
+                              sx={{ fontSize: '12px', width: "100%", textTransform: 'none', height: '28px', borderRadius: "8px" }}
+                              onClick={() => {
+                                const supplierData = data?.suppliers?.find(s => s.vendorId === vendor.id);
+                                if (supplierData) handleApprovalActivity(supplierData, 'Approve');
+                              }}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="error"
+                              sx={{ fontSize: '12px', width: "100%", textTransform: 'none', height: '28px', borderRadius: "8px" }}
+                              onClick={() => {
+                                const supplierData = data?.suppliers?.find(s => s.vendorId === vendor.id);
+                                if (supplierData) handleApprovalActivity(supplierData, 'Reject');
+                              }}
+                            >
+                              Reject
+                            </Button>
+                          </Box>
+                        ) : approvalData || effectivelyPending ? (
 
-                          {approvalData?.remarks && (
-                            <Typography className={styles.commercialValue} style={{ fontSize: '11px', color: '#6b7280' }}>
-                              {approvalData.remarks}
-                            </Typography>
-                          )}
-                        </div>
+                          <Chip
+                            icon={
+                              status === "Approved" ? (<MdOutlineCheck style={{ fontSize: 16 }} />)
+                                : status === "Rejected" ? (<MdClose style={{ fontSize: 16 }} />)
+                                  : (<FaRegCircleDot style={{ fontSize: 12 }} />)
+                            }
+                            label={
+                              status === "Approved"
+                                ? "Approved"
+                                : status === "Rejected"
+                                  ? "Rejected"
+                                  : "Pending"
+                            }
+                            size="small"
+                            sx={{
+                              height: "24px",
+                              borderRadius: "8px",
+                              px: "6px",
+                              fontSize: "10px",
+                              fontWeight: 700,
+                              textTransform: "uppercase",
+                              width: "fit-content",
+
+                              ...(status === "Approved" && {
+                                backgroundColor: "#D8ECDA",
+                                color: "#2F562D",
+
+                                "& .MuiChip-icon": {
+                                  color: "#2F562D",
+                                  marginLeft: "8px",
+                                },
+                              }),
+
+                              ...(status === "Rejected" && {
+                                backgroundColor: "#FDE5E6",
+                                color: "#C61515",
+
+                                "& .MuiChip-icon": {
+                                  color: "#C61515",
+                                  marginLeft: "8px",
+                                },
+                              }),
+
+                              ...(effectivelyPending && {
+                                backgroundColor: "#F9E692",
+                                color: "#864721",
+
+                                "& .MuiChip-icon": {
+                                  color: "#864721",
+                                  marginLeft: "8px",
+                                },
+                              }),
+                            }}
+                          />
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">-</Typography>
+                        )}
+
+                        {approvalData?.remarks && (
+                          <Typography className={styles.commercialValue} style={{ fontSize: '11px', color: '#6b7280' }}>
+                            {approvalData.remarks}
+                          </Typography>
+                        )}
                       </TableCell>
                     );
                   })}
                 </TableRow>
               ))}
             </TableBody>
-          )}
-
-        </Table>
-      </TableContainer>
+          </Table>
+        </TableContainer>
+      )}
     </div>
   );
 };

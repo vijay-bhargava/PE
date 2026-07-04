@@ -4343,7 +4343,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						</div>
 
 						{/* Tab Content */}
-						<div className="flex-grow-1 hidden-scrollbar" style={{ overflowY: 'auto', padding: '20px 16px 16px' }}>
+						<div className="flex-grow-1 hidden-scrollbar" style={{ overflowY: 'auto', padding: value === 6 ? '0' : '20px 16px 16px', display: value === 6 ? 'flex' : 'block', flexDirection: value === 6 ? 'column' : undefined }}>
 							{/* General Tab Content */}
 							{value === 1 && (
 								<div>
