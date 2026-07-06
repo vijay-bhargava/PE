@@ -22,8 +22,6 @@ import CommercialDetails from "./SupplierIndividualData/CommercialDetails"
 import QuestionDetails from "./SupplierIndividualData/QuestionDetails"
 import HistoryCell from "../../BaseCells/HistoryCell";
 
-
-
 const modalStyle = {
   position: 'absolute',
   top: '50%',

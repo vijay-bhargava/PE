@@ -1350,6 +1350,141 @@
   }
 }
 
+/* ── Drawer form layout ──────────────────────────────────────────── */
+.rfq-v2-drawer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 4px 0;
+}
+
+.rfq-v2-drawer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.rfq-v2-drawer-grid--3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.rfq-v2-drawer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rfq-v2-drawer-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.2;
+}
+
+.rfq-v2-drawer-label--required::after {
+  content: ' *';
+  color: #ef4444;
+}
+
+.rfq-v2-drawer-section {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 14px;
+  margin-top: 2px;
+}
+
+.rfq-v2-drawer-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.rfq-v2-drawer-confirm {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px 20px;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.rfq-v2-drawer-confirm-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px;
+}
+
+.rfq-v2-drawer-confirm p {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.rfq-v2-drawer-info-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.rfq-v2-drawer-info-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rfq-v2-drawer-info-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rfq-v2-drawer-info-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+}
+
+/* LoadingButton inside drawer header — primary pill style */
+.rfq-v2-event-drawer-header .MuiLoadingButton-root {
+  height: 28px !important;
+  min-width: auto !important;
+  padding: 0 14px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+  text-transform: none !important;
+  background: #2a68d3 !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: none !important;
+  letter-spacing: 0 !important;
+}
+
+.rfq-v2-event-drawer-header .MuiLoadingButton-root:hover:not(:disabled) {
+  background: #1d5bbf !important;
+  box-shadow: none !important;
+}
+
+.rfq-v2-event-drawer-header .MuiLoadingButton-root.Mui-disabled {
+  background: #93c5fd !important;
+  color: #fff !important;
+  opacity: 1 !important;
+}
+
 /* ── Filter popover — column/operator/value rows ─────────────────── */
 .rfq-v2-filter-popover {
   width: 520px !important;

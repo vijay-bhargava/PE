@@ -13,6 +13,7 @@ import {
   Button
 } from '@mui/material';
 import styles from './UnifiedComparisonTable.module.css';
+import CommonTooltip from '../../commonTooltip';
 import { HiDownload } from "react-icons/hi";
 import { MdOutlineCheck, MdClose } from "react-icons/md";
 import { FaRegCircleDot } from "react-icons/fa6";
@@ -93,10 +94,14 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
   };
 
   const formatAnswer = (answer, attachedFileName) => {
-    const truncatedAnswer = answer && answer.length > 80 ? `${answer.substring(0, 80)}...` : answer;
+    const displayValue = formatValue(answer);
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <Typography className={styles.commercialValue}>{formatValue(truncatedAnswer)}</Typography>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+        <CommonTooltip title={displayValue !== '-' ? displayValue : ''} placement="bottom">
+          <Typography className={styles.commercialValue} noWrap style={{ textAlign: 'left', maxWidth: '100%', flex: 1 }}>
+            {displayValue}
+          </Typography>
+        </CommonTooltip>
         {attachedFileName && (
           <button
             type="button"
@@ -207,12 +212,15 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
                 <TableCell key={vendor.id} className={styles.vendorHeaderCell}>
                   <div className={styles.vendorCard}>
                     <div className={styles.vendorLabel}>VENDOR {String(index + 1).padStart(2, '0')}</div>
-                    <Typography
-                      className={styles.vendorNameNew}
-                      onClick={() => handleSupplierModalOpen(vendor.id)}
-                    >
-                      {vendor.name?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
-                    </Typography>
+                    <CommonTooltip title={vendor.name?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) || ''} placement="bottom">
+                      <Typography
+                        className={styles.vendorNameNew}
+                        noWrap
+                        onClick={() => handleSupplierModalOpen(vendor.id)}
+                      >
+                        {vendor.name?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
+                      </Typography>
+                    </CommonTooltip>
                     <div className={styles.metaGrid} style={{ gridTemplateColumns: '1fr 1.8fr 1fr' }}>
                       <div className={styles.metaBlock}>
                         <span className={styles.metaLabel}>Currency:</span>
@@ -239,11 +247,13 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
               <TableRow key={question.id}>
                 <TableCell className={styles.subRowCell}>
                   <div className={styles.termInfo}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Typography className={styles.termName}>
-                        {question.questionDescription}
-                        {question.mandatory === 1 && <span style={{ color: '#f44336', marginLeft: '4px' }}>*</span>}
-                      </Typography>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                      <CommonTooltip title={question.questionDescription || ''} placement="bottom">
+                        <Typography className={styles.termName} noWrap style={{ flex: 1 }}>
+                          {question.questionDescription}
+                          {question.mandatory === 1 && <span style={{ color: '#f44336', marginLeft: '4px' }}>*</span>}
+                        </Typography>
+                      </CommonTooltip>
                       {question.attachedFileName && (
                         <button
                           type="button"
@@ -257,7 +267,9 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
                       )}
                     </div>
                     {question.questionRequirement && (
-                      <Typography className={styles.termRemarks}>{question.questionRequirement}</Typography>
+                      <CommonTooltip title={question.questionRequirement} placement="bottom">
+                        <Typography className={styles.termRemarks} noWrap>{question.questionRequirement}</Typography>
+                      </CommonTooltip>
                     )}
                   </div>
                 </TableCell>

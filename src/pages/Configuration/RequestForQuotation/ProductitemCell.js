@@ -6,6 +6,7 @@ import { useStateValue } from '../../../store';
 import { downloadFilesOnAzure, getFileName } from '../../../utils/common';
 import { DataGrid } from "@mui/x-data-grid";
 import '../../../assets/css/manage-rfq-v2.css';
+import CommonTooltip from '../../../components/commonTooltip';
 
 const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempDataForItemService, action, eventType, CurrentVersion }) => {
 
@@ -87,49 +88,82 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 
 	// Define columns for DataGrid based on eventType and data properties
 	const columns = [
-		// S.No column
+		// S.No column — spans all columns for detail rows
 		{
 			field: "serialNo",
 			headerName: "S.No",
-			width: 150,
+			width: 70,
+			colSpan: (params) => params?.row?.isDetailRow ? 20 : 1,
 			renderCell: (params) => {
-				const description =
-					params.row.parentData?.itemDesc || "No description available";
+				if (params.row.isDetailRow) {
+					const item = params.row.parentData;
+					const attachmentFile = item?.itemFile || item?.attachment || item?.attachmentFile;
+					return (
+						<div style={{
+							display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+							width: '100%', backgroundColor: "#F9FAFB"
+						}}>
+							{/* Item Type, Plant, Attachment */}
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+								<span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500 }}>Item Type</span>
+								<span style={{ fontSize: '13px', fontWeight: 500, color: '#1f2937' }}>{item?.itemType || '-'}</span>
+							</div>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+								<span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500 }}>Plant</span>
+								<span style={{ fontSize: '13px', fontWeight: 500, color: '#1f2937' }}>{item?.plant || '-'}</span>
+							</div>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+								<span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500 }}>Attachment</span>
+								{attachmentFile ? (
+									<Button variant="text" size="small"
+										style={{ fontSize: '13px', fontWeight: 500, padding: 0, minWidth: 0, textAlign: 'left', textTransform: 'none' }}
+										onClick={(e) => { e.stopPropagation(); downloadFilesOnAzure(attachmentFile, getFileName(attachmentFile), atoken); }}>
+										{getFileName(attachmentFile)}
+									</Button>
+								) : (
+									<span style={{ fontSize: '13px', fontWeight: 500, color: '#1f2937' }}>-</span>
+								)}
+							</div>
 
+							{/* LAST PO REFERENCE card */}
+							<div style={{
+								border: '1px solid #dde3ee', borderRadius: '8px',
+								padding: '8px 16px', backgroundColor: '#fff',
+								boxShadow: '0 1px 4px rgba(0,0,0,0.07)', flexShrink: 0
+							}}>
+								<div style={{ fontSize: '11px', fontWeight: 700, color: '#2A68D3', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+									🗒 LAST PO REFERENCE
+								</div>
+								<div style={{ display: 'flex', gap: '24px', marginBottom: '6px' }}>
+									{[
+										{ label: 'PO Number', value: item?.poNumber || 'NA' },
+										{ label: 'Supplier', value: item?.poVendorName || '-' },
+										{ label: 'PO Date', value: item?.poDate ? new Date(item.poDate).toLocaleDateString() : '-' },
+									].map(({ label, value }) => (
+										<div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '70px' }}>
+											<span style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 500 }}>{label}</span>
+											<span style={{ fontSize: '12px', fontWeight: 600, color: '#1f2937' }}>{value}</span>
+										</div>
+									))}
+								</div>
+								<div style={{ display: 'flex', gap: '24px' }}>
+									{[
+										{ label: 'Unit Rate', value: item?.unitRate ?? 0 },
+										{ label: 'PO Value', value: item?.poValue ?? 0 },
+									].map(({ label, value }) => (
+										<div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '70px' }}>
+											<span style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 500 }}>{label}</span>
+											<span style={{ fontSize: '12px', fontWeight: 600, color: '#1f2937' }}>{value}</span>
+										</div>
+									))}
+								</div>
+							</div>
+						</div>
+					);
+				}
 				return (
-					<div
-						className={`content-text detail-row-content ${params.row.isDetailRow
-							? "detail-row-normal"
-							: "detail-row-bold"
-							}`}
-						onClick={() => handleEditItem(params.row.isDetailRow ? params.row.parentData : params.row)}
-						style={{ cursor: "pointer" }}
-					>
-						{params.row.isDetailRow ? (
-							<>
-								<span className="detail-row-label">Description:</span>{" "}
-								<Tooltip
-									title={description} arrow placement="top-start"
-									componentsProps={{
-										tooltip: {
-											sx: {
-												fontSize: "1rem",
-												maxWidth: description.length > 500 ? 1000 : 'auto',
-												whiteSpace: "normal",
-											},
-										},
-									}}
-								>
-									<span>
-										{description.length > 8
-											? description.slice(0, 8) + "..."
-											: description}
-									</span>
-								</Tooltip>
-							</>
-						) : (
-							params.row.serialNo
-						)}
+					<div className="content-text detail-row-bold" onClick={() => handleEditItem(params.row)} style={{ cursor: 'pointer' }}>
+						{params.row.serialNo}
 					</div>
 				);
 			},
@@ -140,18 +174,15 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 			flex: 1,
 			minWidth: 150,
 			renderCell: (params) => {
-				// For detail rows, show empty since Description is now in S.No column
-				if (params.row.isDetailRow) {
-					return null;
-				}
-
+				if (params.row.isDetailRow) return null;
+				const itemCodeValue = params?.formattedValue || '';
 				return (
-					<div
-						className="content-text clickable-cell"
-						onClick={() => handleEditItem(params.row)}
-					>
-						{params?.formattedValue}
-					</div>
+					<CommonTooltip title={itemCodeValue} placement="bottom">
+						<div className="content-text clickable-cell" onClick={() => handleEditItem(params.row)}
+							style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+							{itemCodeValue}
+						</div>
+					</CommonTooltip>
 				);
 			},
 		},
@@ -161,39 +192,51 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 			flex: 2,
 			minWidth: 200,
 			renderCell: (params) => {
-				// Handle detail row - show Category below Item Name
-				if (params.row.isDetailRow) {
-					const item = params.row.parentData;
-					return (
-						<div
-							className="content-text detail-row-content"
-							onClick={() => handleEditItem(item)}
-							style={{ cursor: 'pointer' }}
-						>
-							<span className="detail-row-label">Category:</span>{' '}
-							<span className="detail-row-value">
-								{item?.itemCategory || item?.category || 'No category specified'}
-							</span>
-						</div>
-					);
-				}
-
-				// Normal row content
+				if (params.row.isDetailRow) return null;
+				const itemNameValue = params?.formattedValue || '';
 				return (
-					<div
-						onClick={() => handleEditItem(params.row)}
-						className="clickable-cell"
-					>
-						<div className="content-text">
-							{params?.formattedValue}
+					<CommonTooltip title={itemNameValue} placement="bottom">
+						<div onClick={() => handleEditItem(params.row)} className="content-text clickable-cell"
+							style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+							{itemNameValue}
 						</div>
-						{/* {params.row?.itemCategory && (
-                            <div className="content-text mt-1">
-                                <span>Category: </span>
-                                {params.row.itemCategory}
-                            </div>
-                        )} */}
-					</div>
+					</CommonTooltip>
+				);
+			},
+		},
+		{
+			field: "itemDesc",
+			headerName: "Description",
+			flex: 2,
+			minWidth: 180,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				const val = params?.formattedValue || '-';
+				return (
+					<CommonTooltip title={val !== '-' ? val : ''} placement="bottom">
+						<div className="content-text clickable-cell" onClick={() => handleEditItem(params.row)}
+							style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+							{val}
+						</div>
+					</CommonTooltip>
+				);
+			},
+		},
+		{
+			field: "itemCategory",
+			headerName: "Category",
+			flex: 1,
+			minWidth: 140,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				const val = params?.formattedValue || '-';
+				return (
+					<CommonTooltip title={val !== '-' ? val : ''} placement="bottom">
+						<div className="content-text clickable-cell" onClick={() => handleEditItem(params.row)}
+							style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+							{val}
+						</div>
+					</CommonTooltip>
 				);
 			},
 		},
@@ -201,48 +244,11 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 			field: "quantity",
 			headerName: "Quantity",
 			flex: 1,
-			minWidth: 180,
+			minWidth: 140,
 			renderCell: (params) => {
-				// Show Attachment for detail rows - below Quantity
-				if (params.row.isDetailRow) {
-					const item = params.row.parentData;
-					return (
-						<div
-							className="content-text detail-row-content"
-							onClick={() => handleEditItem(item)}
-							style={{ cursor: 'pointer' }}
-						>
-							<span className="detail-row-label">Attachment:</span>{' '}
-							{(item?.itemFile || item?.attachment || item?.attachmentFile) ? (
-								<Button
-									variant="text"
-									size="small"
-									className="attached-file-name pointer text-truncate p-0 content-text attachment-file-button"
-									onClick={(e) => {
-										e.stopPropagation();
-										downloadFilesOnAzure(
-											item?.itemFile || item?.attachment || item?.attachmentFile,
-											getFileName(item?.itemFile || item?.attachment || item?.attachmentFile),
-											atoken
-										);
-									}}
-								>
-									{getFileName(item?.itemFile || item?.attachment || item?.attachmentFile)}
-								</Button>
-							) : (
-								<span className="content-text no-attachment-text">
-									N/A
-								</span>
-							)}
-						</div>
-					);
-				}
-
+				if (params.row.isDetailRow) return null;
 				return (
-					<div
-						className="content-text clickable-cell"
-						onClick={() => handleEditItem(params.row)}
-					>
+					<div className="content-text clickable-cell" onClick={() => handleEditItem(params.row)}>
 						{thousands_separators(params?.formattedValue)} ({params.row?.uom})
 					</div>
 				);
@@ -252,18 +258,11 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 			field: "targetPrice",
 			headerName: "Target Price",
 			flex: 1,
-			minWidth: 150,
+			minWidth: 130,
 			renderCell: (params) => {
-				// Empty for detail rows since Attachment moved to Quantity column
-				if (params.row.isDetailRow) {
-					return null;
-				}
-
+				if (params.row.isDetailRow) return null;
 				return (
-					<div
-						className="content-text clickable-cell"
-						onClick={() => handleEditItem(params.row)}
-					>
+					<div className="content-text clickable-cell" onClick={() => handleEditItem(params.row)}>
 						{thousands_separators(params?.formattedValue)}
 					</div>
 				);
@@ -277,13 +276,8 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 			minWidth: 150,
 			renderCell: (params) => {
 				if (params.row.isDetailRow) return null;
-
 				return (
-					<div
-						className="content-text"
-						onClick={() => handleEditItem(params.row)}
-						style={{ cursor: 'pointer' }}
-					>
+					<div className="content-text" onClick={() => handleEditItem(params.row)} style={{ cursor: 'pointer' }}>
 						{params?.formattedValue}
 					</div>
 				);
@@ -621,7 +615,7 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 				rows={createExpandedRows()}
 				columns={columns}
 				getRowId={getExpandedRowId}
-				getRowHeight={(params) => params.model.isDetailRow ? 45 : 52}
+				getRowHeight={(params) => params.model.isDetailRow ? 150 : 52}
 				columnHeaderHeight={40}
 				disableRowSelectionOnClick
 				disableColumnMenu
@@ -637,6 +631,7 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 				hideFooterSelectedRowCount
 				sx={{
 					'& .MuiDataGrid-row': { cursor: 'pointer' },
+					'& .MuiDataGrid-cell': { overflow: 'visible' },
 					// allow horizontal scroll for wide tables (items has more cols than manage-rfq)
 					'& .MuiDataGrid-virtualScroller': {
 						overflowX: 'auto !important',

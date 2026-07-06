@@ -616,7 +616,7 @@
   font-size: 12px;
   font-weight: 700;
   line-height: 16px;
-  word-break: break-word;
+  word-break: break-all;
 }
 
 .rfq-dv2-detail-row-text {
@@ -3008,14 +3008,14 @@
 .rfq-detail-v2-shell .rfq-dv2-stage-graph-user {
   font-size: 11px;
   color: #374151;
-  word-break: break-word;
+  word-break: break-all;
 }
 .rfq-detail-v2-shell .rfq-dv2-stage-graph-date {
   font-size: 10px;
   color: #9ca3af;
 }
 
-/* â”€â”€ History tab: change list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* History tab */
 .rfq-detail-v2-shell .rfq-dv2-history-list {
   padding: 8px 0;
 }

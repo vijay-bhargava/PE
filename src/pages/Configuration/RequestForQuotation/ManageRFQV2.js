@@ -26,7 +26,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { toast } from 'react-toastify';
 import CryptoJS from 'crypto-js';
 import { useCookies } from 'react-cookie';
-
+import CommonTooltip from '../../../components/commonTooltip';
 import { actionTypes, useStateValue } from '../../../store';
 import {
   bidlist,
@@ -556,9 +556,11 @@ const ManageRFQV2 = ({ claimType }) => {
           <span className="rfq-v2-cell-code">
             {params.row.eventCode ? params.row.eventCode : `RFQ ID: ${params.row.id}`}
           </span>
-          <span className="rfq-v2-cell-subject" title={params.row.subject}>
-            {params.row.subject || params.row.rfqSubject}
-          </span>
+          <CommonTooltip title={params.row.subject || params.row.rfqSubject || ''} placement="bottom">
+            <span className="rfq-v2-cell-subject" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+              {params.row.subject || params.row.rfqSubject}
+            </span>
+          </CommonTooltip>
         </div>
       ),
     },
@@ -609,9 +611,11 @@ const ManageRFQV2 = ({ claimType }) => {
       sortable: true,
       valueGetter: (params) => params?.row?.createdByName || '',
       renderCell: (params) => (
-        <span className="rfq-v2-text-cell" title={params.row.createdByName} onClick={() => goToRFQ(params.row)}>
-          {params.row.createdByName || '—'}
-        </span>
+        <CommonTooltip title={params.row.createdByName || ''} placement="bottom">
+          <span className="rfq-v2-text-cell" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }} onClick={() => goToRFQ(params.row)}>
+            {params.row.createdByName || '—'}
+          </span>
+        </CommonTooltip>
       ),
     },
     {
@@ -654,8 +658,8 @@ const ManageRFQV2 = ({ claimType }) => {
 
   /* columns for items modal */
   const prrfqcolumn = [
-    { field: 'itemCode', headerName: 'Item Code', flex: 1, minWidth: 120, renderCell: (p) => <span className="rfq-v2-text-cell">{p.formattedValue}</span> },
-    { field: 'itemName', headerName: 'Item / Service', flex: 1, minWidth: 180, renderCell: (p) => <span className="rfq-v2-text-cell">{p.formattedValue}</span> },
+    { field: 'itemCode', headerName: 'Item Code', flex: 1, minWidth: 120, renderCell: (p) => <CommonTooltip title={p.formattedValue} placement="bottom"><span className="rfq-v2-text-cell" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.formattedValue}</span></CommonTooltip> },
+    { field: 'itemName', headerName: 'Item / Service', flex: 1, minWidth: 180, renderCell: (p) => <CommonTooltip title={p.formattedValue} placement="bottom"><span className="rfq-v2-text-cell" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.formattedValue}</span></CommonTooltip> },
     { field: 'quantity', headerName: 'Qty / UOM', flex: 1, minWidth: 120, renderCell: (p) => <span className="rfq-v2-text-cell">{`${p.formattedValue} (${p.row?.uom || ''})`}</span> },
     { field: 'targetPrice', headerName: 'Target Price', flex: 1, minWidth: 100, renderCell: (p) => <span className="rfq-v2-text-cell">{p.formattedValue}</span> },
     { field: 'plant', headerName: 'Delivery Location', flex: 1, minWidth: 180, renderCell: (p) => <span className="rfq-v2-text-cell">{p.formattedValue}</span> },
@@ -663,7 +667,7 @@ const ManageRFQV2 = ({ claimType }) => {
 
   const prauctioncolumn = [
     { field: 'rfqId', headerName: 'RFQ Id', flex: 1, minWidth: 120, renderCell: (p) => <span className="rfq-v2-text-cell">{p.formattedValue}</span> },
-    { field: 'itemName', headerName: 'Item / Service', flex: 1, minWidth: 180, renderCell: (p) => <span className="rfq-v2-text-cell">{p.formattedValue}</span> },
+    { field: 'itemName', headerName: 'Item / Service', flex: 1, minWidth: 180, renderCell: (p) => <CommonTooltip title={p.formattedValue} placement="bottom"><span className="rfq-v2-text-cell" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.formattedValue}</span></CommonTooltip> },
     { field: 'quantity', headerName: 'Quantity', flex: 1, minWidth: 120, renderCell: (p) => <span className="rfq-v2-text-cell">{`${p.formattedValue} (${p.row?.uom || ''})`}</span> },
     {
       field: 'minimumdecreament',

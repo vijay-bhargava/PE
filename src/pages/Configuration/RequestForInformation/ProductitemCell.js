@@ -1,9 +1,10 @@
-import { IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Avatar, Button } from '@mui/material';
+import { IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Avatar, Button, Tooltip } from '@mui/material';
 import * as React from 'react';
 import { HiOutlineTrash, HiOutlineUserAdd, HiX, HiOutlineChevronDown, HiOutlineChevronUp, HiPencilAlt } from "react-icons/hi";
 import { formatDateViaLocale, formatDateViaTimeZone } from '../../../utils/common/utility';
 import { useStateValue } from '../../../store';
 import { downloadFilesOnAzure, getFileName } from '../../../utils/common';
+import CommonTooltip from '../../../components/commonTooltip';
 
 
 const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempDataForItemService, action, eventType }) => {
@@ -64,8 +65,16 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
                             <React.Fragment key={index}>
                                 <tr className={index % 2 === 0 ? 'even' : 'odd'}>
                                     <td className='f14' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{page * rowsPerPage + index + 1}</td>
-                                    <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{item?.itemCode}</td>
-                                    <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{item?.itemName}</td>
+                                    <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <CommonTooltip title={item?.itemCode || ''} placement="bottom">
+                                            <span>{item?.itemCode}</span>
+                                        </CommonTooltip>
+                                    </td>
+                                    <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <CommonTooltip title={item?.itemName || ''} placement="bottom">
+                                            <span>{item?.itemName}</span>
+                                        </CommonTooltip>
+                                    </td>
                                     <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{thousands_separators(item?.quantity)} {item?.uom}</td>
                                     <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{thousands_separators(item?.targetPrice)}</td>
                                     {eventType == 'Auction' && <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{thousands_separators(item?.startPrice)}</td>}

@@ -147,6 +147,8 @@
 .vendorHeaderCell {
   min-width: 300px !important;
   width: 300px !important;
+  max-width: 300px !important;
+  overflow: hidden !important;
   padding: 10px !important;
   background: #ddefff !important;
   border-right: 1px solid #d6dae1 !important;
@@ -196,6 +198,8 @@
   color: #000000 !important;
   cursor: pointer;
   line-height: 1.2;
+  max-width: 100%;
+  display: block;
 }
 
 .metaGrid {
@@ -251,6 +255,8 @@
 .subRowCell {
   min-width: 300px !important;
   width: 300px !important;
+  max-width: 300px !important;
+  overflow: hidden !important;
   padding: 12px 14px !important;
   border-right: 1px solid #e5e7eb !important;
   border-bottom: 1px solid #e5e7eb !important;
@@ -267,6 +273,8 @@
   border-bottom: 1px solid #e5e7eb !important;
   min-width: 300px;
   width: 300px;
+  max-width: 300px;
+  overflow: hidden;
   background: white !important;
   vertical-align: middle !important;
 }
@@ -894,7 +902,9 @@
   font-size: 11px !important;
   font-weight: 500 !important;
   color: #333333 !important;
-  text-align: center !important;
+  text-align: left !important;
+  display: block;
+  max-width: 100%;
 }
 
 .scoreContainer {
