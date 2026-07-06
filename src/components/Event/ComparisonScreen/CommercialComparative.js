@@ -10,6 +10,7 @@ import {
   Chip
 } from '@mui/material';
 import styles from './UnifiedComparisonTable.module.css';
+import CommonTooltip from '../../commonTooltip';
 import { formatDateViaLocale } from '../../../utils/common/utility';
 import { useStateValue } from '../../../store';
 
@@ -88,12 +89,15 @@ const CommercialComparative = ({ data, handleSupplierModalOpen }) => {
                 <TableCell key={vendor.id} className={styles.vendorHeaderCell}>
                   <div className={styles.vendorCard}>
                     <div className={styles.vendorLabel}>VENDOR {String(index + 1).padStart(2, '0')}</div>
-                    <Typography
-                      className={styles.vendorNameNew}
-                      onClick={() => handleSupplierModalOpen(vendor.id)}
-                    >
-                      {vendor.name?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
-                    </Typography>
+                    <CommonTooltip title={vendor.name?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) || ''} placement="bottom">
+                      <Typography
+                        className={styles.vendorNameNew}
+                        noWrap
+                        onClick={() => handleSupplierModalOpen(vendor.id)}
+                      >
+                        {vendor.name?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
+                      </Typography>
+                    </CommonTooltip>
                     <div className={styles.metaGrid}>
                       <div className={styles.metaBlock}>
                         <span className={styles.metaLabel}>Currency:</span>
@@ -116,20 +120,27 @@ const CommercialComparative = ({ data, handleSupplierModalOpen }) => {
               <TableRow key={term.TermsId}>
                 <TableCell className={styles.subRowCell}>
                   <div className={styles.termInfo}>
-                    <Typography className={styles.termName}>{term.Name}</Typography>
+                    <CommonTooltip title={term.Name || ''} placement="bottom">
+                      <Typography className={styles.termName} noWrap>{term.Name}</Typography>
+                    </CommonTooltip>
                     {term.Remarks && (
-                      <Typography className={styles.termRemarks}>{term.Remarks}</Typography>
+                      <CommonTooltip title={term.Remarks} placement="bottom">
+                        <Typography className={styles.termRemarks} noWrap>{term.Remarks}</Typography>
+                      </CommonTooltip>
                     )}
                   </div>
                 </TableCell>
                 {vendors.map((vendor) => {
                   const vendorData = term.vendors[vendor.id];
+                  const displayVal = formatValue(vendorData?.value);
                   return (
                     <TableCell key={vendor.id} className={styles.dataCell}>
                       <div className={styles.commercialTermContainer}>
-                        <Typography className={styles.commercialValue}>
-                          {formatValue(vendorData?.value)}
-                        </Typography>
+                        <CommonTooltip title={displayVal !== '-' ? displayVal : ''} placement="bottom">
+                          <Typography className={styles.commercialValue} noWrap style={{ textAlign: 'left' }}>
+                            {displayVal}
+                          </Typography>
+                        </CommonTooltip>
                       </div>
                     </TableCell>
                   );

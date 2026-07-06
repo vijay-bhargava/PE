@@ -1,4 +1,5 @@
 import { Box } from "@mui/material";
+import CommonTooltip from '../../commonTooltip';
 import { KeyboardArrowRight, KeyboardArrowDown } from "@mui/icons-material";
 import {
   Heading6,
@@ -9,7 +10,7 @@ import {
 import styles from "./ComparisonTable.module.css";
 import { useComparisonTableData } from "./useComparisonTableData";
 import { FormattedValue } from "./FormattedValue";
-import {data} from "./sampleData"
+import { data } from "./sampleData"
 
 function ComparisonItems({
   items,
@@ -113,21 +114,23 @@ function SupplierTable({ supplier, footerItem, isItemExpanded }) {
   return (
     <Box id={`supplier-${supplier.id}`}>
       <Box height="100px">
-        <Box height="35px" p={1} pb={0}>
-          <Heading6>{supplier.name}</Heading6>
+        <Box height="35px" p={1} pb={0} sx={{ minWidth: 0, overflow: 'hidden' }}>
+          <CommonTooltip title={supplier.name || ''} placement="bottom">
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+              <Heading6>{supplier.name}</Heading6>
+            </span>
+          </CommonTooltip>
         </Box>
-           <Box p={1}>
-      <TextSmall color="secondary">
-        Currency: {supplier.defaultcurrency}
-      </TextSmall>
-    </Box>
-        <Box p={1} pt={0}> 
-          
-           <TextSmall color="secondary">
-      Submission Time: {supplier.submissionDate}
-    </TextSmall>
-         </Box> 
-      
+        <Box p={1}>
+          <TextSmall color="secondary">
+            Currency: {supplier.defaultcurrency}
+          </TextSmall>
+        </Box>
+        <Box p={1} pt={0}>
+          <TextSmall color="secondary">
+            Submission Time: {supplier.submissionDate}
+          </TextSmall>
+        </Box>
       </Box>
 
       <Box>

@@ -15,6 +15,7 @@ import {
   Tooltip
 } from '@mui/material';
 import WhiteTooltip from '../../whitetooltip';
+import CommonTooltip from '../../commonTooltip';
 import { BsInfoCircle } from "react-icons/bs";
 import {
   KeyboardArrowRight as ArrowRightIcon,
@@ -550,14 +551,17 @@ const UnifiedComparisonTable = ({ data, loadingFactor, handleSupplierModalOpen }
                         VENDOR {index + 1}
                       </div>
 
-                      <Typography
-                        className={styles.vendorNameNew}
-                        onClick={() =>
-                          handleSupplierModalOpen(vendorId || vendor.id)
-                        }
-                      >
-                        {vendorName?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
-                      </Typography>
+                      <CommonTooltip title={vendorName?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) || ''} placement="bottom">
+                        <Typography
+                          className={styles.vendorNameNew}
+                          noWrap
+                          onClick={() =>
+                            handleSupplierModalOpen(vendorId || vendor.id)
+                          }
+                        >
+                          {vendorName?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
+                        </Typography>
+                      </CommonTooltip>
 
                       <div className={styles.metaGrid}>
                         <div className={styles.metaBlock}>
@@ -815,10 +819,10 @@ const UnifiedComparisonTable = ({ data, loadingFactor, handleSupplierModalOpen }
                           <TableCell className={styles.subRowCell}>
                             <div className={styles.packageInfo}>
                               <div className={styles.termSpacer}></div>
-                              <div>
-                                <Typography className={styles.termName}>
-                                  {term.name}
-                                </Typography>
+                              <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                                <CommonTooltip title={term.name || ''} placement="bottom">
+                                  <Typography className={styles.termName} noWrap>{term.name}</Typography>
+                                </CommonTooltip>
                               </div>
                             </div>
                           </TableCell>
@@ -917,13 +921,13 @@ const UnifiedComparisonTable = ({ data, loadingFactor, handleSupplierModalOpen }
                       >
                         {expandedRows.has(item.id) ? <ArrowDownIcon /> : <ArrowRightIcon />}
                       </IconButton>
-                      <div>
-                        <Typography className={styles.itemCodeNew}>
-                          {item.itemCode}
-                        </Typography>
-                        <Typography className={styles.itemNameNew}>
-                          {item.name}
-                        </Typography>
+                      <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                        <CommonTooltip title={item.itemCode || ''} placement="bottom">
+                          <Typography className={styles.itemCodeNew} noWrap>{item.itemCode}</Typography>
+                        </CommonTooltip>
+                        <CommonTooltip title={item.name || ''} placement="bottom">
+                          <Typography className={styles.itemNameNew} noWrap>{item.name}</Typography>
+                        </CommonTooltip>
                       </div>
                     </div>
                   </TableCell>
