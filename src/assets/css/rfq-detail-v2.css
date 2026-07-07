@@ -3453,6 +3453,8 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 10px 0 12px;
+  flex-shrink: 0;
+  overflow-x: hidden;
 }
 
 .rfq-items-toolbar-right {
@@ -3530,7 +3532,7 @@
 
 /* ── Items tab height fill ── */
 .rfq-items-tab-content {
-  overflow: auto;
+  overflow: hidden;
 }
 
 /* ── Commercial Terms ── */
@@ -4116,7 +4118,7 @@ div.item-Table.eq-question-list {
   margin: 0;
   padding: 12px;
   min-height: 0;
-  flex: 1 1 0;
+  height: calc(100vh - 260px);
   background: #fff;
 }
 
@@ -4347,18 +4349,14 @@ div.item-Table.eq-question-list {
 
 .sup-pagination {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  min-height: 40px;
-  padding: 5px 10px;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
   flex-shrink: 0;
   border-top: 1px solid #e5e7eb;
-}
-
-.sup-pagination .MuiPaginationItem-root {
-  min-width: 30px;
-  height: 30px;
-  margin: 0 1px;
-  font-size: 14px;
+  background: #fff;
 }
 
 @media (max-width: 575px) {

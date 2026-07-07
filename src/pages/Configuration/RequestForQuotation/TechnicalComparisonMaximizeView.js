@@ -153,10 +153,8 @@ const TechnicalComparisonMaximizeView = ({
           sx={{
             flex: 1,
             minHeight: 0,
-            overflow: 'auto',
+            overflow: 'hidden',
             backgroundColor: '#F5F5F5',
-            scrollbarWidth: 'none',
-            '&::-webkit-scrollbar': { display: 'none' },
           }}
         >
           {renderTabContent()}

@@ -1269,7 +1269,7 @@ a {
 
 .MuiDataGrid-footerContainer,
 .MuiTablePagination-toolbar {
-  min-height: 35px !important;
+  /* min-height: 35px !important; */
   /* background-color: #ffffff; */
 }
 
