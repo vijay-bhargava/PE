@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import styles from './UnifiedComparisonTable.module.css';
 import CommonTooltip from '../../commonTooltip';
+import ExpandableTextCell from '../../ExpandableTextCell';
 import { formatDateViaLocale } from '../../../utils/common/utility';
 import { useStateValue } from '../../../store';
 
@@ -136,11 +137,7 @@ const CommercialComparative = ({ data, handleSupplierModalOpen }) => {
                   return (
                     <TableCell key={vendor.id} className={styles.dataCell}>
                       <div className={styles.commercialTermContainer}>
-                        <CommonTooltip title={displayVal !== '-' ? displayVal : ''} placement="bottom">
-                          <Typography className={styles.commercialValue} noWrap style={{ textAlign: 'left' }}>
-                            {displayVal}
-                          </Typography>
-                        </CommonTooltip>
+                        <ExpandableTextCell text={displayVal} />
                       </div>
                     </TableCell>
                   );

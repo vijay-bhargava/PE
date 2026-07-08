@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import styles from './UnifiedComparisonTable.module.css';
 import CommonTooltip from '../../commonTooltip';
+import ExpandableTextCell from '../../ExpandableTextCell';
 import { HiDownload } from "react-icons/hi";
 import { MdOutlineCheck, MdClose } from "react-icons/md";
 import { FaRegCircleDot } from "react-icons/fa6";
@@ -96,12 +97,10 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
   const formatAnswer = (answer, attachedFileName) => {
     const displayValue = formatValue(answer);
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-        <CommonTooltip title={displayValue !== '-' ? displayValue : ''} placement="bottom">
-          <Typography className={styles.commercialValue} noWrap style={{ textAlign: 'left', maxWidth: '100%', flex: 1 }}>
-            {displayValue}
-          </Typography>
-        </CommonTooltip>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <ExpandableTextCell text={displayValue} />
+        </div>
         {attachedFileName && (
           <button
             type="button"
@@ -197,7 +196,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
     <div className={styles.unifiedComparisonTable} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
       {/* Top: Technical Evaluation — fills remaining space, internally scrollable */}
-      <TableContainer sx={{ flex: 1, minHeight: 0, overflowX: 'auto', overflowY: 'auto', background: '#fff', border: '1px solid #d8dde6', borderBottom: 'none', borderRadius: '6px 6px 0 0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+      <TableContainer sx={{ flex: 1, minHeight: 0, overflowX: 'auto', overflowY: 'auto', background: '#fff', border: '1px solid #d8dde6', borderBottom: 'none', borderRadius: '6px 6px 0 0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', contain: 'layout style paint', willChange: 'scroll-position' }}>
         <Table size="small" sx={{ minWidth: tableMinWidth }}>
 
           {/* Header */}
@@ -247,13 +246,11 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
               <TableRow key={question.id}>
                 <TableCell className={styles.subRowCell}>
                   <div className={styles.termInfo}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                      <CommonTooltip title={question.questionDescription || ''} placement="bottom">
-                        <Typography className={styles.termName} noWrap style={{ flex: 1 }}>
-                          {question.questionDescription}
-                          {question.mandatory === 1 && <span style={{ color: '#f44336', marginLeft: '4px' }}>*</span>}
-                        </Typography>
-                      </CommonTooltip>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', minWidth: 0 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <ExpandableTextCell text={question.questionDescription} />
+                        {question.mandatory === 1 && <span style={{ color: '#f44336', fontSize: '11px' }}>*</span>}
+                      </div>
                       {question.attachedFileName && (
                         <button
                           type="button"
@@ -329,33 +326,25 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
         </Table>
       </TableContainer>
 
-      {/* Bottom: Approver Decisions — fixed height, stuck to bottom */}
+      {/* Bottom: Approver Decisions — fixed header + max 2 rows scrollable */}
       {approvers.length > 0 && (
-        <TableContainer sx={{ flexShrink: 0, overflowX: 'auto', overflowY: 'auto', background: '#fff', border: '1px solid #d8dde6', borderTop: '2px solid #e5e7eb', borderRadius: '0 0 6px 6px' }}>
+        <div style={{ flexShrink: 0, border: '1px solid #d8dde6', borderTop: '2px solid #e5e7eb', borderRadius: '0 0 6px 6px', background: '#fff' }}>
+          <div style={{ background: '#f3f4f6', padding: '6px 16px', borderBottom: '1px solid #e5e7eb' }}>
+            <Typography sx={{ fontSize: '13px', fontWeight: 600, color: '#000000' }}>
+              Approver Decisions
+            </Typography>
+          </div>
+          <TableContainer sx={{ maxHeight: '120px', overflowX: 'auto', overflowY: 'auto' }}>
           <Table size="small" sx={{ minWidth: tableMinWidth }}>
             <TableBody>
-              {/* Section label row */}
-              <TableRow>
-                <TableCell
-                  className={styles.subRowCell}
-                  sx={{ background: '#f3f4f6', py: 1, px: 2, borderRight: '1px solid #e5e7eb' }}
-                >
-                  <Typography sx={{ fontSize: '13px', fontWeight: 600, color: '#000000' }}>
-                    Approver Decisions
-                  </Typography>
-                </TableCell>
-                {vendors.map((vendor) => (
-                  <TableCell key={vendor.id} sx={{ background: '#f8fafc' }} />
-                ))}
-              </TableRow>
-
               {approvers.map((approver) => (
                 <TableRow key={approver.id} sx={{ backgroundColor: '#fff' }}>
-                  <TableCell className={styles.subRowCell} sx={{ backgroundColor: '#fff' }}>
-                    <Typography className={styles.termName}>
+                  <TableCell className={styles.subRowCell} sx={{ backgroundColor: '#fff', py: 0.5, px: 1.5 }}>
+                    <Typography className={styles.termName} sx={{ fontSize: '12px' }}>
                       {approver.approverName}
-                      {approver.approverName === userDetail?.name ? '(YOU)' : ''}</Typography>
-                    <Typography className={styles.termRemarks}>
+                      {approver.approverName === userDetail?.name ? '(YOU)' : ''}
+                    </Typography>
+                    <Typography className={styles.termRemarks} sx={{ fontSize: '11px' }}>
                       Level {approver.approverSeq} Approver
                     </Typography>
                   </TableCell>
@@ -373,7 +362,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
                     const showActionButtons = effectivelyPending && canTakeApprovalAction && isCurrentUser;
 
                     return (
-                      <TableCell key={vendor.id} className={styles.dataCell} sx={{ backgroundColor: '#fff', }}>
+                      <TableCell key={vendor.id} className={styles.dataCell} sx={{ backgroundColor: '#fff', py: 0.5, px: 1.5 }}>
                         {showActionButtons ? (
                           <Box sx={{ display: 'flex', justifyContent: "center", gap: 1, alignItems: 'center', }}>
                             <Button
@@ -473,7 +462,8 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
               ))}
             </TableBody>
           </Table>
-        </TableContainer>
+          </TableContainer>
+        </div>
       )}
     </div>
   );
