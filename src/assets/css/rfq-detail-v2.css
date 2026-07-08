@@ -853,7 +853,7 @@
   .MuiTextField-root
   .MuiOutlinedInput-root {
   min-height: 30px !important;
-  border-radius: 4px !important;
+  border-radius: 6px !important;
   font-size: 11px !important;
 }
 
@@ -3369,6 +3369,7 @@
   .MuiOutlinedInput-root {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
+  border-radius: 6px !important;
 }
 
 .rfq-detail-v2-shell

@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState } from "react";
+import CommonBottomDrawer from "../CommonBottomDrawer";
 import { Autocomplete, Avatar, Box, Checkbox, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, InputAdornment, Menu, MenuItem, Pagination, Stack, TextField, Tooltip, Typography } from "@mui/material";
-import { CalendarToday as CalendarIcon } from "@mui/icons-material";
+import { CalendarToday as CalendarIcon, SearchOutlined } from "@mui/icons-material";
 import { HiOutlineChevronDown, HiOutlineUserAdd, HiOutlineX } from "react-icons/hi";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import {
@@ -196,8 +197,7 @@ const RFQActionDrawer = ({
 		);
 		if (res.status == 200) {
 
-			let vendorItemAnalysisdata = res.data?.result;
-
+			let vendorItemAnalysisdata = res.data;
 			setSelectedSupplier(vendorItemAnalysisdata ?? []);
 		}
 	};
@@ -651,10 +651,6 @@ const RFQActionDrawer = ({
 		}
 	});
 
-
-
-
-
 	const getEventSupplier = async () => {
 		const reqdata = {
 			RFQId: parseInt(rfqid),
@@ -667,12 +663,11 @@ const RFQActionDrawer = ({
 			atoken
 		);
 		if (res) {
-
-			const data = res.data?.result;
+			const data = res.data;
 			setSupplierList(data)
 		}
-
 	}
+
 	const [supplierlist, setSupplierList] = useState([])
 	useEffect(() => {
 
@@ -701,9 +696,7 @@ const RFQActionDrawer = ({
 	const handleReminderAll = (value) => {
 		setSupplierList(prev =>
 			prev.map(supplier =>
-				supplier.version === EventHeaderDetails.version &&
-					supplier.status != "Closed" &&
-					supplier.status != "Regretted"
+				supplier.status != "Closed" && supplier.status != "Regretted"
 					? { ...supplier, reinvitechecked: value } // update only filtered
 					: supplier // keep others same
 			)
@@ -713,9 +706,7 @@ const RFQActionDrawer = ({
 	const handleReOpenAll = (value) => {
 		setSupplierList(prev =>
 			prev.map(supplier =>
-				supplier.version === EventHeaderDetails.version &&
-					supplier.status != "Open" &&
-					supplier.status != "Regretted"
+				supplier.status != "Open" && supplier.status != "Regretted"
 					? { ...supplier, reinvitechecked: value } // update only filtered
 					: supplier // keep others same
 			)
@@ -1097,1072 +1088,251 @@ const RFQActionDrawer = ({
 				</Menu>
 
 				{/* Drawer for Add New Supplier */}
-				{openDrawer.addsupplier && (
-					<div className="rfq-v2-event-drawer-backdrop" role="presentation" onClick={() => toggleDrawer("addsupplier", false)}>
-						<section className="rfq-v2-event-drawer" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-							<header className="rfq-v2-event-drawer-header">
-								<h2 className="rfq-v2-event-drawer-title">Add New Supplier</h2>
-								<div className="rfq-v2-event-drawer-actions">
-									<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => toggleDrawer("addsupplier", false)}>Close</button>
-									<button type="button" className="pe-btn pe-btn--primary" onClick={handleSaveNewSupplier}>Update</button>
-								</div>
-							</header>
-							<div className="rfq-v2-event-drawer-body" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden', padding: '16px', gap: '12px' }}>
-								{/* Filters row */}
-								<div className="rfq-v2-drawer-form" style={{ flexShrink: 0 }}>
-									<div className="rfq-v2-drawer-grid">
-										<div className="rfq-v2-drawer-field">
-											<span className="rfq-v2-drawer-label">Category</span>
-											<Autocomplete
-												size="small"
-												options={categoryList}
-												fullWidth
-												renderInput={(params) => (
-													<TextField {...params} placeholder="Select category" />
-												)}
-												getOptionLabel={(option) => option.itemCategory ?? ""}
-												isOptionEqualToValue={(option, value) => option.id === value?.id}
-												value={selectedCategory}
-												onChange={(e, newvalue) => {
-													setSelectedCategory(newvalue);
-													setSupplierSearchText('');
-													handleSupplierWithCategory(newvalue);
-												}}
-											/>
-										</div>
-										<div className="rfq-v2-drawer-field">
-											<span className="rfq-v2-drawer-label">Search Supplier</span>
-											<TextField
-												size="small"
-												fullWidth
-												placeholder="Search by name or email..."
-												value={supplierSearchText}
-												onChange={(e) => { setSupplierSearchText(e.target.value); setPageTS(1); }}
-											/>
-										</div>
-									</div>
-								</div>
-
-								{/* Two-column supplier lists */}
-								{(() => {
-									const filteredRemaining = (remainingSupplier ?? []).filter(x => {
-										if (!supplierSearchText) return true;
-										const q = supplierSearchText.toLowerCase();
-										return (
-											(x?.contactPerson ?? '').toLowerCase().includes(q) ||
-											(x?.email ?? '').toLowerCase().includes(q) ||
-											(x?.companyName ?? '').toLowerCase().includes(q)
-										);
-									});
-									const totalTSPages = Math.ceil(filteredRemaining.length / pageCount) || 1;
-									const pagedRemaining = filteredRemaining.slice((pageTS - 1) * pageCount, pageTS * pageCount);
-									const totalSSPages = Math.ceil((newSupplier?.length ?? 0) / pageCount) || 1;
-									const pagedNew = (newSupplier ?? []).slice((pageSS - 1) * pageCount, pageSS * pageCount);
-									const pageSizeOptions = [10, 25, 50];
-
-									const PaginationBar = ({ total, page, setPage, pageSize, setPageSize }) => (
-										<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '20px', padding: '5px 12px', borderTop: '1px solid #e5e7eb', background: '#fff', flexShrink: 0, minHeight: '44px' }}>
-											<span style={{ fontSize: '12px', color: '#6b7280' }}>Rows per page:</span>
-											<select
-												value={pageSize}
-												onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
-												style={{ fontSize: '12px', color: '#374151', border: 'none', borderRadius: '4px', padding: '2px 4px', background: '#fff', cursor: 'pointer' }}
-											>
-												{pageSizeOptions.map(n => <option key={n} value={n}>{n}</option>)}
-											</select>
-											<span style={{ fontSize: '12px', color: '#6b7280' }}>
-												{total === 0 ? '0–0 of 0' : `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total}`}
-											</span>
-											<button type="button" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}
-												style={{ background: "none", border: "none", cursor: pageTS === 1 ? "default" : "pointer", color: pageTS === 1 ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}
-											>&#8249;</button>
-											<button type="button" className="pe-icon-btn" disabled={page >= Math.ceil(total / pageSize) || total === 0} onClick={() => setPage(p => Math.min(Math.ceil(total / pageSize), p + 1))}
-												style={{ background: "none", border: "none", cursor: pageTS >= total ? "default" : "pointer", color: pageTS >= total ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}
-											>&#8250;</button>
-										</div>
-									);
-
-									return (
-										<div style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0 }}>
-											{/* Remaining Suppliers */}
-											<div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
-												<div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', flexShrink: 0 }}>
-													<span style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>Remaining Suppliers</span>
-													<span style={{ background: '#2A68D3', color: '#fff', borderRadius: '10px', fontSize: '11px', fontWeight: 700, padding: '1px 7px' }}>{filteredRemaining.length}</span>
-													{selectedCategory && (
-														<span style={{ background: '#d1fae5', color: '#065f46', borderRadius: '10px', fontSize: '11px', fontWeight: 600, padding: '1px 8px' }}>{selectedCategory?.itemCategory}</span>
-													)}
-												</div>
-												<div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-													{pagedRemaining.length === 0 ? (
-														<div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>No suppliers found</div>
-													) : pagedRemaining.map((x, i) => (
-														<div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderBottom: '1px solid #f3f4f6' }}>
-															<button type="button" className="pe-icon-btn pe-icon-btn--add" style={{ flexShrink: 0 }} onClick={() => handleCheckRemainingSupplier(x)}>
-																<HiOutlineUserAdd />
-															</button>
-															<div style={{ fontSize: '12px', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-																<span style={{ fontWeight: 500 }}>{x?.contactPerson}</span>
-																{' | '}{x?.email}
-																{' | '}<span style={{ color: '#6b7280' }}>{x?.companyName}</span>
-															</div>
-														</div>
-													))}
-												</div>
-												<PaginationBar total={filteredRemaining.length} page={pageTS} setPage={setPageTS} pageSize={pageCount} setPageSize={setPageCount} />
-											</div>
-
-											{/* New Suppliers */}
-											<div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
-												<div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', flexShrink: 0 }}>
-													<span style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>New Suppliers</span>
-													<span style={{ background: '#2A68D3', color: '#fff', borderRadius: '10px', fontSize: '11px', fontWeight: 700, padding: '1px 7px' }}>{newSupplier?.length ?? 0}</span>
-												</div>
-												<div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-													{pagedNew.length === 0 ? (
-														<div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>No suppliers added yet</div>
-													) : pagedNew.map((x, i) => (
-														<div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderBottom: '1px solid #f3f4f6' }}>
-															<button type="button" className="pe-icon-btn pe-icon-btn--delete" style={{ flexShrink: 0 }} onClick={() => handleClearRemainingSupplier(x)}>
-																<HiOutlineX />
-															</button>
-															<div style={{ fontSize: '12px', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-																<span style={{ fontWeight: 500 }}>{x?.contactPerson}</span>
-																{' | '}{x?.email}
-																{' | '}<span style={{ color: '#6b7280' }}>{x?.companyName}</span>
-															</div>
-														</div>
-													))}
-												</div>
-												<PaginationBar total={newSupplier?.length ?? 0} page={pageSS} setPage={setPageSS} pageSize={pageCount} setPageSize={setPageCount} />
-											</div>
-										</div>
-									);
-								})()}
+				<CommonBottomDrawer
+					open={openDrawer.addsupplier}
+					onClose={() => toggleDrawer("addsupplier", false)}
+					title="Add New Supplier"
+					bodyStyle={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden', padding: '16px', gap: '12px' }}
+					actions={<>
+						<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => toggleDrawer("addsupplier", false)}>Close</button>
+						<button type="button" className="pe-btn pe-btn--primary" onClick={handleSaveNewSupplier}>Update</button>
+					</>}
+				>
+					{/* Filters row */}
+					<div className="rfq-v2-drawer-form" style={{ flexShrink: 0 }}>
+						<div className="rfq-v2-drawer-grid">
+							<div className="rfq-v2-drawer-field">
+								<span className="rfq-v2-drawer-label">Category</span>
+								<Autocomplete
+									size="small"
+									options={categoryList}
+									fullWidth
+									renderInput={(params) => (
+										<TextField {...params} placeholder="Select category" />
+									)}
+									getOptionLabel={(option) => option.itemCategory ?? ""}
+									isOptionEqualToValue={(option, value) => option.id === value?.id}
+									value={selectedCategory}
+									onChange={(e, newvalue) => {
+										setSelectedCategory(newvalue);
+										setSupplierSearchText('');
+										handleSupplierWithCategory(newvalue);
+									}}
+								/>
 							</div>
-						</section>
+							<div className="rfq-v2-drawer-field">
+								<span className="rfq-v2-drawer-label">Search Supplier</span>
+								<TextField
+									size="small"
+									fullWidth
+									placeholder="Search by name or email..."
+									value={supplierSearchText}
+									onChange={(e) => { setSupplierSearchText(e.target.value); setPageTS(1); }}
+								/>
+							</div>
+						</div>
 					</div>
-				)}
+
+					{/* Two-column supplier lists */}
+					{(() => {
+						const filteredRemaining = (remainingSupplier ?? []).filter(x => {
+							if (!supplierSearchText) return true;
+							const q = supplierSearchText.toLowerCase();
+							return (
+								(x?.contactPerson ?? '').toLowerCase().includes(q) ||
+								(x?.email ?? '').toLowerCase().includes(q) ||
+								(x?.companyName ?? '').toLowerCase().includes(q)
+							);
+						});
+						const totalTSPages = Math.ceil(filteredRemaining.length / pageCount) || 1;
+						const pagedRemaining = filteredRemaining.slice((pageTS - 1) * pageCount, pageTS * pageCount);
+						const totalSSPages = Math.ceil((newSupplier?.length ?? 0) / pageCount) || 1;
+						const pagedNew = (newSupplier ?? []).slice((pageSS - 1) * pageCount, pageSS * pageCount);
+						const pageSizeOptions = [10, 25, 50];
+
+						const PaginationBar = ({ total, page, setPage, pageSize, setPageSize }) => (
+							<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '20px', padding: '5px 12px', borderTop: '1px solid #e5e7eb', background: '#fff', flexShrink: 0, minHeight: '44px' }}>
+								<span style={{ fontSize: '12px', color: '#6b7280' }}>Rows per page:</span>
+								<select
+									value={pageSize}
+									onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
+									style={{ fontSize: '12px', color: '#374151', border: 'none', borderRadius: '4px', padding: '2px 4px', background: '#fff', cursor: 'pointer' }}
+								>
+									{pageSizeOptions.map(n => <option key={n} value={n}>{n}</option>)}
+								</select>
+								<span style={{ fontSize: '12px', color: '#6b7280' }}>
+									{total === 0 ? '0–0 of 0' : `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total}`}
+								</span>
+								<button type="button" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}
+									style={{ background: "none", border: "none", cursor: pageTS === 1 ? "default" : "pointer", color: pageTS === 1 ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}
+								>&#8249;</button>
+								<button type="button" className="pe-icon-btn" disabled={page >= Math.ceil(total / pageSize) || total === 0} onClick={() => setPage(p => Math.min(Math.ceil(total / pageSize), p + 1))}
+									style={{ background: "none", border: "none", cursor: pageTS >= total ? "default" : "pointer", color: pageTS >= total ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}
+								>&#8250;</button>
+							</div>
+						);
+
+						return (
+							<div style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0 }}>
+								{/* Remaining Suppliers */}
+								<div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
+									<div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', flexShrink: 0 }}>
+										<span style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>Remaining Suppliers</span>
+										<span style={{ background: '#2A68D3', color: '#fff', borderRadius: '10px', fontSize: '11px', fontWeight: 700, padding: '1px 7px' }}>{filteredRemaining.length}</span>
+										{selectedCategory && (
+											<span style={{ background: '#d1fae5', color: '#065f46', borderRadius: '10px', fontSize: '11px', fontWeight: 600, padding: '1px 8px' }}>{selectedCategory?.itemCategory}</span>
+										)}
+									</div>
+									<div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+										{pagedRemaining.length === 0 ? (
+											<div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>No suppliers found</div>
+										) : pagedRemaining.map((x, i) => (
+											<div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderBottom: '1px solid #f3f4f6' }}>
+												<button type="button" className="pe-icon-btn pe-icon-btn--add" style={{ flexShrink: 0 }} onClick={() => handleCheckRemainingSupplier(x)}>
+													<HiOutlineUserAdd />
+												</button>
+												<div style={{ fontSize: '12px', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+													<span style={{ fontWeight: 500 }}>{x?.contactPerson}</span>
+													{' | '}{x?.email}
+													{' | '}<span style={{ color: '#6b7280' }}>{x?.companyName}</span>
+												</div>
+											</div>
+										))}
+									</div>
+									<PaginationBar total={filteredRemaining.length} page={pageTS} setPage={setPageTS} pageSize={pageCount} setPageSize={setPageCount} />
+								</div>
+
+								{/* New Suppliers */}
+								<div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
+									<div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', flexShrink: 0 }}>
+										<span style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>New Suppliers</span>
+										<span style={{ background: '#2A68D3', color: '#fff', borderRadius: '10px', fontSize: '11px', fontWeight: 700, padding: '1px 7px' }}>{newSupplier?.length ?? 0}</span>
+									</div>
+									<div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+										{pagedNew.length === 0 ? (
+											<div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>No suppliers added yet</div>
+										) : pagedNew.map((x, i) => (
+											<div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderBottom: '1px solid #f3f4f6' }}>
+												<button type="button" className="pe-icon-btn pe-icon-btn--delete" style={{ flexShrink: 0 }} onClick={() => handleClearRemainingSupplier(x)}>
+													<HiOutlineX />
+												</button>
+												<div style={{ fontSize: '12px', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+													<span style={{ fontWeight: 500 }}>{x?.contactPerson}</span>
+													{' | '}{x?.email}
+													{' | '}<span style={{ color: '#6b7280' }}>{x?.companyName}</span>
+												</div>
+											</div>
+										))}
+									</div>
+									<PaginationBar total={newSupplier?.length ?? 0} page={pageSS} setPage={setPageSS} pageSize={pageCount} setPageSize={setPageCount} />
+								</div>
+							</div>
+						);
+					})()}
+				</CommonBottomDrawer>
 
 				{/* Drawer for Re-invite*/}
-				{openDrawer.reInviteSupplier && (
-					<div className="rfq-v2-event-drawer-backdrop" role="presentation" onClick={() => toggleDrawer("reInviteSupplier", false)}>
-						<section className="rfq-v2-event-drawer" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-							<header className="rfq-v2-event-drawer-header">
-								<h2 className="rfq-v2-event-drawer-title">Reinvite RFQ</h2>
-								<div className="rfq-v2-event-drawer-actions">
-									<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("reInviteSupplier", false)}>Close</button>
-									<LoadingButton loading={loading} size="small" variant="contained" disabled={!supplierlist?.filter(x => x?.reinvitechecked).length} onClick={() => formik_Reinvite.handleSubmit()}>Reinvite Supplier</LoadingButton>
-								</div>
-							</header>
-							<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto', flex: 1, padding: '16px' }}>
-								<form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off">
-									<div className="p-3">
-
-										{openDrawer.reInviteSupplier && (
-											<div className="rfq-v2-drawer-form" style={{ marginBottom: '16px' }}>
-												<LocalizationProvider dateAdapter={AdapterDayjs}>
-													<div className="rfq-v2-drawer-grid">
-														<div className="rfq-v2-drawer-field">
-															<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Reopen / Start Date</span>
-															<MobileDateTimePicker
-																variant="outlined"
-																size="small"
-																name="reopenDate"
-																id="reopenDate"
-																timezone={userDetail?.timeZone}
-																minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-																value={formik_Reinvite.values.reopenDate || null}
-																className="w-100 f14"
-																slotProps={{
-																	textField: {
-																		variant: "outlined",
-																		size: "small",
-																		InputLabelProps: { shrink: true },
-																		error:
-																			formik_Reinvite.touched.reopenDate &&
-																			Boolean(formik_Reinvite.errors.reopenDate),
-																		helperText:
-																			formik_Reinvite.touched.reopenDate &&
-																			formik_Reinvite.errors.reopenDate,
-																	},
-																	actionBar: {
-																		actions: ["clear", "cancel", "accept"],
-																	},
-																}}
-																onChange={(newValue) => {
-																	formik_Reinvite.setFieldValue(
-																		"reopenDate",
-																		newValue
-																	);
-																}}
-																format={getDateFormatPatteronLocale(userDetail)}
-																ampm={userampm(userDetail)}
-															/>
-														</div>
-														<div className="rfq-v2-drawer-field">
-															<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">End Date</span>
-															<MobileDateTimePicker
-																variant="outlined"
-																size="small"
-																name="deadlineDate"
-																id="deadlineDate"
-																timezone={userDetail?.timeZone}
-																minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-																value={formik_Reinvite.values.deadlineDate || null}
-																className="w-100 f14"
-																slotProps={{
-																	textField: {
-																		variant: "outlined",
-																		size: "small",
-																		InputLabelProps: { shrink: true },
-																		error:
-																			formik_Reinvite.touched.deadlineDate &&
-																			Boolean(formik_Reinvite.errors.deadlineDate),
-																		helperText:
-																			formik_Reinvite.touched.deadlineDate &&
-																			formik_Reinvite.errors.deadlineDate,
-																	},
-																	actionBar: {
-																		actions: ["clear", "cancel", "accept"],
-																	},
-																}}
-																onChange={(newValue) => {
-																	formik_Reinvite.setFieldValue(
-																		"deadlineDate",
-																		newValue
-																	);
-																}}
-																format={getDateFormatPatteronLocale(userDetail)}
-																ampm={userampm(userDetail)}
-															/>
-														</div>
-														{rfqtype == "closed" && (
-															<div className="rfq-v2-drawer-field">
-																<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Bid Open Date/Time</span>
-																<MobileDateTimePicker
-																	variant="outlined"
-																	size="small"
-																	name="bidOpeningDate"
-																	id="bidOpeningDate"
-																	timezone={userDetail?.timeZone}
-																	minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-																	value={formik_Reinvite.values.bidOpeningDate || null}
-																	className="w-100 f14"
-																	slotProps={{
-																		textField: {
-																			variant: "outlined",
-																			size: "small",
-																			InputLabelProps: { shrink: true },
-																			error:
-																				formik_Reinvite.touched.deadlineDate &&
-																				Boolean(formik_Reinvite.errors.deadlineDate),
-																			helperText:
-																				formik_Reinvite.touched.deadlineDate &&
-																				formik_Reinvite.errors.deadlineDate,
-																		},
-																		actionBar: {
-																			actions: ["clear", "cancel", "accept"],
-																		},
-																	}}
-																	onChange={(newValue) => {
-																		formik_Reinvite.setFieldValue(
-																			"bidOpeningDate",
-																			newValue
-																		);
-																	}}
-																	format={getDateFormatPatteronLocale(userDetail)}
-																	ampm={userampm(userDetail)}
-																/>
-															</div>
-														)}
-													</div>
-												</LocalizationProvider>
-											</div>
-										)}
-										<div className="reTable">
-											<div className="rfq-v2-drawer-field">
-												<span className="rfq-v2-drawer-label">Search Vendor</span>
-												<TextField
-													id="standard-search"
-													label="Search Vendors"
-													type="search"
-													className="w-100 m"
-													size="small"
-													variant="standard"
-													value={searchQuery}
-													onChange={(e) => setSearchQuery(e.target.value)}
-												/>
-											</div>
-											<div className="reMainTable">
-												<Table bordered hover >
-													<thead className="rethead">
-														<tr>
-															<th style={
-																{ width: "6%" }
-															}><Checkbox className="p-0" size="medium" onChange={(e) => {
-
-
-																handleReinviteAll(e.target.checked)
-															}}
-
-
-
-																/></th>
-															<th>Supplier</th>
-															{/* <th style={{width:"4%"}}>Status</th> */}
-															<th style={{ width: "15%" }}>Current Version</th>
-															<th style={{ width: "40%" }}>Remarks</th>
-														</tr>
-													</thead>
-													<tbody className="retr">
-
-														{supplierlist?.filter((x) => {
-															return x.version == EventHeaderDetails.version && x.status == "Closed"
-														})
-															?.filter((v) => {
-																if (!searchQuery) {
-																	return true; // If searchQuery is empty, return all items
-																}
-																return (
-																	v?.companyName?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-																	v?.contactPerson?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-																	v?.emailId?.toLowerCase()?.includes(searchQuery?.toLowerCase())
-																);
-															})
-															.map((v, index) => {
-
-																return (
-
-																	<tr key={index}>
-																		<td width={10}>
-																			{v?.reinvitechecked == true ? <Checkbox className="p-0" checked={true} size="medium" onChange={(e) => {
-
-																				handleReinviteCheck(v, e.target.checked)
-																			}} /> : <Checkbox className="p-0" checked={false} size="medium" onChange={(e) => {
-
-																				handleReinviteCheck(v, e.target.checked)
-																			}} />}
-																		</td>
-																		<td width={40}>{`${v.companyName}|${v.contactPerson}|${v.emailId}`}</td>
-																		{/* <td width={10}>                                                      
-			{v?.status =="Closed" }
-            </td> */}
-																		<td width={10}>{v?.version}</td>
-																		<td width={40}>
-																			<TextField
-																				variant="outlined"
-																				multiline
-																				minRows={2}
-																				maxRows={4}
-																				fullWidth
-																				placeholder="Enter remarks here"
-																				defaultValue={v.reinviteremark || ''}
-																				onBlur={(e) => {
-																					v.reinviteremark = e.target.value;
-																				}}
-																				sx={{
-																					backgroundColor: '#fff',
-																					borderRadius: 1,
-																					mt: 1,
-																					mb: 1,
-																					'& .MuiOutlinedInput-root': {
-																						padding: '8px',
-																					},
-																					'& .MuiInputLabel-root': {
-																						fontSize: 14,
-																					},
-																				}}
-																			/>
-																		</td>
-																	</tr>
-																)
-
-
-															})}
-													</tbody>
-												</Table>
-
-											</div>
-
-										</div>
-									</div>
-								</form>
-
-
-							</div>
-						</section>
-					</div>
-				)}
-
-				{/* Drawer for Re-open*/}
-				{openDrawer.reOpenSupplier && (
-					<div className="rfq-v2-event-drawer-backdrop" role="presentation" onClick={() => toggleDrawer("reOpenSupplier", false)}>
-						<section className="rfq-v2-event-drawer" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-							<header className="rfq-v2-event-drawer-header">
-								<h2 className="rfq-v2-event-drawer-title">Reopen Supplier Quote</h2>
-								<div className="rfq-v2-event-drawer-actions">
-									<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("reOpenSupplier", false)}>Close</button>
-									<LoadingButton loading={loading} size="small" variant="contained" disabled={!supplierlist?.filter(x => x?.reinvitechecked).length} onClick={() => formik_Reinvite.handleSubmit()}>Reopen</LoadingButton>
-								</div>
-							</header>
-							<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto', flex: 1, padding: '16px' }}>
-								<form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off">
-									<div className="p-3">
-
-										{openDrawer.reInviteSupplier && (
-											<div className="rfq-v2-drawer-form" style={{ marginBottom: '16px' }}>
-												<LocalizationProvider dateAdapter={AdapterDayjs}>
-													<div className="rfq-v2-drawer-grid">
-														<div className="rfq-v2-drawer-field">
-															<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Reopen Date</span>
-															<MobileDateTimePicker
-																variant="outlined"
-																size="small"
-																name="reopenDate"
-																id="reopenDate"
-																timezone={userDetail?.timeZone}
-																minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-																value={formik_Reinvite.values.reopenDate || null}
-																className="w-100 f14"
-																slotProps={{
-																	textField: {
-																		variant: "outlined",
-																		size: "small",
-																		InputLabelProps: { shrink: true },
-																		error:
-																			formik_Reinvite.touched.reopenDate &&
-																			Boolean(formik_Reinvite.errors.reopenDate),
-																		helperText:
-																			formik_Reinvite.touched.reopenDate &&
-																			formik_Reinvite.errors.reopenDate,
-																	},
-																	actionBar: {
-																		actions: ["clear", "cancel", "accept"],
-																	},
-																}}
-																onChange={(newValue) => {
-																	formik_Reinvite.setFieldValue(
-																		"reopenDate",
-																		newValue
-																	);
-																}}
-																format={getDateFormatPatteronLocale(userDetail)}
-																ampm={userampm(userDetail)}
-															/>
-														</div>
-														<div className="rfq-v2-drawer-field">
-															<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Deadline Date</span>
-															<MobileDateTimePicker
-																variant="outlined"
-																size="small"
-																name="deadlineDate"
-																id="deadlineDate"
-																timezone={userDetail?.timeZone}
-																minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-																value={formik_Reinvite.values.deadlineDate || null}
-																className="w-100 f14"
-																slotProps={{
-																	textField: {
-																		variant: "outlined",
-																		size: "small",
-																		InputLabelProps: { shrink: true },
-																		error:
-																			formik_Reinvite.touched.deadlineDate &&
-																			Boolean(formik_Reinvite.errors.deadlineDate),
-																		helperText:
-																			formik_Reinvite.touched.deadlineDate &&
-																			formik_Reinvite.errors.deadlineDate,
-																	},
-																	actionBar: {
-																		actions: ["clear", "cancel", "accept"],
-																	},
-																}}
-																onChange={(newValue) => {
-																	formik_Reinvite.setFieldValue(
-																		"deadlineDate",
-																		newValue
-																	);
-																}}
-																format={getDateFormatPatteronLocale(userDetail)}
-																ampm={userampm(userDetail)}
-															/>
-														</div>
-													</div>
-												</LocalizationProvider>
-											</div>
-										)}
-										<div className="reTable">
-											<div className="rfq-v2-drawer-field">
-												<span className="rfq-v2-drawer-label">Search Vendor</span>
-												<TextField
-													id="standard-search"
-													label="Search Vendors"
-													type="search"
-													className="w-100 m"
-													size="small"
-													variant="standard"
-													value={searchQuery}
-													onChange={(e) => setSearchQuery(e.target.value)}
-												/>
-											</div>
-											<div className="reMainTable">
-												{/* <Table striped bordered hover > */}
-												<Table bordered hover >
-													<thead className="rethead">
-														<tr>
-															<th style={
-																{ width: "4%" }
-															}><Checkbox className="p-0" size="medium" onChange={(e) => {
-
-
-																handleReOpenAll(e.target.checked)
-															}}
-
-
-																/></th>
-															<th>Supplier</th>
-															<th style={{ width: "5%" }}>Status</th>
-															<th style={{ width: "15%" }}>Current Version</th>
-															<th style={{ width: "40%" }}>Remarks</th>
-														</tr>
-													</thead>
-													<tbody className="retr">
-
-														{supplierlist?.filter(x => x.version == EventHeaderDetails.version && x.status != "Open" && x.status != "Regretted")
-															?.filter((v) => {
-																if (!searchQuery) {
-																	return true; // If searchQuery is empty, return all items
-																}
-																return (
-																	v?.companyName?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-																	v?.contactPerson?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-																	v?.emailId?.toLowerCase()?.includes(searchQuery?.toLowerCase())
-																);
-															})
-
-															?.map((v, index) => {
-
-																return (
-
-																	<tr key={index}>
-																		<td width={10}>
-																			{v?.reinvitechecked == true ? <Checkbox className="p-0" checked={true} size="medium" onChange={(e) => {
-
-																				handleReinviteCheck(v, e.target.checked)
-																			}}
-
-
-
-																			/> : <Checkbox className="p-0" checked={false} size="medium" onChange={(e) => {
-
-																				handleReinviteCheck(v, e.target.checked)
-																			}} />}
-																		</td>
-																		<td width={40}>{`${v.companyName}|${v.contactPerson}|${v.emailId}`}</td>
-																		<td width={10}>
-																			{v?.status != "Open" ? <Tooltip title={v?.submissionDate ? formatDateViaLocale(v?.submissionDate, "en-GB",
-																				formattimeoption) : ""}><div className="restatus">Quoted</div></Tooltip> : v?.status == "Revert" ? <div className="restatus">
-																					Reverted</div> : <div className="restatus">
-																				Not Quoted </div>}
-																		</td>
-																		<td width="5%">{`${v.version}`}</td>
-																		<td width={40}>
-																			<TextField
-																				variant="outlined"
-																				multiline
-																				minRows={2}
-																				maxRows={4}
-																				fullWidth
-																				placeholder="Remarks"
-																				onBlur={(e) => {
-
-																					v.reinviteremark = e.target.value
-																				}} />
-																		</td>
-																	</tr>
-																)
-
-
-															})}
-													</tbody>
-												</Table>
-
-											</div>
-										</div>
-									</div>
-								</form>
-
-
-							</div>
-						</section>
-					</div>
-				)}
-
-				{/* Drawer for Send Reminder*/}
-				{openDrawer.NotifySupplier && (
-					<div className="rfq-v2-event-drawer-backdrop" role="presentation" onClick={() => toggleDrawer("NotifySupplier", false)}>
-						<section className="rfq-v2-event-drawer" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-							<header className="rfq-v2-event-drawer-header">
-								<h2 className="rfq-v2-event-drawer-title">Notify Supplier</h2>
-								<div className="rfq-v2-event-drawer-actions">
-									<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("NotifySupplier", false)}>Close</button>
-									<LoadingButton loading={loading} size="small" variant="contained" disabled={!supplierlist?.filter(x => x?.reinvitechecked).length} onClick={() => formik_Reinvite.handleSubmit()}>Send Notification</LoadingButton>
-								</div>
-							</header>
-							<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto', flex: 1, padding: '16px' }}>
-								<form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off">
-									<div className="rfq-v2-drawer-form" style={{ marginBottom: '16px' }}>
-										<div className="rfq-v2-drawer-field">
-											<span className="rfq-v2-drawer-label">Search Vendor</span>
-											<TextField
-												id="standard-search"
-												label="Search Vendors"
-												type="search"
-												className="w-100 m"
-												size="small"
-												variant="standard"
-												value={searchQuery}
-												onChange={(e) => setSearchQuery(e.target.value)}
-											/>
-										</div>
-									</div>
-									<div className="reTable">
-										<div className="reMainTable">
-											<Table bordered hover>
-												<thead className="rethead">
-													<tr>
-														<th style={{ width: "4%" }}>
-															<Checkbox
-																className="p-0"
-																size="medium"
-																onChange={(e) => handleReminderAll(e.target.checked)}
-															/>
-														</th>
-														<th>Supplier</th>
-														<th style={{ width: "4%" }}>Status</th>
-														<th style={{ width: "20%" }}>Current Version</th>
-														<th style={{ width: "40%" }}>Remarks</th>
-													</tr>
-												</thead>
-												<tbody className="retr">
-													{supplierlist
-														?.filter((x) => {
-															// if (openDrawer.NotifySupplier) {
-															// 	return x
-															// }
-															return x.version == EventHeaderDetails.version && x.status != "Closed" && x.status != "Regretted"
-														}
-
-														)
-														?.filter((v) => {
-															if (!searchQuery) {
-																return true; // If searchQuery is empty, return all items
-															}
-															return (
-																v?.companyName?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-																v?.contactPerson?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-																v?.emailId?.toLowerCase()?.includes(searchQuery?.toLowerCase())
-															);
-														})
-														.map((v, index) => {
-															return (
-																<tr key={index}>
-																	<td width={10}>
-																		{v?.reinvitechecked == true ? (
-																			<Checkbox
-																				className="p-0"
-																				checked={true}
-																				size="medium"
-																				onChange={(e) => handleReinviteCheck(v, e.target.checked)}
-																			/>
-																		) : (
-																			<Checkbox
-																				className="p-0"
-																				checked={false}
-																				size="medium"
-																				onChange={(e) => handleReinviteCheck(v, e.target.checked)}
-																			/>
-																		)}
-																	</td>
-																	<td width={40}>{`${v.companyName}|${v.contactPerson}|${v.emailId}`}</td>
-																	<td width={10}>
-																		{v?.status == "Closed" ? (
-																			<Tooltip
-																				title={
-																					v?.submissionDate
-																						? formatDateViaLocale(v?.submissionDate, "en-GB", formattimeoption)
-																						: ""
-																				}
-																			>
-																				<div className="restatus">Quoted</div>
-																			</Tooltip>
-																		) : v?.status == "Revert" ? (
-																			<div className="restatus">Reverted</div>
-																		) : (
-																			<div className="restatus">Not Quoted</div>
-																		)}
-																	</td>
-																	<td width={10}>{`${v.version}`}</td>
-																	<td width={40}>
-																		<TextField
-
-																			variant="outlined"
-																			multiline
-																			minRows={2}
-																			maxRows={4}
-																			fullWidth
-																			// className="formulaEditor w-100"
-																			placeholder="Remarks"
-																			onBlur={(e) => {
-																				v.reinviteremark = e.target.value;
-																			}}
-																			sx={{
-																				backgroundColor: '#fff',
-																				borderRadius: 1,
-																				mt: 1,
-																				mb: 1,
-																				'& .MuiOutlinedInput-root': {
-																					padding: '8px',
-																				},
-																				'& .MuiInputLabel-root': {
-																					fontSize: 14,
-																				},
-																			}}
-																		/>
-																	</td>
-																</tr>
-															);
-														})}
-
-													{/* Show message if no suppliers match the query */}
-													{supplierlist
-														?.filter((x) => x.version == EventHeaderDetails.version && x.status == "Closed")
-														?.filter((v) => {
-															if (!searchQuery) {
-																return true;
-															}
-															return (
-																v?.companyName?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-																v?.contactPerson?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-																v?.emailId?.toLowerCase()?.includes(searchQuery?.toLowerCase())
-															);
-														}).length === 0 && !openDrawer.NotifySupplier && (
-															<tr>
-																<td colSpan={5} style={{ textAlign: "center" }}>
-																	<div>No suppliers found</div>
-																</td>
-															</tr>
-														)}
-												</tbody>
-											</Table>
-										</div>
-									</div>
-								</form>
-							</div>
-						</section>
-					</div>
-				)}
-
-
-				{/* Drawer for Surrogate Supplier*/}
-				{openDrawer.surrogateSupplier && (
-					<div className="rfq-v2-event-drawer-backdrop" role="presentation" onClick={() => toggleDrawer("surrogateSupplier", false)}>
-						<section className="rfq-v2-event-drawer" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-							<header className="rfq-v2-event-drawer-header">
-								<h2 className="rfq-v2-event-drawer-title">Surrogate Supplier</h2>
-								<div className="rfq-v2-event-drawer-actions">
-									<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("surrogateSupplier", false)}>Close</button>
-									<LoadingButton loading={loading} size="small" variant="contained" onClick={() => formik_Surrogate.handleSubmit()}>Surrogate</LoadingButton>
-								</div>
-							</header>
-							<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto', flex: 1, padding: '16px' }}>
-								<form onSubmit={formik_Surrogate.handleSubmit} autoComplete="off">
-									<div className="rfq-v2-drawer-form">
-
+				<CommonBottomDrawer
+					open={openDrawer.reInviteSupplier}
+					onClose={() => toggleDrawer("reInviteSupplier", false)}
+					title="Reinvite RFQ"
+					bodyStyle={{ overflowY: 'auto', flex: 1, padding: '16px' }}
+					actions={<>
+						<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("reInviteSupplier", false)}>Close</button>
+						<LoadingButton loading={loading} size="small" variant="contained" disabled={!supplierlist?.filter(x => x?.reinvitechecked).length} onClick={() => formik_Reinvite.handleSubmit()}>Reinvite Supplier</LoadingButton>
+					</>}
+				>
+					<form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off">
+						<div className="p-3">
+							{openDrawer.reInviteSupplier && (
+								<div className="rfq-v2-drawer-form" style={{ marginBottom: '16px' }}>
+									<LocalizationProvider dateAdapter={AdapterDayjs}>
 										<div className="rfq-v2-drawer-grid">
-
 											<div className="rfq-v2-drawer-field">
-												<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Supplier</span>
-												<Autocomplete
-													id="supplierforsurrogate"
-													name="Supplier"
+												<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Reopen / Start Date</span>
+												<MobileDateTimePicker
+													variant="outlined"
 													size="small"
-													className="w-100 f12"
-													options={supplierlist
-														?.filter((x) => x.version == EventHeaderDetails.version && x.status != "Closed" && x.status != "Regretted") || []}
-													getOptionLabel={(option) =>
-
-														`${option.contactPerson} - ${option.emailId} | ${option.companyName}`
-													}
-													value={formik_Surrogate.values.supplier ?? null}
-													onChange={(event, value) => {
-
-														formik_Surrogate.setFieldValue("supplier", value)
+													name="reopenDate"
+													id="reopenDate"
+													timezone={userDetail?.timeZone}
+													minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
+													value={formik_Reinvite.values.reopenDate || null}
+													className="w-100 f14"
+													slotProps={{
+														textField: {
+															variant: "outlined",
+															size: "small",
+															InputLabelProps: { shrink: true },
+															error:
+																formik_Reinvite.touched.reopenDate &&
+																Boolean(formik_Reinvite.errors.reopenDate),
+															helperText:
+																formik_Reinvite.touched.reopenDate &&
+																formik_Reinvite.errors.reopenDate,
+														},
+														actionBar: {
+															actions: ["clear", "cancel", "accept"],
+														},
 													}}
-													renderInput={(params) => (
-														<TextField
-															{...params}
-															label="Supplier"
-															variant="outlined"
-															error={formik_Surrogate.touched.supplier && Boolean(formik_Surrogate.errors.supplier)}
-															helperText={formik_Surrogate.touched.supplier && formik_Surrogate.errors.supplier}
-														/>
-													)}
+													onChange={(newValue) => {
+														formik_Reinvite.setFieldValue(
+															"reopenDate",
+															newValue
+														);
+													}}
+													format={getDateFormatPatteronLocale(userDetail)}
+													ampm={userampm(userDetail)}
 												/>
 											</div>
 											<div className="rfq-v2-drawer-field">
-												<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Surrogater Name</span>
-												<TextFieldCell
-													id="surrogatename"
-													name="surrogatename"
-													placeholder=""
-													maxLength={200}
-													value={formik_Surrogate.values.surrogatename}
-													onChange={formik_Surrogate.handleChange}
-													error={
-														formik_Surrogate.touched.surrogatename &&
-														Boolean(formik_Surrogate.errors.surrogatename)
-													}
-													helperText={
-														formik_Surrogate.touched.surrogatename &&
-														formik_Surrogate.errors.surrogatename
-													}
-													InputProps={{
-														endAdornment: formik_Surrogate.values.surrogatename && (
-															<InputAdornment position="end">
-																<Typography
-																	variant="body2"
-																	color="textSecondary"
-																>
-																	{formik_Surrogate.values.surrogatename.length}/200
-																</Typography>
-															</InputAdornment>
-														),
+												<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">End Date</span>
+												<MobileDateTimePicker
+													variant="outlined"
+													size="small"
+													name="deadlineDate"
+													id="deadlineDate"
+													timezone={userDetail?.timeZone}
+													minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
+													value={formik_Reinvite.values.deadlineDate || null}
+													className="w-100 f14"
+													slotProps={{
+														textField: {
+															variant: "outlined",
+															size: "small",
+															InputLabelProps: { shrink: true },
+															error:
+																formik_Reinvite.touched.deadlineDate &&
+																Boolean(formik_Reinvite.errors.deadlineDate),
+															helperText:
+																formik_Reinvite.touched.deadlineDate &&
+																formik_Reinvite.errors.deadlineDate,
+														},
+														actionBar: {
+															actions: ["clear", "cancel", "accept"],
+														},
 													}}
+													onChange={(newValue) => {
+														formik_Reinvite.setFieldValue(
+															"deadlineDate",
+															newValue
+														);
+													}}
+													format={getDateFormatPatteronLocale(userDetail)}
+													ampm={userampm(userDetail)}
 												/>
 											</div>
-
-										</div>
-
-										<div className="rfq-v2-drawer-grid">
-
-											<div className="rfq-v2-drawer-field">
-												<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Surrogater Email</span>
-												<TextFieldCell
-													id="surrogateemail"
-													name="surrogateemail"
-													placeholder=""
-													maxLength={200}
-													value={formik_Surrogate.values.surrogateemail}
-													onChange={formik_Surrogate.handleChange}
-													error={
-														formik_Surrogate.touched.surrogateemail &&
-														Boolean(formik_Surrogate.errors.surrogateemail)
-													}
-													helperText={
-														formik_Surrogate.touched.surrogateemail &&
-														formik_Surrogate.errors.surrogateemail
-													}
-													InputProps={{
-														endAdornment: formik_Surrogate.values.surrogateemail && (
-															<InputAdornment position="end">
-																<Typography
-																	variant="body2"
-																	color="textSecondary"
-																>
-																	{formik_Surrogate.values.surrogateemail.length}/200
-																</Typography>
-															</InputAdornment>
-														),
-													}}
-												/>
-											</div>
-
-											<div className="rfq-v2-drawer-field">
-												<span className="rfq-v2-drawer-label">Remark</span>
-												<TextFieldCell
-													id="surrogateReason"
-													name="surrogateReason"
-													placeholder=""
-													maxLength={200}
-													value={formik_Surrogate.values.surrogateReason}
-													onChange={formik_Surrogate.handleChange}
-													error={
-														formik_Surrogate.touched.surrogateReason &&
-														Boolean(formik_Surrogate.errors.surrogateReason)
-													}
-													helperText={
-														formik_Surrogate.touched.surrogateReason &&
-														formik_Surrogate.errors.surrogateReason
-													}
-													InputProps={{
-														endAdornment: formik_Surrogate.values.surrogateReason && (
-															<InputAdornment position="end">
-																<Typography
-																	variant="body2"
-																	color="textSecondary"
-																>
-																	{formik_Surrogate.values.surrogateReason.length}/200
-																</Typography>
-															</InputAdornment>
-														),
-													}}
-												/>
-											</div>
-										</div>
-
-									</div>
-								</form>
-
-							</div>
-						</section>
-					</div>
-				)}
-
-				{/* Drawer for Reinitiate Event*/}
-				{openDrawer.ReinitiateEvent && (
-					<div className="rfq-v2-event-drawer-backdrop" role="presentation" onClick={() => toggleDrawer("ReinitiateEvent", false)}>
-						<section className="rfq-v2-event-drawer" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-							<header className="rfq-v2-event-drawer-header">
-								<h2 className="rfq-v2-event-drawer-title">Reinitiate/Update RFQ</h2>
-								<div className="rfq-v2-event-drawer-actions">
-									<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("ReinitiateEvent", false)}>Close</button>
-									<LoadingButton loading={loading} size="small" variant="contained" onClick={handleReinitiateUpdate}>Reinitiate</LoadingButton>
-								</div>
-							</header>
-							<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto', flex: 1, padding: '16px' }}>
-								<div className="rfq-v2-drawer-confirm">
-									<p className="rfq-v2-drawer-confirm-title">Are you sure?</p>
-									<p>Are you sure you want to update the event? This action may trigger a reinitiation of the RFQ process.</p>
-								</div>
-							</div>
-						</section>
-					</div>
-				)}
-
-				{/* Drawer for Open Sealed Bid*/}
-				{openDrawer.OpenSealedBid && (
-					<div className="rfq-v2-event-drawer-backdrop" role="presentation" onClick={() => toggleDrawer("OpenSealedBid", false)}>
-						<section className="rfq-v2-event-drawer" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-							<header className="rfq-v2-event-drawer-header">
-								<h2 className="rfq-v2-event-drawer-title">Open Sealed Bid</h2>
-								<div className="rfq-v2-event-drawer-actions">
-									<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("OpenSealedBid", false)}>Close</button>
-									<LoadingButton loading={loading} size="small" variant="contained" onClick={handleOpenSealedBid}>Open Sealed Bid</LoadingButton>
-								</div>
-							</header>
-							<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto', flex: 1, padding: '16px' }}>
-								<div className="rfq-v2-drawer-confirm">
-									<p className="rfq-v2-drawer-confirm-title">Are you sure?</p>
-									<p>Are you sure you want to open Sealed Bid?</p>
-								</div>
-
-
-
-							</div>
-						</section>
-					</div>
-				)}
-
-				{/* Drawer for Extend  Event*/}
-				{openDrawer.extendEvent && (
-					<div className="rfq-v2-event-drawer-backdrop" role="presentation" onClick={() => toggleDrawer("extendEvent", false)}>
-						<section className="rfq-v2-event-drawer" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-							<header className="rfq-v2-event-drawer-header">
-								<h2 className="rfq-v2-event-drawer-title">Extend RFQ</h2>
-								<div className="rfq-v2-event-drawer-actions">
-									<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("extendEvent", false)}>Close</button>
-									<LoadingButton loading={loading} size="small" variant="contained" onClick={() => formik_Reinvite.handleSubmit()}>Extend</LoadingButton>
-								</div>
-							</header>
-							<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto', flex: 1, padding: '16px' }}>
-								<form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off">
-									<div className="rfq-v2-drawer-form">
-										<div className="rfq-v2-drawer-grid">
-											<div className="rfq-v2-drawer-info-box">
-												<CalendarIcon sx={{ color: '#9ca3af', fontSize: 18 }} />
-												<div className="rfq-v2-drawer-info-inner">
-													<span className="rfq-v2-drawer-info-label">Current End Date</span>
-													<span className="rfq-v2-drawer-info-value">{enddate ? formatDateViaLocale(enddate, userDetail) : 'N/A'}</span>
-												</div>
-											</div>
-											<div className="rfq-v2-drawer-field">
-												<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">New End Date</span>
-												<LocalizationProvider dateAdapter={AdapterDayjs}>
-													<div>
-														<MobileDateTimePicker
-															variant="outlined"
-															size="small"
-															name="deadlineDate"
-															id="deadlineDate"
-															timezone={userDetail?.timeZone}
-															minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-															value={formik_Reinvite.values.deadlineDate || null}
-															className="w-100 f14"
-															slotProps={{
-																textField: {
-																	variant: "outlined",
-																	size: "small",
-																	InputLabelProps: { shrink: true },
-																	error:
-																		formik_Reinvite.touched.deadlineDate &&
-																		Boolean(formik_Reinvite.errors.deadlineDate),
-																	helperText:
-																		formik_Reinvite.touched.deadlineDate &&
-																		formik_Reinvite.errors.deadlineDate,
-																},
-																actionBar: {
-																	actions: ["clear", "cancel", "accept"],
-																},
-															}}
-															onChange={(newValue) => {
-																formik_Reinvite.setFieldValue(
-																	"deadlineDate",
-																	newValue
-																);
-															}}
-															format={getDateFormatPatteronLocale(userDetail)}
-															ampm={userampm(userDetail)}
-														/>
-													</div>
-												</LocalizationProvider>
-											</div>
-										</div>
-									</div>
-								</form>
-
-							</div>
-						</section>
-					</div>
-				)}
-
-				{/* Drawer for Open Date*/}
-				{openDrawer.openDate && (
-					<div className="rfq-v2-event-drawer-backdrop" role="presentation" onClick={() => toggleDrawer("openDate", false)}>
-						<section className="rfq-v2-event-drawer" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-							<header className="rfq-v2-event-drawer-header">
-								<h2 className="rfq-v2-event-drawer-title">Update Open Date</h2>
-								<div className="rfq-v2-event-drawer-actions">
-									<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("openDate", false)}>Close</button>
-									<LoadingButton loading={loading} size="small" variant="contained" onClick={() => formik_Reinvite.handleSubmit()}>Open Date</LoadingButton>
-								</div>
-							</header>
-							<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto', flex: 1, padding: '16px' }}>
-								<form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off">
-									<div className="rfq-v2-drawer-form">
-										<div className="rfq-v2-drawer-field">
-											<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Open Date</span>
-											<LocalizationProvider dateAdapter={AdapterDayjs}>
-												<div>
+											{rfqtype == "closed" && (
+												<div className="rfq-v2-drawer-field">
+													<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Bid Open Date/Time</span>
 													<MobileDateTimePicker
 														variant="outlined"
 														size="small"
-														name="deadlineDate"
-														id="deadlineDate"
+														name="bidOpeningDate"
+														id="bidOpeningDate"
 														timezone={userDetail?.timeZone}
 														minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-														value={formik_Reinvite.values.deadlineDate || null}
+														value={formik_Reinvite.values.bidOpeningDate || null}
 														className="w-100 f14"
 														slotProps={{
 															textField: {
@@ -2182,7 +1352,7 @@ const RFQActionDrawer = ({
 														}}
 														onChange={(newValue) => {
 															formik_Reinvite.setFieldValue(
-																"deadlineDate",
+																"bidOpeningDate",
 																newValue
 															);
 														}}
@@ -2190,126 +1360,695 @@ const RFQActionDrawer = ({
 														ampm={userampm(userDetail)}
 													/>
 												</div>
-											</LocalizationProvider>
+											)}
 										</div>
+									</LocalizationProvider>
+								</div>
+							)}
+							<div className="reTable">
+								<div className="rfq-v2-drawer-field">
+									<span className="rfq-v2-drawer-label">Search Vendor</span>
+									<div className="rfq-v2-search-wrapper">
+										<input
+											className="rfq-v2-search"
+											placeholder="Search vendor..."
+											value={searchQuery}
+											onChange={(e) => setSearchQuery(e.target.value)}
+										/>
+										<SearchOutlined className="rfq-v2-search-icon" />
 									</div>
-								</form>
-
+								</div>
+								<div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid #e5e7eb', marginTop: 12 }}>
+									<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+										<thead>
+											<tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '5%' }}>
+													<Checkbox className="p-0" size="small" onChange={(e) => handleReinviteAll(e.target.checked)} />
+												</th>
+												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', textAlign: 'left' }}>Supplier</th>
+												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '12%', whiteSpace: 'nowrap' }}>Version</th>
+												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '35%' }}>Remarks</th>
+											</tr>
+										</thead>
+										<tbody>
+											{supplierlist?.filter(x => x.status == "Closed")
+												?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase()))
+												.map((v, index) => (
+													<tr key={index} style={{ borderBottom: '1px solid #f3f4f6' }}>
+														<td style={{ padding: '5px 12px' }}>
+															<Checkbox className="p-0" size="small" checked={v?.reinvitechecked === true} onChange={(e) => handleReinviteCheck(v, e.target.checked)} />
+														</td>
+														<td style={{ padding: '5px 12px' }}>
+															<div style={{ fontWeight: 500, color: '#111827', fontSize: 13 }}>{v.companyName}</div>
+															<div style={{ fontSize: 12, color: '#6b7280' }}>{v.contactPerson} · {v.emailId}</div>
+														</td>
+														<td style={{ padding: '5px 12px', color: '#374151' }}>{v?.version}</td>
+														<td style={{ padding: '5px 12px' }}>
+															<TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Enter remarks here" defaultValue={v.reinviteremark || ''} onBlur={(e) => { v.reinviteremark = e.target.value; }} size="small" />
+														</td>
+													</tr>
+												))}
+										</tbody>
+									</table>
+								</div>
 							</div>
-						</section>
+						</div>
+					</form>
+				</CommonBottomDrawer>
+
+				{/* Drawer for Re-open*/}
+				<CommonBottomDrawer
+					open={openDrawer.reOpenSupplier}
+					onClose={() => toggleDrawer("reOpenSupplier", false)}
+					title="Reopen Supplier Quote"
+					bodyStyle={{ overflowY: 'auto', flex: 1, padding: '16px' }}
+					actions={<>
+						<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("reOpenSupplier", false)}>Close</button>
+						<LoadingButton loading={loading} size="small" variant="contained" disabled={!supplierlist?.filter(x => x?.reinvitechecked).length} onClick={() => formik_Reinvite.handleSubmit()}>Reopen</LoadingButton>
+					</>}
+				>
+					<form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off">
+						<div className="p-3">
+							{openDrawer.reInviteSupplier && (
+								<div className="rfq-v2-drawer-form" style={{ marginBottom: '16px' }}>
+									<LocalizationProvider dateAdapter={AdapterDayjs}>
+										<div className="rfq-v2-drawer-grid">
+											<div className="rfq-v2-drawer-field">
+												<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Reopen Date</span>
+												<MobileDateTimePicker
+													variant="outlined"
+													size="small"
+													name="reopenDate"
+													id="reopenDate"
+													timezone={userDetail?.timeZone}
+													minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
+													value={formik_Reinvite.values.reopenDate || null}
+													className="w-100 f14"
+													slotProps={{
+														textField: {
+															variant: "outlined",
+															size: "small",
+															InputLabelProps: { shrink: true },
+															error:
+																formik_Reinvite.touched.reopenDate &&
+																Boolean(formik_Reinvite.errors.reopenDate),
+															helperText:
+																formik_Reinvite.touched.reopenDate &&
+																formik_Reinvite.errors.reopenDate,
+														},
+														actionBar: {
+															actions: ["clear", "cancel", "accept"],
+														},
+													}}
+													onChange={(newValue) => {
+														formik_Reinvite.setFieldValue(
+															"reopenDate",
+															newValue
+														);
+													}}
+													format={getDateFormatPatteronLocale(userDetail)}
+													ampm={userampm(userDetail)}
+												/>
+											</div>
+											<div className="rfq-v2-drawer-field">
+												<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Deadline Date</span>
+												<MobileDateTimePicker
+													variant="outlined"
+													size="small"
+													name="deadlineDate"
+													id="deadlineDate"
+													timezone={userDetail?.timeZone}
+													minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
+													value={formik_Reinvite.values.deadlineDate || null}
+													className="w-100 f14"
+													slotProps={{
+														textField: {
+															variant: "outlined",
+															size: "small",
+															InputLabelProps: { shrink: true },
+															error:
+																formik_Reinvite.touched.deadlineDate &&
+																Boolean(formik_Reinvite.errors.deadlineDate),
+															helperText:
+																formik_Reinvite.touched.deadlineDate &&
+																formik_Reinvite.errors.deadlineDate,
+														},
+														actionBar: {
+															actions: ["clear", "cancel", "accept"],
+														},
+													}}
+													onChange={(newValue) => {
+														formik_Reinvite.setFieldValue(
+															"deadlineDate",
+															newValue
+														);
+													}}
+													format={getDateFormatPatteronLocale(userDetail)}
+													ampm={userampm(userDetail)}
+												/>
+											</div>
+										</div>
+									</LocalizationProvider>
+								</div>
+							)}
+							<div className="reTable">
+								<div className="rfq-v2-drawer-field">
+									<span className="rfq-v2-drawer-label">Search Vendor</span>
+									<TextField
+										id="standard-search"
+										label="Search Vendors"
+										type="search"
+										className="w-100 m"
+										size="small"
+										variant="standard"
+										value={searchQuery}
+										onChange={(e) => setSearchQuery(e.target.value)}
+									/>
+								</div>
+								<div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid #e5e7eb', marginTop: 12 }}>
+									<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+										<thead>
+											<tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '5%' }}>
+													<Checkbox className="p-0" size="small" onChange={(e) => handleReOpenAll(e.target.checked)} />
+												</th>
+												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', textAlign: 'left' }}>Supplier</th>
+												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '10%', whiteSpace: 'nowrap' }}>Status</th>
+												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '10%', whiteSpace: 'nowrap' }}>Version</th>
+												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '35%' }}>Remarks</th>
+											</tr>
+										</thead>
+										<tbody>
+											{supplierlist?.filter(x => x.status != "Open" && x.status != "Regretted")
+												?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase()))
+												?.map((v, index) => (
+													<tr key={index} style={{ borderBottom: '1px solid #f3f4f6' }}>
+														<td style={{ padding: '5px 12px' }}>
+															<Checkbox className="p-0" size="small" checked={v?.reinvitechecked === true} onChange={(e) => handleReinviteCheck(v, e.target.checked)} />
+														</td>
+														<td style={{ padding: '5px 12px' }}>
+															<div style={{ fontWeight: 500, color: '#111827', fontSize: 13 }}>{v.companyName}</div>
+															<div style={{ fontSize: 12, color: '#6b7280' }}>{v.contactPerson} · {v.emailId}</div>
+														</td>
+														<td style={{ padding: '5px 12px' }}>
+															{v?.status != "Open"
+																? <Tooltip title={v?.submissionDate ? formatDateViaLocale(v?.submissionDate, "en-GB", formattimeoption) : ""}><div className="restatus">Quoted</div></Tooltip>
+																: v?.status == "Revert" ? <div className="restatus">Reverted</div>
+																	: <div className="restatus">Not Quoted</div>}
+														</td>
+														<td style={{ padding: '5px 12px', color: '#374151' }}>{v?.version}</td>
+														<td style={{ padding: '5px 12px' }}>
+															<TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Remarks" onBlur={(e) => { v.reinviteremark = e.target.value; }} size="small" />
+														</td>
+													</tr>
+												))}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</form>
+				</CommonBottomDrawer>
+
+				{/* Drawer for Send Reminder*/}
+				<CommonBottomDrawer
+					open={openDrawer.NotifySupplier}
+					onClose={() => toggleDrawer("NotifySupplier", false)}
+					title="Notify Supplier"
+					bodyStyle={{ overflowY: 'auto', flex: 1, padding: '16px' }}
+					actions={<>
+						<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("NotifySupplier", false)}>Close</button>
+						<LoadingButton loading={loading} size="small" variant="contained" disabled={!supplierlist?.filter(x => x?.reinvitechecked).length} onClick={() => formik_Reinvite.handleSubmit()}>Send Notification</LoadingButton>
+					</>}
+				>
+					<form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off">
+						<div className="rfq-v2-drawer-form" style={{ marginBottom: '16px' }}>
+							<div className="rfq-v2-drawer-field">
+								<span className="rfq-v2-drawer-label">Search Vendor</span>
+								<TextField
+									id="standard-search"
+									label="Search Vendors"
+									type="search"
+									className="w-100 m"
+									size="small"
+									variant="standard"
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+								/>
+							</div>
+						</div>
+						<div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid #e5e7eb', marginTop: 12 }}>
+							<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+								<thead>
+									<tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+										<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '5%' }}>
+											<Checkbox className="p-0" size="small" onChange={(e) => handleReminderAll(e.target.checked)} />
+										</th>
+										<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', textAlign: 'left' }}>Supplier</th>
+										<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '10%', whiteSpace: 'nowrap' }}>Status</th>
+										<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '10%', whiteSpace: 'nowrap' }}>Version</th>
+										<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '35%' }}>Remarks</th>
+									</tr>
+								</thead>
+								<tbody>
+									{supplierlist
+										?.filter(x => x.status != "Closed" && x.status != "Regretted")
+										?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase()))
+										.map((v, index) => (
+											<tr key={index} style={{ borderBottom: '1px solid #f3f4f6' }}>
+												<td style={{ padding: '5px 12px' }}>
+													<Checkbox className="p-0" size="small" checked={v?.reinvitechecked === true} onChange={(e) => handleReinviteCheck(v, e.target.checked)} />
+												</td>
+												<td style={{ padding: '5px 12px' }}>
+													<div style={{ fontWeight: 500, color: '#111827', fontSize: 13 }}>{v.companyName}</div>
+													<div style={{ fontSize: 12, color: '#6b7280' }}>{v.contactPerson} · {v.emailId}</div>
+												</td>
+												<td style={{ padding: '5px 12px' }}>
+													{v?.status == "Closed"
+														? <Tooltip title={v?.submissionDate ? formatDateViaLocale(v?.submissionDate, "en-GB", formattimeoption) : ""}><div className="restatus">Quoted</div></Tooltip>
+														: v?.status == "Revert" ? <div className="restatus">Reverted</div>
+															: <div className="restatus">Not Quoted</div>}
+												</td>
+												<td style={{ padding: '5px 12px', color: '#374151' }}>{v?.version}</td>
+												<td style={{ padding: '5px 12px' }}>
+													<TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Remarks" onBlur={(e) => { v.reinviteremark = e.target.value; }} size="small" />
+												</td>
+											</tr>
+										))}
+								</tbody>
+							</table>
+						</div>
+					</form>
+				</CommonBottomDrawer>
+
+				{/* Drawer for Surrogate Supplier*/}
+				<CommonBottomDrawer
+					open={openDrawer.surrogateSupplier}
+					onClose={() => toggleDrawer("surrogateSupplier", false)}
+					title="Surrogate Supplier"
+					bodyStyle={{ overflowY: 'auto', flex: 1, padding: '16px' }}
+					actions={<>
+						<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("surrogateSupplier", false)}>Close</button>
+						<LoadingButton loading={loading} size="small" variant="contained" onClick={() => formik_Surrogate.handleSubmit()}>Surrogate</LoadingButton>
+					</>}
+				>
+					<form onSubmit={formik_Surrogate.handleSubmit} autoComplete="off">
+						<div className="rfq-v2-drawer-form">
+							<div className="rfq-v2-drawer-grid">
+								<div className="rfq-v2-drawer-field">
+									<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Supplier</span>
+									<Autocomplete
+										id="supplierforsurrogate"
+										name="Supplier"
+										size="small"
+										className="w-100 f12"
+										options={supplierlist
+											?.filter((x) => x.status != "Closed" && x.status != "Regretted") || []}
+										getOptionLabel={(option) =>
+
+											`${option.contactPerson} - ${option.emailId} | ${option.companyName}`
+										}
+										value={formik_Surrogate.values.supplier ?? null}
+										onChange={(event, value) => {
+
+											formik_Surrogate.setFieldValue("supplier", value)
+										}}
+										renderInput={(params) => (
+											<TextField
+												{...params}
+												label="Supplier"
+												variant="outlined"
+												error={formik_Surrogate.touched.supplier && Boolean(formik_Surrogate.errors.supplier)}
+												helperText={formik_Surrogate.touched.supplier && formik_Surrogate.errors.supplier}
+											/>
+										)}
+									/>
+								</div>
+								<div className="rfq-v2-drawer-field">
+									<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Surrogater Name</span>
+									<TextFieldCell
+										id="surrogatename"
+										name="surrogatename"
+										placeholder=""
+										maxLength={200}
+										value={formik_Surrogate.values.surrogatename}
+										onChange={formik_Surrogate.handleChange}
+										error={
+											formik_Surrogate.touched.surrogatename &&
+											Boolean(formik_Surrogate.errors.surrogatename)
+										}
+										helperText={
+											formik_Surrogate.touched.surrogatename &&
+											formik_Surrogate.errors.surrogatename
+										}
+										InputProps={{
+											endAdornment: formik_Surrogate.values.surrogatename && (
+												<InputAdornment position="end">
+													<Typography
+														variant="body2"
+														color="textSecondary"
+													>
+														{formik_Surrogate.values.surrogatename.length}/200
+													</Typography>
+												</InputAdornment>
+											),
+										}}
+									/>
+								</div>
+							</div>
+
+							<div className="rfq-v2-drawer-grid">
+								<div className="rfq-v2-drawer-field">
+									<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Surrogater Email</span>
+									<TextFieldCell
+										id="surrogateemail"
+										name="surrogateemail"
+										placeholder=""
+										maxLength={200}
+										value={formik_Surrogate.values.surrogateemail}
+										onChange={formik_Surrogate.handleChange}
+										error={
+											formik_Surrogate.touched.surrogateemail &&
+											Boolean(formik_Surrogate.errors.surrogateemail)
+										}
+										helperText={
+											formik_Surrogate.touched.surrogateemail &&
+											formik_Surrogate.errors.surrogateemail
+										}
+										InputProps={{
+											endAdornment: formik_Surrogate.values.surrogateemail && (
+												<InputAdornment position="end">
+													<Typography
+														variant="body2"
+														color="textSecondary"
+													>
+														{formik_Surrogate.values.surrogateemail.length}/200
+													</Typography>
+												</InputAdornment>
+											),
+										}}
+									/>
+								</div>
+
+								<div className="rfq-v2-drawer-field">
+									<span className="rfq-v2-drawer-label">Remark</span>
+									<TextFieldCell
+										id="surrogateReason"
+										name="surrogateReason"
+										placeholder=""
+										maxLength={200}
+										value={formik_Surrogate.values.surrogateReason}
+										onChange={formik_Surrogate.handleChange}
+										error={
+											formik_Surrogate.touched.surrogateReason &&
+											Boolean(formik_Surrogate.errors.surrogateReason)
+										}
+										helperText={
+											formik_Surrogate.touched.surrogateReason &&
+											formik_Surrogate.errors.surrogateReason
+										}
+										InputProps={{
+											endAdornment: formik_Surrogate.values.surrogateReason && (
+												<InputAdornment position="end">
+													<Typography
+														variant="body2"
+														color="textSecondary"
+													>
+														{formik_Surrogate.values.surrogateReason.length}/200
+													</Typography>
+												</InputAdornment>
+											),
+										}}
+									/>
+								</div>
+							</div>
+						</div>
+					</form>
+				</CommonBottomDrawer>
+
+				{/* Drawer for Reinitiate Event*/}
+				<CommonBottomDrawer
+					open={openDrawer.ReinitiateEvent}
+					onClose={() => toggleDrawer("ReinitiateEvent", false)}
+					title="Reinitiate/Update RFQ"
+					bodyStyle={{ overflowY: 'auto', flex: 1, padding: '16px' }}
+					actions={<>
+						<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("ReinitiateEvent", false)}>Close</button>
+						<LoadingButton loading={loading} size="small" variant="contained" onClick={handleReinitiateUpdate}>Reinitiate</LoadingButton>
+					</>}
+				>
+					<div className="rfq-v2-drawer-confirm">
+						<p className="rfq-v2-drawer-confirm-title">Are you sure?</p>
+						<p>Are you sure you want to update the event? This action may trigger a reinitiation of the RFQ process.</p>
 					</div>
-				)}
+				</CommonBottomDrawer>
+
+				{/* Drawer for Open Sealed Bid*/}
+				<CommonBottomDrawer
+					open={openDrawer.OpenSealedBid}
+					onClose={() => toggleDrawer("OpenSealedBid", false)}
+					title="Open Sealed Bid"
+					bodyStyle={{ overflowY: 'auto', flex: 1, padding: '16px' }}
+					actions={<>
+						<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("OpenSealedBid", false)}>Close</button>
+						<LoadingButton loading={loading} size="small" variant="contained" onClick={handleOpenSealedBid}>Open Sealed Bid</LoadingButton>
+					</>}
+				>
+					<div className="rfq-v2-drawer-confirm">
+						<p className="rfq-v2-drawer-confirm-title">Are you sure?</p>
+						<p>Are you sure you want to open Sealed Bid?</p>
+					</div>
+				</CommonBottomDrawer>
+
+				{/* Drawer for Extend  Event*/}
+				<CommonBottomDrawer
+					open={openDrawer.extendEvent}
+					onClose={() => toggleDrawer("extendEvent", false)}
+					title="Extend RFQ"
+					bodyStyle={{ overflowY: 'auto', flex: 1, padding: '16px' }}
+					actions={<>
+						<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("extendEvent", false)}>Close</button>
+						<LoadingButton loading={loading} size="small" variant="contained" onClick={() => formik_Reinvite.handleSubmit()}>Extend</LoadingButton>
+					</>}
+				>
+					<form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off">
+						<div className="rfq-v2-drawer-form">
+							<div className="rfq-v2-drawer-grid">
+								<div className="rfq-v2-drawer-info-box">
+									<CalendarIcon sx={{ color: '#9ca3af', fontSize: 18 }} />
+									<div className="rfq-v2-drawer-info-inner">
+										<span className="rfq-v2-drawer-info-label">Current End Date</span>
+										<span className="rfq-v2-drawer-info-value">{enddate ? formatDateViaLocale(enddate, userDetail) : 'N/A'}</span>
+									</div>
+								</div>
+								<div className="rfq-v2-drawer-field">
+									<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">New End Date</span>
+									<LocalizationProvider dateAdapter={AdapterDayjs}>
+										<div>
+											<MobileDateTimePicker
+												variant="outlined"
+												size="small"
+												name="deadlineDate"
+												id="deadlineDate"
+												timezone={userDetail?.timeZone}
+												minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
+												value={formik_Reinvite.values.deadlineDate || null}
+												className="w-100 f14"
+												slotProps={{
+													textField: {
+														variant: "outlined",
+														size: "small",
+														InputLabelProps: { shrink: true },
+														error:
+															formik_Reinvite.touched.deadlineDate &&
+															Boolean(formik_Reinvite.errors.deadlineDate),
+														helperText:
+															formik_Reinvite.touched.deadlineDate &&
+															formik_Reinvite.errors.deadlineDate,
+													},
+													actionBar: {
+														actions: ["clear", "cancel", "accept"],
+													},
+												}}
+												onChange={(newValue) => {
+													formik_Reinvite.setFieldValue(
+														"deadlineDate",
+														newValue
+													);
+												}}
+												format={getDateFormatPatteronLocale(userDetail)}
+												ampm={userampm(userDetail)}
+											/>
+										</div>
+									</LocalizationProvider>
+								</div>
+							</div>
+						</div>
+					</form>
+				</CommonBottomDrawer>
+
+				{/* Drawer for Open Date*/}
+				<CommonBottomDrawer
+					open={openDrawer.openDate}
+					onClose={() => toggleDrawer("openDate", false)}
+					title="Update Open Date"
+					bodyStyle={{ overflowY: 'auto', flex: 1, padding: '16px' }}
+					actions={<>
+						<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleDrawer("openDate", false)}>Close</button>
+						<LoadingButton loading={loading} size="small" variant="contained" onClick={() => formik_Reinvite.handleSubmit()}>Open Date</LoadingButton>
+					</>}
+				>
+					<form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off">
+						<div className="rfq-v2-drawer-form">
+							<div className="rfq-v2-drawer-field">
+								<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Open Date</span>
+								<LocalizationProvider dateAdapter={AdapterDayjs}>
+									<div>
+										<MobileDateTimePicker
+											variant="outlined"
+											size="small"
+											name="deadlineDate"
+											id="deadlineDate"
+											timezone={userDetail?.timeZone}
+											minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
+											value={formik_Reinvite.values.deadlineDate || null}
+											className="w-100 f14"
+											slotProps={{
+												textField: {
+													variant: "outlined",
+													size: "small",
+													InputLabelProps: { shrink: true },
+													error:
+														formik_Reinvite.touched.deadlineDate &&
+														Boolean(formik_Reinvite.errors.deadlineDate),
+													helperText:
+														formik_Reinvite.touched.deadlineDate &&
+														formik_Reinvite.errors.deadlineDate,
+												},
+												actionBar: {
+													actions: ["clear", "cancel", "accept"],
+												},
+											}}
+											onChange={(newValue) => {
+												formik_Reinvite.setFieldValue(
+													"deadlineDate",
+													newValue
+												);
+											}}
+											format={getDateFormatPatteronLocale(userDetail)}
+											ampm={userampm(userDetail)}
+										/>
+									</div>
+								</LocalizationProvider>
+							</div>
+						</div>
+					</form>
+				</CommonBottomDrawer>
 
 				{/* Drawer for View  History*/}
-				{openDrawer.HistoryEvent && (
-					<div className="rfq-v2-event-drawer-backdrop" role="presentation" onClick={() => toggleDrawer("HistoryEvent", false)}>
-						<section className="rfq-v2-event-drawer" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-							<header className="rfq-v2-event-drawer-header">
-								<h2 className="rfq-v2-event-drawer-title">History</h2>
-								<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => toggleDrawer("HistoryEvent", false)}>Close</button>
-							</header>
-							<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto', flex: 1, padding: '16px' }}>
-								<Box sx={{ flexGrow: 1, p: 2 }} >
-									<div className='row'>
-										<div className='col-12 col-md-5 border rounded'>
-											{Auditdata?.length === 0 ? (
-												<Typography>No audit data available.</Typography>
-											) : (
-												// Group actions by actionDate
-												Auditdata && Auditdata.length > 0 && Object?.entries(
-													Auditdata?.reduce((acc, item) => {
-														const date = new Date(item.actionDate).toLocaleDateString(); // Format date
-														if (!acc[date]) acc[date] = [];
-														acc[date].push(item);
-														return acc;
-													}, {})
-												).map(([date, actions]) => (
-													<Accordion
-														key={date}
-														expanded={expanded === date}
-														onChange={handleAccordionChange(date)}
-														className="rounded custom-accordion"
-														sx={{
-															border: 'none', // Remove border
+				<CommonBottomDrawer
+					open={openDrawer.HistoryEvent}
+					onClose={() => toggleDrawer("HistoryEvent", false)}
+					title="History"
+					bodyStyle={{ overflowY: 'auto', flex: 1, padding: '16px' }}
+					actions={<>
+						<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => toggleDrawer("HistoryEvent", false)}>Close</button>
+					</>}
+				>
+					<Box sx={{ flexGrow: 1, p: 2 }} >
+						<div className='row'>
+							<div className='col-12 col-md-5 border rounded'>
+								{Auditdata?.length === 0 ? (
+									<Typography>No audit data available.</Typography>
+								) : (
+									// Group actions by actionDate
+									Auditdata && Auditdata.length > 0 && Object?.entries(
+										Auditdata?.reduce((acc, item) => {
+											const date = new Date(item.actionDate).toLocaleDateString(); // Format date
+											if (!acc[date]) acc[date] = [];
+											acc[date].push(item);
+											return acc;
+										}, {})
+									).map(([date, actions]) => (
+										<Accordion
+											key={date}
+											expanded={expanded === date}
+											onChange={handleAccordionChange(date)}
+											className="rounded custom-accordion"
+											sx={{
+												border: 'none', // Remove border
 
-															boxShadow: 'none', // Remove box-shadow if any
-														}}
-													>
-														<AccordionSummary
-															expandIcon={<ExpandMoreIcon />}
-															aria-controls={`${date}-content`}
-															id={`${date}-header`}
-															style={{ minHeight: '35px', padding: "0px", backgroundColor: "inherit", }}
-
-															classes={{
-
-																content: 'custom-summary-content', // Use a custom class for additional styling
-															}}
-														>
-															<Typography>{date}</Typography>
-														</AccordionSummary>
-														<AccordionDetails className="p-0">
-															{actions.map((item) => (
-																<div key={item.id} className="d-flex  p-1">
-																	<div className='col-md-1' title={item?.userName}>
-																		<Avatar sx={{ width: 34, height: 34 }}>{getInitials(item?.userName)}</Avatar>
-																	</div>
-																	<div className='col-md-11'>
-																		<div className="row">
-																			<div className="text-truncate ps-4" onClick={(event) => handleInfoClick(event, item.id)} style={{ cursor: "pointer" }}>
-																				{cleanAdditionalInfo(item?.newValue)}
-																			</div>
-																			<div className="f11 text-end d-flex justify-content-between text-muted ps-4">
-																				<div className='text-start'>
-																					{item?.propertyName}
-																				</div>
-																				{new Date(item.actionDate).toLocaleTimeString()}
-																			</div>
-																		</div>
-																	</div>
+												boxShadow: 'none', // Remove box-shadow if any
+											}}
+										>
+											<AccordionSummary
+												expandIcon={<ExpandMoreIcon />}
+												aria-controls={`${date}-content`}
+												id={`${date}-header`}
+												style={{ minHeight: '35px', padding: "0px", backgroundColor: "inherit", }}
+												classes={{
+													content: 'custom-summary-content', // Use a custom class for additional styling
+												}}
+											>
+												<Typography>{date}</Typography>
+											</AccordionSummary>
+											<AccordionDetails className="p-0">
+												{actions.map((item) => (
+													<div key={item.id} className="d-flex  p-1">
+														<div className='col-md-1' title={item?.userName}>
+															<Avatar sx={{ width: 34, height: 34 }}>{getInitials(item?.userName)}</Avatar>
+														</div>
+														<div className='col-md-11'>
+															<div className="row">
+																<div className="text-truncate ps-4" onClick={(event) => handleInfoClick(event, item.id)} style={{ cursor: "pointer" }}>
+																	{cleanAdditionalInfo(item?.newValue)}
 																</div>
-															))}
-														</AccordionDetails>
-													</Accordion>
-												))
-											)}
-										</div>
-
-										<div className='col-12 col-md-7 ps-1 ms-0'>
-											{selectedItem && (
-												<div className='border rounded p-2'>
-
-													<div style={{ fontSize: '14px', fontWeight: 'normal', lineHeight: '1.6' }}>
-														<div style={{ marginBottom: '8px' }} className='d-flex align-items-center'>
-															<Avatar sx={{ width: 34, height: 34 }}>{getInitials(selectedItem.userName)}</Avatar>
-															<div>
-																<strong style={{ fontWeight: '500' }} className='ms-2'>Property Name:</strong> {selectedItem.propertyName}
-																<strong style={{ fontWeight: '500' }} className='ms-2'>Action Date:</strong> {new Date(selectedItem.actionDate).toLocaleString()}
-
+																<div className="f11 text-end d-flex justify-content-between text-muted ps-4">
+																	<div className='text-start'>
+																		{item?.propertyName}
+																	</div>
+																	{new Date(item.actionDate).toLocaleTimeString()}
+																</div>
 															</div>
 														</div>
-														<div style={{ marginBottom: '8px' }}>
-															<strong style={{ fontWeight: '500' }}>Old Value:</strong>{' '}
-															<span className='text-danger' dangerouslySetInnerHTML={{ __html: selectedItem.oldValue || 'N/A' }} />
-														</div>
-														<div style={{ marginBottom: '8px' }}>
-															<strong style={{ fontWeight: '500' }}>New Value:</strong>{' '}
-															<span className='text-success' dangerouslySetInnerHTML={{ __html: selectedItem.newValue || 'N/A' }} />
-														</div>
-														<div style={{ marginBottom: '8px' }}>
-															<strong style={{ fontWeight: '500' }}>Additional Info:</strong>
-															<div dangerouslySetInnerHTML={{ __html: selectedItem.additionalInfo }} />
-														</div>
 													</div>
+												))}
+											</AccordionDetails>
+										</Accordion>
+									))
+								)}
+							</div>
+
+							<div className='col-12 col-md-7 ps-1 ms-0'>
+								{selectedItem && (
+									<div className='border rounded p-2'>
+										<div style={{ fontSize: '14px', fontWeight: 'normal', lineHeight: '1.6' }}>
+											<div style={{ marginBottom: '8px' }} className='d-flex align-items-center'>
+												<Avatar sx={{ width: 34, height: 34 }}>{getInitials(selectedItem.userName)}</Avatar>
+												<div>
+													<strong style={{ fontWeight: '500' }} className='ms-2'>Property Name:</strong> {selectedItem.propertyName}
+													<strong style={{ fontWeight: '500' }} className='ms-2'>Action Date:</strong> {new Date(selectedItem.actionDate).toLocaleString()}
 												</div>
-											)}
+											</div>
+											<div style={{ marginBottom: '8px' }}>
+												<strong style={{ fontWeight: '500' }}>Old Value:</strong>{' '}
+												<span className='text-danger' dangerouslySetInnerHTML={{ __html: selectedItem.oldValue || 'N/A' }} />
+											</div>
+											<div style={{ marginBottom: '8px' }}>
+												<strong style={{ fontWeight: '500' }}>New Value:</strong>{' '}
+												<span className='text-success' dangerouslySetInnerHTML={{ __html: selectedItem.newValue || 'N/A' }} />
+											</div>
+											<div style={{ marginBottom: '8px' }}>
+												<strong style={{ fontWeight: '500' }}>Additional Info:</strong>
+												<div dangerouslySetInnerHTML={{ __html: selectedItem.additionalInfo }} />
+											</div>
 										</div>
 									</div>
-								</Box>
+								)}
 							</div>
-						</section>
-					</div>
-				)}
+						</div>
+					</Box>
+				</CommonBottomDrawer>
 			</div>
 		</>
 	);
