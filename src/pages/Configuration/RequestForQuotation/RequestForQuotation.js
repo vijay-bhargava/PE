@@ -4343,7 +4343,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						</div>
 
 						{/* Tab Content */}
-						<div className="flex-grow-1 hidden-scrollbar" style={{ overflowY: value === 5 || value === 6 ? 'hidden' : 'auto', padding: value === 6 ? '0' : '20px 16px 16px', display: value === 6 ? 'flex' : 'block', flexDirection: value === 6 ? 'column' : undefined }}>
+						<div className="flex-grow-1 hidden-scrollbar" style={{ overflowY: value === 2 || value === 5 || value === 6 ? 'hidden' : 'auto', padding: value === 2 || value === 6 ? '0' : '20px 16px 16px', display: value === 2 || value === 5 || value === 6 ? 'flex' : 'block', flexDirection: value === 2 || value === 5 || value === 6 ? 'column' : undefined }}>
 							{/* General Tab Content */}
 							{value === 1 && (
 								<div>
@@ -5084,7 +5084,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 							{/* Items/Services Tab Content */}
 							{value === 2 && (
-								<div className="rfq-items-tab-content">
+								<div className="rfq-items-tab-content" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
 									{(() => {
 										// Permission control for Items/Services tab
 										const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false;
@@ -5121,13 +5121,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											);
 										}
 										return (
-											<div>
+											<div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
 												{/* Permission Alert for Items/Services Tab */}
 												{permissionManager && (
 													<div className="pb-0"></div>
 												)}
 
-												<div className="p-3 pt-0">
+												<div className="p-3 pt-0" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
 													{/* Items/Services toolbar */}
 													<div className="rfq-items-toolbar">
 														{/* <div className="rfq-items-toolbar-left">
@@ -5185,7 +5185,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															</button>
 														</div>
 													</div>
-													<div className="">
+													<div style={{ flex: 1, minHeight: 0 }}>
 														<ProductitemCell
 															action={stagearray.includes(currentStage) && canEdit}
 															itemsList={rfqItemsList}
@@ -5542,25 +5542,26 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										);
 									})()}
 
-									<EventSuppliers
-										updatesupplieronloading={updatesupplieronloading}
-										selectedSupplier={selectedSupplier}
-										stagearray={stagearray}
-										currentStage={currentStage}
-										handleSelectedSupplier={handleSelectedSupplier}
-										handleLoadingFactorClick={handleLoadingFactorClick}
-										handleSupplierAction={handleSupplierAction}
-										clearSelectedSupplier={clearSelectedSupplier}
-										pageSS={pageSS}
-										pageCount={pageCount}
-										totalpageSS={totalpageSS}
-										handlePaginationSS={handlePaginationSS}
-										issupplierraccesslevel={issupplierraccesslevel}
-										CurrentVersion={formik?.values?.Version}
-										versionhistory={EventHeaderDetails?.versionhistory}
-										permissionManager={effectivePermissionManager}
-
-									/>
+									<div style={{ flex: 1, minHeight: 0 }}>
+										<EventSuppliers
+											updatesupplieronloading={updatesupplieronloading}
+											selectedSupplier={selectedSupplier}
+											stagearray={stagearray}
+											currentStage={currentStage}
+											handleSelectedSupplier={handleSelectedSupplier}
+											handleLoadingFactorClick={handleLoadingFactorClick}
+											handleSupplierAction={handleSupplierAction}
+											clearSelectedSupplier={clearSelectedSupplier}
+											pageSS={pageSS}
+											pageCount={pageCount}
+											totalpageSS={totalpageSS}
+											handlePaginationSS={handlePaginationSS}
+											issupplierraccesslevel={issupplierraccesslevel}
+											CurrentVersion={formik?.values?.Version}
+											versionhistory={EventHeaderDetails?.versionhistory}
+											permissionManager={effectivePermissionManager}
+										/>
+									</div>
 								</>
 							}
 							{value == 6 && idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL)) &&
