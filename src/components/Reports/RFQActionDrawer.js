@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
-import CommonCommonBottomDrawer from "../CommonCommonBottomDrawer";
+import CommonBottomDrawer from "../CommonBottomDrawer";
 import { Autocomplete, Avatar, Box, Checkbox, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, InputAdornment, Menu, MenuItem, Pagination, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import { CalendarToday as CalendarIcon, SearchOutlined } from "@mui/icons-material";
 import { HiOutlineChevronDown, HiOutlineUserAdd, HiOutlineX } from "react-icons/hi";
@@ -1088,7 +1088,7 @@ const RFQActionDrawer = ({
 				</Menu>
 
 				{/* Drawer for Add New Supplier */}
-				<CommonCommonBottomDrawer
+				<CommonBottomDrawer
 					open={openDrawer.addsupplier}
 					onClose={() => toggleDrawer("addsupplier", false)}
 					title="Add New Supplier"
@@ -1229,10 +1229,10 @@ const RFQActionDrawer = ({
 							</div>
 						);
 					})()}
-				</CommonCommonBottomDrawer>
+				</CommonBottomDrawer>
 
 				{/* Drawer for Re-invite*/}
-				<CommonCommonBottomDrawer
+				<CommonBottomDrawer
 					open={openDrawer.reInviteSupplier}
 					onClose={() => toggleDrawer("reInviteSupplier", false)}
 					title="Reinvite RFQ"
@@ -1414,10 +1414,10 @@ const RFQActionDrawer = ({
 							</div>
 						</div>
 					</form>
-				</CommonCommonBottomDrawer>
+				</CommonBottomDrawer>
 
 				{/* Drawer for Re-open*/}
-				<CommonCommonBottomDrawer
+				<CommonBottomDrawer
 					open={openDrawer.reOpenSupplier}
 					onClose={() => toggleDrawer("reOpenSupplier", false)}
 					title="Reopen Supplier Quote"
@@ -1568,10 +1568,10 @@ const RFQActionDrawer = ({
 							</div>
 						</div>
 					</form>
-				</CommonCommonBottomDrawer>
+				</CommonBottomDrawer>
 
 				{/* Drawer for Send Reminder*/}
-				<CommonCommonBottomDrawer
+				<CommonBottomDrawer
 					open={openDrawer.NotifySupplier}
 					onClose={() => toggleDrawer("NotifySupplier", false)}
 					title="Notify Supplier"
@@ -1639,10 +1639,10 @@ const RFQActionDrawer = ({
 							</table>
 						</div>
 					</form>
-				</CommonCommonBottomDrawer>
+				</CommonBottomDrawer>
 
 				{/* Drawer for Surrogate Supplier*/}
-				<CommonCommonBottomDrawer
+				<CommonBottomDrawer
 					open={openDrawer.surrogateSupplier}
 					onClose={() => toggleDrawer("surrogateSupplier", false)}
 					title="Surrogate Supplier"
@@ -1784,10 +1784,10 @@ const RFQActionDrawer = ({
 							</div>
 						</div>
 					</form>
-				</CommonCommonBottomDrawer>
+				</CommonBottomDrawer>
 
 				{/* Drawer for Reinitiate Event*/}
-				<CommonCommonBottomDrawer
+				<CommonBottomDrawer
 					open={openDrawer.ReinitiateEvent}
 					onClose={() => toggleDrawer("ReinitiateEvent", false)}
 					title="Reinitiate/Update RFQ"
@@ -1801,10 +1801,10 @@ const RFQActionDrawer = ({
 						<p className="rfq-v2-drawer-confirm-title">Are you sure?</p>
 						<p>Are you sure you want to update the event? This action may trigger a reinitiation of the RFQ process.</p>
 					</div>
-				</CommonCommonBottomDrawer>
+				</CommonBottomDrawer>
 
 				{/* Drawer for Open Sealed Bid*/}
-				<CommonCommonBottomDrawer
+				<CommonBottomDrawer
 					open={openDrawer.OpenSealedBid}
 					onClose={() => toggleDrawer("OpenSealedBid", false)}
 					title="Open Sealed Bid"
@@ -1818,10 +1818,10 @@ const RFQActionDrawer = ({
 						<p className="rfq-v2-drawer-confirm-title">Are you sure?</p>
 						<p>Are you sure you want to open Sealed Bid?</p>
 					</div>
-				</CommonCommonBottomDrawer>
+				</CommonBottomDrawer>
 
 				{/* Drawer for Extend  Event*/}
-				<CommonCommonBottomDrawer
+				<CommonBottomDrawer
 					open={openDrawer.extendEvent}
 					onClose={() => toggleDrawer("extendEvent", false)}
 					title="Extend RFQ"
@@ -1885,10 +1885,10 @@ const RFQActionDrawer = ({
 							</div>
 						</div>
 					</form>
-				</CommonCommonBottomDrawer>
+				</CommonBottomDrawer>
 
 				{/* Drawer for Open Date*/}
-				<CommonCommonBottomDrawer
+				<CommonBottomDrawer
 					open={openDrawer.openDate}
 					onClose={() => toggleDrawer("openDate", false)}
 					title="Update Open Date"
@@ -1943,10 +1943,10 @@ const RFQActionDrawer = ({
 							</div>
 						</div>
 					</form>
-				</CommonCommonBottomDrawer>
+				</CommonBottomDrawer>
 
 				{/* Drawer for View  History*/}
-				<CommonCommonBottomDrawer
+				<CommonBottomDrawer
 					open={openDrawer.HistoryEvent}
 					onClose={() => toggleDrawer("HistoryEvent", false)}
 					title="History"
@@ -2048,7 +2048,7 @@ const RFQActionDrawer = ({
 							</div>
 						</div>
 					</Box>
-				</CommonCommonBottomDrawer>
+				</CommonBottomDrawer>
 			</div>
 		</>
 	);

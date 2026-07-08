@@ -1,5 +1,5 @@
 ﻿import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import CommonCommonBottomDrawer from "../CommonCommonBottomDrawer";
+import CommonBottomDrawer from "../CommonBottomDrawer";
 import IconButton from "@mui/material/IconButton";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { HiPlusSm, HiOutlineDotsHorizontal, HiOutlineX } from "react-icons/hi";
@@ -529,7 +529,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
           </Button>
         </DialogActions>
       </Dialog>
-      <CommonCommonBottomDrawer
+      <CommonBottomDrawer
         open={openComponents.addQuestionDrawer}
         onClose={() => handleCancelChange("addQuestionDrawer")}
         title="Add Question"
@@ -546,7 +546,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
           eventtype={props?.eventtype}
           callback={handleAddQuestion}
         />
-      </CommonCommonBottomDrawer>
+      </CommonBottomDrawer>
 
     </div>
   );

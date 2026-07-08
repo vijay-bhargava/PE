@@ -136,7 +136,7 @@ import {
 import { DateTimePicker, LocalizationProvider, MobileDateTimePicker, renderTimeViewClock } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import AddProductsCell from "./AddProductsCell";
-import CommonCommonBottomDrawer from "../../../components/CommonCommonBottomDrawer";
+import CommonBottomDrawer from "../../../components/CommonBottomDrawer";
 import BoqScreen from "./BoqScreen";
 import { UOMMasterList } from "../../../utils/commerciallibrary";
 import AddQuestionFormCell from "./AddQuestionFormCell";
@@ -6143,7 +6143,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				</div>
 			</div>
 
-			<CommonCommonBottomDrawer
+			<CommonBottomDrawer
 				open={state["addProductDrawer"]}
 				onClose={toggleDrawer("addProductDrawer", false)}
 				title={itemEditTempData?.id > 0 ? 'Edit Product / Service' : 'Add Product / Service'}
@@ -6168,7 +6168,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					accesslevel={accessLevel?.itemservice?.created}
 					Version={formik?.values?.Version}
 				/>
-			</CommonCommonBottomDrawer>
+			</CommonBottomDrawer>
 			<React.Fragment key="qusDrawertr">
 				<Drawer
 					anchor="right"
@@ -6204,7 +6204,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					</Box>
 				</Drawer>
 			</React.Fragment>
-			<CommonCommonBottomDrawer
+			<CommonBottomDrawer
 				open={state["surrogateDrawer"]}
 				onClose={toggleDrawer("surrogateDrawer", false)}
 				title={selectedAction}
@@ -6266,7 +6266,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						</div>
 					</div>
 				</form>
-			</CommonCommonBottomDrawer>
+			</CommonBottomDrawer>
 			<React.Fragment key="key4">
 
 				<ApprovalConfirmDialog

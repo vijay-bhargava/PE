@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import CommonCommonBottomDrawer from "../../../components/CommonCommonBottomDrawer";
+import CommonBottomDrawer from "../../../components/CommonBottomDrawer";
 import { LoadingButton } from '@mui/lab';
 import {
   Autocomplete,
@@ -1131,7 +1131,7 @@ const ManageRFQV2 = ({ claimType }) => {
       </Modal>
 
       {/* ── Select items modal (RFQ → Event) ── */}
-      <CommonCommonBottomDrawer
+      <CommonBottomDrawer
         open={itemmodal}
         titleId="rfq-v2-event-drawer-title"
         title="Create Event"
@@ -1208,7 +1208,7 @@ const ManageRFQV2 = ({ claimType }) => {
             </div>
           )}
         </div>
-      </CommonCommonBottomDrawer>
+      </CommonBottomDrawer>
 
       {/* ── Floating selection summary box ── */}
       {rfqItemSet.length > 0 && (
@@ -1274,7 +1274,7 @@ const ManageRFQV2 = ({ claimType }) => {
       )}
 
       {/* ── Auction cart drawer (bottom, same style as create-event drawer) ── */}
-      <CommonCommonBottomDrawer
+      <CommonBottomDrawer
         open={rfqprcartmodal}
         titleId="rfq-v2-cart-drawer-title"
         title={selectedBidType?.label ? `Create ${selectedBidType.label} From RFQ` : 'Create Event From RFQ'}
@@ -1321,7 +1321,7 @@ const ManageRFQV2 = ({ claimType }) => {
             <div className="rfq-v2-event-empty">No items selected yet.</div>
           )}
         </div>
-      </CommonCommonBottomDrawer>
+      </CommonBottomDrawer>
     </>
   );
 };

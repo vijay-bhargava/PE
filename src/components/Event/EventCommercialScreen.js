@@ -1,5 +1,5 @@
 ﻿import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
-import CommonCommonBottomDrawer from "../CommonCommonBottomDrawer";
+import CommonBottomDrawer from "../CommonBottomDrawer";
 import { ApiClient } from '../../Apiclient';
 import { buildQueryParams, cleanAndConvertToArray } from '../../utils/common/utility';
 import { useStateValue } from '../../store';
@@ -999,7 +999,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 				</div>
 			</div>
 
-			<CommonCommonBottomDrawer
+			<CommonBottomDrawer
 				open={openDrawer.AddNewTerm}
 				onClose={() => toggleOpenDrawer("AddNewTerm", false)}
 				title="Manage Terms"
@@ -1037,7 +1037,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 					editRecordData={editRecordData}
 					LibraryTermsList={LibraryTermsList}
 				/>
-			</CommonCommonBottomDrawer>
+			</CommonBottomDrawer>
 
 			<Modal
 				size="md"

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const CommonCommonCommonBottomDrawer = ({ open, onClose, title, actions, children, bodyStyle, titleId, backdropStyle, sectionStyle }) => {
+const CommonBottomDrawer = ({ open, onClose, title, actions, children, bodyStyle, titleId, backdropStyle, sectionStyle }) => {
   if (!open) return null;
   return (
     <div
@@ -29,4 +29,4 @@ const CommonCommonCommonBottomDrawer = ({ open, onClose, title, actions, childre
   );
 };
 
-export default CommonCommonCommonBottomDrawer;
+export default CommonBottomDrawer;

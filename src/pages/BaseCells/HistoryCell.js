@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import CommonCommonBottomDrawer from "../../components/CommonCommonBottomDrawer";
+import CommonBottomDrawer from "../../components/CommonBottomDrawer";
 import ReactDOM from 'react-dom';
 import { MdManageHistory } from "react-icons/md";
 import { HiOutlineX } from "react-icons/hi";
@@ -120,7 +120,7 @@ const HistoryCell = ({ eventtype, eventId: propEventId, permissionManager }) => 
         (() => {
           const canRead = permissionManager?.hasPermission(CLAIM_TYPES.AUDIT_HISTORY, ACTIONS.READ) ?? false;
           return (
-            <CommonCommonBottomDrawer
+            <CommonBottomDrawer
               open={state.technicalApprovalDrawer}
               onClose={() => setState(s => ({ ...s, technicalApprovalDrawer: false }))}
               title="Audit History"
@@ -340,7 +340,7 @@ const HistoryCell = ({ eventtype, eventId: propEventId, permissionManager }) => 
                   )}
                 </Box>
               </>)}
-            </CommonCommonBottomDrawer>
+            </CommonBottomDrawer>
           );
         })(),
         document.body
