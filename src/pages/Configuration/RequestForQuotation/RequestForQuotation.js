@@ -136,6 +136,7 @@ import {
 import { DateTimePicker, LocalizationProvider, MobileDateTimePicker, renderTimeViewClock } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import AddProductsCell from "./AddProductsCell";
+import CommonCommonBottomDrawer from "../../../components/CommonCommonBottomDrawer";
 import BoqScreen from "./BoqScreen";
 import { UOMMasterList } from "../../../utils/commerciallibrary";
 import AddQuestionFormCell from "./AddQuestionFormCell";
@@ -6142,36 +6143,32 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				</div>
 			</div>
 
-			{state["addProductDrawer"] && (
-				<div className="rfq-v2-event-drawer-backdrop" onClick={toggleDrawer("addProductDrawer", false)}>
-					<section className="rfq-v2-event-drawer" onClick={e => e.stopPropagation()}>
-						<header className="rfq-v2-event-drawer-header">
-							<h2 className="rfq-v2-event-drawer-title">{itemEditTempData?.id > 0 ? 'Edit Product / Service' : 'Add Product / Service'}</h2>
-							<div className="rfq-v2-event-drawer-actions">
-								<button type="button" className="pe-btn pe-btn--ghost" onClick={toggleDrawer("addProductDrawer", false)}>Cancel</button>
-								{stagearray.includes(currentStage) && (
-									<>
-										<button type="reset" form="add-product-form" className="pe-btn pe-btn--secondary">Reset</button>
-										<button type="submit" form="add-product-form" className="pe-btn pe-btn--primary">{itemEditTempData?.id > 0 ? 'Update' : 'Add'}</button>
-									</>
-								)}
-							</div>
-						</header>
-						<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto' }}>
-							<AddProductsCell
-								idFromURL={idFromURL}
-								UOMMaster={UOMMaster}
-								callbackItemAdd={callbackItemAdd}
-								itemEditTempData={itemEditTempData}
-								handleUomList={handleUomList}
-								action={stagearray.includes(currentStage)}
-								accesslevel={accessLevel?.itemservice?.created}
-								Version={formik?.values?.Version}
-							/>
-						</div>
-					</section>
-				</div>
-			)}
+			<CommonCommonBottomDrawer
+				open={state["addProductDrawer"]}
+				onClose={toggleDrawer("addProductDrawer", false)}
+				title={itemEditTempData?.id > 0 ? 'Edit Product / Service' : 'Add Product / Service'}
+				bodyStyle={{ overflowY: 'auto' }}
+				actions={<>
+					<button type="button" className="pe-btn pe-btn--ghost" onClick={toggleDrawer("addProductDrawer", false)}>Cancel</button>
+					{stagearray.includes(currentStage) && (
+						<>
+							<button type="reset" form="add-product-form" className="pe-btn pe-btn--secondary">Reset</button>
+							<button type="submit" form="add-product-form" className="pe-btn pe-btn--primary">{itemEditTempData?.id > 0 ? 'Update' : 'Add'}</button>
+						</>
+					)}
+				</>}
+			>
+				<AddProductsCell
+					idFromURL={idFromURL}
+					UOMMaster={UOMMaster}
+					callbackItemAdd={callbackItemAdd}
+					itemEditTempData={itemEditTempData}
+					handleUomList={handleUomList}
+					action={stagearray.includes(currentStage)}
+					accesslevel={accessLevel?.itemservice?.created}
+					Version={formik?.values?.Version}
+				/>
+			</CommonCommonBottomDrawer>
 			<React.Fragment key="qusDrawertr">
 				<Drawer
 					anchor="right"
@@ -6207,74 +6204,69 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					</Box>
 				</Drawer>
 			</React.Fragment>
-			{state["surrogateDrawer"] && (
-				<div className="rfq-v2-event-drawer-backdrop" onClick={toggleDrawer("surrogateDrawer", false)}>
-					<section className="rfq-v2-event-drawer" onClick={e => e.stopPropagation()}>
-						<header className="rfq-v2-event-drawer-header">
-							<h2 className="rfq-v2-event-drawer-title">{selectedAction}</h2>
-							<div className="rfq-v2-event-drawer-actions">
-								<button type="button" className="pe-btn pe-btn--ghost" onClick={toggleDrawer("surrogateDrawer", false)}>Cancel</button>
-								<button type="button" className="pe-btn pe-btn--secondary" onClick={() => formik_Action.resetForm()}>Reset</button>
-								<button type="submit" form="surrogate-action-form" className="pe-btn pe-btn--primary">Submit</button>
-							</div>
-						</header>
-						<div className="rfq-v2-event-drawer-body">
-							<form id="surrogate-action-form" onSubmit={formik_Action.handleSubmit} autoComplete="off">
-								<div className="row">
-									<div className="col-12 mb-4">
-										<label className="pe-field-label">Supplier <span className="rfq-required-star">*</span></label>
-										<TextField
-											fullWidth size="small" variant="outlined" id="supplierselected" name="supplierselected"
-											value={`${formik_Action.values.supplier?.contactPerson} | ${formik_Action.values.supplier?.emailId} | ${formik_Action.values.supplier?.companyName}`}
-											disabled className="f14" autoComplete="off"
-										/>
-									</div>
-									{selectedAction === "Surrogate RFQ" && (
-										<>
-											<div className="col-12 col-md-6 mb-4">
-												<label className="pe-field-label">Surrogator Name</label>
-												<TextField
-													fullWidth size="small" variant="outlined"
-													id="name" name="name" className="f14" autoComplete="off"
-													inputProps={{ maxLength: 100 }}
-													value={formik_Action.values.name}
-													onChange={(e) => formik_Action.setFieldValue("name", e.target?.value)}
-													error={formik_Action.touched.name && Boolean(formik_Action.errors.name)}
-													helperText={formik_Action.touched.name && formik_Action.errors.name}
-												/>
-											</div>
-											<div className="col-12 col-md-6 mb-4">
-												<label className="pe-field-label">Surrogator Email <span className="rfq-required-star">*</span></label>
-												<TextField
-													fullWidth size="small" variant="outlined"
-													id="email" name="email" className="f14" autoComplete="off"
-													inputProps={{ maxLength: 100 }}
-													value={formik_Action.values.email}
-													onChange={(e) => formik_Action.setFieldValue("email", e.target?.value)}
-													error={formik_Action.touched.email && Boolean(formik_Action.errors.email)}
-													helperText={formik_Action.touched.email && formik_Action.errors.email}
-												/>
-											</div>
-										</>
-									)}
-									<div className="col-12 mb-4">
-										<label className="pe-field-label">Remark</label>
-										<TextField
-											fullWidth size="small" variant="outlined" multiline rows={4}
-											id="Reason" name="Reason" className="f14" autoComplete="off"
-											inputProps={{ maxLength: 200 }}
-											value={formik_Action.values.Reason}
-											onChange={(e) => formik_Action.setFieldValue("Reason", e.target?.value)}
-											error={formik_Action.touched.Reason && Boolean(formik_Action.errors.Reason)}
-											helperText={formik_Action.touched.Reason && formik_Action.errors.Reason}
-										/>
-									</div>
-								</div>
-							</form>
+			<CommonCommonBottomDrawer
+				open={state["surrogateDrawer"]}
+				onClose={toggleDrawer("surrogateDrawer", false)}
+				title={selectedAction}
+				actions={<>
+					<button type="button" className="pe-btn pe-btn--ghost" onClick={toggleDrawer("surrogateDrawer", false)}>Cancel</button>
+					<button type="button" className="pe-btn pe-btn--secondary" onClick={() => formik_Action.resetForm()}>Reset</button>
+					<button type="submit" form="surrogate-action-form" className="pe-btn pe-btn--primary">Submit</button>
+				</>}
+			>
+				<form id="surrogate-action-form" onSubmit={formik_Action.handleSubmit} autoComplete="off">
+					<div className="row">
+						<div className="col-12 mb-4">
+							<label className="pe-field-label">Supplier <span className="rfq-required-star">*</span></label>
+							<TextField
+								fullWidth size="small" variant="outlined" id="supplierselected" name="supplierselected"
+								value={`${formik_Action.values.supplier?.contactPerson} | ${formik_Action.values.supplier?.emailId} | ${formik_Action.values.supplier?.companyName}`}
+								disabled className="f14" autoComplete="off"
+							/>
 						</div>
-					</section>
-				</div>
-			)}
+						{selectedAction === "Surrogate RFQ" && (
+							<>
+								<div className="col-12 col-md-6 mb-4">
+									<label className="pe-field-label">Surrogator Name</label>
+									<TextField
+										fullWidth size="small" variant="outlined"
+										id="name" name="name" className="f14" autoComplete="off"
+										inputProps={{ maxLength: 100 }}
+										value={formik_Action.values.name}
+										onChange={(e) => formik_Action.setFieldValue("name", e.target?.value)}
+										error={formik_Action.touched.name && Boolean(formik_Action.errors.name)}
+										helperText={formik_Action.touched.name && formik_Action.errors.name}
+									/>
+								</div>
+								<div className="col-12 col-md-6 mb-4">
+									<label className="pe-field-label">Surrogator Email <span className="rfq-required-star">*</span></label>
+									<TextField
+										fullWidth size="small" variant="outlined"
+										id="email" name="email" className="f14" autoComplete="off"
+										inputProps={{ maxLength: 100 }}
+										value={formik_Action.values.email}
+										onChange={(e) => formik_Action.setFieldValue("email", e.target?.value)}
+										error={formik_Action.touched.email && Boolean(formik_Action.errors.email)}
+										helperText={formik_Action.touched.email && formik_Action.errors.email}
+									/>
+								</div>
+							</>
+						)}
+						<div className="col-12 mb-4">
+							<label className="pe-field-label">Remark</label>
+							<TextField
+								fullWidth size="small" variant="outlined" multiline rows={4}
+								id="Reason" name="Reason" className="f14" autoComplete="off"
+								inputProps={{ maxLength: 200 }}
+								value={formik_Action.values.Reason}
+								onChange={(e) => formik_Action.setFieldValue("Reason", e.target?.value)}
+								error={formik_Action.touched.Reason && Boolean(formik_Action.errors.Reason)}
+								helperText={formik_Action.touched.Reason && formik_Action.errors.Reason}
+							/>
+						</div>
+					</div>
+				</form>
+			</CommonCommonBottomDrawer>
 			<React.Fragment key="key4">
 
 				<ApprovalConfirmDialog

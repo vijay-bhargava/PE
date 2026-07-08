@@ -1,4 +1,5 @@
 ﻿import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import CommonCommonBottomDrawer from "../CommonCommonBottomDrawer";
 import IconButton from "@mui/material/IconButton";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { HiPlusSm, HiOutlineDotsHorizontal, HiOutlineX } from "react-icons/hi";
@@ -528,34 +529,24 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
           </Button>
         </DialogActions>
       </Dialog>
-      {openComponents.addQuestionDrawer && (
-        <div className="rfq-v2-event-drawer-backdrop" onClick={() => handleCancelChange("addQuestionDrawer")}>
-          <section className="rfq-v2-event-drawer" onClick={e => e.stopPropagation()}>
-            <header className="rfq-v2-event-drawer-header">
-              <h2 className="rfq-v2-event-drawer-title">Add Question</h2>
-              <div className="rfq-v2-event-drawer-actions">
-                <button type="button" className="pe-btn pe-btn--ghost" onClick={() => handleCancelChange("addQuestionDrawer")}>
-                  Cancel
-                </button>
-                <button type="reset" form="add-question-form" className="pe-btn pe-btn--secondary">
-                  Reset
-                </button>
-                <button type="submit" form="add-question-form" className="pe-btn pe-btn--primary">
-                  Add
-                </button>
-              </div>
-            </header>
-            <div className="rfq-v2-event-drawer-body" style={{ overflowY: "auto" }}>
-              <EventAddQuestionScreen
-                questionlist={questionlist}
-                eventid={props?.eventid}
-                eventtype={props?.eventtype}
-                callback={handleAddQuestion}
-              />
-            </div>
-          </section>
-        </div>
-      )}
+      <CommonCommonBottomDrawer
+        open={openComponents.addQuestionDrawer}
+        onClose={() => handleCancelChange("addQuestionDrawer")}
+        title="Add Question"
+        bodyStyle={{ overflowY: "auto" }}
+        actions={<>
+          <button type="button" className="pe-btn pe-btn--ghost" onClick={() => handleCancelChange("addQuestionDrawer")}>Cancel</button>
+          <button type="reset" form="add-question-form" className="pe-btn pe-btn--secondary">Reset</button>
+          <button type="submit" form="add-question-form" className="pe-btn pe-btn--primary">Add</button>
+        </>}
+      >
+        <EventAddQuestionScreen
+          questionlist={questionlist}
+          eventid={props?.eventid}
+          eventtype={props?.eventtype}
+          callback={handleAddQuestion}
+        />
+      </CommonCommonBottomDrawer>
 
     </div>
   );

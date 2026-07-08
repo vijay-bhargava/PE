@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import CommonCommonBottomDrawer from "../../../components/CommonCommonBottomDrawer";
 import { LoadingButton } from '@mui/lab';
 import {
   Autocomplete,
@@ -1130,111 +1131,84 @@ const ManageRFQV2 = ({ claimType }) => {
       </Modal>
 
       {/* ── Select items modal (RFQ → Event) ── */}
-      {itemmodal && (
-        <div className="rfq-v2-event-drawer-backdrop" role="presentation">
-          <section
-            className="rfq-v2-event-drawer"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="rfq-v2-event-drawer-title"
-          >
-            <header className="rfq-v2-event-drawer-header">
-              <h2 id="rfq-v2-event-drawer-title" className="rfq-v2-event-drawer-title">
-                Create Event
-              </h2>
-              <div className="rfq-v2-event-drawer-actions">
-                <button
-                  type="button"
-                  className="pe-btn pe-btn--ghost"
-                  onClick={() => setItemModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="pe-btn pe-btn--secondary"
-                  onClick={() => setItemModal(false)}
-                >
-                  <AddOutlined style={{ fontSize: 16 }} />
-                  Add more items
-                </button>
-                <button
-                  type="button"
-                  className="pe-btn pe-btn--primary"
-                  onClick={handleEventDrawerSubmit}
-                >
-                  Submit ({rfqItemSet.length})
-                </button>
-              </div>
-            </header>
+      <CommonCommonBottomDrawer
+        open={itemmodal}
+        titleId="rfq-v2-event-drawer-title"
+        title="Create Event"
+        actions={<>
+          <button type="button" className="pe-btn pe-btn--ghost" onClick={() => setItemModal(false)}>Cancel</button>
+          <button type="button" className="pe-btn pe-btn--secondary" onClick={() => setItemModal(false)}>
+            <AddOutlined style={{ fontSize: 16 }} />
+            Add more items
+          </button>
+          <button type="button" className="pe-btn pe-btn--primary" onClick={handleEventDrawerSubmit}>
+            Submit ({rfqItemSet.length})
+          </button>
+        </>}
+      >
+        <div className="rfq-v2-event-form-row">
+          <label className="rfq-v2-event-field">
+            <span className="rfq-v2-event-label">Select Event type</span>
+            <select
+              className="rfq-v2-event-select"
+              value={selectedBidType?.bidTypeId || ''}
+              onChange={(e) => {
+                const auctionType = AUCTION_TYPES.find((o) => o.bidTypeId === Number(e.target.value));
+                if (auctionType) prepareItemsForBidType(auctionType);
+              }}
+            >
+              <option value="">Select event type</option>
+              {AUCTION_TYPES.map((o) => (
+                <option key={o.bidTypeId} value={o.bidTypeId}>{o.label}</option>
+              ))}
+            </select>
+          </label>
 
-            <div className="rfq-v2-event-drawer-body">
-              <div className="rfq-v2-event-form-row">
-                <label className="rfq-v2-event-field">
-                  <span className="rfq-v2-event-label">Select Event type</span>
-                  <select
-                    className="rfq-v2-event-select"
-                    value={selectedBidType?.bidTypeId || ''}
-                    onChange={(e) => {
-                      const auctionType = AUCTION_TYPES.find((o) => o.bidTypeId === Number(e.target.value));
-                      if (auctionType) prepareItemsForBidType(auctionType);
-                    }}
-                  >
-                    <option value="">Select event type</option>
-                    {AUCTION_TYPES.map((o) => (
-                      <option key={o.bidTypeId} value={o.bidTypeId}>{o.label}</option>
-                    ))}
-                  </select>
-                </label>
-
-                <div className="rfq-v2-event-total">
-                  <span className="rfq-v2-event-label">Total Items added</span>
-                  <span className="rfq-v2-event-count">{rfqItemSet.length}</span>
-                </div>
-              </div>
-
-              <div className="rfq-v2-event-selection-head">
-                <span className="rfq-v2-event-section-label">Select Items</span>
-                <span className="rfq-v2-event-rfq-meta">
-                  {firstRfq?.eventCode || (firstRfq?.id ? `RFQ-${firstRfq.id}` : 'RFQ-')}
-                  {firstRfq?.subject || firstRfq?.rfqSubject ? ` ${firstRfq?.subject || firstRfq?.rfqSubject}` : ''}
-                </span>
-              </div>
-
-              <div className="rfq-v2-event-table">
-                {selectedPRITemModal.length > 0 ? (
-                  <DataGrid
-                    rows={selectedPRITemModal}
-                    columns={prrfqcolumn}
-                    pageSize={10}
-                    checkboxSelection
-                    onRowSelectionModelChange={(ids) => selectItemsById(ids)}
-                    rowSelectionModel={selectedItemsActive}
-                    rowHeight={36}
-                    columnHeaderHeight={36}
-                    className="rfq-v2-event-datagrid"
-                    disableRowSelectionOnClick
-                    isRowSelectable={(params) => {
-                      const row = params?.row;
-                      if (row?.eventType === 'PR') return true;
-                      return !row?.eventId;
-                    }}
-                    sx={{
-                      border: 'none',
-                      '& .MuiDataGrid-cell': { fontSize: 12 },
-                      '& .MuiDataGrid-columnHeaderTitle': { fontSize: 12, fontWeight: 600 },
-                    }}
-                  />
-                ) : (
-                  <div className="rfq-v2-event-empty">
-                    {noQuotesMessage || 'No quotes available. You cannot select any line items.'}
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
+          <div className="rfq-v2-event-total">
+            <span className="rfq-v2-event-label">Total Items added</span>
+            <span className="rfq-v2-event-count">{rfqItemSet.length}</span>
+          </div>
         </div>
-      )}
+
+        <div className="rfq-v2-event-selection-head">
+          <span className="rfq-v2-event-section-label">Select Items</span>
+          <span className="rfq-v2-event-rfq-meta">
+            {firstRfq?.eventCode || (firstRfq?.id ? `RFQ-${firstRfq.id}` : 'RFQ-')}
+            {firstRfq?.subject || firstRfq?.rfqSubject ? ` ${firstRfq?.subject || firstRfq?.rfqSubject}` : ''}
+          </span>
+        </div>
+
+        <div className="rfq-v2-event-table">
+          {selectedPRITemModal.length > 0 ? (
+            <DataGrid
+              rows={selectedPRITemModal}
+              columns={prrfqcolumn}
+              pageSize={10}
+              checkboxSelection
+              onRowSelectionModelChange={(ids) => selectItemsById(ids)}
+              rowSelectionModel={selectedItemsActive}
+              rowHeight={36}
+              columnHeaderHeight={36}
+              className="rfq-v2-event-datagrid"
+              disableRowSelectionOnClick
+              isRowSelectable={(params) => {
+                const row = params?.row;
+                if (row?.eventType === 'PR') return true;
+                return !row?.eventId;
+              }}
+              sx={{
+                border: 'none',
+                '& .MuiDataGrid-cell': { fontSize: 12 },
+                '& .MuiDataGrid-columnHeaderTitle': { fontSize: 12, fontWeight: 600 },
+              }}
+            />
+          ) : (
+            <div className="rfq-v2-event-empty">
+              {noQuotesMessage || 'No quotes available. You cannot select any line items.'}
+            </div>
+          )}
+        </div>
+      </CommonCommonBottomDrawer>
 
       {/* ── Floating selection summary box ── */}
       {rfqItemSet.length > 0 && (
@@ -1300,81 +1274,54 @@ const ManageRFQV2 = ({ claimType }) => {
       )}
 
       {/* ── Auction cart drawer (bottom, same style as create-event drawer) ── */}
-      {rfqprcartmodal && (
-        <div className="rfq-v2-event-drawer-backdrop" role="presentation">
-          <section
-            className="rfq-v2-event-drawer"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="rfq-v2-cart-drawer-title"
-          >
-            <header className="rfq-v2-event-drawer-header">
-              <h2 id="rfq-v2-cart-drawer-title" className="rfq-v2-event-drawer-title">
-                {selectedBidType?.label
-                  ? `Create ${selectedBidType.label} From RFQ`
-                  : 'Create Event From RFQ'}
-              </h2>
-              <div className="rfq-v2-event-drawer-actions">
-                <button
-                  type="button"
-                  className="rfq-v2-event-btn rfq-v2-event-btn-muted"
-                  onClick={rfqPrCartCloseModal}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="rfq-v2-event-btn rfq-v2-event-btn-primary"
-                  onClick={createAuctionFromPR}
-                >
-                  Submit ({rfqItemSet.length})
-                </button>
-              </div>
-            </header>
-
-            <div className="rfq-v2-event-drawer-body">
-              <div className="rfq-v2-event-form-row">
-                <div className="rfq-v2-event-total">
-                  <span className="rfq-v2-event-label">Event type</span>
-                  <span className="rfq-v2-event-count">
-                    {selectedBidType?.label || '—'}
-                  </span>
-                </div>
-                <div className="rfq-v2-event-total">
-                  <span className="rfq-v2-event-label">Total Items selected</span>
-                  <span className="rfq-v2-event-count">{rfqItemSet.length}</span>
-                </div>
-              </div>
-
-              <div className="rfq-v2-event-selection-head">
-                <span className="rfq-v2-event-section-label">Selected Items</span>
-              </div>
-
-              <div className="rfq-v2-event-table">
-                {rfqItemSet.length > 0 ? (
-                  <DataGrid
-                    getRowId={(row) => `${row.rfqId}-${row.id}`}
-                    rows={Array.from(rfqItemSet)}
-                    columns={prauctioncolumn}
-                    rowHeight={36}
-                    columnHeaderHeight={36}
-                    className="rfq-v2-event-datagrid"
-                    disableRowSelectionOnClick
-                    hideFooterSelectedRowCount
-                    sx={{
-                      border: 'none',
-                      '& .MuiDataGrid-cell': { fontSize: 12 },
-                      '& .MuiDataGrid-columnHeaderTitle': { fontSize: 12, fontWeight: 600 },
-                    }}
-                  />
-                ) : (
-                  <div className="rfq-v2-event-empty">No items selected yet.</div>
-                )}
-              </div>
-            </div>
-          </section>
+      <CommonCommonBottomDrawer
+        open={rfqprcartmodal}
+        titleId="rfq-v2-cart-drawer-title"
+        title={selectedBidType?.label ? `Create ${selectedBidType.label} From RFQ` : 'Create Event From RFQ'}
+        actions={<>
+          <button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={rfqPrCartCloseModal}>Cancel</button>
+          <button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-primary" onClick={createAuctionFromPR}>Submit ({rfqItemSet.length})</button>
+        </>}
+      >
+        <div className="rfq-v2-event-form-row">
+          <div className="rfq-v2-event-total">
+            <span className="rfq-v2-event-label">Event type</span>
+            <span className="rfq-v2-event-count">
+              {selectedBidType?.label || '—'}
+            </span>
+          </div>
+          <div className="rfq-v2-event-total">
+            <span className="rfq-v2-event-label">Total Items selected</span>
+            <span className="rfq-v2-event-count">{rfqItemSet.length}</span>
+          </div>
         </div>
-      )}
+
+        <div className="rfq-v2-event-selection-head">
+          <span className="rfq-v2-event-section-label">Selected Items</span>
+        </div>
+
+        <div className="rfq-v2-event-table">
+          {rfqItemSet.length > 0 ? (
+            <DataGrid
+              getRowId={(row) => `${row.rfqId}-${row.id}`}
+              rows={Array.from(rfqItemSet)}
+              columns={prauctioncolumn}
+              rowHeight={36}
+              columnHeaderHeight={36}
+              className="rfq-v2-event-datagrid"
+              disableRowSelectionOnClick
+              hideFooterSelectedRowCount
+              sx={{
+                border: 'none',
+                '& .MuiDataGrid-cell': { fontSize: 12 },
+                '& .MuiDataGrid-columnHeaderTitle': { fontSize: 12, fontWeight: 600 },
+              }}
+            />
+          ) : (
+            <div className="rfq-v2-event-empty">No items selected yet.</div>
+          )}
+        </div>
+      </CommonCommonBottomDrawer>
     </>
   );
 };

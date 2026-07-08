@@ -1,4 +1,5 @@
 ﻿import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
+import CommonCommonBottomDrawer from "../CommonCommonBottomDrawer";
 import { ApiClient } from '../../Apiclient';
 import { buildQueryParams, cleanAndConvertToArray } from '../../utils/common/utility';
 import { useStateValue } from '../../store';
@@ -998,49 +999,45 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 				</div>
 			</div>
 
-			{openDrawer.AddNewTerm && (
-				<div className="rfq-v2-event-drawer-backdrop" onClick={() => toggleOpenDrawer("AddNewTerm", false)}>
-					<section className="rfq-v2-event-drawer" onClick={e => e.stopPropagation()}>
-						<header className="rfq-v2-event-drawer-header">
-							<h2 className="rfq-v2-event-drawer-title">Manage Terms</h2>
-							<div className="rfq-v2-event-drawer-actions">
-								<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleOpenDrawer("AddNewTerm", false)}>Cancel</button>
-								<button type="reset" form="manage-terms-form" className="pe-btn pe-btn--secondary">Reset</button>
-								<button type="submit" form="manage-terms-form" className="pe-btn pe-btn--primary">{editRecordData ? "Update" : "Submit"}</button>
-							</div>
-						</header>
-						<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto' }}>
-							<EventCommercialDrawer
-								callbackstep={(data) => {
-									if (!editRecordData) {
-										let libraryterm = CommercialTermModal(data)
-										setLibraryTermsList((prev) => [...prev, libraryterm]);
-										toggleOpenDrawer("AddNewTerm", false);
-										setEditRecordData(null);
-									}
-									else {
-										let libraryterm = DefaultCommercialTermModal(editRecordData, data)
-										setLibraryTermsList((prev) => {
+			<CommonCommonBottomDrawer
+				open={openDrawer.AddNewTerm}
+				onClose={() => toggleOpenDrawer("AddNewTerm", false)}
+				title="Manage Terms"
+				bodyStyle={{ overflowY: 'auto' }}
+				actions={<>
+					<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleOpenDrawer("AddNewTerm", false)}>Cancel</button>
+					<button type="reset" form="manage-terms-form" className="pe-btn pe-btn--secondary">Reset</button>
+					<button type="submit" form="manage-terms-form" className="pe-btn pe-btn--primary">{editRecordData ? "Update" : "Submit"}</button>
+				</>}
+			>
+				<EventCommercialDrawer
+					callbackstep={(data) => {
+						if (!editRecordData) {
+							let libraryterm = CommercialTermModal(data)
+							setLibraryTermsList((prev) => [...prev, libraryterm]);
+							toggleOpenDrawer("AddNewTerm", false);
+							setEditRecordData(null);
+						}
+						else {
+							let libraryterm = DefaultCommercialTermModal(editRecordData, data)
+							setLibraryTermsList((prev) => {
 
-											const updatedList = [...prev];
-											const index = updatedList.findIndex(item => item.fieldName === editRecordData.fieldName);
-											if (index !== -1) {
-												updatedList[index] = { ...libraryterm };
-											}
-											return updatedList;
-										});
+								const updatedList = [...prev];
+								const index = updatedList.findIndex(item => item.fieldName === editRecordData.fieldName);
+								if (index !== -1) {
+									updatedList[index] = { ...libraryterm };
+								}
+								return updatedList;
+							});
 
-										toggleOpenDrawer("AddNewTerm", false);
-										setEditRecordData(null);
-									}
-								}}
-								editRecordData={editRecordData}
-								LibraryTermsList={LibraryTermsList}
-							/>
-						</div>
-					</section>
-				</div>
-			)}
+							toggleOpenDrawer("AddNewTerm", false);
+							setEditRecordData(null);
+						}
+					}}
+					editRecordData={editRecordData}
+					LibraryTermsList={LibraryTermsList}
+				/>
+			</CommonCommonBottomDrawer>
 
 			<Modal
 				size="md"

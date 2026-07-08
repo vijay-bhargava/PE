@@ -2337,17 +2337,9 @@ a {
   color: var(--vz-heading-color) !important;
 }
 
-/* .css-18ajnh0-MuiSvgIcon-root {
-  fill:var(--vz-primary-color)!important;
-} */
-/* .css-1760uza-MuiDataGrid-root .MuiDataGrid-iconSeparator {
-  color: var(--vz-primary-color)!important;
-} */
-/* .css-t89xny-MuiDataGrid-columnHeaderTitle {
-  color:#111;
-} */
 .MuiOutlinedInput-root {
   background-color: white;
+  border-radius: 6px !important;
 }
 
 .css-1turezt-MuiButtonBase-root-MuiButton-root {
@@ -2475,115 +2467,12 @@ a {
   min-height: 20px;
 }
 
-/* Add this to your main CSS or styled component */
-/* .custom-action-menu {
-  position: relative;
-  display: inline-block;
-} */
-
-/* .custom-action-menu {
-  position: relative;
-  overflow: visible;
-  z-index: 999;
-} */
-
-/* .custom-action-icon {
-  cursor: pointer;
-  font-size: 20px;
-  user-select: none;
-  padding: 4px;
-} */
-
-/* .custom-action-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-  border-radius: 4px;
-  min-width: 120px;
-  z-index: 999;
-} */
-/* .custom-action-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 0px;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  min-width: 120px;
-  z-index: 9999;
-} */
-
-/* .custom-action-menu {
-  position: relative;
-  display: inline-block;
-  overflow: visible;
-  z-index: 99;
-}
-
-.custom-action-dropdown {
-  position: absolute;
-  top: 50%;
-  left: 100%;
-  transform: translateY(-50%);
-  margin-left: 4px;
-  background: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  border-radius: 4px;
-  min-width: 120px;
-  z-index: 9999;
-  white-space: nowrap;
-}
-
-.custom-action-icon {
-  cursor: pointer;
-  font-size: 20px;
-  user-select: none;
-  padding: 0;
-  line-height: 1;
-} */
-
-/* .custom-action-dropdown {
-  position: absolute;
-  top: 0;
-  left: 100%;
-  margin-left: 4px;
-  background-color: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-  border-radius: 4px;
-  min-width: 120px;
-  z-index: 9999;
-  white-space: nowrap;
-} */
-
-/* .custom-action-item {
-  padding: 4px 12px;
-  cursor: pointer;
-  font-size: 10px;
-}
-
-.custom-action-item:hover {
-  background-color: #f0f0f0;
-} */
 .custom-action-menu {
   position: relative;
   display: inline-block;
   z-index: 99;
 }
 
-/* .custom-action-button .dropdown-menu {
-  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16);
-  border-radius: 6px;
-  min-width: 150px;
-  padding: 4px 0;
-  border: none;
-} */
 .custom-action-button .dropdown-menu {
   min-width: auto !important;
   width: max-content !important;
@@ -2601,13 +2490,6 @@ a {
   margin: 0 !important;
   line-height: 1 !important;
 }
-
-/* .custom-action-item {
-  font-size: 13px;
-  padding: 6px 16px;
-  cursor: pointer;
-  white-space: nowrap;
-} */
 
 .custom-action-item:hover {
   background-color: #f5f5f5;
