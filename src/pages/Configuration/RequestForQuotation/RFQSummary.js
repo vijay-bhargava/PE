@@ -90,7 +90,6 @@ import { id } from "date-fns/locale";
 import EventFinancialComparativeScreen from "../../../components/Event/EventFinancialComparativeScreen";
 import EventCommercialComparativeScreen from "../../../components/Event/EventCommercialComparativeScreen";
 import LockLoader from "../../../components/Loader/LockLoader";
-import ExpandableTextCell from "../../../components/ExpandableTextCell";
 import { MRT_ToggleFullScreenButton } from "material-react-table";
 import EventSuppliers from "../../../components/Event/EventSuppliers";
 

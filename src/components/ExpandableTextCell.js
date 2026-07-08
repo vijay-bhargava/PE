@@ -20,9 +20,16 @@ const ExpandableTextCell = ({ text, maxLines = 4, fontSize = 12 }) => {
   }
 
   const btnStyle = {
-    fontSize: '11px', color: '#2A68D3', background: 'none', border: 'none',
-    padding: '0 2px', cursor: 'pointer', fontWeight: 500,
-    display: 'inline', verticalAlign: 'baseline', lineHeight: 'inherit',
+    fontSize: '11px',
+    color: '#2A68D3',
+    background: 'none',
+    border: 'none',
+    padding: '0 2px',
+    cursor: 'pointer',
+    fontWeight: 500,
+    display: 'inline',
+    verticalAlign: 'baseline',
+    lineHeight: 'inherit',
   };
 
   if (expanded) {
@@ -40,12 +47,17 @@ const ExpandableTextCell = ({ text, maxLines = 4, fontSize = 12 }) => {
   return (
     <CommonTooltip title={isTruncated ? text : ''} placement="bottom">
       <div style={{ position: 'relative', fontSize: `${fontSize}px`, color: '#374151', lineHeight: lineHeight, wordBreak: 'break-word', whiteSpace: 'normal' }}>
-        <div ref={ref} style={{ overflow: 'hidden', maxHeight: `${maxHeight}px` }}>
+        <div
+          ref={ref}
+          style={{ overflow: 'hidden', maxHeight: `${maxHeight}px` }}
+        >
           {text}
         </div>
         {isTruncated && (
           <span style={{
-            position: 'absolute', bottom: 0, right: 0,
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
             background: 'linear-gradient(to right, transparent, #fff 30%)',
             paddingLeft: '24px',
           }}>

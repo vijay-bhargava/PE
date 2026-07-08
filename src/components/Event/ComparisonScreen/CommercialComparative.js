@@ -11,7 +11,6 @@ import {
 } from '@mui/material';
 import styles from './UnifiedComparisonTable.module.css';
 import CommonTooltip from '../../commonTooltip';
-import ExpandableTextCell from '../../ExpandableTextCell';
 import { formatDateViaLocale } from '../../../utils/common/utility';
 import { useStateValue } from '../../../store';
 import ExpandableTextCell from '../../ExpandableTextCell';
