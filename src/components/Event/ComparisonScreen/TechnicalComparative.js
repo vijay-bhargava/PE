@@ -20,6 +20,7 @@ import { FaRegCircleDot } from "react-icons/fa6";
 import { downloadFilesOnAzure, getFileName } from '../../../utils/common';
 import { useStateValue } from '../../../store';
 import { formatDateViaLocale } from '../../../utils/common/utility';
+import ExpandableTextCell from '../../ExpandableTextCell';
 
 const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actionType, activityId, handleSupplierModalOpen, isNFA, currentStage, onScoreDirtyChange, updateScoreRef, resetScoreRef }) => {
   const [{ atoken, userDetail }] = useStateValue();
@@ -96,19 +97,15 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
   const formatAnswer = (answer, attachedFileName) => {
     const displayValue = formatValue(answer);
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-        <CommonTooltip title={displayValue !== '-' ? displayValue : ''} placement="bottom">
-          <Typography className={styles.commercialValue} noWrap style={{ textAlign: 'left', maxWidth: '100%', flex: 1 }}>
-            {displayValue}
-          </Typography>
-        </CommonTooltip>
+      <div style={{ minWidth: 0 }}>
+        <ExpandableTextCell text={displayValue} />
         {attachedFileName && (
           <button
             type="button"
             title={getFileName(attachedFileName)}
             className="pe-icon-btn"
             onClick={() => downloadFilesOnAzure(attachedFileName, getFileName(attachedFileName), atoken)}
-            style={{ flexShrink: 0 }}
+            style={{ flexShrink: 0, marginTop: '4px' }}
           >
             <HiDownload style={{ fontSize: '14px' }} />
           </button>
@@ -197,7 +194,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
     <div className={styles.unifiedComparisonTable} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
       {/* Top: Technical Evaluation — fills remaining space, internally scrollable */}
-      <TableContainer sx={{ flex: 1, minHeight: 0, overflowX: 'auto', overflowY: 'auto', background: '#fff', border: '1px solid #d8dde6', borderBottom: 'none', borderRadius: '6px 6px 0 0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+      <TableContainer sx={{ flex: 1, minHeight: 0, overflowX: 'auto', overflowY: 'auto', background: '#fff', border: '1px solid #d8dde6', borderBottom: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', contain: 'layout style paint', willChange: 'scroll-position' }}>
         <Table size="small" sx={{ minWidth: tableMinWidth }}>
 
           {/* Header */}
@@ -247,13 +244,11 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
               <TableRow key={question.id}>
                 <TableCell className={styles.subRowCell}>
                   <div className={styles.termInfo}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                      <CommonTooltip title={question.questionDescription || ''} placement="bottom">
-                        <Typography className={styles.termName} noWrap style={{ flex: 1 }}>
-                          {question.questionDescription}
-                          {question.mandatory === 1 && <span style={{ color: '#f44336', marginLeft: '4px' }}>*</span>}
-                        </Typography>
-                      </CommonTooltip>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', minWidth: 0 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <ExpandableTextCell text={question.questionDescription} />
+                        {question.mandatory === 1 && <span style={{ color: '#f44336', fontSize: '11px' }}>*</span>}
+                      </div>
                       {question.attachedFileName && (
                         <button
                           type="button"
@@ -329,154 +324,149 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
         </Table>
       </TableContainer>
 
-      {/* Bottom: Approver Decisions — fixed height, stuck to bottom */}
+      {/* Bottom: Approver Decisions — fixed height, stuck to bottom, internally scrollable */}
       {approvers.length > 0 && (
-        <TableContainer sx={{ flexShrink: 0, overflowX: 'auto', overflowY: 'auto', background: '#fff', border: '1px solid #d8dde6', borderTop: '2px solid #e5e7eb', borderRadius: '0 0 6px 6px' }}>
-          <Table size="small" sx={{ minWidth: tableMinWidth }}>
-            <TableBody>
-              {/* Section label row */}
-              <TableRow>
-                <TableCell
-                  className={styles.subRowCell}
-                  sx={{ background: '#f3f4f6', py: 1, px: 2, borderRight: '1px solid #e5e7eb' }}
-                >
-                  <Typography sx={{ fontSize: '13px', fontWeight: 600, color: '#000000' }}>
-                    Approver Decisions
-                  </Typography>
-                </TableCell>
-                {vendors.map((vendor) => (
-                  <TableCell key={vendor.id} sx={{ background: '#f8fafc' }} />
-                ))}
-              </TableRow>
+        <div style={{ flexShrink: 0, border: '1px solid #d8dde6', borderTop: '2px solid #e5e7eb', background: '#fff' }}>
+          {/* Fixed label — outside the scroll container so it can never be overlapped */}
+          <div style={{ background: '#f3f4f6', padding: '10px 16px', borderBottom: '1px solid #e5e7eb' }}>
+            <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#212529' }}>
+              Approver Decisions
+            </Typography>
+          </div>
+          {/* Scrollable approver rows */}
+          <TableContainer sx={{ maxHeight: '120px', overflowX: 'auto', overflowY: 'auto', contain: 'layout style paint', willChange: 'scroll-position' }}>
+            <Table size="small" sx={{ minWidth: tableMinWidth }}>
+              <TableBody>
+                {approvers.map((approver) => (
+                  <TableRow key={approver.id} sx={{ backgroundColor: '#fff' }}>
+                    <TableCell className={styles.subRowCell} sx={{ backgroundColor: '#fff', py: 0.5, px: 1.6 }}>
+                      <Typography className={styles.termName} sx={{ fontSize: '12px' }}>
+                        {approver.approverName}
+                        {approver.approverName === userDetail?.name ? '(YOU)' : ''}</Typography>
+                      <Typography className={styles.termRemarks} sx={{ fontSize: '11px' }}>
+                        Level {approver.approverSeq} Approver
+                      </Typography>
+                    </TableCell>
 
-              {approvers.map((approver) => (
-                <TableRow key={approver.id} sx={{ backgroundColor: '#fff' }}>
-                  <TableCell className={styles.subRowCell} sx={{ backgroundColor: '#fff' }}>
-                    <Typography className={styles.termName}>
-                      {approver.approverName}
-                      {approver.approverName === userDetail?.name ? '(YOU)' : ''}</Typography>
-                    <Typography className={styles.termRemarks}>
-                      Level {approver.approverSeq} Approver
-                    </Typography>
-                  </TableCell>
+                    {vendors.map((vendor) => {
+                      const approvalData = getVendorApprovalData(approver, vendor.id);
+                      const status = approvalData
+                        ? (approvalData.approved === true ? 'Approved' : approvalData.approved === false ? 'Rejected' : 'Pending')
+                        : null;
+                      const isPending = status === 'Pending';
 
-                  {vendors.map((vendor) => {
-                    const approvalData = getVendorApprovalData(approver, vendor.id);
-                    const status = approvalData
-                      ? (approvalData.approved === true ? 'Approved' : approvalData.approved === false ? 'Rejected' : 'Pending')
-                      : null;
-                    const isPending = status === 'Pending';
+                      const effectivelyPending = !approvalData || isPending;
 
-                    const effectivelyPending = !approvalData || isPending;
+                      const isCurrentUser = approver.approverName === userDetail?.name;
+                      const showActionButtons = effectivelyPending && canTakeApprovalAction && isCurrentUser;
 
-                    const isCurrentUser = approver.approverName === userDetail?.name;
-                    const showActionButtons = effectivelyPending && canTakeApprovalAction && isCurrentUser;
+                      return (
+                        <TableCell key={vendor.id} className={styles.dataCell} sx={{ backgroundColor: '#fff', py: 0.5, px: 1.5 }}>
+                          {showActionButtons ? (
+                            <Box sx={{ display: 'flex', justifyContent: "center", gap: 1, alignItems: 'center', }}>
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="success"
+                                sx={{ fontSize: '12px', width: "100%", textTransform: 'none', height: '28px', borderRadius: "8px" }}
+                                onClick={() => {
+                                  const supplierData = data?.suppliers?.find(s => s.vendorId === vendor.id);
+                                  if (supplierData) handleApprovalActivity(supplierData, 'Approve');
+                                }}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="error"
+                                sx={{ fontSize: '12px', width: "100%", textTransform: 'none', height: '28px', borderRadius: "8px" }}
+                                onClick={() => {
+                                  const supplierData = data?.suppliers?.find(s => s.vendorId === vendor.id);
+                                  if (supplierData) handleApprovalActivity(supplierData, 'Reject');
+                                }}
+                              >
+                                Reject
+                              </Button>
+                            </Box>
+                          ) : approvalData || effectivelyPending ? (
 
-                    return (
-                      <TableCell key={vendor.id} className={styles.dataCell} sx={{ backgroundColor: '#fff', }}>
-                        {showActionButtons ? (
-                          <Box sx={{ display: 'flex', justifyContent: "center", gap: 1, alignItems: 'center', }}>
-                            <Button
+                            <Chip
+                              icon={
+                                status === "Approved" ? (<MdOutlineCheck style={{ fontSize: 16 }} />)
+                                  : status === "Rejected" ? (<MdClose style={{ fontSize: 16 }} />)
+                                    : (<FaRegCircleDot style={{ fontSize: 12 }} />)
+                              }
+                              label={
+                                status === "Approved"
+                                  ? "Approved"
+                                  : status === "Rejected"
+                                    ? "Rejected"
+                                    : "Pending"
+                              }
                               size="small"
-                              variant="contained"
-                              color="success"
-                              sx={{ fontSize: '12px', width: "100%", textTransform: 'none', height: '28px', borderRadius: "8px" }}
-                              onClick={() => {
-                                const supplierData = data?.suppliers?.find(s => s.vendorId === vendor.id);
-                                if (supplierData) handleApprovalActivity(supplierData, 'Approve');
-                              }}
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              color="error"
-                              sx={{ fontSize: '12px', width: "100%", textTransform: 'none', height: '28px', borderRadius: "8px" }}
-                              onClick={() => {
-                                const supplierData = data?.suppliers?.find(s => s.vendorId === vendor.id);
-                                if (supplierData) handleApprovalActivity(supplierData, 'Reject');
-                              }}
-                            >
-                              Reject
-                            </Button>
-                          </Box>
-                        ) : approvalData || effectivelyPending ? (
+                              sx={{
+                                height: "24px",
+                                borderRadius: "8px",
+                                px: "6px",
+                                fontSize: "10px",
+                                fontWeight: 700,
+                                textTransform: "uppercase",
+                                width: "fit-content",
 
-                          <Chip
-                            icon={
-                              status === "Approved" ? (<MdOutlineCheck style={{ fontSize: 16 }} />)
-                                : status === "Rejected" ? (<MdClose style={{ fontSize: 16 }} />)
-                                  : (<FaRegCircleDot style={{ fontSize: 12 }} />)
-                            }
-                            label={
-                              status === "Approved"
-                                ? "Approved"
-                                : status === "Rejected"
-                                  ? "Rejected"
-                                  : "Pending"
-                            }
-                            size="small"
-                            sx={{
-                              height: "24px",
-                              borderRadius: "8px",
-                              px: "6px",
-                              fontSize: "10px",
-                              fontWeight: 700,
-                              textTransform: "uppercase",
-                              width: "fit-content",
-
-                              ...(status === "Approved" && {
-                                backgroundColor: "#D8ECDA",
-                                color: "#2F562D",
-
-                                "& .MuiChip-icon": {
+                                ...(status === "Approved" && {
+                                  backgroundColor: "#D8ECDA",
                                   color: "#2F562D",
-                                  marginLeft: "8px",
-                                },
-                              }),
 
-                              ...(status === "Rejected" && {
-                                backgroundColor: "#FDE5E6",
-                                color: "#C61515",
+                                  "& .MuiChip-icon": {
+                                    color: "#2F562D",
+                                    marginLeft: "8px",
+                                  },
+                                }),
 
-                                "& .MuiChip-icon": {
+                                ...(status === "Rejected" && {
+                                  backgroundColor: "#FDE5E6",
                                   color: "#C61515",
-                                  marginLeft: "8px",
-                                },
-                              }),
 
-                              ...(effectivelyPending && {
-                                backgroundColor: "#F9E692",
-                                color: "#864721",
+                                  "& .MuiChip-icon": {
+                                    color: "#C61515",
+                                    marginLeft: "8px",
+                                  },
+                                }),
 
-                                "& .MuiChip-icon": {
+                                ...(effectivelyPending && {
+                                  backgroundColor: "#F9E692",
                                   color: "#864721",
-                                  marginLeft: "8px",
-                                },
-                              }),
-                            }}
-                          />
-                        ) : (
-                          <Typography variant="caption" color="text.secondary">-</Typography>
-                        )}
 
-                        {approvalData?.remarks && (
-                          <Typography className={styles.commercialValue} style={{ fontSize: '11px', color: '#6b7280' }}>
-                            {approvalData.remarks}
-                          </Typography>
-                        )}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                                  "& .MuiChip-icon": {
+                                    color: "#864721",
+                                    marginLeft: "8px",
+                                  },
+                                }),
+                              }}
+                            />
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">-</Typography>
+                          )}
+
+                          {approvalData?.remarks && (
+                            <Typography className={styles.commercialValue} style={{ fontSize: '11px', color: '#6b7280' }}>
+                              {approvalData.remarks}
+                            </Typography>
+                          )}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
       )}
     </div>
   );
+
 };
 
 export default TechnicalComparative;

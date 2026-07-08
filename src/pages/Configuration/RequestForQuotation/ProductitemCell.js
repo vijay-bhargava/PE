@@ -609,41 +609,44 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 	];
 
 	return (
-		<div className="rfq-v2-table-wrapper">
-			<DataGrid
-				className="rfq-v2-datagrid"
-				rows={createExpandedRows()}
-				columns={columns}
-				getRowId={getExpandedRowId}
-				getRowHeight={(params) => params.model.isDetailRow ? 150 : 52}
-				columnHeaderHeight={40}
-				disableRowSelectionOnClick
-				disableColumnMenu
-				disableColumnSorting
-				sortingOrder={[]}
-				pageSizeOptions={[10, 25, 50]}
-				initialState={{
-					pagination: {
-						paginationModel: { page: 0, pageSize: 10 },
-					},
-				}}
-				autoHeight
-				hideFooterSelectedRowCount
-				sx={{
-					'& .MuiDataGrid-row': { cursor: 'pointer' },
-					'& .MuiDataGrid-cell': { overflow: 'visible' },
-					// allow horizontal scroll for wide tables (items has more cols than manage-rfq)
-					'& .MuiDataGrid-virtualScroller': {
-						overflowX: 'auto !important',
-						scrollbarWidth: 'thin',
-						scrollbarColor: '#d1d5db #f9fafb',
-					},
-					'& .MuiDataGrid-virtualScroller::-webkit-scrollbar': { height: 8 },
-					'& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': { background: '#f9fafb' },
-					'& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': { background: '#d1d5db', borderRadius: 4 },
-				}}
-			/>
-		</div>
+		<DataGrid
+			className="rfq-v2-datagrid"
+			rows={createExpandedRows()}
+			columns={columns}
+			getRowId={getExpandedRowId}
+			getRowHeight={(params) => params.model.isDetailRow ? 150 : 52}
+			columnHeaderHeight={40}
+			disableRowSelectionOnClick
+			disableColumnMenu
+			disableColumnSorting
+			sortingOrder={[]}
+			pageSizeOptions={[10, 25, 50]}
+			pagination
+			initialState={{
+				pagination: {
+					paginationModel: { page: 0, pageSize: 10 },
+				},
+			}}
+			hideFooterSelectedRowCount
+			sx={{
+				border: 'none',
+				flex: 1,
+				minHeight: 0,
+				height: '100%',
+				'& .MuiDataGrid-row': { cursor: 'pointer' },
+				'& .MuiDataGrid-cell': { overflow: 'visible' },
+				'& .MuiDataGrid-virtualScroller': {
+					scrollbarWidth: 'thin',
+					scrollbarColor: '#d1d5db #f9fafb',
+				},
+				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar': { height: 8 },
+				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': { background: '#f9fafb' },
+				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': { background: '#d1d5db', borderRadius: 4 },
+				'& .MuiTablePagination-root': { fontSize: 12, color: '#6b7280' },
+				'& .MuiTablePagination-selectLabel': { fontSize: 12, color: '#6b7280', margin: 0 },
+				'& .MuiTablePagination-displayedRows': { fontSize: 12, color: '#6b7280', margin: 0 },
+			}}
+		/>
 	);
 };
 

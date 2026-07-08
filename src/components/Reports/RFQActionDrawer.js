@@ -124,18 +124,19 @@ const RFQActionDrawer = ({
 	const apiClient = new ApiClient(customersuffix);
 
 	const [selectedCategory, setSelectedCategory] = useState(null);
+	const [supplierSearchText, setSupplierSearchText] = useState('');
 
 	useEffect(() => {
 		if (openDrawer.addsupplier && customerid) {
-			// getTotalSupplier();
+			getTotalSupplier();
 			getSupplierEventWise();
+			getCategorylist();
 		}
 	}, [customerid, openDrawer])
 
 	useEffect(() => {
 		if (selectedSupplier.length > 0) {
 			getTotalSupplier();
-			getCategorylist();
 		}
 	}, [selectedSupplier])
 
@@ -149,7 +150,6 @@ const RFQActionDrawer = ({
 			`/api/ItemCategory/Find?${queryParams}`,
 			atoken
 		);
-
 		if (res) {
 			setCategoryList(res?.data?.result || []);
 		}
@@ -198,7 +198,7 @@ const RFQActionDrawer = ({
 
 			let vendorItemAnalysisdata = res.data?.result;
 
-			setSelectedSupplier(vendorItemAnalysisdata);
+			setSelectedSupplier(vendorItemAnalysisdata ?? []);
 		}
 	};
 
@@ -220,7 +220,7 @@ const RFQActionDrawer = ({
 		if (res) {
 			// Extract the emails from selectedSupplier and newSupplier
 			// Filter the suppliers from the API response that are not in selectedSupplier or newSupplier
-			const filteredSuppliers = res.data.filter((supplier) => {
+			const filteredSuppliers = (res.data ?? []).filter((supplier) => {
 				return (
 					!selectedSupplier.some((item) => item.vendorId === supplier.vendorId)
 				);
@@ -325,41 +325,59 @@ const RFQActionDrawer = ({
 
 	const [loading2, setLoading2] = useState(false)
 	const handleSaveNewSupplier = async () => {
-
-		setLoading(true)
+		const normalizedSuppliers = newSupplier.map(s => ({
+			...s,
+			id: s.id ?? s.vendorId,
+			rfqLoadingFactor: s.rfqLoadingFactor ?? []
+		}));
+		const safeEndDate = enddate && new Date(enddate) > new Date()
+			? enddate
+			: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 		const data = InvitedSupplierModal(
-			newSupplier,
+			normalizedSuppliers,
 			parseInt(rfqid),
-			enddate,
+			safeEndDate,
 			parseInt(customerid),
 			userDetail,
 			Version
 		);
 
-		if (data.length === 0) {
+		if (!data || data.length === 0) {
 			toast.error(`Please select a supplier before proceeding.`, {
 				toastId: "supplierselection_error"
 			});
 			return;
 		}
-		const invitedSuppliers = {
-			rfqVendorDetails: data,
-			activityId: parseInt(activityId),
-			supplierActionType: "AddVendor",
-			RFQId: parseInt(rfqid)
 
-		};
+		setLoading(true);
+		try {
+			const invitedSuppliers = {
+				rfqVendorDetails: data,
+				activityId: parseInt(activityId) || 0,
+				RFQId: parseInt(rfqid),
+				CurrentStage: currentStage
+			};
 
-		const res = await apiClient.postres(
-			`/api/RFQVendorInvite/${rfqid}/Add`,
-			invitedSuppliers,
-			atoken
-		);
+			let res;
+			try {
+				res = await apiClient.api.post(
+					`/api/RFQVendorInvite/${rfqid}/Add`,
+					invitedSuppliers,
+					{ headers: { Authorization: `Bearer ${atoken}`, accept: 'application/json' } }
+				);
+			} catch (axiosErr) {
+				const msg = axiosErr?.response?.data?.Message || axiosErr?.response?.data?.message || axiosErr?.message || 'Failed to add suppliers.';
+				toast.error(msg, { toastId: 'addsupplier_error' });
+				return;
+			}
 
-		if (res) {
-			toggleDrawer("addsupplier", false)
+			if (res?.status === 200 || res?.status === 201) {
+				toast.success("Suppliers added successfully.", { toastId: "addsupplier_success" });
+				toggleDrawer("addsupplier", false);
+			}
+		} finally {
+			setLoading(false);
 		}
-		setLoading(false)
 	};
 
 	// #re-invite supplier
@@ -690,7 +708,6 @@ const RFQActionDrawer = ({
 					: supplier // keep others same
 			)
 		);
-		console.log(supplierlist)
 	};
 
 	const handleReOpenAll = (value) => {
@@ -703,7 +720,6 @@ const RFQActionDrawer = ({
 					: supplier // keep others same
 			)
 		);
-		// console.log(supplierlist)
 	}
 
 	const clearReinviteAll = () => {
@@ -1027,7 +1043,6 @@ const RFQActionDrawer = ({
 		let folderPath = `${customerid}/RFQ/${rfqid}`;
 		downloadZip(folderPath);
 	}
-
 	return (
 		<>
 			<div>
@@ -1089,230 +1104,141 @@ const RFQActionDrawer = ({
 								<h2 className="rfq-v2-event-drawer-title">Add New Supplier</h2>
 								<div className="rfq-v2-event-drawer-actions">
 									<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => toggleDrawer("addsupplier", false)}>Close</button>
-									{newSupplier?.length > 0 && <LoadingButton loading={loading} size="small" variant="contained" onClick={handleSaveNewSupplier}>Update</LoadingButton>}
+									<button type="button" className="pe-btn pe-btn--primary" onClick={handleSaveNewSupplier}>Update</button>
 								</div>
 							</header>
-							<div className="rfq-v2-event-drawer-body" style={{ overflowY: 'auto', flex: 1, padding: '16px' }}>
-								<div className="rfq-v2-drawer-form" style={{ marginBottom: '16px' }}>
+							<div className="rfq-v2-event-drawer-body" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden', padding: '16px', gap: '12px' }}>
+								{/* Filters row */}
+								<div className="rfq-v2-drawer-form" style={{ flexShrink: 0 }}>
 									<div className="rfq-v2-drawer-grid">
 										<div className="rfq-v2-drawer-field">
 											<span className="rfq-v2-drawer-label">Category</span>
 											<Autocomplete
-												disablePortal
-												id=""
 												size="small"
 												options={categoryList}
 												fullWidth
 												renderInput={(params) => (
-													<TextField
-														{...params}
-														InputLabelProps={{
-															shrink: true,
-														}}
-														label="Category"
-													/>
+													<TextField {...params} placeholder="Select category" />
 												)}
-												getOptionLabel={(option) =>
-													option.itemCategory ?? ""
-												}
+												getOptionLabel={(option) => option.itemCategory ?? ""}
+												isOptionEqualToValue={(option, value) => option.id === value?.id}
 												value={selectedCategory}
 												onChange={(e, newvalue) => {
 													setSelectedCategory(newvalue);
+													setSupplierSearchText('');
 													handleSupplierWithCategory(newvalue);
 												}}
 											/>
 										</div>
 										<div className="rfq-v2-drawer-field">
 											<span className="rfq-v2-drawer-label">Search Supplier</span>
-											<Autocomplete
-												id="searchvendorbyname"
-												options={
-													remainingSupplier ?? []
-												}
-												filterOptions={VendorfilterOptions}
-												getOptionLabel={(option) => ""}
-												renderOption={(
-													props,
-													option,
-													{ selected }
-												) => (
-													<li {...props}>
-														{<Checkbox
-															icon={icon}
-															checkedIcon={checkedIcon}
-															style={{ marginRight: 8 }}
-														/>}
-														{`${option.contactPerson} | ${option.email} | ${option?.companyName}` ??
-															""}
-													</li>
-												)}
+											<TextField
 												size="small"
 												fullWidth
-												renderInput={(params) => (
-													<TextField
-														{...params}
-														InputLabelProps={{
-															shrink: true,
-														}}
-														label="Search User from Supplier by Name"
-													/>
-												)}
-												onChange={(e, newvalue) => {
-													if (newvalue) {
-
-														handleCheckRemainingSupplier(newvalue)
-													}
-												}}
+												placeholder="Search by name or email..."
+												value={supplierSearchText}
+												onChange={(e) => { setSupplierSearchText(e.target.value); setPageTS(1); }}
 											/>
 										</div>
 									</div>
 								</div>
 
-								<div className="row mt-3">
-									<div className="col-12 col-md-12 col-lg-6">
-										<div className="bg-white rounded shadow-sm">
-											<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-												<div className="p-2">
-													<div className="d-flex align-items-center">
-														Remaining Suppliers{" "}
-														<div className="supplierCount">
-															{
-																remainingSupplier
-																	?.length
-															}
-														</div>{" "}
-														{selectedCategory && (
-															<Badge pill bg="success" text="dark">
-																{selectedCategory?.categoryName}
-															</Badge>
-														)}
-													</div>
+								{/* Two-column supplier lists */}
+								{(() => {
+									const filteredRemaining = (remainingSupplier ?? []).filter(x => {
+										if (!supplierSearchText) return true;
+										const q = supplierSearchText.toLowerCase();
+										return (
+											(x?.contactPerson ?? '').toLowerCase().includes(q) ||
+											(x?.email ?? '').toLowerCase().includes(q) ||
+											(x?.companyName ?? '').toLowerCase().includes(q)
+										);
+									});
+									const totalTSPages = Math.ceil(filteredRemaining.length / pageCount) || 1;
+									const pagedRemaining = filteredRemaining.slice((pageTS - 1) * pageCount, pageTS * pageCount);
+									const totalSSPages = Math.ceil((newSupplier?.length ?? 0) / pageCount) || 1;
+									const pagedNew = (newSupplier ?? []).slice((pageSS - 1) * pageCount, pageSS * pageCount);
+									const pageSizeOptions = [10, 25, 50];
 
+									const PaginationBar = ({ total, page, setPage, pageSize, setPageSize }) => (
+										<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '20px', padding: '5px 12px', borderTop: '1px solid #e5e7eb', background: '#fff', flexShrink: 0, minHeight: '44px' }}>
+											<span style={{ fontSize: '12px', color: '#6b7280' }}>Rows per page:</span>
+											<select
+												value={pageSize}
+												onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
+												style={{ fontSize: '12px', color: '#374151', border: 'none', borderRadius: '4px', padding: '2px 4px', background: '#fff', cursor: 'pointer' }}
+											>
+												{pageSizeOptions.map(n => <option key={n} value={n}>{n}</option>)}
+											</select>
+											<span style={{ fontSize: '12px', color: '#6b7280' }}>
+												{total === 0 ? '0–0 of 0' : `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total}`}
+											</span>
+											<button type="button" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}
+												style={{ background: "none", border: "none", cursor: pageTS === 1 ? "default" : "pointer", color: pageTS === 1 ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}
+											>&#8249;</button>
+											<button type="button" className="pe-icon-btn" disabled={page >= Math.ceil(total / pageSize) || total === 0} onClick={() => setPage(p => Math.min(Math.ceil(total / pageSize), p + 1))}
+												style={{ background: "none", border: "none", cursor: pageTS >= total ? "default" : "pointer", color: pageTS >= total ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}
+											>&#8250;</button>
+										</div>
+									);
+
+									return (
+										<div style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0 }}>
+											{/* Remaining Suppliers */}
+											<div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
+												<div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', flexShrink: 0 }}>
+													<span style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>Remaining Suppliers</span>
+													<span style={{ background: '#2A68D3', color: '#fff', borderRadius: '10px', fontSize: '11px', fontWeight: 700, padding: '1px 7px' }}>{filteredRemaining.length}</span>
+													{selectedCategory && (
+														<span style={{ background: '#d1fae5', color: '#065f46', borderRadius: '10px', fontSize: '11px', fontWeight: 600, padding: '1px 8px' }}>{selectedCategory?.itemCategory}</span>
+													)}
 												</div>
-
-											</div>
-											<hr className="m-0" />
-											<div className="row">
-												<div className="col-12">
-													{remainingSupplier
-
-														?.slice(
-															(pageTS - 1) * pageCount,
-															pageTS * pageCount
-														)
-														.map((x, i) => (
-															<div
-																className="d-flex border-bottom align-items-center m-0 p-1 pt-0 pb-0"
-																key={i}
-															>
-
-																<div className="flex-grow-1 ms-2 text-truncate">
-
-																	<div className="text-truncate f12">
-																		<button type="button" className="pe-icon-btn pe-icon-btn--add ms-2 me-3" onClick={() => handleCheckRemainingSupplier(x)}>
-																			<HiOutlineUserAdd />
-																		</button>
-
-																		{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
-
-																	</div>
-																</div>
-
-
+												<div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+													{pagedRemaining.length === 0 ? (
+														<div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>No suppliers found</div>
+													) : pagedRemaining.map((x, i) => (
+														<div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderBottom: '1px solid #f3f4f6' }}>
+															<button type="button" className="pe-icon-btn pe-icon-btn--add" style={{ flexShrink: 0 }} onClick={() => handleCheckRemainingSupplier(x)}>
+																<HiOutlineUserAdd />
+															</button>
+															<div style={{ fontSize: '12px', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+																<span style={{ fontWeight: 500 }}>{x?.contactPerson}</span>
+																{' | '}{x?.email}
+																{' | '}<span style={{ color: '#6b7280' }}>{x?.companyName}</span>
 															</div>
-														))}
-												</div>
-											</div>
-										</div>
-
-										<div className="pagination_wrapper mb-3 mt-3">
-											<div className="d-flex align-items-center">
-												<div className="flex-grow-1 d-none d-md-block">
-
-												</div>
-												<div className="">
-													<Stack spacing={2}>
-														<Pagination
-															count={totalpageTS}
-															page={pageTS}
-															onChange={handlePaginationTS}
-														/>
-													</Stack>
-												</div>
-
-											</div>
-										</div>
-
-									</div>
-									{newSupplier && newSupplier.length > 0 && <div className="col-12 col-md-12 col-lg-6 border-start">
-										<div className="bg-white rounded shadow-sm">
-											<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-												<div className="p-2">
-													<div className="d-flex align-items-center">
-														New Suppliers{" "}
-														<div className="supplierCount">
-															{newSupplier?.length}
 														</div>
-													</div>
-
+													))}
 												</div>
-												<div className="">	<></></div>
+												<PaginationBar total={filteredRemaining.length} page={pageTS} setPage={setPageTS} pageSize={pageCount} setPageSize={setPageCount} />
 											</div>
-											<hr className="m-0" />
-											<div className="row">
-												<div className="col-12">
-													{newSupplier
-														.slice(
-															(pageSS - 1) * pageCount,
-															pageSS * pageCount
-														)
-														.map((x, i) => (
-															<div
-																className="row border-bottom align-items-center m-0 p-1 pt-0 pb-0"
-																key={i}
-															>
-																<div className="col-md-10">
-																	<div className="d-flex align-items-center ">
 
-																		<div className="text-truncate f12">
-																			<button type="button" className="pe-icon-btn pe-icon-btn--delete ms-2 me-3" onClick={() => handleClearRemainingSupplier(x)}>
-																				<HiOutlineX />
-																			</button>
-																			{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
-																		</div>
-																	</div>
-																</div>
-																<div className="col-md-2 justify-content-end d-flex align-items-center">
-																	<div className="col-md-4  d-flex align-items-center justify-content-end">
-
-
-																	</div>
-
-
-																</div>
+											{/* New Suppliers */}
+											<div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
+												<div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', flexShrink: 0 }}>
+													<span style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>New Suppliers</span>
+													<span style={{ background: '#2A68D3', color: '#fff', borderRadius: '10px', fontSize: '11px', fontWeight: 700, padding: '1px 7px' }}>{newSupplier?.length ?? 0}</span>
+												</div>
+												<div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+													{pagedNew.length === 0 ? (
+														<div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>No suppliers added yet</div>
+													) : pagedNew.map((x, i) => (
+														<div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderBottom: '1px solid #f3f4f6' }}>
+															<button type="button" className="pe-icon-btn pe-icon-btn--delete" style={{ flexShrink: 0 }} onClick={() => handleClearRemainingSupplier(x)}>
+																<HiOutlineX />
+															</button>
+															<div style={{ fontSize: '12px', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+																<span style={{ fontWeight: 500 }}>{x?.contactPerson}</span>
+																{' | '}{x?.email}
+																{' | '}<span style={{ color: '#6b7280' }}>{x?.companyName}</span>
 															</div>
-														))}
+														</div>
+													))}
 												</div>
+												<PaginationBar total={newSupplier?.length ?? 0} page={pageSS} setPage={setPageSS} pageSize={pageCount} setPageSize={setPageCount} />
 											</div>
 										</div>
-										<div className="pagination_wrapper mb-3 mt-3">
-											<div className="d-flex align-items-center">
-												<div className="flex-grow-1 d-none d-md-block">
-
-												</div>
-												<div className="">
-													<Stack spacing={2}>
-														<Pagination
-															count={totalpageSS}
-															page={pageSS}
-															onChange={handlePaginationSS}
-														/>
-													</Stack>
-												</div>
-											</div>
-										</div>
-									</div>}
-								</div>
+									);
+								})()}
 							</div>
 						</section>
 					</div>

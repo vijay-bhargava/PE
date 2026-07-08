@@ -4343,7 +4343,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						</div>
 
 						{/* Tab Content */}
-						<div className="flex-grow-1 hidden-scrollbar" style={{ overflowY: 'auto', padding: value === 6 ? '0' : '20px 16px 16px', display: value === 6 ? 'flex' : 'block', flexDirection: value === 6 ? 'column' : undefined }}>
+						<div className="flex-grow-1 hidden-scrollbar" style={{ overflowY: value === 2 || value === 5 || value === 6 ? 'hidden' : 'auto', padding: value === 6 ? '0' : '20px 16px 16px', display: value === 2 || value === 5 || value === 6 ? 'flex' : 'block', flexDirection: value === 2 || value === 5 || value === 6 ? 'column' : undefined }}>
 							{/* General Tab Content */}
 							{value === 1 && (
 								<div>
@@ -5084,7 +5084,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 							{/* Items/Services Tab Content */}
 							{value === 2 && (
-								<div className="rfq-items-tab-content">
+								<div className="rfq-items-tab-content" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
 									{(() => {
 										// Permission control for Items/Services tab
 										const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false;
@@ -5121,20 +5121,15 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											);
 										}
 										return (
-											<div>
+											<div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
 												{/* Permission Alert for Items/Services Tab */}
 												{permissionManager && (
 													<div className="pb-0"></div>
 												)}
 
-												<div className="p-3 pt-0">
+												<div className="p-3 pt-0" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
 													{/* Items/Services toolbar */}
-													<div className="rfq-items-toolbar">
-														{/* <div className="rfq-items-toolbar-left">
-															<span className="rfq-items-count">
-																{rfqItemsList?.length > 0 ? `${rfqItemsList.length} item${rfqItemsList.length !== 1 ? 's' : ''}` : ''}
-															</span>
-														</div> */}
+													<div className="rfq-items-toolbar" style={{ flexShrink: 0 }}>
 														<div className="rfq-items-toolbar-right">
 															{rfqItemsList?.length > 0 && canRemove && (
 																<>
@@ -5185,7 +5180,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															</button>
 														</div>
 													</div>
-													<div className="">
+													<div className="rfq-v2-table-wrapper" style={{ flex: 1, minHeight: 0, height: 'auto' }}>
 														<ProductitemCell
 															action={stagearray.includes(currentStage) && canEdit}
 															itemsList={rfqItemsList}
@@ -5386,9 +5381,22 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															})()}
 														</div>
 														<div className="sup-pagination">
-															<Stack spacing={2}>
-																<Pagination count={totalpageTS} page={pageTS} onChange={handlePaginationTS} />
-															</Stack>
+															{(() => {
+																const totalItems = totalSupplier?.filter((x) => x.isShow && supplierMatchesSearch(x))?.length ?? 0;
+																const totalPages = Math.ceil(totalItems / pageCount) || 1;
+																const from = totalItems === 0 ? 0 : (pageTS - 1) * pageCount + 1;
+																const to = Math.min(pageTS * pageCount, totalItems);
+																return (
+																	<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '20px', padding: '5px 12px', borderTop: '1px solid #e5e7eb', background: '#fff', flexShrink: 0, minHeight: '44px' }}>
+																		<span style={{ fontSize: "12px", color: "#6b7280" }}>Rows per page:</span>
+																		<select value={pageCount} onChange={e => { setPageCount(Number(e.target.value)); setPageTS(1); }} style={{ fontSize: "12px", color: "#374151", border: "none", borderRadius: "4px", padding: "2px 4px", background: "#fff", cursor: "pointer" }}>
+																			{[10, 25, 50].map(n => <option key={n} value={n}>{n}</option>)}
+																		</select>
+																		<span style={{ fontSize: "12px", color: "#6b7280" }}>{from}–{to} of {totalItems}</span>
+																		<button onClick={() => setPageTS(p => Math.max(1, p - 1))} disabled={pageTS === 1} style={{ background: "none", border: "none", cursor: pageTS === 1 ? "default" : "pointer", color: pageTS === 1 ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}>‹</button>
+																		<button onClick={() => setPageTS(p => Math.min(totalPages, p + 1))} disabled={pageTS >= totalPages} style={{ background: "none", border: "none", cursor: pageTS >= totalPages ? "default" : "pointer", color: pageTS >= totalPages ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}>›</button>
+																	</div>);
+															})()}
 														</div>
 													</div>
 
@@ -5478,13 +5486,22 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															})()}
 														</div>
 														<div className="sup-pagination">
-															<Stack spacing={2}>
-																<Pagination
-																	count={totalpageSS}
-																	page={pageSS}
-																	onChange={handlePaginationSS}
-																/>
-															</Stack>
+															{(() => {
+																const totalItems = selectedSupplier?.length ?? 0;
+																const totalPages = Math.ceil(totalItems / pageCount) || 1;
+																const from = totalItems === 0 ? 0 : (pageSS - 1) * pageCount + 1;
+																const to = Math.min(pageSS * pageCount, totalItems);
+																return (
+																	<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '20px', padding: '5px 12px', borderTop: '1px solid #e5e7eb', background: '#fff', flexShrink: 0, minHeight: '44px' }}>
+																		<span style={{ fontSize: "12px", color: "#6b7280" }}>Rows per page:</span>
+																		<select value={pageCount} onChange={e => { setPageCount(Number(e.target.value)); setPageSS(1); }} style={{ fontSize: "12px", color: "#374151", border: "none", borderRadius: "4px", padding: "2px 4px", background: "#fff", cursor: "pointer" }}>
+																			{[10, 25, 50].map(n => <option key={n} value={n}>{n}</option>)}
+																		</select>
+																		<span style={{ fontSize: "12px", color: "#6b7280" }}>{from}–{to} of {totalItems}</span>
+																		<button onClick={() => setPageSS(p => Math.max(1, p - 1))} disabled={pageSS === 1} style={{ background: "none", border: "none", cursor: pageSS === 1 ? "default" : "pointer", color: pageSS === 1 ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}>‹</button>
+																		<button onClick={() => setPageSS(p => Math.min(totalPages, p + 1))} disabled={pageSS >= totalPages} style={{ background: "none", border: "none", cursor: pageSS >= totalPages ? "default" : "pointer", color: pageSS >= totalPages ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}>›</button>
+																	</div>);
+															})()}
 														</div>
 													</div>
 												</div>}

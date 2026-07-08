@@ -3020,7 +3020,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, on
 						</div>
 					);
 				}
-				return <ComparativeAnalysis data={financialComparisonData} loadingFactor={loadingFactor} handleSupplierModalOpen={handleSupplierModalOpen} />;
+				return <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}><ComparativeAnalysis data={financialComparisonData} loadingFactor={loadingFactor} handleSupplierModalOpen={handleSupplierModalOpen} /></Box>;
 			case 2:
 				const canReadCommercial = actions.permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_RESPONSES, ACTIONS.READ) ?? false;
 				const canEditCommercial = actions.permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_RESPONSES, ACTIONS.EDIT) ?? false;
@@ -3047,7 +3047,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, on
 						</Box>
 					);
 				}
-				return <CommercialComparative data={commercialComparisonData} handleSupplierModalOpen={handleSupplierModalOpen} />;
+				return <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}><CommercialComparative data={commercialComparisonData} handleSupplierModalOpen={handleSupplierModalOpen} /></Box>;
 			case 3:
 				const canReadTechnical = actions.permissionManager?.hasPermission(CLAIM_TYPES.TECHNICAL_RESPONSES, ACTIONS.READ) ?? false;
 				const canEditTechnical = actions.permissionManager?.hasPermission(CLAIM_TYPES.TECHNICAL_RESPONSES, ACTIONS.EDIT) ?? false;
@@ -3348,11 +3348,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, on
 					paddingTop: 0,
 					flex: 1,
 					minHeight: 0,
-					overflow: activeTab === 3 ? 'hidden' : 'auto',
-					scrollbarWidth: 'none',
-					'&::-webkit-scrollbar': {
-						display: 'none',
-					},
+					overflow: 'hidden',
 				}}>
 					{renderTabContent()}
 				</Box>

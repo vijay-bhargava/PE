@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import ExpandableTextCell from "../../../components/ExpandableTextCell";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import ExcelJS from 'exceljs';
@@ -113,7 +114,7 @@ const RFQSummary = ({ props }) => {
                         <div className="col-12 col-md-12">
                             <div className="f18" style={{ color: "black" }}>
                                 <span className="f14 mb-1" style={{ fontWeight: "600" }}>RFQ Subject: </span>
-                                <span className="f14 mb-2" style={{ fontWeight: "400" }}>{data?.subject}</span>
+                                <ExpandableTextCell text={data?.subject} fontSize={14} />
                             </div>
                         </div>
                         <hr className="mt-0 mb-2" />
