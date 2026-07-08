@@ -379,7 +379,7 @@ const EventSuppliers = ({
       </div>
 
       {/* ── Table ── */}
-      <div className="rfq-v2-table-wrapper" style={{ height: 'auto' }}>
+      <div className="rfq-v2-table-wrapper">
         {filteredData.length === 0 ? (
           <div className="rfq-v2-empty">
             <p className="rfq-v2-empty-title">No suppliers found</p>

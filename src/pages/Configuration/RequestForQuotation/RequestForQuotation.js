@@ -4343,7 +4343,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						</div>
 
 						{/* Tab Content */}
-						<div className={`flex-grow-1 hidden-scrollbar${value === 2 || value === 5 || value === 6 ? ' rfq-tab-no-scroll' : ''}`} style={{ padding: value === 2 || value === 6 ? '0' : '20px 16px 16px', display: value === 2 || value === 5 || value === 6 ? 'flex' : 'block', flexDirection: value === 2 || value === 5 || value === 6 ? 'column' : undefined }}>
+						<div className="flex-grow-1 hidden-scrollbar" style={{ overflowY: value === 2 || value === 5 || value === 6 ? 'hidden' : 'auto', padding: value === 6 ? '0' : '20px 16px 16px', display: value === 2 || value === 5 || value === 6 ? 'flex' : 'block', flexDirection: value === 2 || value === 5 || value === 6 ? 'column' : undefined }}>
 							{/* General Tab Content */}
 							{value === 1 && (
 								<div>
@@ -5129,12 +5129,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 												<div className="p-3 pt-0" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
 													{/* Items/Services toolbar */}
-													<div className="rfq-items-toolbar">
-														{/* <div className="rfq-items-toolbar-left">
-															<span className="rfq-items-count">
-																{rfqItemsList?.length > 0 ? `${rfqItemsList.length} item${rfqItemsList.length !== 1 ? 's' : ''}` : ''}
-															</span>
-														</div> */}
+													<div className="rfq-items-toolbar" style={{ flexShrink: 0 }}>
 														<div className="rfq-items-toolbar-right">
 															{rfqItemsList?.length > 0 && canRemove && (
 																<>
@@ -5185,7 +5180,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 															</button>
 														</div>
 													</div>
-													<div style={{ flex: 1, minHeight: 0 }}>
+													<div className="rfq-v2-table-wrapper" style={{ flex: 1, minHeight: 0, height: 'auto' }}>
 														<ProductitemCell
 															action={stagearray.includes(currentStage) && canEdit}
 															itemsList={rfqItemsList}
@@ -5542,26 +5537,25 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										);
 									})()}
 
-									<div style={{ flex: 1, minHeight: 0 }}>
-										<EventSuppliers
-											updatesupplieronloading={updatesupplieronloading}
-											selectedSupplier={selectedSupplier}
-											stagearray={stagearray}
-											currentStage={currentStage}
-											handleSelectedSupplier={handleSelectedSupplier}
-											handleLoadingFactorClick={handleLoadingFactorClick}
-											handleSupplierAction={handleSupplierAction}
-											clearSelectedSupplier={clearSelectedSupplier}
-											pageSS={pageSS}
-											pageCount={pageCount}
-											totalpageSS={totalpageSS}
-											handlePaginationSS={handlePaginationSS}
-											issupplierraccesslevel={issupplierraccesslevel}
-											CurrentVersion={formik?.values?.Version}
-											versionhistory={EventHeaderDetails?.versionhistory}
-											permissionManager={effectivePermissionManager}
-										/>
-									</div>
+									<EventSuppliers
+										updatesupplieronloading={updatesupplieronloading}
+										selectedSupplier={selectedSupplier}
+										stagearray={stagearray}
+										currentStage={currentStage}
+										handleSelectedSupplier={handleSelectedSupplier}
+										handleLoadingFactorClick={handleLoadingFactorClick}
+										handleSupplierAction={handleSupplierAction}
+										clearSelectedSupplier={clearSelectedSupplier}
+										pageSS={pageSS}
+										pageCount={pageCount}
+										totalpageSS={totalpageSS}
+										handlePaginationSS={handlePaginationSS}
+										issupplierraccesslevel={issupplierraccesslevel}
+										CurrentVersion={formik?.values?.Version}
+										versionhistory={EventHeaderDetails?.versionhistory}
+										permissionManager={effectivePermissionManager}
+
+									/>
 								</>
 							}
 							{value == 6 && idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL)) &&
