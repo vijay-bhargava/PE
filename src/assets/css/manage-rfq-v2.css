@@ -304,7 +304,7 @@
 /* ── Table ── */
 .rfq-v2-table-wrapper {
   flex: 1 1 auto;
-  height: calc(100vh - 280px);
+  height: calc(100vh - 260px);
   overflow: hidden;
   display: flex;
   flex-direction: column;

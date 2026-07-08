@@ -328,7 +328,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
       {approvers.length > 0 && (
         <div style={{ flexShrink: 0, border: '1px solid #d8dde6', borderTop: '2px solid #e5e7eb', background: '#fff' }}>
           {/* Fixed label — outside the scroll container so it can never be overlapped */}
-          <div style={{ background: '#f3f4f6', padding: '6px 16px', borderBottom: '1px solid #e5e7eb' }}>
+          <div style={{ background: '#f3f4f6', padding: '10px 16px', borderBottom: '1px solid #e5e7eb' }}>
             <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#212529' }}>
               Approver Decisions
             </Typography>
@@ -339,7 +339,7 @@ const TechnicalComparative = ({ data, updateScore, handleApprovalActivity, actio
               <TableBody>
                 {approvers.map((approver) => (
                   <TableRow key={approver.id} sx={{ backgroundColor: '#fff' }}>
-                    <TableCell className={styles.subRowCell} sx={{ backgroundColor: '#fff', py: 0.5, px: 1.5 }}>
+                    <TableCell className={styles.subRowCell} sx={{ backgroundColor: '#fff', py: 0.5, px: 1.6 }}>
                       <Typography className={styles.termName} sx={{ fontSize: '12px' }}>
                         {approver.approverName}
                         {approver.approverName === userDetail?.name ? '(YOU)' : ''}</Typography>
