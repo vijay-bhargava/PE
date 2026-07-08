@@ -556,6 +556,14 @@
   background: #ffffff !important;
 }
 
+/* Higher specificity to override the auto !important above for tabs that need flex-based scroll */
+.rfq-detail-v2-shell .leftContent .bg-white > .flex-grow-1.rfq-tab-no-scroll {
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
 /* RFQ V2 header layout fixes only */
 .rfq-detail-v2-shell .leftContent > .bg-white {
   scrollbar-width: none;
