@@ -1256,16 +1256,16 @@ a {
   color: #fff;
 }
 
-.MuiTablePagination-selectLabel,
+/* .MuiTablePagination-selectLabel,
 .MuiTablePagination-displayedRows {
   margin: 0px;
-}
+} */
 
+/* TABLE-OVERRIDE COMMENTED — handled by PETable canonical sx
 .MuiDataGrid-footerContainer {
-  /* border-bottom:1px solid #ccc!important; */
   background-color: #ffffff;
   border-radius: 0 0rem 0.5rem 0.5rem;
-}
+} */
 
 .MuiDataGrid-footerContainer,
 .MuiTablePagination-toolbar {

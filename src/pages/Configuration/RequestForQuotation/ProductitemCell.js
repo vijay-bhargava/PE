@@ -4,7 +4,7 @@ import { HiPencilAlt, HiOutlineChevronDown, HiOutlineChevronUp } from "react-ico
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { useStateValue } from '../../../store';
 import { downloadFilesOnAzure, getFileName } from '../../../utils/common';
-import { DataGrid } from "@mui/x-data-grid";
+import { PETable } from "../../../components/RFQ/PETable";
 import '../../../assets/css/manage-rfq-v2.css';
 import CommonTooltip from '../../../components/commonTooltip';
 
@@ -609,42 +609,25 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 	];
 
 	return (
-		<DataGrid
+		<PETable
 			className="rfq-v2-datagrid"
 			rows={createExpandedRows()}
 			columns={columns}
 			getRowId={getExpandedRowId}
 			getRowHeight={(params) => params.model.isDetailRow ? 150 : 52}
-			columnHeaderHeight={40}
-			disableRowSelectionOnClick
 			disableColumnMenu
 			disableColumnSorting
 			sortingOrder={[]}
 			pageSizeOptions={[10, 25, 50]}
 			pagination
-			initialState={{
-				pagination: {
-					paginationModel: { page: 0, pageSize: 10 },
-				},
-			}}
-			hideFooterSelectedRowCount
+			initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
 			sx={{
-				border: 'none',
-				flex: 1,
-				minHeight: 0,
-				height: '100%',
 				'& .MuiDataGrid-row': { cursor: 'pointer' },
 				'& .MuiDataGrid-cell': { overflow: 'visible' },
-				'& .MuiDataGrid-virtualScroller': {
-					scrollbarWidth: 'thin',
-					scrollbarColor: '#d1d5db #f9fafb',
-				},
+				'& .MuiDataGrid-virtualScroller': { scrollbarWidth: 'thin', scrollbarColor: '#d1d5db #f9fafb' },
 				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar': { height: 8 },
 				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': { background: '#f9fafb' },
 				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': { background: '#d1d5db', borderRadius: 4 },
-				'& .MuiTablePagination-root': { fontSize: 12, color: '#6b7280' },
-				'& .MuiTablePagination-selectLabel': { fontSize: 12, color: '#6b7280', margin: 0 },
-				'& .MuiTablePagination-displayedRows': { fontSize: 12, color: '#6b7280', margin: 0 },
 			}}
 		/>
 	);

@@ -33,7 +33,7 @@
    SHELL
    ============================================================ */
 .v2-shell {
-  min-height: 100vh;
+  min-height: 0;
   background: #f1f1f1;
   display: flex;
   flex-direction: column;

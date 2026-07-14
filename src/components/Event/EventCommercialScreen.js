@@ -1,4 +1,4 @@
-﻿import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
 import CommonBottomDrawer from "../CommonBottomDrawer";
 import { ApiClient } from '../../Apiclient';
 import { buildQueryParams, cleanAndConvertToArray } from '../../utils/common/utility';
@@ -14,6 +14,7 @@ import EventCommercialDrawer from './EventCommercialDrawer';
 import { CLAIM_TYPES, ACTIONS } from '../../utils/permissionManager';
 import AddEditCurrency from '../../utils/common/AddEditCurrency';
 import '../../assets/css/manage-rfq-v2.css';
+import { PETableSimple } from '../RFQ/PETable';
 
 const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Action, EventGeneralDetails, Version, currencyList, permissionManager }, EventCommercialScreenRef) => {
 	const [{ atoken, customerid, customersuffix }, dispatch] = useStateValue();
@@ -778,213 +779,112 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 													}
 
 													return LibraryTermsList.length > 0 ? (
-														<div style={{ overflowX: "auto", overflowY: "auto", maxHeight: "65vh", borderRadius: 8, border: "1px solid #e5e7eb" }}>
-															<table style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
-																<thead>
-																	<tr style={{ background: "#f9fafb", position: "sticky", top: 0, zIndex: 2 }}>
-																		<th style={{ width: "22%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left", whiteSpace: "nowrap" }}>
-																			<Checkbox size="small" checked={LibraryTermsList?.every(term => term?.isSelected === true)} onChange={(e) => handleSelectAll(e.target.checked)} disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false)} sx={{ p: "2px", mr: "4px" }} />
+														<PETableSimple
+															wrapperStyle={{ maxHeight: "65vh", borderRadius: "8px" }}
+															columns={[
+																{
+																	key: '_name',
+																	label: 'Name',
+																	width: '22%',
+																	renderHeader: () => (
+																		<>
+																			<Checkbox size="small" checked={LibraryTermsList?.every(t => t?.isSelected === true)} onChange={(e) => handleSelectAll(e.target.checked)} disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false)} sx={{ p: "2px", mr: "4px" }} />
 																			Name
-																		</th>
-																		<th style={{ width: "8%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left", whiteSpace: "nowrap" }}>Net Price</th>
-																		<th style={{ width: "18%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left", whiteSpace: "nowrap" }}>Level</th>
-																		<th style={{ width: "12%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left", whiteSpace: "nowrap" }}>UOM</th>
-																		<th style={{ width: "46%", padding: "10px 16px", borderBottom: "1px solid #e5e7eb", fontSize: 12, fontWeight: 600, color: "#6b7280", textAlign: "left" }}>Requirement</th>
-																	</tr>
-																</thead>
-																<tbody>
-																	{LibraryTermsList && LibraryTermsList.length > 0 && LibraryTermsList?.map((item, index) => {
+																		</>
+																	),
+																	renderCell: (_, item) => {
+																		const idx = LibraryTermsList.indexOf(item);
 																		return (
-																			<tr key={index} style={{ background: "#fff" }}>
-																				<td style={{ padding: "6px 14px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
-																					<div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
-																						{(item?.isSelected && (isTermRequiredByFormula(item.fieldName, index) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name))) ? (
-																							<WhiteTooltip
-																								title={
-																									isOnlyNetPriceTerm(item.name)
-																										? "This term cannot be deselected as it is the only available Net Price term. At least one Net Price term must be selected."
-																										: isNetPriceTerm(item.name)
-																											? "This term cannot be deselected as it is selected as the Net Price term"
-																											: "This term cannot be deselected as it is required by other selected formula terms"
-																								}
-																							>
-																								<span>
-																									<Checkbox
-																										checked={item?.isSelected}
-																										onChange={(e) => handleCommercialItemCheck(index, e.target.checked, item, "check")}
-																										disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || (item?.isSelected && (isTermRequiredByFormula(item.fieldName, index) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name)))}
-																									/>
-																								</span>
-																							</WhiteTooltip>
-																						) : (
-																							<Checkbox
-																								checked={item?.isSelected}
-																								onChange={(e) => handleCommercialItemCheck(index, e.target.checked, item, "check")}
-																								disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || (item?.isSelected && (isTermRequiredByFormula(item.fieldName, index) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name)))}
-																							/>
-																						)}
-																						<span>{item?.name}</span>
-																						{item?.isSelected && isTermRequiredByFormula(item.fieldName, index) && (
-																							<span className="comm-required-chip">REQUIRED</span>
-																						)}
-																						{item?.formulavalue && (
-																							<Tooltip
-																								title={
-																									<span style={{ fontSize: '12px', fontWeight: '500' }}>
-																										Formula: {item?.formulavalue}
-																									</span>
-																								}
-																								arrow
-																							>
-																								<span style={{ display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer", color: "#1976d2", marginLeft: "5px" }}>
-																									<FunctionsIcon style={{ fontSize: 15, color: "#B0B0B0" }} />
-																									<span style={{ fontSize: 12, fontWeight: 600, textDecoration: "underline" }}>View Formula</span>
-																								</span>
-																							</Tooltip>
-																						)}
-																						{item?.isSelected && isNetPriceTerm(item.name) && !isOnlyNetPriceTerm(item.name) && (
-																							<WhiteTooltip title="Selected as Net Price term">
-																								<span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 4, background: "#dcfce7", color: "#166534", marginLeft: 4 }}>Net Price</span>
-																							</WhiteTooltip>
-																						)}
-																						{item?.termsId == 0 && Action && (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) && <IconButton
-																							size="small"
-																							onClick={() => { setEditRecordData(item); toggleOpenDrawer("AddNewTerm", true); }}
-																						>
-																							<HiPencilAlt className="f17 text-primary" />
-																						</IconButton>}
-																						{item?.termsId == 0 && Action && (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.REMOVE) ?? false) && <IconButton
-																							size="small"
-																							onClick={() => { setLibraryTermsList(prev => prev.filter((_, i) => i !== index)); }}
-																						>
-																							<HiOutlineX className="f17 text-primary" />
-																						</IconButton>}
-																					</div>
-																				</td>
-																				<td style={{ padding: "6px 14px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
-																					{item?.valuetype === "Currency" && item?.formulavalue && (
-																						<Checkbox
-																							checked={item.name == SelectedCommercialLibrary?.grandTotalTermName}
-																							onChange={(e) => handleGrandTotalCheck(index, e.target.checked, item)}
-																							disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || (item.name == SelectedCommercialLibrary?.grandTotalTermName && isOnlyNetPriceTerm(item.name))}
-																						/>
-																					)}
-																				</td>
-
-																				<td style={{ padding: "6px 14px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
-
-																					{item?.isSelected && isTermRequiredByFormula(item.fieldName, index) ? (
-																						<div>
-																							<WhiteTooltip title="Level cannot be changed as this term is required by other selected formula terms">
-																								<span>
-																									<RadioGroup
-																										row
-																										aria-labelledby="rqflbl"
-																										name="level"
-																										value={
-																											item?.isSelected
-																												? (item?.level || (["Currency", "Percentage"].includes(item?.valuetype) || item?.commValue > 0 ? "item" : "rfq"))
-																												: ""
-																										}
-																										onChange={(e) => handleCommercialItemCheck(index, e.target.value, item, "level")}
-																									>
-																										<FormControlLabel
-																											value="rfq"
-																											control={<Radio size="medium" />}
-																											label={<span className="f14">RFQ</span>}
-																											disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || isTermRequiredByFormula(item.fieldName, index)}
-																										/>
-																										<FormControlLabel
-																											value="item"
-																											control={<Radio size="medium" />}
-																											label={<span className="f14">Item</span>}
-																											disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || isTermRequiredByFormula(item.fieldName, index)}
-																										/>
-																									</RadioGroup>
-																								</span>
-																							</WhiteTooltip>
-																						</div>
-																					) : (
-																						<RadioGroup
-																							row
-																							aria-labelledby="rqflbl"
-																							name="level"
-																							value={
-																								item?.isSelected
-																									? (item?.level || ((["Currency", "Percentage"].includes(item?.valuetype) || item?.commValue > 0) ? "item" : "rfq"))
-																									: ""
-																							}
-																							onChange={(e) => handleCommercialItemCheck(index, e.target.value, item, "level")}
-																						>
-																							<FormControlLabel
-																								value="rfq"
-																								control={<Radio size="medium" />}
-																								label={<span className="f14">RFQ</span>}
-																								disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false)}
-																							/>
-																							<FormControlLabel
-																								value="item"
-																								control={<Radio size="medium" />}
-																								label={<span className="f14">Item</span>}
-																								disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false)}
-																							/>
-																						</RadioGroup>
-																					)}
-
-																				</td>
-																				<td style={{ padding: "6px 14px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
-																					{item?.valuetype === "Currency" && item?.name !== item?.grandTotalTermName && (
-																						<div className="d-flex align-items-center gap-1">
-																							<span className="f12 fw600" style={{ color: "#1f2937" }}>
-																								{(EventGeneralDetails?.IsMultiCurrency && (!item?.AcceptedCurrency || !item?.currencyConversion))
-																									? "—"
-																									: `${item?.AcceptedCurrency || EventGeneralDetails?.baseCurrency}/${item?.currencyConversion || "1"}`}
-																							</span>
-																							{Action && (
-																								<button
-																									type="button"
-																									className="comm-uom-update-btn"
-																									onClick={() => {
-																										setModal1(true);
-																										setModalCurrencyIndex(index);
-																										const multiCurrencyData = EventGeneralDetails?.multicurrencytList?.[0];
-																										if (EventGeneralDetails?.IsMultiCurrency && multiCurrencyData) {
-																											setModalCurrency({ id: multiCurrencyData.id, baseCurrency: multiCurrencyData.baseCurrency, currencyConversion: multiCurrencyData.currencyConversion, rfqId: multiCurrencyData.rfqId });
-																										} else {
-																											setModalCurrency({ id: "0", baseCurrency: EventGeneralDetails.baseCurrency || "", currencyConversion: "1", rfqId: EventId });
-																										}
-																									}}
-																								>
-																									Update
-																								</button>
-																							)}
-																						</div>
-																					)}
-																					{item?.valuetype === "Percentage" && item?.name !== item?.grandTotalTermName && (
-																						<span className="f12 fw600" style={{ color: "#1f2937" }}>Percentage (%)</span>
-																					)}
-																				</td>
-																				<td style={{ padding: "6px 14px", borderBottom: "1px solid #f3f4f6", fontSize: 13, color: "#1f2937", verticalAlign: "middle" }}>
-																					<div style={{ position: "relative", marginBottom: "-5px" }}>
-																						<textarea
-																							placeholder="Your requirement"
-																							value={item.requirement || ""}
-																							onChange={(e) => handleCommercialItemCheck(index, e.target.value, item, "requirement")}
-																							maxLength={200}
-																							rows={1}
-																							disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false)}
-																							style={{ width: "100%", resize: "none", border: "1px solid #e5e7eb", borderRadius: 6, padding: "6px 10px", fontSize: 12, color: "#1f2937", fontFamily: "inherit", background: (!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false)) ? "#f9fafb" : "#fff", outline: "none", lineHeight: 1.5 }}
-																						/>
-																						{item.requirement && <span style={{ position: "absolute", bottom: 4, right: 6, fontSize: 10, color: "#9ca3af" }}>{item.requirement.length}/200</span>}
-																					</div>
-																				</td>
-																			</tr>
-																		)
-																	}
-																	)}
-																</tbody>
-															</table>
-														</div>
+																			<div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+																				{(item?.isSelected && (isTermRequiredByFormula(item.fieldName, idx) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name))) ? (
+																					<WhiteTooltip title={isOnlyNetPriceTerm(item.name) ? "This term cannot be deselected as it is the only available Net Price term. At least one Net Price term must be selected." : isNetPriceTerm(item.name) ? "This term cannot be deselected as it is selected as the Net Price term" : "This term cannot be deselected as it is required by other selected formula terms"}>
+																						<span><Checkbox checked={item?.isSelected} onChange={(e) => handleCommercialItemCheck(idx, e.target.checked, item, "check")} disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || (item?.isSelected && (isTermRequiredByFormula(item.fieldName, idx) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name)))} /></span>
+																					</WhiteTooltip>
+																				) : (
+																					<Checkbox checked={item?.isSelected} onChange={(e) => handleCommercialItemCheck(idx, e.target.checked, item, "check")} disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || (item?.isSelected && (isTermRequiredByFormula(item.fieldName, idx) || isNetPriceTerm(item.name) || isOnlyNetPriceTerm(item.name)))} />
+																				)}
+																				<span>{item?.name}</span>
+																				{item?.isSelected && isTermRequiredByFormula(item.fieldName, idx) && <span className="comm-required-chip">REQUIRED</span>}
+																				{item?.formulavalue && (
+																					<Tooltip title={<span style={{ fontSize: '12px', fontWeight: '500' }}>Formula: {item?.formulavalue}</span>} arrow>
+																						<span style={{ display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer", color: "#1976d2", marginLeft: "5px" }}>
+																							<FunctionsIcon style={{ fontSize: 15, color: "#B0B0B0" }} />
+																							<span style={{ fontSize: 12, fontWeight: 600, textDecoration: "underline" }}>View Formula</span>
+																						</span>
+																					</Tooltip>
+																				)}
+																				{item?.isSelected && isNetPriceTerm(item.name) && !isOnlyNetPriceTerm(item.name) && (
+																					<WhiteTooltip title="Selected as Net Price term"><span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 4, background: "#dcfce7", color: "#166534", marginLeft: 4 }}>Net Price</span></WhiteTooltip>
+																				)}
+																				{item?.termsId == 0 && Action && (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) && <IconButton size="small" onClick={() => { setEditRecordData(item); toggleOpenDrawer("AddNewTerm", true); }}><HiPencilAlt className="f17 text-primary" /></IconButton>}
+																				{item?.termsId == 0 && Action && (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.REMOVE) ?? false) && <IconButton size="small" onClick={() => { setLibraryTermsList(prev => prev.filter((_, i) => i !== idx)); }}><HiOutlineX className="f17 text-primary" /></IconButton>}
+																			</div>
+																		);
+																	},
+																},
+																{
+																	key: '_netprice',
+																	label: 'Net Price',
+																	width: '8%',
+																	renderCell: (_, item) => {
+																		const idx = LibraryTermsList.indexOf(item);
+																		return item?.valuetype === "Currency" && item?.formulavalue ? (
+																			<Checkbox checked={item.name == SelectedCommercialLibrary?.grandTotalTermName} onChange={(e) => handleGrandTotalCheck(idx, e.target.checked, item)} disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || (item.name == SelectedCommercialLibrary?.grandTotalTermName && isOnlyNetPriceTerm(item.name))} />
+																		) : null;
+																	},
+																},
+																{
+																	key: '_level',
+																	label: 'Level',
+																	width: '18%',
+																	renderCell: (_, item) => {
+																		const idx = LibraryTermsList.indexOf(item);
+																		const levelValue = item?.isSelected ? (item?.level || ((["Currency", "Percentage"].includes(item?.valuetype) || item?.commValue > 0) ? "item" : "rfq")) : "";
+																		const radioGroup = (
+																			<RadioGroup row aria-labelledby="rqflbl" name="level" value={levelValue} onChange={(e) => handleCommercialItemCheck(idx, e.target.value, item, "level")}>
+																				<FormControlLabel value="rfq" control={<Radio size="medium" />} label={<span className="f14">RFQ</span>} disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || isTermRequiredByFormula(item.fieldName, idx)} />
+																				<FormControlLabel value="item" control={<Radio size="medium" />} label={<span className="f14">Item</span>} disabled={!Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false) || isTermRequiredByFormula(item.fieldName, idx)} />
+																			</RadioGroup>
+																		);
+																		return item?.isSelected && isTermRequiredByFormula(item.fieldName, idx) ? (
+																			<WhiteTooltip title="Level cannot be changed as this term is required by other selected formula terms"><span>{radioGroup}</span></WhiteTooltip>
+																		) : radioGroup;
+																	},
+																},
+																{
+																	key: '_uom',
+																	label: 'UOM',
+																	width: '12%',
+																	renderCell: (_, item) => {
+																		const idx = LibraryTermsList.indexOf(item);
+																		if (item?.valuetype === "Currency" && item?.name !== item?.grandTotalTermName) return (
+																			<div className="d-flex align-items-center gap-1">
+																				<span className="f12 fw600" style={{ color: "#1f2937" }}>{(EventGeneralDetails?.IsMultiCurrency && (!item?.AcceptedCurrency || !item?.currencyConversion)) ? "—" : `${item?.AcceptedCurrency || EventGeneralDetails?.baseCurrency}/${item?.currencyConversion || "1"}`}</span>
+																				{Action && <button type="button" className="comm-uom-update-btn" onClick={() => { setModal1(true); setModalCurrencyIndex(idx); const mc = EventGeneralDetails?.multicurrencytList?.[0]; if (EventGeneralDetails?.IsMultiCurrency && mc) { setModalCurrency({ id: mc.id, baseCurrency: mc.baseCurrency, currencyConversion: mc.currencyConversion, rfqId: mc.rfqId }); } else { setModalCurrency({ id: "0", baseCurrency: EventGeneralDetails.baseCurrency || "", currencyConversion: "1", rfqId: EventId }); } }}>Update</button>}
+																			</div>
+																		);
+																		if (item?.valuetype === "Percentage" && item?.name !== item?.grandTotalTermName) return <span className="f12 fw600" style={{ color: "#1f2937" }}>Percentage (%)</span>;
+																		return null;
+																	},
+																},
+																{
+																	key: '_req',
+																	label: 'Requirement',
+																	renderCell: (_, item) => {
+																		const idx = LibraryTermsList.indexOf(item);
+																		const disabled = !Action || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false);
+																		return (
+																			<div style={{ position: "relative", marginBottom: "-5px", width: "100%" }}>
+																				<textarea placeholder="Your requirement" value={item.requirement || ""} onChange={(e) => handleCommercialItemCheck(idx, e.target.value, item, "requirement")} maxLength={200} rows={1} disabled={disabled} style={{ width: "100%", resize: "none", border: "1px solid #e5e7eb", borderRadius: 6, padding: "6px 10px", fontSize: 12, color: "#1f2937", fontFamily: "inherit", background: disabled ? "#f9fafb" : "#fff", outline: "none", lineHeight: 1.5 }} />
+																				{item.requirement && <span style={{ position: "absolute", bottom: 4, right: 6, fontSize: 10, color: "#9ca3af" }}>{item.requirement.length}/200</span>}
+																			</div>
+																		);
+																	},
+																},
+															]}
+															rows={LibraryTermsList}
+															getRowKey={(_, i) => i}
+														/>
 													) : (
 														<div style={{ padding: "32px 16px", textAlign: "center", color: "#9ca3af", fontSize: 13 }}>No commercial terms configured for this RFQ.</div>
 													);

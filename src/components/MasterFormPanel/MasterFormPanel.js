@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import { PETable } from '../RFQ/PETable';
 import { HiPencilAlt } from "react-icons/hi";
 import { IconButton } from "@mui/material";
 import ViewColumnOutlined from "@mui/icons-material/ViewColumnOutlined";
@@ -259,27 +259,20 @@ const MasterFormPanel = ({
           </div>
         </div>
 
-        <DataGrid
+        <PETable
           getRowId={getRowId}
           rows={rows}
           loading={gridLoading}
           columns={columns}
           rowHeight={45}
-          columnHeaderHeight={40}
           disableDensitySelector
           disableColumnMenu
           disableRowSelectionOnClick
           disableColumnResize
           disableColumnReorder
-          className="f13 border-0 consistent-datagrid"
-          style={{ width: "100%", flex: 1, border: "none" }}
           columnVisibilityModel={columnVisibility}
           filterModel={quickFilter}
           onFilterModelChange={(m) => setFilterModel(m)}
-          sx={{
-            "& .MuiDataGrid-main": { overflow: "hidden" },
-            "& .MuiDataGrid-virtualScroller": { overflowX: "hidden !important" },
-          }}
         />
       </div>
     </div>

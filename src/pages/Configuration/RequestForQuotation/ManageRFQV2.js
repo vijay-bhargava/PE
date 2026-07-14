@@ -23,7 +23,7 @@ import {
 import { HiOutlineX, HiTrash } from 'react-icons/hi';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dropdown, Modal } from 'react-bootstrap';
-import { DataGrid } from '@mui/x-data-grid';
+import { PETable } from '../../../components/RFQ/PETable';
 import { toast } from 'react-toastify';
 import CryptoJS from 'crypto-js';
 import { useCookies } from 'react-cookie';
@@ -969,79 +969,18 @@ const ManageRFQV2 = ({ claimType }) => {
                 </p>
               </div>
             ) : (
-              <DataGrid
+              <PETable
                 className="rfq-v2-datagrid"
                 rows={filteredData}
                 columns={columns}
                 getRowId={(row) => row.id}
-                rowHeight={52}
-                columnHeaderHeight={40}
                 pagination
-                disableRowSelectionOnClick
                 columnVisibilityModel={columnVisibility}
                 disableColumnResize
                 disableColumnMenu={false}
-                hideFooterSelectedRowCount
                 pageSizeOptions={[10, 25, 50, 100]}
                 paginationModel={paginationModel}
                 onPaginationModelChange={setPaginationModel}
-                /* filterModel removed — all filtering done client-side in filteredData */
-                sx={{
-                  border: 'none',
-                  flex: 1,
-                  minHeight: 0,
-                  height: '100%',
-                  fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif',
-                  '& .MuiDataGrid-columnHeaders': {
-                    background: '#f9fafb',
-                    borderBottom: '1px solid #e5e7eb',
-                    minHeight: '40px !important',
-                    maxHeight: '40px !important',
-                    lineHeight: '40px',
-                  },
-                  '& .MuiDataGrid-columnHeadersInner': {
-                    background: '#f9fafb',
-                  },
-                  '& .MuiDataGrid-columnHeader': {
-                    height: '40px !important',
-                    padding: '0 16px',
-                  },
-                  '& .MuiDataGrid-columnHeaderTitle': {
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: '#6b7280',
-                    textTransform: 'none',
-                    letterSpacing: 0,
-                  },
-                  '& .MuiDataGrid-cell': {
-                    borderBottom: '1px solid #f3f4f6',
-                    fontSize: 13,
-                    color: '#1f2937',
-                    padding: '0 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                  },
-                  '& .MuiDataGrid-cell--withRenderer': {
-                    display: 'flex',
-                    alignItems: 'center',
-                  },
-                  '& .MuiDataGrid-row:hover': { background: '#f8fafc' },
-                  '& .MuiDataGrid-row.Mui-selected': { background: '#eff6ff' },
-                  '& .MuiDataGrid-row.Mui-selected:hover': { background: '#eff6ff' },
-                  '& .MuiDataGrid-columnSeparator': { visibility: 'hidden' },
-                  '& .MuiDataGrid-footerContainer': {
-                    borderTop: '1px solid #e5e7eb',
-                    minHeight: 44,
-                    padding: '0 8px',
-                    flexShrink: 0,
-                  },
-                  '& .MuiDataGrid-sortIcon': { color: '#9ca3af', opacity: 1 },
-                  '& .MuiDataGrid-menuIconButton': { color: '#9ca3af', opacity: 1 },
-                  '& .MuiDataGrid-virtualScroller': { overflowX: 'hidden' },
-                  '& .MuiTablePagination-root': { fontSize: 12, color: '#6b7280' },
-                  '& .MuiTablePagination-selectLabel': { fontSize: 12, color: '#6b7280', margin: 0 },
-                  '& .MuiTablePagination-displayedRows': { fontSize: 12, color: '#6b7280', margin: 0 },
-                }}
               />
             )}
           </div>
@@ -1180,7 +1119,7 @@ const ManageRFQV2 = ({ claimType }) => {
 
         <div className="rfq-v2-event-table">
           {selectedPRITemModal.length > 0 ? (
-            <DataGrid
+            <PETable
               rows={selectedPRITemModal}
               columns={prrfqcolumn}
               pageSize={10}
@@ -1190,17 +1129,12 @@ const ManageRFQV2 = ({ claimType }) => {
               rowHeight={36}
               columnHeaderHeight={36}
               className="rfq-v2-event-datagrid"
-              disableRowSelectionOnClick
               isRowSelectable={(params) => {
                 const row = params?.row;
                 if (row?.eventType === 'PR') return true;
                 return !row?.eventId;
               }}
-              sx={{
-                border: 'none',
-                '& .MuiDataGrid-cell': { fontSize: 12 },
-                '& .MuiDataGrid-columnHeaderTitle': { fontSize: 12, fontWeight: 600 },
-              }}
+              sx={{ '& .MuiDataGrid-cell': { fontSize: 12 }, '& .MuiDataGrid-columnHeaderTitle': { fontSize: 12, fontWeight: 600 } }}
             />
           ) : (
             <div className="rfq-v2-event-empty">
@@ -1302,20 +1236,14 @@ const ManageRFQV2 = ({ claimType }) => {
 
         <div className="rfq-v2-event-table">
           {rfqItemSet.length > 0 ? (
-            <DataGrid
+            <PETable
               getRowId={(row) => `${row.rfqId}-${row.id}`}
               rows={Array.from(rfqItemSet)}
               columns={prauctioncolumn}
               rowHeight={36}
               columnHeaderHeight={36}
               className="rfq-v2-event-datagrid"
-              disableRowSelectionOnClick
-              hideFooterSelectedRowCount
-              sx={{
-                border: 'none',
-                '& .MuiDataGrid-cell': { fontSize: 12 },
-                '& .MuiDataGrid-columnHeaderTitle': { fontSize: 12, fontWeight: 600 },
-              }}
+              sx={{ '& .MuiDataGrid-cell': { fontSize: 12 }, '& .MuiDataGrid-columnHeaderTitle': { fontSize: 12, fontWeight: 600 } }}
             />
           ) : (
             <div className="rfq-v2-event-empty">No items selected yet.</div>

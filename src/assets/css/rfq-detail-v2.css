@@ -1,4 +1,4 @@
-﻿/* RFQ Detail Page V2 - Figma detail state */
+/* RFQ Detail Page V2 - Figma detail state */
 .rfq-detail-v2-shell {
   display: flex;
   flex-direction: column;
@@ -207,12 +207,12 @@
   cursor: not-allowed;
 }
 
-.rfq-detail-v2-shell .rfq-dv2-title-wrap {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-title-wrap {
   flex: 1 1 auto;
   min-width: 0;
   flex-direction: column;
   gap: 5px;
-}
+} */
 
 .rfq-detail-v2-shell .rfq-dv2-tab-save-action {
   display: flex;
@@ -557,12 +557,12 @@
 }
 
 /* Higher specificity to override the auto !important above for tabs that need flex-based scroll */
-.rfq-detail-v2-shell .leftContent .bg-white > .flex-grow-1.rfq-tab-no-scroll {
+/* UNUSED .rfq-detail-v2-shell .leftContent .bg-white > .flex-grow-1.rfq-tab-no-scroll {
   overflow-y: hidden !important;
   overflow-x: hidden !important;
   display: flex !important;
   flex-direction: column !important;
-}
+} */
 
 /* RFQ V2 header layout fixes only */
 .rfq-detail-v2-shell .leftContent > .bg-white {
@@ -1102,9 +1102,9 @@
   left: 8px !important;
 }
 
-.rfq-detail-v2-shell .rfq-dv2-summary-add {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-summary-add {
   display: none !important;
-}
+} */
 
 .rfq-detail-v2-shell .rfq-dv2-stage-summary {
   display: flex;
@@ -1121,7 +1121,7 @@
   color: #374151 !important;
 }
 
-.rfq-detail-v2-shell .rfq-dv2-stage-count {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-stage-count {
   display: inline-flex;
   align-items: center;
   height: 17px;
@@ -1134,7 +1134,7 @@
   font-weight: 900;
   line-height: 1;
   text-transform: uppercase;
-}
+} */
 
 .rfq-detail-v2-shell .approval-stage-subtitle {
   margin-top: 1px !important;
@@ -1143,7 +1143,7 @@
   line-height: 12px !important;
 }
 
-.rfq-detail-v2-shell .rfq-dv2-stage-waiting {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-stage-waiting {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1152,14 +1152,14 @@
   font-size: 10px;
   font-weight: 800;
   line-height: 13px;
-}
+} */
 
 .rfq-detail-v2-shell .approvalCard.is-future-stage .rfq-dv2-stage-waiting,
 .rfq-detail-v2-shell .approvalCard.is-future-stage .approval-stage-title {
   color: #9aa3af !important;
 }
 
-.rfq-detail-v2-shell .rfq-dv2-mini-avatar {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-mini-avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1172,7 +1172,7 @@
   font-size: 7px;
   font-weight: 900;
   line-height: 1;
-}
+} */
 
 .rfq-detail-v2-shell .approvalAcordionDetails {
   padding: 7px 0 9px 31px !important;
@@ -1195,11 +1195,11 @@
   display: none !important;
 }
 
-.rfq-detail-v2-shell .rfq-dv2-approver-item {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-approver-item {
   width: 100%;
-}
+} */
 
-.rfq-detail-v2-shell .rfq-dv2-approver-avatar {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-approver-avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1214,7 +1214,7 @@
   font-weight: 800 !important;
   line-height: 1;
   text-transform: uppercase;
-}
+} */
 
 .rfq-detail-v2-shell .custom-table .approver-name span {
   font-size: 10px !important;
@@ -1273,7 +1273,7 @@
   width: 100%;
 }
 
-.rfq-detail-v2-shell .rfq-dv2-add-approver-inline {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-add-approver-inline {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1288,7 +1288,7 @@
   font-size: 10px;
   font-weight: 800;
   line-height: 1;
-}
+} */
 
 .rfq-detail-v2-shell .rfq-dv2-add-approver-inline svg {
   width: 15px;
@@ -1308,7 +1308,7 @@
   height: 100%;
 }
 
-.rfq-dv2-history-card {
+/* UNUSED .rfq-dv2-history-card {
   width: 108px;
   min-height: 74px;
   padding: 8px;
@@ -1316,9 +1316,9 @@
   border-radius: 7px;
   background: #ffffff;
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-}
+} */
 
-.rfq-dv2-history-status {
+/* UNUSED .rfq-dv2-history-status {
   display: inline-flex;
   align-items: center;
   height: 14px;
@@ -1331,7 +1331,7 @@
   font-weight: 900;
   line-height: 1;
   text-transform: uppercase;
-}
+} */
 
 .rfq-dv2-history-card strong,
 .rfq-dv2-history-card small {
@@ -1588,7 +1588,7 @@
 }
 
 /* Download button */
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-dl-btn {
+/* UNUSED .rfq-detail-v2-shell .rightContent .rfq-dv2-file-dl-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1604,14 +1604,14 @@
   transition:
     background 0.15s,
     border-color 0.15s;
-}
+} */
 .rfq-detail-v2-shell .rightContent .rfq-dv2-file-dl-btn:hover {
   background: #eef7ff;
   border-color: #2388d9;
 }
 
 /* Delete button */
-.rfq-detail-v2-shell .rightContent .rfq-dv2-file-delete-btn {
+/* UNUSED .rfq-detail-v2-shell .rightContent .rfq-dv2-file-delete-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1625,7 +1625,7 @@
   cursor: pointer;
   font-size: 12px;
   transition: background 0.15s;
-}
+} */
 .rfq-detail-v2-shell .rightContent .rfq-dv2-file-delete-btn:hover {
   background: #fef2f2;
 }
@@ -2052,11 +2052,11 @@
   line-height: 22px;
 }
 
-.rfq-dv2-approval-close {
+/* UNUSED .rfq-dv2-approval-close {
   width: 30px !important;
   height: 30px !important;
   color: #9ca3af !important;
-}
+} */
 
 .rfq-dv2-approval-close svg {
   width: 20px;
@@ -2155,7 +2155,7 @@
   padding: 18px 22px 20px;
 }
 
-.rfq-dv2-approval-cancel,
+/* UNUSED .rfq-dv2-approval-cancel,
 .rfq-dv2-approval-submit {
   display: inline-flex !important;
   align-items: center;
@@ -2167,7 +2167,7 @@
   font-weight: 800 !important;
   line-height: 1 !important;
   text-transform: none !important;
-}
+} */
 
 .rfq-dv2-approval-cancel {
   min-width: 82px;
@@ -2202,11 +2202,11 @@
   content: "!";
 }
 
-.rfq-detail-v2-shell .rfq-dv2-file-action svg {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-file-action svg {
   width: 13px;
   height: 13px;
   font-size: 13px;
-}
+} */
 
 /* RFQ workflow panel final Figma sizing/state */
 .rfq-detail-v2-shell .rightContent {
@@ -2366,7 +2366,7 @@
   background: #eef5ff;
 }
 
-.rfq-detail-v2-shell .rfq-sidebar-approver-avatar {
+/* UNUSED .rfq-detail-v2-shell .rfq-sidebar-approver-avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2378,7 +2378,7 @@
   font-size: 8px;
   font-weight: 900;
   line-height: 1;
-}
+} */
 
 .rfq-detail-v2-shell .rfq-sidebar-approver-top {
   display: flex;
@@ -2434,7 +2434,7 @@
   margin-top: 2px;
 }
 
-.rfq-detail-v2-shell .rfq-sidebar-approver-reminder {
+/* UNUSED .rfq-detail-v2-shell .rfq-sidebar-approver-reminder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2446,9 +2446,9 @@
   color: #959595;
   cursor: pointer;
   margin-bottom: 3px;
-}
+} */
 
-.rfq-detail-v2-shell .rfq-sidebar-approver-remove {
+/* UNUSED .rfq-detail-v2-shell .rfq-sidebar-approver-remove {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2459,7 +2459,7 @@
   border-radius: 6px;
   background: #ffffff;
   color: #ef4444;
-}
+} */
 
 .rfq-detail-v2-shell .rfq-sidebar-approver-remove svg {
   width: 16px;
@@ -2472,7 +2472,7 @@
   backdrop-filter: none;
 }
 
-.rfq-dv2-approval-dialog {
+/* UNUSED .rfq-dv2-approval-dialog {
   width: 560px !important;
   max-width: calc(100vw - 32px) !important;
   overflow: hidden !important;
@@ -2480,7 +2480,7 @@
   background: #ffffff !important;
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22) !important;
   font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
-}
+} */
 
 .rfq-dv2-approval-modal {
   width: 100%;
@@ -2520,7 +2520,7 @@
   padding: 20px 26px 24px;
 }
 
-.rfq-dv2-approval-note {
+/* UNUSED .rfq-dv2-approval-note {
   min-height: 48px;
   margin-bottom: 17px;
   padding: 13px 15px;
@@ -2531,7 +2531,7 @@
   font-size: 12px;
   font-weight: 600;
   line-height: 18px;
-}
+} */
 
 .rfq-dv2-approval-note strong {
   color: #2b7e36;
@@ -2548,7 +2548,7 @@
   color: #9f1239;
 }
 
-.rfq-dv2-approval-label {
+/* UNUSED .rfq-dv2-approval-label {
   display: block;
   margin-bottom: 8px;
   color: #596273;
@@ -2557,7 +2557,7 @@
   letter-spacing: 0.04em;
   line-height: 1;
   text-transform: uppercase;
-}
+} */
 
 .rfq-dv2-approval-comment .MuiOutlinedInput-root {
   min-height: 88px;
@@ -2591,21 +2591,21 @@
   opacity: 1;
 }
 
-.rfq-dv2-approval-footnote {
+/* UNUSED .rfq-dv2-approval-footnote {
   margin-top: 12px;
   color: #667085;
   font-size: 10px;
   font-weight: 600;
   line-height: 14px;
-}
+} */
 
-.rfq-dv2-approval-actions {
+/* UNUSED .rfq-dv2-approval-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 18px;
-}
+} */
 
 .rfq-dv2-approval-cancel,
 .rfq-dv2-approval-submit {
@@ -2929,7 +2929,7 @@
   content: none !important;
 }
 
-.rfq-detail-v2-shell .rightContent .rfq-dv2-history-arrow {
+/* UNUSED .rfq-detail-v2-shell .rightContent .rfq-dv2-history-arrow {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2938,7 +2938,7 @@
   height: 74px;
   margin: 0 -8px;
   color: #9aa3af;
-}
+} */
 
 .rfq-detail-v2-shell .rightContent .rfq-dv2-history-arrow svg {
   width: 18px;
@@ -2970,9 +2970,9 @@
   scrollbar-width: thin;
 }
 /* item wrapper no longer used (React.Fragment), keep for safety */
-.rfq-detail-v2-shell .rfq-dv2-stage-graph-item {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-stage-graph-item {
   display: contents;
-}
+} */
 .rfq-detail-v2-shell .rfq-dv2-stage-graph-arrow {
   flex-shrink: 0;
   width: 22px; /* horizontal connector line */
@@ -3027,27 +3027,27 @@
 .rfq-detail-v2-shell .rfq-dv2-history-list {
   padding: 8px 0;
 }
-.rfq-detail-v2-shell .rfq-dv2-history-list-title {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-list-title {
   font-size: 11px;
   font-weight: 600;
   color: #6b7280;
   padding: 6px 16px 4px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-}
-.rfq-detail-v2-shell .rfq-dv2-history-item {
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-item {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   padding: 8px 16px;
   cursor: pointer;
   transition: background 0.1s;
-}
+} */
 .rfq-detail-v2-shell .rfq-dv2-history-item:hover,
 .rfq-detail-v2-shell .rfq-dv2-history-item.is-selected {
   background: #f0f4ff;
 }
-.rfq-detail-v2-shell .rfq-dv2-history-avatar {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-avatar {
   flex-shrink: 0;
   width: 28px;
   height: 28px;
@@ -3059,55 +3059,55 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.rfq-detail-v2-shell .rfq-dv2-history-content {
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-content {
   flex: 1;
   min-width: 0;
-}
-.rfq-detail-v2-shell .rfq-dv2-history-item-text {
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-item-text {
   font-size: 12px;
   color: #111827;
   font-weight: 500;
   white-space: normal;
   word-break: break-word;
   line-height: 1.4;
-}
-.rfq-detail-v2-shell .rfq-dv2-history-item-date {
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-item-date {
   font-size: 10px;
   color: #9ca3af;
   margin-top: 2px;
-}
-.rfq-detail-v2-shell .rfq-dv2-history-detail {
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-detail {
   margin: 0 12px 8px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   background: #f9fafb;
   padding: 8px 12px;
-}
-.rfq-detail-v2-shell .rfq-dv2-history-detail-row {
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-detail-row {
   display: flex;
   gap: 6px;
   font-size: 11px;
   padding: 3px 0;
   border-bottom: 1px solid #f3f4f6;
-}
+} */
 .rfq-detail-v2-shell .rfq-dv2-history-detail-row:last-child {
   border-bottom: none;
 }
-.rfq-detail-v2-shell .rfq-dv2-history-prop {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-prop {
   font-weight: 600;
   color: #374151;
   min-width: 60px;
   flex-shrink: 0;
-}
-.rfq-detail-v2-shell .rfq-dv2-history-old {
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-old {
   text-decoration: line-through;
   color: #9ca3af;
-}
-.rfq-detail-v2-shell .rfq-dv2-history-new {
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-new {
   color: #111827;
   font-weight: 500;
-}
+} */
 .rfq-detail-v2-shell .rfq-dv2-history-arrow-txt {
   color: #6b7280;
 }
@@ -3209,12 +3209,12 @@
 }
 
 /* Create RFQ form */
-.rfq-detail-v2-shell .rfq-dv2-create-form {
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-create-form {
   height: auto !important;
   min-height: 0 !important;
   overflow: visible !important;
   padding: 18px 24px 32px !important;
-}
+} */
 
 .rfq-detail-v2-shell .rfq-dv2-create-form > div {
   display: flex;
@@ -3472,7 +3472,7 @@
   gap: 8px;
 }
 
-.rfq-items-btn {
+/* UNUSED .rfq-items-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3489,13 +3489,13 @@
     background 0.15s,
     border-color 0.15s;
   line-height: 1;
-}
+} */
 
-.rfq-items-btn--primary {
+/* UNUSED .rfq-items-btn--primary {
   background: #ffffff;
   color: #2082db;
   border: 1px solid #2082db;
-}
+} */
 .rfq-items-btn--primary:hover:not(:disabled) {
   background: #eff6ff;
 }
@@ -3509,27 +3509,27 @@
   margin: 0 2px;
 }
 
-.rfq-items-btn--with-chevron {
+/* UNUSED .rfq-items-btn--with-chevron {
   gap: 6px;
   padding-right: 0;
-}
+} */
 
-.rfq-items-btn--secondary {
+/* UNUSED .rfq-items-btn--secondary {
   background: #ffffff;
   color: #374151;
   border: 1px solid #bdbdbd;
-}
+} */
 .rfq-items-btn--secondary:hover:not(:disabled) {
   background: #f5f5f5;
   border-color: #9e9e9e;
 }
 
-.rfq-items-btn--ghost {
+/* UNUSED .rfq-items-btn--ghost {
   background: #ffffff;
   color: #b8232f;
   border: 1px solid #bdbdbd;
   padding: 0 14px;
-}
+} */
 .rfq-items-btn--ghost:hover:not(:disabled) {
   background: #fff1f2;
 }
@@ -3705,7 +3705,7 @@
   flex: 0 0 auto;
 }
 
-.rfq-question-action-btn {
+/* UNUSED .rfq-question-action-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3725,7 +3725,7 @@
     border-color 0.15s ease,
     background-color 0.15s ease,
     color 0.15s ease;
-}
+} */
 
 .rfq-question-action-btn svg {
   font-size: 15px;
@@ -3737,10 +3737,10 @@
   color: #1976d2;
 }
 
-.rfq-question-action-btn--dropdown {
+/* UNUSED .rfq-question-action-btn--dropdown {
   gap: 6px;
   padding-right: 0;
-}
+} */
 
 .rfq-question-action-chevron {
   display: inline-flex;
@@ -4201,52 +4201,52 @@ div.item-Table.eq-question-list {
   opacity: 1;
 }
 
-.sup-search-popper.MuiAutocomplete-popper {
+/* UNUSED .sup-search-popper.MuiAutocomplete-popper {
   width: 360px !important;
   max-width: calc(100vw - 32px);
-}
+} */
 
-.sup-search-paper.MuiAutocomplete-paper {
+/* UNUSED .sup-search-paper.MuiAutocomplete-paper {
   margin-top: 4px;
   overflow: hidden;
   border: 1px solid #dfe3e8;
   border-radius: 6px;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
-}
+} */
 
-.sup-search-listbox.MuiAutocomplete-listbox {
+/* UNUSED .sup-search-listbox.MuiAutocomplete-listbox {
   max-height: 360px;
   padding: 4px;
   scrollbar-gutter: stable;
-}
+} */
 
-.sup-search-listbox .sup-search-option.MuiAutocomplete-option {
+/* UNUSED .sup-search-listbox .sup-search-option.MuiAutocomplete-option {
   display: flex;
   min-height: 58px;
   align-items: flex-start;
   gap: 7px;
   padding: 7px 8px;
   border-radius: 4px;
-}
+} */
 
 .sup-search-listbox
   .sup-search-option.MuiAutocomplete-option
-  + .sup-search-option {
+/* UNUSED   + .sup-search-option {
   border-top: 1px solid #f0f2f5;
-}
+} */
 
 .sup-search-listbox .sup-search-option.MuiAutocomplete-option:hover,
 .sup-search-listbox .sup-search-option.Mui-focused {
   background: #f5f9ff;
 }
 
-.sup-search-checkbox.MuiCheckbox-root {
+/* UNUSED .sup-search-checkbox.MuiCheckbox-root {
   flex: 0 0 auto;
   margin-top: 7px;
   padding: 2px;
-}
+} */
 
-.sup-search-option-copy {
+/* UNUSED /* UNUSED .sup-search-option-copy {
   display: flex;
   min-width: 0;
   flex: 1 1 auto;
@@ -4255,26 +4255,26 @@ div.item-Table.eq-question-list {
   color: #111827;
   font-size: 11px;
   line-height: 1.3;
-}
+} */ */
 
-.sup-search-option-name {
+/* UNUSED /* UNUSED .sup-search-option-name {
   overflow: hidden;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
+} */ */
 
-.sup-search-option-email {
+/* UNUSED /* UNUSED .sup-search-option-email {
   overflow: hidden;
   color: #475467;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
+} */ */
 
-.sup-search-option-company {
+/* UNUSED /* UNUSED .sup-search-option-company {
   color: #667085;
   overflow-wrap: anywhere;
-}
+} */ */
 
 .sup-list {
   flex: 1 1 0;
@@ -4420,11 +4420,11 @@ div.item-Table.eq-question-list {
   display: none !important;
 }
 
-.sup-delete-btn.MuiIconButton-root {
+/* UNUSED .sup-delete-btn.MuiIconButton-root {
   border: 1px solid #e5e7eb !important;
   border-radius: 6px;
   padding: 4px;
-}
+} */
 
 .sup-delete-btn.MuiIconButton-root:hover {
   background: #fbf1f1;
@@ -4463,7 +4463,7 @@ div.item-Table.eq-question-list {
 }
 
 /* ── RFQ Actions dropdown button — matches Version button style ── */
-.rfq-actions-dropdown > .btn {
+/* UNUSED .rfq-actions-dropdown > .btn {
   color: #374151 !important;
   background-color: transparent !important;
   border-color: #d1d5db !important;
@@ -4472,7 +4472,7 @@ div.item-Table.eq-question-list {
   padding: 4.4px 10px !important;
   border-radius: 4px !important;
   line-height: 1.5 !important;
-}
+} */
 .rfq-actions-dropdown > .btn:hover,
 .rfq-actions-dropdown > .btn:focus,
 .rfq-actions-dropdown > .btn:active,

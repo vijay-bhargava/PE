@@ -38,7 +38,7 @@ import { FaUserLock } from "react-icons/fa";
 import EventQuoteSealed from "../../../../components/Event/EventQuoteSealed";
 // import SupplierIndividualReport from "../../pages/Configuration/RequestForQuotation/SupplierIndividualReport";
 import WhiteTooltip from '../../../../components/whitetooltip';
-import { DataGrid } from "@mui/x-data-grid";
+import { PETable } from "../../../../components/RFQ/PETable";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   // [`&.${tableCellClasses.head}`]: {
@@ -190,29 +190,18 @@ const CommercialDetails = ({
     return (
         <div className="product-cell-container">
             <div className="product-cell-datagrid-wrapper">
-                <DataGrid
-                    sx={{
-                        "& .MuiDataGrid-columnHeaderTitle": {
-                            fontSize: "14px",
-                        },
-                    }}
+                <PETable
                     rows={mergedData}
                     columns={columns}
                     pageSize={10}
                     columnHeaderHeight={40}
                     className="consistent-datagrid bg-white borderless-datagrid"
-                    disableRowSelectionOnClick
                     disableColumnMenu
                     disableColumnSorting
                     sortingOrder={[]}
                     pageSizeOptions={[10, 25, 50]}
-                    initialState={{
-                        pagination: {
-                            paginationModel: { page: 0, pageSize: 10 },
-                        },
-                    }}
+                    initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
                     autoHeight
-                    hideFooterSelectedRowCount
                 />
             </div>
         </div>

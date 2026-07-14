@@ -644,14 +644,14 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
                         >
                             <thead>
                                 <tr style={{ color: 'black' }}>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>S.No</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Item Code</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Item / Service</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Quantity</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Target Price</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>UOM</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Plant</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Actions</th>
+                                    <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb' }}>S.No</th>
+                                    <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb' }}>Item Code</th>
+                                    <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb' }}>Item / Service</th>
+                                    <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb' }}>Quantity</th>
+                                    <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb' }}>Target Price</th>
+                                    <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb' }}>UOM</th>
+                                    <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb' }}>Plant</th>
+                                    <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb' }}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -665,28 +665,28 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
                                                 color: 'black',
                                             }}
                                         >
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
+                                            <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6' }}>
                                                 {page * rowsPerPage + index + 1}
                                             </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
+                                            <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6' }}>
                                                 {item.itemCode || '-'}
                                             </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
+                                            <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6' }}>
                                                 {item.itemName}
                                             </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
+                                            <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6' }}>
                                                 {item.quantity} {item.uom && `(${item.uom})`}
                                             </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
+                                            <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6' }}>
                                                 {item.targetPrice || 0}
                                             </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
+                                            <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6' }}>
                                                 {item.uom}
                                             </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
+                                            <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6' }}>
                                                 {item.plant}
                                             </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
+                                            <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6' }}>
                                                 <IconButton
                                                     size="small"
                                                     onClick={() => handleItemExpand(item.id)}
@@ -722,14 +722,14 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
                                                             >
                                                                 <thead>
                                                                     <tr style={{ color: 'black' }}>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '60px', minWidth: '60px' }}></th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '250px', minWidth: '250px' }}>VENDOR DETAILS</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Item Rank</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Initial Price</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Final Price</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '130px', minWidth: '130px' }}>Price Reduction</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Allocation</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Total</th>
+                                                                        <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '60px', minWidth: '60px' }}></th>
+                                                                        <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '250px', minWidth: '250px' }}>VENDOR DETAILS</th>
+                                                                        <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '120px', minWidth: '120px' }}>Item Rank</th>
+                                                                        <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '120px', minWidth: '120px' }}>Initial Price</th>
+                                                                        <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '120px', minWidth: '120px' }}>Final Price</th>
+                                                                        <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '130px', minWidth: '130px' }}>Price Reduction</th>
+                                                                        <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '120px', minWidth: '120px' }}>Allocation</th>
+                                                                        <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '120px', minWidth: '120px' }}>Total</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
@@ -744,19 +744,19 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
                                                                                         color: 'black',
                                                                                     }}
                                                                                 >
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '60px', minWidth: '60px' }}>
+                                                                                    <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '60px', minWidth: '60px' }}>
                                                                                         {vendorIndex + 1}
                                                                                     </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '250px', minWidth: '250px', wordWrap: 'break-word' }}>
+                                                                                    <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '250px', minWidth: '250px', wordWrap: 'break-word' }}>
                                                                                         {vendorItem.companyName}
                                                                                     </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
+                                                                                    <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '120px', minWidth: '120px' }}>
                                                                                         {vendorItem.packageRank}
                                                                                     </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
+                                                                                    <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '120px', minWidth: '120px' }}>
                                                                                         {vendorItem.initialPrice !== 0 ? vendorItem.initialPrice : 'Not Quoted'}
                                                                                     </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
+                                                                                    <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '120px', minWidth: '120px' }}>
                                                                                         {!vendorItem.newVendor ? (
                                                                                             vendorItem.finalPrice !== 0 ? (
                                                                                                 vendorItem.finalPrice
@@ -789,10 +789,10 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
                                                                                             />
                                                                                         )}
                                                                                     </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '130px', minWidth: '130px' }}>
+                                                                                    <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '130px', minWidth: '130px' }}>
                                                                                         {vendorItem.priceReduction || ''}
                                                                                     </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
+                                                                                    <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '120px', minWidth: '120px' }}>
                                                                                         <TextField
                                                                                             InputLabelProps={{ shrink: true }}
                                                                                             fullWidth
@@ -819,7 +819,7 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
                                                                                             disabled={!isDraftStage || !eventDetailsCanEdit}
                                                                                         />
                                                                                     </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px', wordWrap: 'break-word' }}>
+                                                                                    <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '120px', minWidth: '120px', wordWrap: 'break-word' }}>
                                                                                         {vendorItem.totalPrice || ''}
                                                                                     </td>
                                                                                 </tr>
@@ -868,14 +868,14 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
                     >
                         <thead>
                             <tr style={{ color: 'black' }}>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '60px', minWidth: '60px' }}>S.No</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '250px', minWidth: '250px' }}>VENDOR DETAILS</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Package Rank</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Initial Price</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Final Price</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '130px', minWidth: '130px' }}>Price Reduction</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Allocation</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Total</th>
+                                <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '60px', minWidth: '60px' }}>S.No</th>
+                                <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '250px', minWidth: '250px' }}>VENDOR DETAILS</th>
+                                <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '120px', minWidth: '120px' }}>Package Rank</th>
+                                <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '120px', minWidth: '120px' }}>Initial Price</th>
+                                <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '120px', minWidth: '120px' }}>Final Price</th>
+                                <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '130px', minWidth: '130px' }}>Price Reduction</th>
+                                <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '120px', minWidth: '120px' }}>Allocation</th>
+                                <th style={{ borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', width: '120px', minWidth: '120px' }}>Total</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -889,19 +889,19 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
                                             color: 'black',
                                         }}
                                     >
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '60px', minWidth: '60px' }}>
+                                        <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '60px', minWidth: '60px' }}>
                                             {page * rowsPerPage + index + 1}
                                         </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '250px', minWidth: '250px', wordWrap: 'break-word' }}>
+                                        <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '250px', minWidth: '250px', wordWrap: 'break-word' }}>
                                             {item.companyName}
                                         </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
+                                        <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '120px', minWidth: '120px' }}>
                                             {item.packageRank}
                                         </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
+                                        <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '120px', minWidth: '120px' }}>
                                             {item.initialPrice !== 0 ? item.initialPrice : 'Not Quoted'}
                                         </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
+                                        <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '120px', minWidth: '120px' }}>
                                             {!item.newVendor ? (
                                                 item.finalPrice !== 0 ? (
                                                     item.finalPrice
@@ -934,10 +934,10 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
                                                 />
                                             )}
                                         </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '130px', minWidth: '130px' }}>
+                                        <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '130px', minWidth: '130px' }}>
                                             {item.priceReduction}
                                         </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
+                                        <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '120px', minWidth: '120px' }}>
                                             <TextField
                                                 InputLabelProps={{ shrink: true }}
                                                 fullWidth
@@ -964,7 +964,7 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
                                                 disabled={!isDraftStage || !eventDetailsCanEdit}
                                             />
                                         </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px', wordWrap: 'break-word' }}>
+                                        <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', width: '120px', minWidth: '120px', wordWrap: 'break-word' }}>
                                             {item.totalPrice}
                                         </td>
                                     </tr>
