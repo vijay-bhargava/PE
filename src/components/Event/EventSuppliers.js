@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { IconButton, Tooltip, MenuItem, Menu, Alert } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+import { PETable } from '../../components/RFQ/PETable';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { RiDeleteBin6Line } from 'react-icons/ri';
 import {
@@ -386,41 +386,17 @@ const EventSuppliers = ({
             <p className="rfq-v2-empty-sub">{searchText || activeFilterCount ? 'Try adjusting your search or filters.' : 'No suppliers have been invited yet.'}</p>
           </div>
         ) : (
-          <DataGrid
+          <PETable
             className="rfq-v2-datagrid"
             rows={filteredData}
             columns={columns}
             getRowId={(row) => row.vendorId || row.emailId}
             rowHeight={rowHeight}
-            columnHeaderHeight={40}
             pagination
-            disableRowSelectionOnClick
             columnVisibilityModel={columnVisibility}
             disableColumnResize
-            hideFooterSelectedRowCount
             pageSizeOptions={[25, 50, 100]}
             initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
-            sx={{
-              border: 'none',
-              flex: 1,
-              minHeight: 0,
-              height: '100%',
-              fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif',
-              '& .MuiDataGrid-columnHeaders': { background: '#f9fafb', borderBottom: '1px solid #e5e7eb', minHeight: '40px !important', maxHeight: '40px !important' },
-              '& .MuiDataGrid-columnHeadersInner': { background: '#f9fafb' },
-              '& .MuiDataGrid-columnHeader': { height: '40px !important', padding: '0 16px' },
-              '& .MuiDataGrid-columnHeaderTitle': { fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'none', letterSpacing: 0 },
-              '& .MuiDataGrid-cell': { borderBottom: '1px solid #f3f4f6', fontSize: 13, color: '#1f2937', padding: '0 16px', display: 'flex', alignItems: 'center' },
-              '& .MuiDataGrid-cell--withRenderer': { display: 'flex', alignItems: 'center' },
-              '& .MuiDataGrid-row:hover': { background: '#f8fafc' },
-              '& .MuiDataGrid-columnSeparator': { visibility: 'hidden' },
-              '& .MuiDataGrid-footerContainer': { borderTop: '1px solid #e5e7eb', minHeight: 44, padding: '0 8px', flexShrink: 0 },
-              '& .MuiDataGrid-sortIcon': { color: '#9ca3af', opacity: 1 },
-              '& .MuiDataGrid-menuIconButton': { color: '#9ca3af', opacity: 1 },
-              '& .MuiTablePagination-root': { fontSize: 12, color: '#6b7280' },
-              '& .MuiTablePagination-selectLabel': { fontSize: 12, color: '#6b7280', margin: 0 },
-              '& .MuiTablePagination-displayedRows': { fontSize: 12, color: '#6b7280', margin: 0 },
-            }}
           />
         )}
       </div>

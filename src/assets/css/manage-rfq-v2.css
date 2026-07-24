@@ -78,14 +78,14 @@
   font-weight: 600;
 }
 
-.rfq-v2-title {
+/* UNUSED .rfq-v2-title {
   font-size: 20px;
   font-weight: 700;
   color: #111827;
   margin: 0;
   letter-spacing: -0.2px;
   line-height: 2;
-}
+} */
 
 /* ── Create new RFQ button ── */
 .rfq-v2-create-btn {
@@ -139,6 +139,7 @@
   justify-content: space-between;
   padding: 12px 20px;
   border-bottom: 1px solid #f3f4f6;
+  flex-shrink: 0;
   gap: 12px;
   flex-shrink: 0;
 }
@@ -257,13 +258,13 @@
 }
 
 /* Primary action button (Add New) */
-.rfq-v2-tbtn-primary {
+/* UNUSED .rfq-v2-tbtn-primary {
   background: #2a68d3;
   color: #fff;
   border-color: #2a68d3;
   padding: 0 14px;
   font-weight: 600;
-}
+} */
 .rfq-v2-tbtn-primary svg {
   color: #fff !important;
   font-size: 16px !important;
@@ -291,7 +292,8 @@
   min-height: 0;
 }
 
-/* DataGrid overrides — covers both MUI v5 and v6 selectors */
+/* TABLE-OVERRIDE COMMENTED — handled by PETable canonical sx
+
 .rfq-v2-datagrid.MuiDataGrid-root {
   border: none !important;
   font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
@@ -304,14 +306,10 @@
 }
 
 .rfq-v2-datagrid .MuiDataGrid-columnHeaders {
-  background: #f9fafb !important;
   border-bottom: 1px solid #e5e7eb !important;
   min-height: 40px !important;
   max-height: 40px !important;
   line-height: 40px !important;
-}
-.rfq-v2-datagrid .MuiDataGrid-columnHeadersInner {
-  background: #f9fafb !important;
 }
 .rfq-v2-datagrid .MuiDataGrid-columnHeader {
   padding: 0 16px !important;
@@ -336,14 +334,12 @@
   padding: 0 16px !important;
   font-size: 13px !important;
   color: #1f2937 !important;
-  /* display: flex !important; */
   align-items: center !important;
 }
 .rfq-v2-datagrid .MuiDataGrid-cell--withRenderer {
   display: flex !important;
   align-items: center !important;
 }
-
 .rfq-v2-datagrid .MuiDataGrid-row:hover {
   background: #f8fafc !important;
 }
@@ -376,6 +372,7 @@
   color: #6b7280 !important;
   margin: 0 !important;
 }
+*/
 
 /* ── RFQ cell: event code + subject ── */
 .rfq-v2-cell {
@@ -686,11 +683,11 @@
 }
 
 /* ── Create RFQ modal actions ── */
-.rfq-v2-modal-footer {
+/* UNUSED .rfq-v2-modal-footer {
   display: flex;
   justify-content: flex-end;
   padding-top: 16px;
-}
+} */
 
 /* Date / created-by cell */
 .rfq-v2-text-cell {
@@ -1164,11 +1161,11 @@
   color: #374151;
 }
 
-.rfq-v2-event-btn-outline {
+/* UNUSED .rfq-v2-event-btn-outline {
   background: #ffffff;
   color: #2a68d3;
   border-color: #d1d5db;
-}
+} */
 
 .rfq-v2-event-btn-outline:hover {
   border-color: #2a68d3;
@@ -1290,9 +1287,11 @@
   background: #ffffff;
 }
 
+/* TABLE-OVERRIDE COMMENTED — handled by PETable canonical sx
 .rfq-v2-event-datagrid .MuiDataGrid-columnHeaders {
   background: #f9fafb !important;
 }
+*/
 
 .rfq-v2-event-empty {
   height: 100%;
@@ -1365,12 +1364,12 @@
   align-items: start;
 }
 
-.rfq-v2-drawer-grid--3 {
+/* UNUSED .rfq-v2-drawer-grid--3 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 16px;
   align-items: start;
-}
+} */
 
 .rfq-v2-drawer-field {
   width: 40%;
@@ -1391,20 +1390,20 @@
   color: #ef4444;
 }
 
-.rfq-v2-drawer-section {
+/* UNUSED .rfq-v2-drawer-section {
   border-top: 1px solid #e5e7eb;
   padding-top: 14px;
   margin-top: 2px;
-}
+} */
 
-.rfq-v2-drawer-section-title {
+/* UNUSED .rfq-v2-drawer-section-title {
   font-size: 11px;
   font-weight: 700;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 10px;
-}
+} */
 
 .rfq-v2-drawer-confirm {
   background: #f9fafb;
@@ -1907,6 +1906,7 @@
 }
 
 /* Product item table — expanded detail panel (row height: 160px) */
+/* UNUSED — pit-* classes not wired up in JS
 .pit-detail-panel {
   display: flex;
   align-items: center;

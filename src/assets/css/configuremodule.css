@@ -244,12 +244,13 @@
     border-right: none;
 }
 
+/* TABLE-OVERRIDE COMMENTED — handled by PETable canonical sx
 .borderless-datagrid .MuiDataGrid-footerContainer {
     border-top: 1px solid #e0e0e0;
     border-left: none;
     border-right: none;
     border-bottom: none;
-}
+} */
 
 .borderless-datagrid .MuiDataGrid-container--top [role=row] {
     border: none;

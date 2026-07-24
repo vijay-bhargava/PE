@@ -578,7 +578,7 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
                 <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
               </IconButton>
             </div>
-            <div className="p-3">
+            <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
               <AddUpdateUom handleUomList={handleUomList} isModal={true} />
             </div>
           </Modal.Body>

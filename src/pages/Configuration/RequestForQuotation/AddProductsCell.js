@@ -21,7 +21,8 @@ import { getFileName, uploadFilesOnAzure, uploadFilesOnAzure2, validateFileSize 
 import { uploadFilesOnAzureURL } from '../../../utils/manageParticipants';
 import { UOMMasterList } from '../../../utils/commerciallibrary';
 import AddEditItemType from '../../../utils/common/AddEditITemType';
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { GridToolbar } from '@mui/x-data-grid';
+import { PETable } from '../../../components/RFQ/PETable';
 import AddPrPlant from '../../../utils/common/AddPrPlant';
 
 const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action, accesslevel, Version }) => {
@@ -1464,7 +1465,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                   />
                 </div>
                 <div className="data-grid-wrapper flex-grow-1" style={{ height: '400px', overflow: 'hidden' }}>
-                  <DataGrid
+                  <PETable
                     getRowId={getRowId}
                     rows={itemList}
                     loading={gridloading && !searchMode}
@@ -1493,7 +1494,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                     }}
                     rowHeight={35}
                     columnHeaderHeight={35}
-                    style={{ width: '100%', height: '100%', border: 'none' }}
                     className="f13 border-0 consistent-datagrid"
                     disableDensitySelector
                     checkboxSelection
@@ -1558,7 +1558,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 <HiOutlineX className="f20" />
               </button>
             </div>
-            <div className="p-3">
+            <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
               <AddUpdateUom handleUomList={handleUomList} isModal={true} />
             </div>
           </Modal.Body>

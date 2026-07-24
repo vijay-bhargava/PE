@@ -191,20 +191,20 @@ const QuestionDetails = ({ eventid, eventtype, librarytype, action, Version, ven
                                                 <TableContainer>
                                                     <Table sx={{ tableLayout: 'auto' }}>
                                                         <TableHead>
-                                                            <TableRow sx={{ backgroundColor: '#e9ecef' }}>
-                                                                <TableCell sx={{ fontWeight: 600, width: '5%', py: 1 }}></TableCell>
-                                                                <TableCell sx={{ fontWeight: 600, width: '30%', py: 1 }}>Question</TableCell>
+                                                            <TableRow sx={{ backgroundColor: '#f9fafb' }}>
+                                                                <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb', width: '5%', py: 1 }}></TableCell>
+                                                                <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb', width: '30%', py: 1 }}>Question</TableCell>
                                                                 {SupplierQuestionResponses?.length > 0 && (
                                                                     <>
-                                                                        <TableCell sx={{ fontWeight: 600, width: '20%', py: 1 }}>Answer</TableCell>
-                                                                        <TableCell sx={{ fontWeight: 600, width: '15%', py: 1 }}>Selected Option</TableCell>
+                                                                        <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb', width: '20%', py: 1 }}>Answer</TableCell>
+                                                                        <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb', width: '15%', py: 1 }}>Selected Option</TableCell>
                                                                     </>
                                                                 )}
-                                                                <TableCell sx={{ fontWeight: 600, width: '10%', py: 1, textAlign: 'center' }}>Attachment</TableCell>
-                                                                <TableCell sx={{ fontWeight: 600, width: '10%', py: 1, textAlign: 'center' }}>Weightage</TableCell>
-                                                                <TableCell sx={{ fontWeight: 600, width: '10%', py: 1, textAlign: 'center' }}>Mandatory</TableCell>
+                                                                <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb', width: '10%', py: 1, textAlign: 'center' }}>Attachment</TableCell>
+                                                                <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb', width: '10%', py: 1, textAlign: 'center' }}>Weightage</TableCell>
+                                                                <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb', width: '10%', py: 1, textAlign: 'center' }}>Mandatory</TableCell>
                                                                 {SupplierQuestionResponses?.length > 0 && (
-                                                                    <TableCell sx={{ fontWeight: 600, width: '10%', py: 1, textAlign: 'center' }}>Score</TableCell>
+                                                                    <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb', width: '10%', py: 1, textAlign: 'center' }}>Score</TableCell>
                                                                 )}
                                                             </TableRow>
                                                         </TableHead>
@@ -230,7 +230,7 @@ const QuestionDetails = ({ eventid, eventtype, librarytype, action, Version, ven
                                                                 }
 
                                                                 return (
-                                                                    <TableRow key={i} hover sx={{ '&:hover': { backgroundColor: '#f8f9fa' } }}>
+                                                                    <TableRow key={i} hover sx={{ '&:hover': { backgroundColor: '#f8fafc' } }}>
                                                                         <TableCell sx={{ py: 2, verticalAlign: 'top' }}>
                                                                             <ExpandMore sx={{ cursor: 'pointer', color: '#6c757d' }} />
                                                                         </TableCell>

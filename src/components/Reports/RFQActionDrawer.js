@@ -1,5 +1,6 @@
 ﻿import React, { useEffect, useState } from "react";
 import CommonBottomDrawer from "../CommonBottomDrawer";
+import { PEPagination } from '../RFQ/PEPagination';
 import { Autocomplete, Avatar, Box, Checkbox, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, InputAdornment, Menu, MenuItem, Pagination, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import { CalendarToday as CalendarIcon, SearchOutlined } from "@mui/icons-material";
 import { HiOutlineChevronDown, HiOutlineUserAdd, HiOutlineX } from "react-icons/hi";
@@ -21,7 +22,7 @@ import { InvitedSupplierModal } from "../../utils/common";
 import { LoadingButton } from "@mui/lab";
 import * as yup from "yup";
 import { useFormik } from "formik";
-import { Table } from "react-bootstrap";
+import { PETableSimple } from "../RFQ/PETable";
 import { LocalizationProvider, MobileDateTimePicker } from "@mui/x-date-pickers";
 import { FastApiClient } from "../../FastApiClient";
 import TextFieldCell from "../../pages/BaseCells/TextFieldCell";
@@ -1150,27 +1151,6 @@ const RFQActionDrawer = ({
 						const pagedNew = (newSupplier ?? []).slice((pageSS - 1) * pageCount, pageSS * pageCount);
 						const pageSizeOptions = [10, 25, 50];
 
-						const PaginationBar = ({ total, page, setPage, pageSize, setPageSize }) => (
-							<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '20px', padding: '5px 12px', borderTop: '1px solid #e5e7eb', background: '#fff', flexShrink: 0, minHeight: '44px' }}>
-								<span style={{ fontSize: '12px', color: '#6b7280' }}>Rows per page:</span>
-								<select
-									value={pageSize}
-									onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
-									style={{ fontSize: '12px', color: '#374151', border: 'none', borderRadius: '4px', padding: '2px 4px', background: '#fff', cursor: 'pointer' }}
-								>
-									{pageSizeOptions.map(n => <option key={n} value={n}>{n}</option>)}
-								</select>
-								<span style={{ fontSize: '12px', color: '#6b7280' }}>
-									{total === 0 ? '0–0 of 0' : `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total}`}
-								</span>
-								<button type="button" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}
-									style={{ background: "none", border: "none", cursor: pageTS === 1 ? "default" : "pointer", color: pageTS === 1 ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}
-								>&#8249;</button>
-								<button type="button" className="pe-icon-btn" disabled={page >= Math.ceil(total / pageSize) || total === 0} onClick={() => setPage(p => Math.min(Math.ceil(total / pageSize), p + 1))}
-									style={{ background: "none", border: "none", cursor: pageTS >= total ? "default" : "pointer", color: pageTS >= total ? "#d1d5db" : "#374151", fontSize: "16px", padding: "2px 4px", lineHeight: 1 }}
-								>&#8250;</button>
-							</div>
-						);
 
 						return (
 							<div style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0 }}>
@@ -1199,7 +1179,7 @@ const RFQActionDrawer = ({
 											</div>
 										))}
 									</div>
-									<PaginationBar total={filteredRemaining.length} page={pageTS} setPage={setPageTS} pageSize={pageCount} setPageSize={setPageCount} />
+									<PEPagination page={pageTS} pageSize={pageCount} totalRows={filteredRemaining.length} onPageChange={setPageTS} onPageSizeChange={(n) => { setPageCount(n); setPageTS(1); }} />
 								</div>
 
 								{/* New Suppliers */}
@@ -1224,7 +1204,7 @@ const RFQActionDrawer = ({
 											</div>
 										))}
 									</div>
-									<PaginationBar total={newSupplier?.length ?? 0} page={pageSS} setPage={setPageSS} pageSize={pageCount} setPageSize={setPageCount} />
+									<PEPagination page={pageSS} pageSize={pageCount} totalRows={newSupplier?.length ?? 0} onPageChange={setPageSS} onPageSizeChange={(n) => { setPageCount(n); setPageSS(1); }} />
 								</div>
 							</div>
 						);
@@ -1378,39 +1358,32 @@ const RFQActionDrawer = ({
 										<SearchOutlined className="rfq-v2-search-icon" />
 									</div>
 								</div>
-								<div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid #e5e7eb', marginTop: 12 }}>
-									<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-										<thead>
-											<tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '5%' }}>
-													<Checkbox className="p-0" size="small" onChange={(e) => handleReinviteAll(e.target.checked)} />
-												</th>
-												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', textAlign: 'left' }}>Supplier</th>
-												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '12%', whiteSpace: 'nowrap' }}>Version</th>
-												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '35%' }}>Remarks</th>
-											</tr>
-										</thead>
-										<tbody>
-											{supplierlist?.filter(x => x.status == "Closed")
-												?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase()))
-												.map((v, index) => (
-													<tr key={index} style={{ borderBottom: '1px solid #f3f4f6' }}>
-														<td style={{ padding: '5px 12px' }}>
-															<Checkbox className="p-0" size="small" checked={v?.reinvitechecked === true} onChange={(e) => handleReinviteCheck(v, e.target.checked)} />
-														</td>
-														<td style={{ padding: '5px 12px' }}>
-															<div style={{ fontWeight: 500, color: '#111827', fontSize: 13 }}>{v.companyName}</div>
-															<div style={{ fontSize: 12, color: '#6b7280' }}>{v.contactPerson} · {v.emailId}</div>
-														</td>
-														<td style={{ padding: '5px 12px', color: '#374151' }}>{v?.version}</td>
-														<td style={{ padding: '5px 12px' }}>
-															<TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Enter remarks here" defaultValue={v.reinviteremark || ''} onBlur={(e) => { v.reinviteremark = e.target.value; }} size="small" />
-														</td>
-													</tr>
-												))}
-										</tbody>
-									</table>
-								</div>
+								<PETableSimple
+									wrapperStyle={{ marginTop: 2 }}
+									columns={[
+										{
+											key: '_check', label: '',
+											width: '5%',
+											renderHeader: () => <Checkbox className="p-0" size="small" onChange={(e) => handleReinviteAll(e.target.checked)} />,
+											renderCell: (_, row) => <Checkbox className="p-0" size="small" checked={row.reinvitechecked === true} onChange={(e) => handleReinviteCheck(row, e.target.checked)} />,
+										},
+										{
+											key: 'companyName', label: 'Supplier',
+											renderCell: (_, row) => <>
+												<div style={{ fontWeight: 500, color: '#111827', fontSize: 13 }}>{row.companyName}</div>
+												<div style={{ fontSize: 12, color: '#6b7280' }}>{row.contactPerson} · {row.emailId}</div>
+											</>,
+										},
+										{ key: 'version', label: 'Version', width: '12%', whiteSpace: 'nowrap' },
+										{
+											key: '_remarks', label: 'Remarks', width: '35%',
+											renderCell: (_, row) => <TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Enter remarks here" defaultValue={row.reinviteremark || ''} onBlur={(e) => { row.reinviteremark = e.target.value; }} size="small" />,
+										},
+									]}
+									rows={supplierlist?.filter(x => x.status == "Closed")
+										?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase())) ?? []}
+									getRowKey={(row, i) => `${row.vendorId ?? i}`}
+								/>
 							</div>
 						</div>
 					</form>
@@ -1525,46 +1498,39 @@ const RFQActionDrawer = ({
 										onChange={(e) => setSearchQuery(e.target.value)}
 									/>
 								</div>
-								<div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid #e5e7eb', marginTop: 12 }}>
-									<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-										<thead>
-											<tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '5%' }}>
-													<Checkbox className="p-0" size="small" onChange={(e) => handleReOpenAll(e.target.checked)} />
-												</th>
-												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', textAlign: 'left' }}>Supplier</th>
-												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '10%', whiteSpace: 'nowrap' }}>Status</th>
-												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '10%', whiteSpace: 'nowrap' }}>Version</th>
-												<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '35%' }}>Remarks</th>
-											</tr>
-										</thead>
-										<tbody>
-											{supplierlist?.filter(x => x.status != "Open" && x.status != "Regretted")
-												?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase()))
-												?.map((v, index) => (
-													<tr key={index} style={{ borderBottom: '1px solid #f3f4f6' }}>
-														<td style={{ padding: '5px 12px' }}>
-															<Checkbox className="p-0" size="small" checked={v?.reinvitechecked === true} onChange={(e) => handleReinviteCheck(v, e.target.checked)} />
-														</td>
-														<td style={{ padding: '5px 12px' }}>
-															<div style={{ fontWeight: 500, color: '#111827', fontSize: 13 }}>{v.companyName}</div>
-															<div style={{ fontSize: 12, color: '#6b7280' }}>{v.contactPerson} · {v.emailId}</div>
-														</td>
-														<td style={{ padding: '5px 12px' }}>
-															{v?.status != "Open"
-																? <Tooltip title={v?.submissionDate ? formatDateViaLocale(v?.submissionDate, "en-GB", formattimeoption) : ""}><div className="restatus">Quoted</div></Tooltip>
-																: v?.status == "Revert" ? <div className="restatus">Reverted</div>
-																	: <div className="restatus">Not Quoted</div>}
-														</td>
-														<td style={{ padding: '5px 12px', color: '#374151' }}>{v?.version}</td>
-														<td style={{ padding: '5px 12px' }}>
-															<TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Remarks" onBlur={(e) => { v.reinviteremark = e.target.value; }} size="small" />
-														</td>
-													</tr>
-												))}
-										</tbody>
-									</table>
-								</div>
+								<PETableSimple
+									wrapperStyle={{ marginTop: 2 }}
+									columns={[
+										{
+											key: '_check', label: '',
+											width: '5%',
+											renderHeader: () => <Checkbox className="p-0" size="small" onChange={(e) => handleReOpenAll(e.target.checked)} />,
+											renderCell: (_, row) => <Checkbox className="p-0" size="small" checked={row.reinvitechecked === true} onChange={(e) => handleReinviteCheck(row, e.target.checked)} />,
+										},
+										{
+											key: 'companyName', label: 'Supplier',
+											renderCell: (_, row) => <>
+												<div style={{ fontWeight: 500, color: '#111827', fontSize: 13 }}>{row.companyName}</div>
+												<div style={{ fontSize: 12, color: '#6b7280' }}>{row.contactPerson} · {row.emailId}</div>
+											</>,
+										},
+										{
+											key: 'status', label: 'Status', width: '10%', whiteSpace: 'nowrap',
+											renderCell: (_, row) => row?.status != "Open"
+												? <Tooltip title={row?.submissionDate ? formatDateViaLocale(row?.submissionDate, "en-GB", formattimeoption) : ""}><div className="restatus">Quoted</div></Tooltip>
+												: row?.status == "Revert" ? <div className="restatus">Reverted</div>
+													: <div className="restatus">Not Quoted</div>,
+										},
+										{ key: 'version', label: 'Version', width: '10%', whiteSpace: 'nowrap' },
+										{
+											key: '_remarks', label: 'Remarks', width: '35%',
+											renderCell: (_, row) => <TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Remarks" onBlur={(e) => { row.reinviteremark = e.target.value; }} size="small" />,
+										},
+									]}
+									rows={supplierlist?.filter(x => x.status != "Open" && x.status != "Regretted")
+										?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase())) ?? []}
+									getRowKey={(row, i) => `${row.vendorId ?? i}`}
+								/>
 							</div>
 						</div>
 					</form>
@@ -1597,47 +1563,39 @@ const RFQActionDrawer = ({
 								/>
 							</div>
 						</div>
-						<div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid #e5e7eb', marginTop: 12 }}>
-							<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-								<thead>
-									<tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-										<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '5%' }}>
-											<Checkbox className="p-0" size="small" onChange={(e) => handleReminderAll(e.target.checked)} />
-										</th>
-										<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', textAlign: 'left' }}>Supplier</th>
-										<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '10%', whiteSpace: 'nowrap' }}>Status</th>
-										<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '10%', whiteSpace: 'nowrap' }}>Version</th>
-										<th style={{ padding: '10px 12px', fontWeight: 600, fontSize: 12, color: '#6b7280', width: '35%' }}>Remarks</th>
-									</tr>
-								</thead>
-								<tbody>
-									{supplierlist
-										?.filter(x => x.status != "Closed" && x.status != "Regretted")
-										?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase()))
-										.map((v, index) => (
-											<tr key={index} style={{ borderBottom: '1px solid #f3f4f6' }}>
-												<td style={{ padding: '5px 12px' }}>
-													<Checkbox className="p-0" size="small" checked={v?.reinvitechecked === true} onChange={(e) => handleReinviteCheck(v, e.target.checked)} />
-												</td>
-												<td style={{ padding: '5px 12px' }}>
-													<div style={{ fontWeight: 500, color: '#111827', fontSize: 13 }}>{v.companyName}</div>
-													<div style={{ fontSize: 12, color: '#6b7280' }}>{v.contactPerson} · {v.emailId}</div>
-												</td>
-												<td style={{ padding: '5px 12px' }}>
-													{v?.status == "Closed"
-														? <Tooltip title={v?.submissionDate ? formatDateViaLocale(v?.submissionDate, "en-GB", formattimeoption) : ""}><div className="restatus">Quoted</div></Tooltip>
-														: v?.status == "Revert" ? <div className="restatus">Reverted</div>
-															: <div className="restatus">Not Quoted</div>}
-												</td>
-												<td style={{ padding: '5px 12px', color: '#374151' }}>{v?.version}</td>
-												<td style={{ padding: '5px 12px' }}>
-													<TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Remarks" onBlur={(e) => { v.reinviteremark = e.target.value; }} size="small" />
-												</td>
-											</tr>
-										))}
-								</tbody>
-							</table>
-						</div>
+						<PETableSimple
+							wrapperStyle={{ marginTop: 12 }}
+							columns={[
+								{
+									key: '_check', label: '',
+									width: '5%',
+									renderHeader: () => <Checkbox className="p-0" size="small" onChange={(e) => handleReminderAll(e.target.checked)} />,
+									renderCell: (_, row) => <Checkbox className="p-0" size="small" checked={row.reinvitechecked === true} onChange={(e) => handleReinviteCheck(row, e.target.checked)} />,
+								},
+								{
+									key: 'companyName', label: 'Supplier',
+									renderCell: (_, row) => <>
+										<div style={{ fontWeight: 500, color: '#111827', fontSize: 13 }}>{row.companyName}</div>
+										<div style={{ fontSize: 12, color: '#6b7280' }}>{row.contactPerson} · {row.emailId}</div>
+									</>,
+								},
+								{
+									key: 'status', label: 'Status', width: '10%', whiteSpace: 'nowrap',
+									renderCell: (_, row) => row?.status == "Closed"
+										? <Tooltip title={row?.submissionDate ? formatDateViaLocale(row?.submissionDate, "en-GB", formattimeoption) : ""}><div className="restatus">Quoted</div></Tooltip>
+										: row?.status == "Revert" ? <div className="restatus">Reverted</div>
+											: <div className="restatus">Not Quoted</div>,
+								},
+								{ key: 'version', label: 'Version', width: '10%', whiteSpace: 'nowrap' },
+								{
+									key: '_remarks', label: 'Remarks', width: '35%',
+									renderCell: (_, row) => <TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Remarks" onBlur={(e) => { row.reinviteremark = e.target.value; }} size="small" />,
+								},
+							]}
+							rows={supplierlist?.filter(x => x.status != "Closed" && x.status != "Regretted")
+								?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase())) ?? []}
+							getRowKey={(row, i) => `${row.vendorId ?? i}`}
+						/>
 					</form>
 				</CommonBottomDrawer>
 

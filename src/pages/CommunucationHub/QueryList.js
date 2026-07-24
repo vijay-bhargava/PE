@@ -1,5 +1,5 @@
 import { Alert } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+import { PETable } from '../../components/RFQ/PETable';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { BackButton } from '../../utils/common/component';
 import { actionTypes, useStateValue } from '../../store';
@@ -79,7 +79,10 @@ const QueryList = forwardRef(({ fromEventPage = false, EventId, EventType, permi
     if (res) dispatch({ type: actionTypes.SET_NotificationlistRaiseQuery, value: res?.data?.result });
   };
 
-  useEffect(() => { if (fromEventPage) pullMessageList(EventId, EventType); else pullMessageList(); }, [EventType, EventId]);
+  useEffect(() => {
+    if (fromEventPage) pullMessageList(EventId, EventType); else pullMessageList();
+    return () => dispatch({ type: actionTypes.SET_NotificationlistRaiseQuery, value: [] });
+  }, [EventType, EventId]);
 
   useImperativeHandle(Queryref, () => ({ handleDrawer: () => { } }));
 
@@ -114,7 +117,15 @@ const QueryList = forwardRef(({ fromEventPage = false, EventId, EventType, permi
     return true;
   };
 
-  const filteredData = (NotificationlistRaiseQuery || []).filter((row) => {
+  const seenCommIds = new Set();
+  const deduped = (NotificationlistRaiseQuery || []).filter((row) => {
+    const commId = row.commDetails?.[0]?.commId ?? row.id;
+    if (commId == null || seenCommIds.has(commId)) return false;
+    seenCommIds.add(commId);
+    return true;
+  });
+
+  const filteredData = deduped.filter((row) => {
     const s = searchText.toLowerCase();
     const matchesSearch = !s || [
       row.eventCode, String(row.eventId), row.eventType,
@@ -331,28 +342,14 @@ const QueryList = forwardRef(({ fromEventPage = false, EventId, EventType, permi
 
               {/* ── Table ── */}
               <div className="rfq-v2-table-wrapper">
-                {filteredData.length === 0 ? (
-                  <div className="rfq-v2-empty">
-                    <p className="rfq-v2-empty-title">No queries found</p>
-                    <p className="rfq-v2-empty-sub">{searchText || activeFilterCount ? 'Try adjusting your search or filters.' : 'Raise a query to get started.'}</p>
-                  </div>
-                ) : (
-                  <DataGrid
-                    className="rfq-v2-datagrid"
-                    rows={filteredData}
-                    columns={columns}
-                    getRowId={(row) => row.id ?? row.eventId}
-                    rowHeight={rowHeight}
-                    columnHeaderHeight={40}
-                    pagination
-                    disableRowSelectionOnClick
-                    columnVisibilityModel={columnVisibility}
-                    disableColumnResize
-                    hideFooterSelectedRowCount
-                    pageSizeOptions={[25, 50, 100]}
-                    initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
-                  />
-                )}
+                <PETable
+                  rows={filteredData}
+                  columns={columns}
+                  getRowId={(row) => row.id ?? row.eventId}
+                  rowHeight={rowHeight}
+                  columnVisibilityModel={columnVisibility}
+                  disableColumnResize
+                />
               </div>
             </>
           );

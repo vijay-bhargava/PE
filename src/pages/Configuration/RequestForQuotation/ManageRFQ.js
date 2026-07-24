@@ -6,7 +6,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Badge, Dropdown, Modal } from 'react-bootstrap';
 import { actionTypes, useStateValue } from '../../../store';
 import { bidlist, formatDateViaLocale, getRFQManageFind } from '../../../utils/common/utility';
-import { DataGrid, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton, GridToolbarQuickFilter } from '@mui/x-data-grid';
+import { GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton, GridToolbarQuickFilter } from '@mui/x-data-grid';
+import { PETable } from '../../../components/RFQ/PETable';
 import { AuctionModalFromRFQ, eventMultiCurrencyList, findObjListByValueFromArray, getPayloadWithStage, invitedSupplierForAuction, pullMessageCount, supplierLoadingFactor, fetchAttachmentsFromPRItems, handlesaveAttachment } from '../../../utils/common';
 import FilterRFQCell from './FilterRFQCell';
 import { BackButton } from '../../../utils/common/component';
@@ -1084,7 +1085,7 @@ const ManageRFQ = ({ claimType }) => {
 									</div>
 								) : (
 									<div className="data-grid-wrapper flex-grow-1" style={{ overflow: 'hidden' }}>
-										<DataGrid
+										<PETable
 											getRowId={getRowId}
 											rows={recorddata}
 											loading={gridloading}
@@ -1093,29 +1094,14 @@ const ManageRFQ = ({ claimType }) => {
 												params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd"
 											}
 											rowHeight={45}
-											columnHeaderHeight={40}
 											className="f13 border-0 consistent-datagrid"
-											style={{ width: '100%', height: '100%', border: 'none' }}
 											disableDensitySelector
-											disableRowSelectionOnClick
 											disableColumnResize
 											disableColumnReorder
-											sx={{
-												'& .MuiDataGrid-main': {
-													overflow: 'hidden'
-												},
-												'& .MuiDataGrid-virtualScroller': {
-													overflowX: 'hidden !important'
-												}
-											}}
 											slots={{
 												toolbar: () => <CustomToolbar onFilterClick={toggleDivVisibility} />,
 											}}
-											slotProps={{
-												toolbar: {
-													showQuickFilter: true,
-												},
-											}}
+											slotProps={{ toolbar: { showQuickFilter: true } }}
 										/>
 									</div>
 								)}
@@ -1295,7 +1281,7 @@ const ManageRFQ = ({ claimType }) => {
 
 							<div className="modal-content-height">
 								{selectedPRITemModal.length > 0 ? (
-									<DataGrid
+									<PETable
 										rows={selectedPRITemModal}
 										columns={prrfqcolumn}
 										pageSize={10}
@@ -1305,7 +1291,6 @@ const ManageRFQ = ({ claimType }) => {
 										rowHeight={40}
 										columnHeaderHeight={40}
 										className="f13 bg-white"
-										disableRowSelectionOnClick
 										isRowSelectable={(params) => {
 											const row = params?.row;
 											if (row?.eventType === "PR") return true;
@@ -1366,7 +1351,7 @@ const ManageRFQ = ({ claimType }) => {
 					<div className="p-3">
 						<div className="row">
 							<div className="modal-content-height">
-								<DataGrid
+								<PETable
 									getRowId={getBRRowId}
 									rows={Array.from(rfqItemSet)}
 									columns={prauctioncolumn}
@@ -1374,7 +1359,6 @@ const ManageRFQ = ({ claimType }) => {
 									onSelectionModelChange={(ids) => selectItemsById(ids)}
 									selectionModel={selectedItemsActive}
 									disableDensitySelector
-
 									rowHeight={40}
 									columnHeaderHeight={40}
 									className="f13 border-0"

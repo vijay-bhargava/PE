@@ -24,7 +24,7 @@ import {
 
 	removeSpecialCharactersAndNumbers,
 } from "../../../utils/common";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { PETable } from '../../../components/RFQ/PETable';
 import { AddUom, UpdateUom, getUomList } from "../../../utils/common/utility";
 
 
@@ -340,21 +340,13 @@ const [editRecordData, seteditRecordData] = useState(null);
           <div className="container-fluid">
             <div className="row">
               <div className="col-12 mb-3" style={{ height: '55vh' }}>
-                <DataGrid
+                <PETable
                   getRowId={getRowId}
                   rows={userList}
                   loading={gridloading}
                   columns={columns}
                   rowHeight={40}
-                  columnHeaderHeight={40}
-                  className="f13 border-0"
                   disableRowSelectionOnClick
-                  slots={{ toolbar: GridToolbar }}
-                  slotProps={{
-                    toolbar: {
-                      showQuickFilter: true,
-                    },
-                  }}
                 />
               </div>
               <div className="pagination_wrapper mb-3 mt-3">

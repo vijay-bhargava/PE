@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import ExpandableTextCell from "../../../components/ExpandableTextCell";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -258,41 +258,19 @@ const RFQSummary = ({ props }) => {
                                             </div>
                                             {showTable && (
                                                 <div className='d-flex align-items-center'>
-                                                <TableContainer  className='d-block'>
-                                                    <Table
-                                                        size="small"
-                                                        className='d-block'
-                                                        aria-label="a dense table"
-                                                    >
-                                                        <TableHead className='d-flex align-items-center justify-content-between'>
-                                                            <TableRow >
-                                                                <TableCell className='ps-0'>Currency</TableCell>
-                                                                <TableCell align="right">
-                                                                    Conversion Factor
-                                                                </TableCell>
+                                                <TableContainer sx={{ borderRadius: 1, border: '1px solid #e5e7eb', mt: 1 }}>
+                                                    <Table size="small" aria-label="currency table">
+                                                        <TableHead>
+                                                            <TableRow sx={{ background: '#f9fafb' }}>
+                                                                <TableCell sx={{ fontSize: 12, fontWeight: 600, color: '#6b7280', borderBottom: '1px solid #e5e7eb', py: '8px' }}>Currency</TableCell>
+                                                                <TableCell align="right" sx={{ fontSize: 12, fontWeight: 600, color: '#6b7280', borderBottom: '1px solid #e5e7eb', py: '8px' }}>Conversion Factor</TableCell>
                                                             </TableRow>
                                                         </TableHead>
                                                         <TableBody>
                                                             {inputList.map((row) => (
-                                                                <TableRow
-                                                                    key={row.name}
-                                                                    sx={{
-                                                                        "&:last-child td, &:last-child th":
-                                                                        {
-                                                                            border: 0,
-                                                                        },
-                                                                    }}
-                                                                >
-                                                                    <TableCell
-                                                                        scope="row"
-                                                                        className='ps-0'
-                                                                        style={{width:"160px"}}
-                                                                    >
-                                                                        {row?.baseCurrency}
-                                                                    </TableCell>
-                                                                    <TableCell align="right" className=''>
-                                                                        {row?.currencyConversion}
-                                                                    </TableCell>
+                                                                <TableRow key={row.name} sx={{ '&:last-child td': { border: 0 }, '&:hover': { background: '#f8fafc' } }}>
+                                                                    <TableCell sx={{ fontSize: 13, color: '#1f2937', borderBottom: '1px solid #f3f4f6', py: '6px', width: 160 }}>{row?.baseCurrency}</TableCell>
+                                                                    <TableCell align="right" sx={{ fontSize: 13, color: '#1f2937', borderBottom: '1px solid #f3f4f6', py: '6px' }}>{row?.currencyConversion}</TableCell>
                                                                 </TableRow>
                                                             ))}
                                                         </TableBody>
