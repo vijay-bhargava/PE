@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { Box, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { Box, IconButton, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 // ─── Shared design tokens ────────────────────────────────────────────────────
 const T = {
@@ -147,8 +148,33 @@ export function PETableSimple({
   rows,
   getRowKey,
   wrapperStyle,
+  getExpandContent,  // optional: (row) => JSX — enables expandable rows
 }) {
-  const displayRows = rows;
+  const [expandedKeys, setExpandedKeys] = useState(new Set());
+
+  const toggleExpand = (key) => {
+    setExpandedKeys(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  };
+
+  const allColumns = getExpandContent
+    ? [...columns, {
+      key: '__expand__', label: '', width: 48,
+      renderCell: (_, row, index) => {
+        const key = getRowKey ? getRowKey(row, index) : index;
+        return (
+          <IconButton size="small" onClick={() => toggleExpand(key)}
+            sx={{ transition: 'transform 0.3s', transform: expandedKeys.has(key) ? 'rotate(180deg)' : 'none' }}
+          >
+            <ExpandMoreIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        );
+      },
+    }]
+    : columns;
 
   return (
     <Box sx={{
@@ -161,12 +187,11 @@ export function PETableSimple({
       overflow: 'hidden',
       ...wrapperStyle,
     }}>
-      {/* Scrollable table area */}
       <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'auto' }}>
         <Table stickyHeader sx={{ borderCollapse: 'collapse', fontSize: T.cellFontSize, minWidth: '100%' }}>
           <TableHead>
             <TableRow>
-              {columns.map((col) => (
+              {allColumns.map((col) => (
                 <TableCell
                   key={col.key}
                   sx={{
@@ -188,46 +213,54 @@ export function PETableSimple({
             </TableRow>
           </TableHead>
           <TableBody>
-            {displayRows.length === 0 ? (
+            {rows.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={allColumns.length}
                   sx={{ textAlign: 'center', py: 4, color: T.headerColor, fontSize: T.cellFontSize, border: 'none' }}
                 >
                   No records found
                 </TableCell>
               </TableRow>
-            ) : displayRows.map((row, index) => (
-              <TableRow
-                key={getRowKey ? getRowKey(row, index) : index}
-                sx={{
-                  borderBottom: T.cellBorder,
-                  '&:last-child td': { borderBottom: 'none' },
-                  '&:hover': { background: T.rowHoverBg },
-                }}
-              >
-                {columns.map((col) => (
-                  <TableCell
-                    key={col.key}
-                    sx={{
-                      padding: T.cellPadding,
-                      color: T.cellColor,
-                      fontSize: T.cellFontSize,
-                      textAlign: col.align ?? 'left',
-                      border: 'none',
-                      borderBottom: T.cellBorder,
-                      verticalAlign: 'middle',
-                    }}
-                  >
-                    {col.renderCell ? col.renderCell(row[col.key], row) : (row[col.key] ?? '—')}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
+            ) : rows.map((row, index) => {
+              const key = getRowKey ? getRowKey(row, index) : index;
+              const isExpanded = expandedKeys.has(key);
+              return (
+                <React.Fragment key={key}>
+                  <TableRow sx={{
+                    '&:hover': { background: T.rowHoverBg },
+                    background: isExpanded ? '#f0f6ff' : 'inherit',
+                  }}>
+                    {allColumns.map((col) => (
+                      <TableCell
+                        key={col.key}
+                        sx={{
+                          padding: T.cellPadding,
+                          color: T.cellColor,
+                          fontSize: T.cellFontSize,
+                          textAlign: col.align ?? 'left',
+                          border: 'none',
+                          borderBottom: T.cellBorder,
+                          verticalAlign: 'middle',
+                        }}
+                      >
+                        {col.renderCell ? col.renderCell(row[col.key], row, index) : (row[col.key] ?? '—')}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {isExpanded && getExpandContent && (
+                    <TableRow>
+                      <TableCell colSpan={allColumns.length} sx={{ p: 0, border: 'none', borderBottom: T.headerBorder, background: '#f8fafc' }}>
+                        {getExpandContent(row)}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </TableBody>
         </Table>
       </Box>
-
     </Box>
   );
 }

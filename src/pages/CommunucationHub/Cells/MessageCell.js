@@ -1,4 +1,3 @@
-import { LoadingButton } from "@mui/lab";
 import {
 	Badge,
 	Box,
@@ -12,18 +11,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
 	FindThreadChat,
 	FindUserList,
-	Findmessage,
 	insertThread,
 } from "../../../utils/communication";
 import { actionTypes, useStateValue } from "../../../store";
 import { useFormik } from "formik";
-import { Button, Dropdown, Form } from "react-bootstrap";
 
 import { toast } from "react-toastify";
 import { uploadFilesOnAzure } from "../../../utils/documentlibrary";
 import { downloadFilesOnAzure, getExtension, pullMessageCount, validateFileSize } from "../../../utils/common";
-import { AccountBox, AttachFile, MoreVert, PersonAddAlt, PersonSearch, Search, SearchOff, Send } from "@mui/icons-material";
-import { GridMenuIcon } from "@mui/x-data-grid";
 import CommunicationHub from "../CommunicationHub";
 import { api, ApiClient } from "../../../Apiclient";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
@@ -100,8 +95,6 @@ const MessageCell = () => {
 
 		return () => clearTimeout(timeoutId);
 	}, [location.pathname, userDetail?.id, atoken, customersuffix]);
-
-
 
 	const queryparams = new URLSearchParams(location.search);
 	const [userChatMobile, setUserChatMobile] = useState(false);
@@ -378,7 +371,6 @@ const MessageCell = () => {
 			dispatch
 		});
 	};
-
 
 	// TO SEND MESSAGE
 	const validationSchema = yup.object({
@@ -770,18 +762,6 @@ const MessageCell = () => {
 	};
 
 	const open = Boolean(anchorEl);
-
-	const [backgroundColor, setBackgroundColor] = useState("#405189");
-
-	// Function to generate a random hex color
-	const getRandomColor = () => {
-		const letters = '0123456789ABCDEF';
-		let color = '#';
-		for (let i = 0; i < 6; i++) {
-			color += letters[Math.floor(Math.random() * 16)];
-		}
-		return color;
-	};
 	const popperRef = useRef(null);
 	const notificationRef = useRef(null);
 
@@ -803,12 +783,10 @@ const MessageCell = () => {
 	}, [open]);
 	const unreadCount = Notificationlist?.filter(notification => !notification.isRead).length;
 
-
 	return (
 		<>
 			{/* <div className="text-center me-3" style={{ position: 'relative' }}> */}
 			<div className="text-center d-flex align-items-center" style={{ position: 'relative' }}>
-
 				<IconButton
 					onClick={handleClick}
 					//  onClick={(e) => handleClick(e, true)}
@@ -979,47 +957,56 @@ const MessageCell = () => {
 						</div>
 					</div>
 				)}
-
-
 			</div>
-
 
 			<React.Fragment key="visitsideTop">
 				<Drawer
-					anchor="right"
+					anchor="bottom"
 					open={state["sidebar"]}
-					className="v2-notif-drawer"
+					onClose={toggleDrawer("sidebar", false)}
 					style={{ zIndex: 9999 }}
+					PaperProps={{
+						sx: {
+							left: '14px',
+							right: '14px',
+							bottom: '14px',
+							width: 'auto',
+							height: '72vh',
+							minHeight: 630,
+							borderRadius: '16px 16px 0 0',
+							overflow: 'hidden',
+							boxShadow: '0 -18px 48px rgba(15,23,42,0.24)',
+						}
+					}}
 				>
-					<form onSubmit={formik.handleSubmit}>
-						<Box
-							sx={{ width: { xs: 320, sm: 600, md: 900 } }}
-							className="overflow-hidden"
-						>
-							<div class="d-flex flex-column vh-100">
-								<div
-									class={`bgheaderNotificationCards ${userChatMobile ? "d-block" : ""
-										} d-lg-block`}
-								>
-									<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-										<div className="ms-3 text-white">Messages</div>
-										<div>
-											<IconButton
-												onClick={toggleDrawer("sidebar", false)}
-												size="small"
-												edge="start"
-												sx={{ mr: 1 }}
-											>
-												<HiOutlineX className="f20 text-white" />
-											</IconButton>
-										</div>
-									</div>
-								</div>
-								<CommunicationHub isSidebarVisible={isSidebarVisible} selectedNotification={selectedNotification} />
-
-							</div>
-						</Box>
-					</form>
+					<Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+						{/* Header */}
+						<div style={{
+							height: 48,
+							flexShrink: 0,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'space-between',
+							padding: '0 18px',
+							borderBottom: '1px solid #e5e7eb',
+							background: '#ffffff',
+						}}>
+							<span style={{ fontSize: 15, fontWeight: 600, color: '#1f2937', fontFamily: '"Inter","Segoe UI",system-ui,sans-serif' }}>
+								Messages
+							</span>
+							<button
+								type="button"
+								className="rfq-v2-event-btn rfq-v2-event-btn-muted"
+								onClick={toggleDrawer("sidebar", false)}
+							>
+								Close
+							</button>
+						</div>
+						{/* Body */}
+						<div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+							<CommunicationHub isSidebarVisible={isSidebarVisible} selectedNotification={selectedNotification} />
+						</div>
+					</Box>
 				</Drawer>
 			</React.Fragment>
 		</>
