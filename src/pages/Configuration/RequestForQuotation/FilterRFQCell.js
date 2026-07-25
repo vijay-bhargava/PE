@@ -87,12 +87,13 @@ const FilterRFQCell = ({ handleFilterList, clearFilterList }) => {
 
     try {
       const res = await apiClient.get(
-        `/api/RFQManage/FindAdvnceSearch?${queryParams}`,
+        `/api/RFQManage/Find?${queryParams}`,
         atoken
       );
 
       if (res) {
-        handleFilterList(res?.result);
+        const list = Array.isArray(res) ? res : (res?.result ?? []);
+        handleFilterList(list);
       } else {
         handleFilterList([]);
       }
