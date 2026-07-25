@@ -29,12 +29,13 @@ import PurchaseRequest from "../pages/Configuration/PurchaseRequest/PurchaseRequ
 
 import { bid_list, managePR_list, manageParticipants_list, managerfi_list, managerfq_list, managenfa_list, purchaseRequest_list, registerParticipants_list, rfq_list, nfa_list } from "./claimlist";
 import ManageBid from "../pages/Configuration/Auctions/ManageBid";
+import ManageBidV2 from "../pages/Configuration/Auctions/ManageBidV2";
 import AuctionControl from "../pages/Configuration/Auctions/AuctionControl";
 import ERFQComparative from "../pages/Configuration/RequestForQuotation/ERFQComparative";
 import PurchaseOrg from "../utils/common/PurchaseOrg";
 import PurchaseOrgGrp from "../utils/common/PurchaseOrgGrp";
 import RegisterSuppliers from "../pages/Manage/ManageParticipants/RegisterSuppliers";
-import Auctions from "../pages/Configuration/Auctions/Auctions";
+import Auctions from "../pages/Configuration/Auctions/AuctionsV2";
 import { bidlist } from "../utils/common/utility";
 import RolesTable from "../pages/Settings/Security/RoleTable";
 import PivotTableDashboard from "../components/Analytics/PivotTableDashboard";
@@ -345,7 +346,7 @@ const MainRoutes = {
 		// },
 		{
 			path: "/configuration/manage-auction",
-			element: <ManageBid key={"managebid"} />,
+			element: <ManageBidV2 key={"managebid"} />,
 		},
 		{
 			path: "/configuration/manage-auction/add",

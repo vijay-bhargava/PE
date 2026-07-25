@@ -452,6 +452,45 @@
   font-size: 14px !important;
 }
 
+/* ── Status badge variants ── */
+.rfq-v2-status-active {
+  background: #e6f4ea;
+  color: #1a7f3c;
+}
+.rfq-v2-status-draft {
+  background: #fdecea;
+  color: #b8232f;
+}
+.rfq-v2-status-default {
+  background: #e8f1fb;
+  color: #2a68d3;
+}
+
+/* ── Subject cell (auction) ── */
+.rfq-v2-subject-main {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rfq-v2-subject-sub {
+  font-size: 11px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rfq-v2-subject-id {
+  font-size: 11px;
+  color: #9ca3af;
+}
+.rfq-v2-subject-id-val {
+  color: #2a68d3;
+  font-weight: 500;
+}
+
 /* ── Empty state ── */
 .rfq-v2-empty {
   display: flex;

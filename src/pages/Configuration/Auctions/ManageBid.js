@@ -58,14 +58,14 @@ const ManageBid = () => {
             .withUrl(
                 `${process.env.REACT_APP_API_CALL}StatusHub/?CustomerId=${customerid}`,
                 {
-                accessTokenFactory: () => atoken,
-                headers: {
-                    "X-Tenant": tenant
-                },
-                transport:
-                    signalR.HttpTransportType.WebSockets |
-                    signalR.HttpTransportType.ServerSentEvents |
-                    signalR.HttpTransportType.LongPolling,
+                    accessTokenFactory: () => atoken,
+                    headers: {
+                        "X-Tenant": tenant
+                    },
+                    transport:
+                        signalR.HttpTransportType.WebSockets |
+                        signalR.HttpTransportType.ServerSentEvents |
+                        signalR.HttpTransportType.LongPolling,
                 }
             )
             .withAutomaticReconnect([0, 2000, 5000, 10000])
@@ -276,7 +276,7 @@ const ManageBid = () => {
                     style={{ cursor: "pointer" }}
                 >
                     <div className='content-text'>
-						{params?.row?.bidsubject}
+                        {params?.row?.bidsubject}
                     </div>
                     <div className='content-text mt-1'>
                         <span>{params?.row.subject}</span>
@@ -378,9 +378,9 @@ const ManageBid = () => {
                                     color="primary"
                                     size="small"
                                     onClick={() => navigateToPage(params)}
-                                    // onClick={() => {
-                                    //     navigate(`/configuration/auction-control/${params?.row.id}`);
-                                    // }}
+                                // onClick={() => {
+                                //     navigate(`/configuration/auction-control/${params?.row.id}`);
+                                // }}
                                 >
                                     <GavelOutlinedIcon className="f22" />
                                 </IconButton>
@@ -424,11 +424,11 @@ const ManageBid = () => {
         if (!isSearch) {
             setSearchDataLoaded(false);
         }
-        
+
         // If in search mode, fetch all records with a large page size
         const effectivePageSize = isSearch ? 10000 : pageSize;
         const effectivePageNumber = isSearch ? 1 : pageNumber;
-        
+
         getAuctionManageFind(data, atoken, effectivePageNumber, effectivePageSize).then((res) => {
             if (!isSearch) {
                 setGridloading(false);

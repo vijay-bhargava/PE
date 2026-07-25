@@ -550,18 +550,24 @@ const ManageRFQV2 = ({ claimType }) => {
       flex: 2.2,
       minWidth: 180,
       sortable: true,
-      valueGetter: (params) =>
-        `${params?.row?.rfqSubject || ''} ${params?.row?.subject || ''} ${params?.row?.id || ''} ${params?.row?.eventCode || ''}`.trim(),
+      valueGetter: (params) => {
+        // Combine all searchable text for this column
+        const subject = params?.row?.subject || '';
+        const rfqSubject = params?.row?.rfqSubject || '';
+        const id = params?.row?.id || '';
+        const eventCode = params?.row?.eventCode || '';
+        return `${rfqSubject} ${subject} ${id} ${eventCode}`.trim();
+      },
       renderCell: (params) => (
         <div className="rfq-v2-cell" onClick={() => goToRFQ(params.row)}>
-          <span className="rfq-v2-cell-code">
-            {params.row.eventCode ? params.row.eventCode : `RFQ ID: ${params.row.id}`}
-          </span>
           <CommonTooltip title={params.row.subject || params.row.rfqSubject || ''} placement="bottom">
             <span className="rfq-v2-cell-subject" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
               {params.row.subject || params.row.rfqSubject}
             </span>
           </CommonTooltip>
+          <span className="rfq-v2-cell-code">
+            <span> RFQ ID: {params?.row.id}</span>  <span> | Event Code: {params?.row.eventCode}</span>
+          </span>
         </div>
       ),
     },
