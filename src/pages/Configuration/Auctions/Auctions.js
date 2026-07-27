@@ -48,6 +48,7 @@ import GridSkeleton from "../../../components/Skeleton/gridSkeleton";
 import SelectedSupplierCell from "../RequestForQuotation/SelectedSupplierCell";
 import { FastApiClient } from "../../../FastApiClient";
 import BidGeneralPreview from "./BidGeneralPreview";
+import BidItemsTab from "./BidItemsTab";
 import { LiaUserSolid } from "react-icons/lia";
 import AuctionControl from "./AuctionControl";
 import QueryList from "../../CommunucationHub/QueryList"
@@ -4699,140 +4700,28 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									</>
 								);
 							})()}
-							{value == 2 && (() => {
-								if (loadingPermissions) return <GridSkeleton />;
-								const hasReadPermission = permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false;
-								const hasEditPermission = permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.EDIT) ?? false;
-								const hasCreatePermission = permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.CREATE) ?? false;
-								const hasRemovePermission = permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.REMOVE) ?? false;
-
-								if (!hasReadPermission) {
-									return (
-										<div className="p-3">
-											<Alert severity="warning">
-												You don't have permission to view the Items/Services tab.
-											</Alert>
-										</div>
-									);
-								}
-
-								return (
-									<>
-										<div className="mb-5">
-											<div className="p-3 pt-0 ps-2 pe-2 custom-fix">
-												<div className="">
-													<div className="text-end">
-														<Tooltip
-															title={
-																tempDataForItemService[0]?.bidSubTypeId == 82 && bidItemsList?.length > 0
-																	? "In Dutch auction you can add only one line item"
-																	: ""
-															}
-														>
-															<span>
-																<Button
-																	variant="text"
-																	size="small"
-																	startIcon={<HiPlusSm />}
-																	className="text-capitalize blue-text font-normal"
-																	onClick={toggleDrawer("addProductDrawer", true)}
-																	disabled={(
-																		(bidtype?.id == 5 || bidtype?.id == 6)
-																		&& bidItemsList?.length > 0
-																	) || (
-																			tempDataForItemService[0]?.bidSubTypeId == 82
-																			&& bidItemsList?.length > 0
-																		) || !stagearray.includes(currentStage) || !hasCreatePermission}
-																>
-																	Add New
-																</Button>
-															</span>
-														</Tooltip>
-														{hasRemovePermission && (
-															<Tooltip title="Clear All">
-																<IconButton
-																	size="small"
-																	className="ms-2 me-3"
-																	color="error"
-																	onClick={() => {
-																		setConfirmClearAllItems(true)
-																	}}
-																	disabled={!stagearray.includes(currentStage) || bidItemsList?.length <= 0 || !hasRemovePermission}
-																>
-																	<HiOutlineX />
-																</IconButton>
-															</Tooltip>
-														)}
-														<Dropdown align="end" className="d-inline-block">
-															<Dropdown.Toggle
-																as="div"
-																id="gt"
-																className="round-edit remove-tringle"
-																role="button"
-															>
-																<IconButton
-																	size="medium"
-																	className="shadow-sm "
-																	disabled={!stagearray.includes(currentStage)}
-																>
-																	<HiOutlineDotsHorizontal className="f17" />
-																</IconButton>
-															</Dropdown.Toggle>
-															<Dropdown.Menu className="ddl-menu">
-																<MenuItem
-																	className="f14"
-																	disabled={!stagearray.includes(currentStage) || !hasCreatePermission}
-																	onClick={() => handleShowReOpenModal("PullRFQ")}
-																>
-																	Pull RFQ
-																</MenuItem>
-																<Divider />
-																<MenuItem
-																	className="f14"
-																	disabled={!stagearray.includes(currentStage) || !hasCreatePermission}
-																	onClick={() => handleShowPRModal("PullPR")}
-																>
-																	Pull PR Data
-																</MenuItem>
-																<Divider />
-																<MenuItem
-																	className="f14"
-																	disabled={!stagearray.includes(currentStage) || !hasCreatePermission}
-																	onClick={() => document.querySelector('input[type="file"]').click()}
-																>
-																	Excel Upload
-																</MenuItem>
-																<Divider />
-																<MenuItem
-																	className="f14"
-																	disabled={!hasReadPermission}
-																	onClick={downloadItemsExcel}
-																>
-																	Excel Template
-																</MenuItem>
-															</Dropdown.Menu>
-														</Dropdown>
-													</div>
-												</div>
-												<div className="">
-													<ProductitemCell
-														action={stagearray.includes(currentStage) && hasEditPermission}
-														itemsList={bidItemsList}
-														handleEditItem={hasEditPermission ? handleEditItem : () => { }}
-														handleDeleteItem={hasRemovePermission ? handleDeleteItem : () => { }}
-														callbackItemAdd={callbackItemAdd}
-														tempDataForItemService={tempDataForItemService}
-														eventType='Auction'
-														readOnly={!hasEditPermission}
-														showEditButton={hasEditPermission}
-														showDeleteButton={hasRemovePermission}
-													/>
-												</div>
-											</div>
-										</div>
-									</>
-								);
-							})()}
+							{value === 2 && (
+								<BidItemsTab
+									loadingPermissions={loadingPermissions}
+									hasReadPermission={permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false}
+									hasEditPermission={permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.EDIT) ?? false}
+									hasCreatePermission={permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.CREATE) ?? false}
+									hasRemovePermission={permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.REMOVE) ?? false}
+									bidItemsList={bidItemsList}
+									tempDataForItemService={tempDataForItemService}
+									bidtype={bidtype}
+									stagearray={stagearray}
+									currentStage={currentStage}
+									toggleDrawer={toggleDrawer}
+									setConfirmClearAllItems={setConfirmClearAllItems}
+									handleShowReOpenModal={handleShowReOpenModal}
+									handleShowPRModal={handleShowPRModal}
+									downloadItemsExcel={downloadItemsExcel}
+									handleEditItem={handleEditItem}
+									handleDeleteItem={handleDeleteItem}
+									callbackItemAdd={callbackItemAdd}
+								/>
+							)}
 							{((value == 3) &&
 								// (!iscomercialseadDisabled === false)) ? (
 								<div className="mb-5 custom-fix">
