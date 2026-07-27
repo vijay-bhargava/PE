@@ -59,77 +59,77 @@ const BidItemsTab = ({
       {/* ── Toolbar ── */}
       <div className="rfq-items-toolbar" style={{ flexShrink: 0 }}>
         <div className="rfq-items-toolbar-right">
-            {hasRemovePermission && bidItemsList?.length > 0 && (
-              <>
-                <button
-                  type="button"
-                  className="pe-btn pe-btn--ghost"
-                  onClick={() => setConfirmClearAllItems(true)}
-                  disabled={!canAct}
-                >
-                  Clear All
-                </button>
-                <span className="rfq-items-divider" />
-              </>
-            )}
+          {hasRemovePermission && bidItemsList?.length > 0 && (
+            <>
+              <button
+                type="button"
+                className="pe-btn pe-btn--ghost"
+                onClick={() => setConfirmClearAllItems(true)}
+                disabled={!canAct}
+              >
+                Clear All
+              </button>
+              <span className="rfq-items-divider" />
+            </>
+          )}
 
-            <button
-              type="button"
-              className="pe-btn pe-btn--secondary"
-              disabled={!canAct || !hasCreatePermission}
-              onClick={() => handleShowReOpenModal('PullRFQ')}
-            >
-              Pull RFQ
-            </button>
+          <button
+            type="button"
+            className="pe-btn pe-btn--secondary"
+            disabled={!canAct || !hasCreatePermission}
+            onClick={() => handleShowReOpenModal('PullRFQ')}
+          >
+            Pull RFQ
+          </button>
 
-            <button
-              type="button"
-              className="pe-btn pe-btn--secondary"
-              disabled={!canAct || !hasCreatePermission}
-              onClick={() => handleShowPRModal('PullPR')}
-            >
-              Pull PR Data
-            </button>
+          <button
+            type="button"
+            className="pe-btn pe-btn--secondary"
+            disabled={!canAct || !hasCreatePermission}
+            onClick={() => handleShowPRModal('PullPR')}
+          >
+            Pull PR Data
+          </button>
 
-            <span className="rfq-items-divider" />
+          <span className="rfq-items-divider" />
 
-            <button
-              type="button"
-              className="pe-btn pe-btn--secondary"
-              disabled={!canAct || !hasCreatePermission}
-              onClick={() => document.querySelector('input[type="file"]').click()}
-            >
-              Excel Upload
-            </button>
+          <button
+            type="button"
+            className="pe-btn pe-btn--secondary"
+            disabled={!canAct || !hasCreatePermission}
+            onClick={() => document.querySelector('input[type="file"]').click()}
+          >
+            Excel Upload
+          </button>
 
-            <button
-              type="button"
-              className="pe-btn pe-btn--secondary"
-              disabled={!hasReadPermission}
-              onClick={downloadItemsExcel}
-            >
-              Excel Template
-            </button>
+          <button
+            type="button"
+            className="pe-btn pe-btn--secondary"
+            disabled={!hasReadPermission}
+            onClick={downloadItemsExcel}
+          >
+            Excel Template
+          </button>
 
-            <span className="rfq-items-divider" />
+          <span className="rfq-items-divider" />
 
-            <Tooltip title={isDutch && bidItemsList?.length > 0 ? 'In Dutch auction you can add only one line item' : ''}>
-              <span>
-                <button
-                  type="button"
-                  className="pe-btn pe-btn--primary"
-                  onClick={() => toggleDrawer('addProductDrawer', true)()}
-                  disabled={addDisabled}
-                >
-                  <HiPlusSm /> Items/Services
-                </button>
-              </span>
-            </Tooltip>
+          <Tooltip title={isDutch && bidItemsList?.length > 0 ? 'In Dutch auction you can add only one line item' : ''}>
+            <span>
+              <button
+                type="button"
+                className="pe-btn pe-btn--primary"
+                onClick={() => toggleDrawer('addProductDrawer', true)()}
+                disabled={addDisabled}
+              >
+                <HiPlusSm /> Items/Services
+              </button>
+            </span>
+          </Tooltip>
         </div>
       </div>
 
       {/* ── Table ── */}
-      <div className="rfq-v2-table-wrapper" style={{ flex: 1, minHeight: 0 }}>
+      <div className="rfq-v2-table-wrapper" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         <ProductitemCell
           action={canAct && hasEditPermission}
           itemsList={bidItemsList}

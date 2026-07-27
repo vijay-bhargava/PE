@@ -178,7 +178,7 @@ const LoadingFactor = ({ isModal, rfqId, version, vendorId, initialFactors = [],
 					getRowId={(row) => row._key}
 				>
 					{/* Loading Type */}
-					<div className="mfp-field mfp-field--md">
+					<div className="mfp-field mfp-field--md" style={{ marginRight: 10 }}>
 						<label className="pe-field-label">
 							Loading Type <span className="rfq-required-star">*</span>
 						</label>
@@ -188,7 +188,8 @@ const LoadingFactor = ({ isModal, rfqId, version, vendorId, initialFactors = [],
 								size="small"
 								value={factorType}
 								onChange={(e) => setFactorType(e.target.value)}
-								autoWidth
+								sx={{ width: 220, fontSize: 13 }}
+								MenuProps={{ PaperProps: { sx: { width: '220px !important', minWidth: '220px !important' } } }}
 							>
 								<MenuItem value="A">Absolute</MenuItem>
 								<MenuItem value="P">Percentage</MenuItem>

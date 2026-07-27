@@ -624,7 +624,8 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 			sx={{
 				'& .MuiDataGrid-row': { cursor: 'pointer' },
 				'& .MuiDataGrid-cell': { overflow: 'visible' },
-				'& .MuiDataGrid-virtualScroller': { scrollbarWidth: 'thin', scrollbarColor: '#d1d5db #f9fafb' },
+				'& .MuiDataGrid-main': { overflow: 'auto' },
+				'& .MuiDataGrid-virtualScroller': { overflowX: 'auto !important', scrollbarWidth: 'thin', scrollbarColor: '#d1d5db #f9fafb' },
 				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar': { height: 8 },
 				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': { background: '#f9fafb' },
 				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': { background: '#d1d5db', borderRadius: 4 },

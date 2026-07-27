@@ -49,7 +49,8 @@ import SelectedSupplierCell from "../RequestForQuotation/SelectedSupplierCell";
 import { FastApiClient } from "../../../FastApiClient";
 import BidGeneralPreview from "./BidGeneralPreview";
 import BidItemsTab from "./BidItemsTab";
-import { LiaUserSolid } from "react-icons/lia";
+import BidInviteSupplierTab from "./BidInviteSupplierTab";
+import BidLoadingFactor from "./BidLoadingFactor";
 import AuctionControl from "./AuctionControl";
 import QueryList from "../../CommunucationHub/QueryList"
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -4936,422 +4937,36 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									</div>
 								</div>
 							)}
-							{value == 4 && (
-								loadingPermissions ? (
-									<GridSkeleton />
-								) : !canReadSuppliers ? (
-									<div className="p-3">
-										<Alert severity="warning">
-											You don't have permission to view Invite Supplier data.
-										</Alert>
-									</div>
-								) : (
-									tabloading ? <GridSkeleton /> : <div className="p-2 pt-0">
-										<div className="row">
-											<div className="col-12">
-												<div className="">
-													<div className="row align-items-center">
-														<div className="col-12 col-md-12">
-															<div className="row mt-2">
-																<div className="col-12 col-md-6 col-lg-6 mb-3">
-																	<Autocomplete
-																		disablePortal
-																		id=""
-																		size="small"
-																		options={categoryList ?? []}
-																		fullWidth
-																		disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.EDIT) ?? false)}
-																		renderInput={(params) => (
-																			<TextField
-																				{...params}
-																				InputLabelProps={{
-																					shrink: true,
-																				}}
-																				label="Category"
-																			/>
-																		)}
-																		getOptionLabel={(option) =>
-																			option.itemCategory ?? ""
-																		}
-																		value={selectedCategory}
-																		onChange={(e, newvalue) => {
-																			setSelectedCategory(newvalue);
-																			handleSupplierWithCategory(newvalue);
-																		}}
-																	/>
-																</div>
-
-																<div className="col-12 col-md-6 col-lg-6 mb-3">
-																	<Autocomplete
-																		id="searchvendorbyname"
-																		options={
-																			totalSupplier?.filter(
-																				(x) => !x.isSelected
-																			) ?? []
-																		}
-																		filterOptions={VendorfilterOptions}
-																		getOptionLabel={(option) => ""}
-																		disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.EDIT) ?? false)}
-																		renderOption={(
-																			props,
-																			option,
-																			{ selected }
-																		) => (
-																			<li {...props}>
-																				{currentStage == "Draft" && <Checkbox
-																					icon={icon}
-																					checkedIcon={checkedIcon}
-																					style={{ marginRight: 8 }}
-																				/>}
-																				{`${option.contactPerson} | ${option.email} | ${option?.companyName}` ??
-																					""}
-																			</li>
-																		)}
-																		size="small"
-																		fullWidth
-																		renderInput={(params) => (
-																			<TextField
-																				{...params}
-																				InputLabelProps={{
-																					shrink: true,
-																				}}
-																				label="Search User from Supplier by Name"
-																			/>
-																		)}
-																		onChange={(e, newvalue) => {
-																			if (newvalue) {
-
-																				handleSelectedSupplier(
-																					newvalue,
-																					e.target.checked
-																				);
-																			}
-																		}}
-																	/>
-																</div>
-															</div>
-														</div>
-
-													</div>
-												</div>
-											</div>
-										</div>
-										<div className="row mt-3 item-Table">
-											<div className="col-12 col-md-12 col-lg-6">
-												<div className="bg-white rounded-default shadow-sm">
-													<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-														<div className="p-2">
-															<div className="d-flex align-items-center">
-																Total Suppliers{" "}
-																<div className="supplierCount">
-																	{
-																		totalSupplier?.filter((x) => x.isShow)
-																			?.length
-																	}
-																</div>{" "}
-																{selectedCategory && (
-																	<Badge pill bg="success" text="dark">
-																		{selectedCategory?.categoryName}
-																	</Badge>
-																)}
-															</div>
-
-														</div>
-
-													</div>
-													<hr className="m-0" />
-													<div className="row">
-														<div className="col-12">
-															{(() => {
-																const canRead = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false;
-
-																if (!canRead) {
-																	return (
-																		<div className="p-3">
-																			<Alert severity="warning">
-																				You don't have permission to view suppliers data.
-																			</Alert>
-																		</div>
-																	);
-																}
-
-																return totalSupplier
-																	?.filter((x) => x.isShow)
-																	.slice(
-																		(pageTS - 1) * pageCount,
-																		pageTS * pageCount
-																	)
-																	.map((x, i) => (
-																		<div
-																			className="d-flex border-bottom align-items-center m-0 p-1 pt-0 pb-0"
-																			key={i}
-																		>
-																			{!stagearray.includes(currentStage) &&
-
-																				<Tooltip title={x?.contactPerson}>
-																					<IconButton
-																						size="medium"
-																						className="bg-white ms-0 ps-0 pe-0 me-0"
-
-																					>
-																						<LiaUserSolid className="f17 text-primary" />
-																					</IconButton>
-																				</Tooltip>
-
-																			}
-																			<div className="flex-grow-1 ms-2 text-truncate">
-																				<div className="text-truncate f12">
-																					{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
-																				</div>
-																			</div>
-																			{stagearray.includes(currentStage) && (x?.isSelected == true ? (
-																				<Checkbox
-																					size="small"
-																					checked={x?.isSelected}
-																					disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.EDIT) ?? false)}
-																					onChange={(e) =>
-																						handleSelectedSupplier(
-																							x,
-																							e.target.checked
-																						)
-																					}
-																				/>
-																			) : (
-																				<Checkbox
-																					size="small"
-																					checked={false}
-																					disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.EDIT) ?? false)}
-																					onChange={(e) =>
-																						handleSelectedSupplier(
-																							x,
-																							e.target.checked
-																						)
-																					}
-																				/>
-																			))}
-
-																		</div>
-																	));
-															})()}
-														</div>
-													</div>
-												</div>
-
-												<div className="pagination_wrapper mb-3 mt-3">
-													<div className="d-flex align-items-center">
-														<div className="flex-grow-1 d-none d-md-block">
-
-														</div>
-														<div className="">
-															<Stack spacing={2}>
-																<Pagination
-																	count={totalpageTS}
-																	page={pageTS}
-																	onChange={handlePaginationTS}
-																/>
-															</Stack>
-														</div>
-													</div>
-												</div>
-											</div>
-											<div className="col-12 col-md-12 col-lg-6 border-start">
-												<div className="bg-white rounded-default shadow-sm">
-													<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-														<div className="p-2">
-															<div className="d-flex align-items-center">
-																Selected Suppliers{" "}
-																<div className="supplierCount">
-																	{selectedSupplier?.length}
-																</div>
-															</div>
-														</div>
-														<div className="">
-															<>
-																{stagearray.includes(currentStage) && <LoadingButton
-																	variant="text"
-																	size="small"
-																	className="me-2 rounded-default-pill"
-																	disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false)}
-																	onClick={clearALLSelectedSupplier}
-
-																>
-																	<span className="text-capitalize">
-																		Clear All
-																	</span>
-																</LoadingButton>}
-															</>
-														</div>
-													</div>
-													<hr className="m-0" />
-													<div className="row">
-														<div className="col-12">
-															{(() => {
-																const canRead = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false;
-
-																if (!canRead) {
-																	return (
-																		<div className="p-3">
-																			<Alert severity="warning">
-																				You don't have permission to view selected suppliers.
-																			</Alert>
-																		</div>
-																	);
-																}
-
-																return selectedSupplier?.slice(
-																	(pageSS - 1) * pageCount,
-																	pageSS * pageCount
-																)
-																	.map((x, i) => (
-																		<div
-																			className="row border-bottom align-items-center m-0 p-1 pt-0 pb-0"
-																			key={i}
-																		>
-																			<div className="col-md-10">
-																				<div className="d-flex align-items-center ">
-																					{stagearray.includes(currentStage) && (x?.isSelected == true ? (
-																						<Checkbox
-																							size="small"
-																							checked={x?.isSelected}
-																							disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.EDIT) ?? false)}
-																							onChange={(e) =>
-																								handleSelectedSupplier(
-																									x,
-																									e.target.checked
-																								)
-																							}
-																						/>
-																					) : (
-																						<Checkbox
-																							size="small"
-																							checked={false}
-																							disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.EDIT) ?? false)}
-																							onChange={(e) =>
-																								handleSelectedSupplier(
-																									x,
-																									e.target.checked
-																								)
-																							}
-																						/>
-																					))}
-																					<div className="text-truncate f12">
-																						{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
-																					</div>
-																				</div>
-																			</div>
-																			<div className="col-md-2 d-flex align-items-center justify-content-end" style={{ gap: '12px' }}>
-																				<DropdownButton
-																					as={"div"}
-																					key={"end7"}
-																					id={`myacccmenu`}
-																					className="supplieraccmenu"
-																					drop={"start"}
-																					variant="outlined"
-																					style={{
-																						backgroundColor: "white",
-																						color: "#2182cde",
-																					}}
-																					title={
-																						<Tooltip title={"Action"}>
-																							<div
-																								style={{
-																									fontSize: "0.8125rem",
-																									color: "#2A68D3",
-																									fontWeight: "500",
-																								}}
-																							>
-																								<HiDotsVertical />{" "}
-																							</div>
-																						</Tooltip>
-																					}
-																				>
-																					<div className="shadow rounded-default min-width-200px">
-
-
-																						<MenuItem
-																							className="f12 fw500"
-																							disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.EDIT) ?? false)}
-																							onClick={() => handleLoadingFactorClick(x, i)}
-																						>
-																							Loading Factor
-																						</MenuItem>
-																					</div>
-																				</DropdownButton>
-
-																				{x?.bidLoadingFactor && x.bidLoadingFactor.length > 0 && (
-																					<Tooltip title={`${x.bidLoadingFactor.length} Loading Factor${x.bidLoadingFactor.length > 1 ? 's' : ''} Applied`}>
-																						<div
-																							className="d-flex align-items-center"
-																							onClick={() => handleLoadingFactorClick(x, i)}
-																							style={{ cursor: 'pointer' }}
-																						>
-																							<Badge
-																								badgeContent={x.bidLoadingFactor.length}
-																								color="success"
-																								sx={{
-																									'& .MuiBadge-badge': {
-																										fontSize: '9px',
-																										height: '14px',
-																										minWidth: '14px',
-																										padding: '0 3px'
-																									}
-																								}}
-																							>
-																								<HiCalculator
-																									style={{
-																										// color: "#28a745", 
-																										color: "#2A68D3",
-																										fontSize: '16px'
-																									}}
-																								/>
-																							</Badge>
-																						</div>
-																					</Tooltip>
-																				)}
-
-																				{stagearray.includes(currentStage) && (
-																					<IconButton
-																						size="small"
-																						className="bg-white"
-																						disabled={!(permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false)}
-																						onClick={() =>
-																							clearSelectedSupplier(
-																								x,
-																								false
-																							)
-																						}
-																						sx={{ padding: '4px' }}
-																					>
-																						<HiX className="f17 text-danger" />
-																					</IconButton>
-																				)}
-																			</div>
-																		</div>
-																	));
-															})()}
-														</div>
-													</div>
-												</div>
-												<div className="pagination_wrapper mb-3 mt-3">
-													<div className="d-flex align-items-center">
-														<div className="flex-grow-1 d-none d-md-block">
-
-														</div>
-														<div className="">
-															<Stack spacing={2}>
-																<Pagination
-																	count={totalpageSS}
-																	page={pageSS}
-																	onChange={handlePaginationSS}
-																/>
-															</Stack>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								)
+							{value === 4 && (
+								<BidInviteSupplierTab
+									loadingPermissions={loadingPermissions}
+									canReadSuppliers={canReadSuppliers}
+									canEditSuppliers={permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.EDIT) ?? false}
+									canCreateSuppliers={permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false}
+									canRemoveSuppliers={permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false}
+									tabloading={tabloading}
+									categoryList={categoryList}
+									selectedCategory={selectedCategory}
+									totalSupplier={totalSupplier}
+									selectedSupplier={selectedSupplier}
+									stagearray={stagearray}
+									currentStage={currentStage}
+									pageTS={pageTS}
+									pageCount={pageCount}
+									totalpageTS={totalpageTS}
+									pageSS={pageSS}
+									totalpageSS={totalpageSS}
+									setSelectedCategory={setSelectedCategory}
+									handleSupplierWithCategory={handleSupplierWithCategory}
+									handleSelectedSupplier={handleSelectedSupplier}
+									setPageTS={setPageTS}
+									setPageSS={setPageSS}
+									setPageCount={setPageCount}
+									clearALLSelectedSupplier={clearALLSelectedSupplier}
+									clearSelectedSupplier={clearSelectedSupplier}
+									handleLoadingFactorClick={handleLoadingFactorClick}
+									getCategorylist={getCategorylist}
+								/>
 							)}
 							{value === 5 && bidpreview && (
 
@@ -5421,9 +5036,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 											</CardContent>
 										</Card>
 									</>
-
-
-
 
 									{/* Commercial Details (conditionally) */}
 									{bidtype && ![1, 2, 5, 6].includes(bidtype.id) && (
@@ -5627,7 +5239,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				</div>
 			</div>
 
-
 			<React.Fragment key="topaddProduct">
 				<Drawer
 					anchor="right"
@@ -5703,7 +5314,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				<Drawer
 					anchor="right"
 					open={state["surrogateDrawer"]}
-
 				>
 					<Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
 						<div className="flex flex-col">
@@ -6268,286 +5878,37 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				</DialogActions>
 			</Dialog>
 			<Modal
-				size="lg"
 				show={loadingModal}
-				backdrop="static"
-				keyboard={false}
-				value={"Loading"}
+				dialogClassName="modal-custom-mdlg"
 				className="zindex1280"
 				backdropClassName="zindex1280"
+				backdrop="static"
+				keyboard={false}
 				centered
 				contentClassName="border-0"
-				onHide={() => CloseLoadingModal()}
+				onHide={CloseLoadingModal}
 			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 fw-semibold text-white">
-							<HiCalculator className="me-2 f18" />
-							Loading Factor Management
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => CloseLoadingModal()}
-						size="small"
-						edge="start"
-						className="text-white"
-					>
-						<HiOutlineX className="f18" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-					<div className="p-4">
-						{/* Add Loading Factor Form */}
-						<div className="bg-light p-3 rounded mb-4">
-							<h6 className="fw-semibold mb-3 text-secondary">Add New Loading Factor</h6>
-							<div className="row g-3">
-								<div className="col-md-5">
-									<TextField
-										id="factorDesc"
-										name="factorDesc"
-										value={factorDesc}
-										label="Reason Of Loading Factor"
-										variant="outlined"
-										fullWidth
-										onChange={(e) => {
-											const value = e?.target?.value;
-											if (value.length <= 200) {
-												setFactorDesc(value);
-											}
-										}}
-										size="small"
-										error={!!errors.factorDesc}
-										helperText={errors.factorDesc}
-										InputProps={{
-											endAdornment: factorDesc && (
-												<InputAdornment position="end">
-													<Typography variant="caption" color="textSecondary">
-														{factorDesc.length}/200
-													</Typography>
-												</InputAdornment>
-											),
-										}}
-									/>
-								</div>
-
-								<div className="col-md-3">
-									<FormControl fullWidth size="small">
-										<InputLabel id="factorType-label">Loading Type</InputLabel>
-										<Select
-											labelId="factorType-label"
-											id="factorType"
-											name="factorType"
-											value={factorType}
-											label="Loading Type"
-											onChange={(e) => {
-												setFactorType(e?.target?.value)
-											}}
-											error={!!errors.factorType}
-										>
-											<MenuItem value='A'>Absolute</MenuItem>
-											<MenuItem value='P'>Percentage</MenuItem>
-										</Select>
-										{errors.factorType && (
-											<Typography variant="caption" color="error" className="mt-1 ms-2">
-												{errors.factorType}
-											</Typography>
-										)}
-									</FormControl>
-								</div>
-
-								<div className="col-md-3">
-									{factorType === 'A' ? (
-										<TextField
-											id="loadingAmount"
-											name="loadingAmount"
-											label="Loading Amount"
-											variant="outlined"
-											fullWidth
-											value={loadingAmount}
-											inputProps={{
-												maxLength: 5,
-												inputMode: 'numeric',
-												pattern: "[0-9]*"
-											}}
-											onKeyDown={(e) => {
-												if (
-													!/[0-9]/.test(e.key) &&
-													e.key !== 'Backspace' &&
-													e.key !== 'ArrowLeft' &&
-													e.key !== 'ArrowRight' &&
-													e.key !== 'Tab' &&
-													e.key !== '.'
-												) {
-													e.preventDefault();
-												}
-											}}
-											onChange={(e) => {
-												const value = e?.target?.value;
-												const regex = /^[0-9]*\.?[0-9]*$/;
-												if (regex.test(value)) {
-													setLoadingAmount(value);
-												}
-											}}
-											size="small"
-											error={!!errors.loadingAmount}
-											helperText={errors.loadingAmount}
-										/>
-									) : (
-										<TextField
-											id="factorPerc"
-											name="factorPerc"
-											label="Loading Factor (%)"
-											variant="outlined"
-											fullWidth
-											value={factorPerc}
-											inputProps={{
-												maxLength: 5,
-												inputMode: 'numeric',
-												pattern: "[0-9]*"
-											}}
-											onKeyDown={(e) => {
-												if (
-													!/[0-9]/.test(e.key) &&
-													e.key !== 'Backspace' &&
-													e.key !== 'ArrowLeft' &&
-													e.key !== 'ArrowRight' &&
-													e.key !== 'Tab' &&
-													e.key !== '.'
-												) {
-													e.preventDefault();
-												}
-											}}
-											onChange={(e) => {
-												const value = e?.target?.value;
-												const regex = /^[0-9]*\.?[0-9]*$/;
-												if (regex.test(value)) {
-													setFactorPerc(value);
-												}
-											}}
-											size="small"
-											error={!!errors.factorPerc}
-											helperText={errors.factorPerc}
-										/>
-									)}
-								</div>
-
-								<div className="col-md-1 d-flex align-items-start gap-2 pe-3">
-									<Button
-										variant="contained"
-										onClick={handleAddLoadingFactor}
-										size="small"
-										sx={{
-											minWidth: '40px',
-											maxWidth: '40px',
-											padding: '8px'
-										}}
-									>
-										{editIndex !== null ? <HiRefresh className="f16" /> : <HiPlus className="f16" />}
-									</Button>
-									{/* {editIndex !== null && (
-                                        <Button
-                                            variant="outlined"
-                                            onClick={handleCancelEdit}
-                                            size="small"
-                                            sx={{ 
-                                                minWidth: '40px', 
-                                                maxWidth: '40px', 
-                                                padding: '8px' 
-                                            }}
-                                            title="Cancel"
-                                        >
-                                            <HiX className="f16" />
-                                        </Button>
-                                    )} */}
-								</div>
-							</div>
-						</div>
-
-						{/* Loading Factors Table */}
-						<div className="bg-white rounded border">
-							<div className="p-3 border-bottom bg-light">
-								<h6 className="fw-semibold mb-0 text-secondary">Loading Factors List</h6>
-							</div>
-							{filteredLoadingFactors && filteredLoadingFactors.length > 0 ? (
-								<div className="table-responsive">
-									<table className="table table-hover mb-0">
-										<thead className="bg-light">
-											<tr>
-												<th className="fw-semibold py-3 ps-3" style={{ width: '40%' }}>Reason</th>
-												<th className="fw-semibold py-3" style={{ width: '20%' }}>Loading Type</th>
-												<th className="fw-semibold py-3" style={{ width: '20%' }}>Loading Factor</th>
-												<th className="fw-semibold py-3 text-center" style={{ width: '20%' }}>Actions</th>
-											</tr>
-										</thead>
-										<tbody>
-											{filteredLoadingFactors.map((factor, index) => (
-												<tr key={index}>
-													<td className="py-3 ps-3">{factor?.factorDesc}</td>
-													<td className="py-3">
-														<span className={`badge ${factor.factorType === 'A' ? 'bg-primary' : 'bg-success'}`}>
-															{factor.factorType === 'A' ? 'Absolute' : 'Percentage'}
-														</span>
-													</td>
-													<td className="py-3 fw-semibold">
-														{factor.factorType === 'A'
-															? `${formik.values.baseCurrency || ''} ${factor.loadingAmount}`
-															: `${factor.factorPerc}%`
-														}
-													</td>
-													<td className="py-3 text-center">
-														<IconButton
-															size="small"
-															onClick={() => handleEditLoadingFactor(index)}
-															className="me-2"
-															title="Edit"
-														>
-															<HiOutlinePencil style={{ color: "#2A68D3", fontSize: '18px' }} />
-														</IconButton>
-														<IconButton
-															size="small"
-															onClick={() => handleDeleteLoadingFactor(index)}
-															title="Delete"
-														>
-															<HiOutlineX style={{ color: "#dc3545", fontSize: '18px' }} />
-														</IconButton>
-													</td>
-												</tr>
-											))}
-										</tbody>
-									</table>
-								</div>
-							) : (
-								<div className="text-center py-5 text-muted">
-									<HiCalculator className="f40 mb-2 opacity-50" />
-									<p className="mb-0">No loading factors added yet</p>
-									<small>Add a loading factor using the form above</small>
-								</div>
-							)}
-						</div>
-
-						{/* Update Button */}
-						{/* {loadingupdatebtn && filteredLoadingFactors && filteredLoadingFactors.length > 0 && ( */}
-						<div className="mt-4 d-flex justify-content-end gap-2">
-							<Button
-								variant="outlined"
-								onClick={() => CloseLoadingModal()}
-								className="text-capitalize"
-							>
-								Cancel
-							</Button>
-							{loadingupdatebtn && filteredLoadingFactors && filteredLoadingFactors?.length >= 0 && (
-								<LoadingButton
-									variant="contained"
-									type="button"
-									color="primary"
-									className="text-capitalize"
-									onClick={updateSupplierLoadingFactor}
-								>
-									Update Loading Factors
-								</LoadingButton>
-							)}
-						</div>
-
+				<Modal.Body className="p-0 d-flex flex-column">
+					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Loading Factor</span>
+						<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={CloseLoadingModal}>
+							<HiOutlineX />
+						</button>
+					</div>
+					<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+						<BidLoadingFactor
+							isModal={true}
+							bidId={idFromURL}
+							vendorId={storeVId}
+							initialFactors={filteredLoadingFactors}
+							baseCurrency={formik.values.baseCurrency}
+							onUpdate={(factors) => {
+								setFilteredLoadingFactors(factors);
+								setSelectedSupplier(prev =>
+									prev.map(s => s.id === storeVId ? { ...s, bidLoadingFactor: factors } : s)
+								);
+							}}
+						/>
 					</div>
 				</Modal.Body>
 			</Modal>

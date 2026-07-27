@@ -4392,8 +4392,8 @@ div.item-Table.eq-question-list {
 
 /* Supplier action buttons */
 .sup-action-btn.MuiIconButton-root {
-    width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   background: transparent !important;
   border: 1px solid #e2e6ea !important;
   border-radius: 6px !important;
