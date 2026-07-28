@@ -601,7 +601,8 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
                         displayEmpty
                         disabled={!isDraftStage || !eventDetailsCanEdit || basisOf === 'package'}
                         sx={{ width: 220, fontSize: 13 }}
-                        MenuProps={{ PaperProps: { sx: { width: '220px !important', minWidth: '220px !important' } } }}                    >
+                        MenuProps={{ PaperProps: { sx: { width: '220px !important', minWidth: '220px !important' } } }}
+                    >
                         <MenuItem value="absolute">Absolute</MenuItem>
                         <MenuItem value="percentage">Percentage</MenuItem>
                     </Select>
