@@ -7,7 +7,7 @@ import { useStateValue } from '../../../store'
 import { Modal } from "react-bootstrap";
 import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { AuctionItemServiceAdd, AuctionItemServiceUpdate, checkUTC } from '../../../utils/common/utility';
+import { AuctionItemServiceAdd, AuctionItemServiceUpdate } from '../../../utils/common/utility';
 import AddUpdateUom from './AddUpdateUom';
 import { HiOutlineX } from 'react-icons/hi';
 import { sanitizeInput } from '../../../utils/common/santize';
@@ -166,14 +166,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 				const ceilingPrice = parseFloat(values.ceilingPrice);
 				const priceDecAmount = parseFloat(values.priceDecAmount);
 				const priceDecFrq = parseInt(values.priceDecFrq || 1);
-				const totalSumCeilandDecA = ceilingPrice + priceDecAmount;
-				// if (totalSumCeilandDecA > startPrice) {
-				//     toast.error("Start Unit Price Price should not be less than Ceiling Price + Price Decrement Amount.", {
-				//         position: toast.POSITION.TOP_CENTER,
-				//         autoClose: 2000,
-				//     });
-				//     return;
-				// }
+
 				if (priceDecAmount > startPrice) {
 					if (isDecrementBid) {
 						formik.setFieldError('priceDecAmount', 'Price increment amount should be less than Start Unit Price');
@@ -1409,25 +1402,17 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 					backdrop="static"
 					keyboard={false}
 					value={"Add NEW CATEGORY"}
-					className="zindex1280"
+					className="rfq-create-modal zindex1280"
 					backdropClassName="zindex1280"
 					centered
-					contentClassName="border-0"
+					contentClassName="border-0 rounded-default"
 					onHide={() => CloseUomModal()}
 				>
-					<Modal.Header className="pt-2 pb-2 bgheaderCards">
-						<Modal.Title id="modal-heading">
-							<div className="d-flex align-items-center f14 text-white">
-								Manage  UOM
-							</div>
-						</Modal.Title>
-						<IconButton
-							onClick={() => CloseUomModal()}
-							size="small"
-							edge="start"
-						>
-							<HiOutlineX className="f20 text-white" />
-						</IconButton>
+					<Modal.Header className="pt-2 pb-2">
+						<Modal.Title><span style={{ fontSize: 14 }}>Manage UOM</span></Modal.Title>
+						<button type="button" className="rfq-modal-close-btn" onClick={() => CloseUomModal()}>
+							<HiOutlineX style={{ fontSize: 16 }} />
+						</button>
 					</Modal.Header>
 					<Modal.Body className="p-0">
 						<div className="p-3">
@@ -1441,25 +1426,17 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 					backdrop="static"
 					keyboard={false}
 					value={"Add NEW CATEGORY"}
-					className="zindex1280"
+					className="rfq-create-modal zindex1280"
 					backdropClassName="zindex1280"
 					centered
-					contentClassName="border-0"
+					contentClassName="border-0 rounded-default"
 					onHide={() => CloseCategoryModal()}
 				>
-					<Modal.Header className="pt-2 pb-2 bgheaderCards">
-						<Modal.Title><div className="d-flex align-items-center f14 text-white">
-							Manage Category
-						</div>
-
-						</Modal.Title>
-						<IconButton
-							onClick={() => CloseCategoryModal()}
-							size="small"
-							edge="start"
-						>
-							<HiOutlineX className="f20 text-white" />
-						</IconButton>
+					<Modal.Header className="pt-2 pb-2">
+						<Modal.Title><span style={{ fontSize: 14 }}>Manage Category</span></Modal.Title>
+						<button type="button" className="rfq-modal-close-btn" onClick={() => CloseCategoryModal()}>
+							<HiOutlineX style={{ fontSize: 16 }} />
+						</button>
 					</Modal.Header>
 					<Modal.Body className="p-0">
 						<div className="p-3">
@@ -1474,25 +1451,17 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 					backdrop="static"
 					keyboard={false}
 					value={"Add NEW ITEM TYPE"}
-					className="zindex1280"
+					className="rfq-create-modal zindex1280"
 					backdropClassName="zindex1280"
 					centered
-					contentClassName="border-0"
+					contentClassName="border-0 rounded-default"
 					onHide={() => CloseItemTypeModal()}
 				>
-					<Modal.Header className="pt-2 pb-2 bgheaderCards">
-						<Modal.Title><div className="d-flex align-items-center f14 text-white">
-							Manage Item Type
-						</div>
-
-						</Modal.Title>
-						<IconButton
-							onClick={() => CloseItemTypeModal()}
-							size="small"
-							edge="start"
-						>
-							<HiOutlineX className="f20 text-white" />
-						</IconButton>
+					<Modal.Header className="pt-2 pb-2">
+						<Modal.Title><span style={{ fontSize: 14 }}>Manage Item Type</span></Modal.Title>
+						<button type="button" className="rfq-modal-close-btn" onClick={() => CloseItemTypeModal()}>
+							<HiOutlineX style={{ fontSize: 16 }} />
+						</button>
 					</Modal.Header>
 					<Modal.Body className="p-0">
 						<div className="p-3">

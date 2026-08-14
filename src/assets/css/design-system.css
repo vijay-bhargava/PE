@@ -104,7 +104,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 36px;
+  height: 32px;
   padding: 0 14px;
   border-radius: 6px;
   font-size: 13px;
@@ -154,6 +154,16 @@
   background: #f3f4f6;
   color: var(--pe-btn-muted-hover);
   border-color: #d1d5db;
+}
+
+.pe-btn--danger {
+  background: var(--pe-danger, #b8232f);
+  color: #fff;
+  border: 1px solid var(--pe-danger, #b8232f);
+}
+.pe-btn--danger:hover:not(:disabled) {
+  background: #9a1e29;
+  border-color: #9a1e29;
 }
 
 /* Disabled state — applies to all variants */

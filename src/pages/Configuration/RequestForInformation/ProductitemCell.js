@@ -1,203 +1,359 @@
-import { IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Avatar, Button, Tooltip } from '@mui/material';
+import { IconButton, Tooltip, Button, Avatar } from '@mui/material';
 import * as React from 'react';
-import { HiOutlineTrash, HiOutlineUserAdd, HiX, HiOutlineChevronDown, HiOutlineChevronUp, HiPencilAlt } from "react-icons/hi";
-import { formatDateViaLocale, formatDateViaTimeZone } from '../../../utils/common/utility';
+import { HiX, HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi";
+import { formatDateViaLocale } from '../../../utils/common/utility';
 import { useStateValue } from '../../../store';
 import { downloadFilesOnAzure, getFileName } from '../../../utils/common';
+import { PETable } from "../../../components/RFQ/PETable";
+import '../../../assets/css/manage-rfq-v2.css';
 import CommonTooltip from '../../../components/commonTooltip';
 
+const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempDataForItemService = [], action, eventType }) => {
 
-const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempDataForItemService, action, eventType }) => {
-    console.log("itemsListitemsList", itemsList);
-    console.log('proitemcell', tempDataForItemService);
-    console.log('eventType::', eventType);
-    const [{ atoken, rtoken, customerid, roleClaims, userDetail }, dispatch, thousands_separators] =
-        useStateValue();
-    const [openItems, setOpenItems] = React.useState({});
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+	const [{ atoken, rtoken, customerid, roleClaims, userDetail }, dispatch, thousands_separators] =
+		useStateValue();
 
-    const handleClose = (index) => {
-        setOpenItems(prevState => ({
-            ...prevState,
-            [index]: !prevState[index]
-        }));
-    };
+	const hasErpId = Array.isArray(itemsList) && itemsList.some(item => item?.erpSourceId);
+	const [expandedRows, setExpandedRows] = React.useState({});
 
-    const hasErpId = Array.isArray(itemsList) && itemsList.some(item => item?.erpSourceId);
+	const handleRowExpand = (rowId) => {
+		setExpandedRows(prev => ({ ...prev, [rowId]: !prev[rowId] }));
+	};
 
-    // Handle page change
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
+	const getExpandedRowId = (row) => row?.id;
 
-    // Handle rows per page change
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
+	// Insert a detail row after each main row when it's expanded — same
+	// colSpan-based technique as the RFQ ProductitemCell, adapted to RFI's
+	// fields (Description, Attachment, Category, Image, Last PO reference).
+	const createExpandedRows = () => {
+		const expandedRowsList = [];
 
-    // Calculate the paginated items
-    const paginatedItems = itemsList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+		itemsList?.forEach((item, index) => {
+			const serialNo = index + 1;
+			const rowId = item?.id || item?.itemId || index;
 
-    return (
-        <>
-            <div className='table-responsive item-Table'>
-                <table className='itemstable stripped'>
-                    <thead style={{ backgroundColor: '#0d6efd', color: 'white' }}>
-                        <tr>
-                            <th className='text-white fw500 f14'>S.No</th>
-                            <th className='text-white fw500 f14'>Item Code</th>
-                            <th className='text-white fw500 f14'>Item / Service</th>
-                            <th className='text-white fw500 f14'>Quantity</th>
-                            <th className='text-white fw500 f14'>Target Price</th>
-                            {eventType == 'Auction' && <th className='text-white fw500 f14'>Start Price</th>}
-                            {eventType == 'Auction' && <th className='text-white fw500 f14'>{tempDataForItemService[0]?.bidTypeID == 1 || tempDataForItemService[0]?.bidTypeID == 5 ? 'Min Increment' : 'Min Decrement'}</th>}
-                            {eventType == 'Auction' && <th className='text-white fw500 f14'>{tempDataForItemService[0]?.bidTypeID == 1 || tempDataForItemService[0]?.bidTypeID == 5 ? 'Increment On' : 'Decrement On'}</th>}
-                            {eventType == 'Auction' && tempDataForItemService[0]?.bidClosingType == 'S' && <th className='text-white fw500 f14'>Item Duration</th>}
-                            {eventType == 'RFQ' && <th className='text-white fw500 f14'>Delivey Location</th>}
-                            {hasErpId && <th className='text-white fw500 f14'>External SourceId</th>}
-                            {<th className='text-white fw500 f14'>{action ? 'Actions' : "Actions"}</th>}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {paginatedItems.length > 0 && paginatedItems.map((item, index) => (
-                            <React.Fragment key={index}>
-                                <tr className={index % 2 === 0 ? 'even' : 'odd'}>
-                                    <td className='f14' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{page * rowsPerPage + index + 1}</td>
-                                    <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        <CommonTooltip title={item?.itemCode || ''} placement="bottom">
-                                            <span>{item?.itemCode}</span>
-                                        </CommonTooltip>
-                                    </td>
-                                    <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        <CommonTooltip title={item?.itemName || ''} placement="bottom">
-                                            <span>{item?.itemName}</span>
-                                        </CommonTooltip>
-                                    </td>
-                                    <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{thousands_separators(item?.quantity)} {item?.uom}</td>
-                                    <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{thousands_separators(item?.targetPrice)}</td>
-                                    {eventType == 'Auction' && <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{thousands_separators(item?.startPrice)}</td>}
-                                    {eventType == 'Auction' && <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{thousands_separators(item?.minimumDelta)}</td>}
-                                    {eventType == 'Auction' && <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{item?.decreamentOn == 'A' ? 'Amt' : '%age'}</td>}
-                                    {eventType == 'Auction' && tempDataForItemService[0]?.bidClosingType == 'S' && <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{item?.itemBidDuration}</td>}
-                                    {eventType == 'RFQ' && <td className='f14 productTd' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{item?.plant}</td>}
-                                    {hasErpId && <td className='f14' onClick={() => handleEditItem(item)} style={{ cursor: "pointer" }}>{item?.erpSourceId}</td>}
-                                    <td className='f14'>
-                                        <IconButton size='small' onClick={() => handleClose(index)}>
-                                            {openItems[index] ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
-                                        </IconButton>
+			expandedRowsList.push({
+				...item,
+				serialNo,
+				isDetailRow: false,
+				parentId: rowId,
+				originalIndex: index,
+			});
 
-                                        {action && <IconButton size='small'
-                                            onClick={() => handleDeleteItem(item?.id)}
-                                            disabled={itemsList[0]?.bidId && tempDataForItemService[0]?.stage !== 'Draft'}
-                                        >
-                                            <HiX className='text-danger' />
-                                        </IconButton>}
-                                    </td>
-                                </tr>
-                                {openItems[index] && (
-                                    <>
-                                        <tr>
-                                            <td colSpan={action ? 8 : 7}>
-                                                <div className='details d-flex justify-content-between align-items-center'>
-                                                    <div className='col-md-7'>
-                                                        <div className='description f14'>
-                                                            <div className=' productTdDesc'>Description: {item?.itemDesc}</div>
-                                                        </div>
+			if (expandedRows[rowId]) {
+				expandedRowsList.push({
+					id: `detail-${rowId}`,
+					serialNo: '',
+					isDetailRow: true,
+					parentId: rowId,
+					parentData: item,
+					originalIndex: index,
+				});
+			}
+		});
 
+		return expandedRowsList;
+	};
 
-                                                    </div>
-                                                    <div className='col-md-5'>
-                                                        <div className='description f14 align-items-center d-flex '>
-                                                            <div className='description col-md-3'>
+	const columns = [
+		{
+			field: "serialNo",
+			headerName: "S.No",
+			width: 70,
+			colSpan: (params) => params?.row?.isDetailRow ? 20 : 1,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) {
+					const item = params.row.parentData;
+					return (
+						<div style={{
+							display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+							width: '100%', backgroundColor: "#F9FAFB", flexWrap: 'wrap', gap: 16, padding: '10px 0',
+						}}>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 160 }}>
+								<span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500 }}>Description</span>
+								<span style={{ fontSize: '13px', fontWeight: 500, color: '#1f2937' }}>{item?.itemDesc || '-'}</span>
+							</div>
+							{item?.itemCategory && (
+								<div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+									<span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500 }}>Category</span>
+									<span style={{ fontSize: '13px', fontWeight: 500, color: '#1f2937' }}>{item.itemCategory}</span>
+								</div>
+							)}
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+								<span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500 }}>Attachment</span>
+								{item?.itemFile ? (
+									<Button variant="text" size="small"
+										style={{ fontSize: '13px', fontWeight: 500, padding: 0, minWidth: 0, textAlign: 'left', textTransform: 'none' }}
+										onClick={(e) => { e.stopPropagation(); downloadFilesOnAzure(item.itemFile, getFileName(item.itemFile), atoken); }}>
+										{getFileName(item.itemFile)}
+									</Button>
+								) : (
+									<span style={{ fontSize: '13px', fontWeight: 500, color: '#1f2937' }}>-</span>
+								)}
+							</div>
+							{item?.itemImage && (
+								<div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+									<span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500 }}>Image</span>
+									<Avatar
+										alt="Item"
+										src={item.itemImage}
+										variant="rounded"
+										sx={{ width: 40, height: 40 }}
+									/>
+								</div>
+							)}
 
-                                                                Attachment :
-                                                            </div>
-                                                            <div className='text-truncate'>
+							<div style={{
+								border: '1px solid #dde3ee', borderRadius: '8px',
+								padding: '8px 16px', backgroundColor: '#fff',
+								boxShadow: '0 1px 4px rgba(0,0,0,0.07)', flexShrink: 0,
+							}}>
+								<div style={{ fontSize: '11px', fontWeight: 700, color: '#2A68D3', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+									🗒 LAST PO REFERENCE
+								</div>
+								<div style={{ display: 'flex', gap: '24px', marginBottom: '6px' }}>
+									{[
+										{ label: 'PO Number', value: item?.poNumber || 'NA' },
+										{ label: 'Supplier', value: item?.poVendorName || '-' },
+										{ label: 'PO Date', value: item?.poDate ? formatDateViaLocale(item.poDate, userDetail) : '-' },
+									].map(({ label, value }) => (
+										<div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '70px' }}>
+											<span style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 500 }}>{label}</span>
+											<span style={{ fontSize: '12px', fontWeight: 600, color: '#1f2937' }}>{value}</span>
+										</div>
+									))}
+								</div>
+								<div style={{ display: 'flex', gap: '24px' }}>
+									{[
+										{ label: 'Unit Rate', value: item?.poUnitRate ?? 0 },
+										{ label: 'PO Value', value: item?.poValue ?? 0 },
+									].map(({ label, value }) => (
+										<div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '70px' }}>
+											<span style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 500 }}>{label}</span>
+											<span style={{ fontSize: '12px', fontWeight: 600, color: '#1f2937' }}>{value}</span>
+										</div>
+									))}
+								</div>
+							</div>
+						</div>
+					);
+				}
+				return (
+					<div className="content-text detail-row-bold" onClick={() => handleEditItem(params.row)} style={{ cursor: 'pointer' }}>
+						{params.row.serialNo}
+					</div>
+				);
+			},
+		},
+		{
+			field: "itemCode",
+			headerName: "Item Code",
+			flex: 1,
+			minWidth: 150,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				const val = params?.formattedValue || '';
+				return (
+					<CommonTooltip title={val} placement="bottom">
+						<div className="content-text clickable-cell" onClick={() => handleEditItem(params.row)}
+							style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+							{val}
+						</div>
+					</CommonTooltip>
+				);
+			},
+		},
+		{
+			field: "itemName",
+			headerName: "Item / Service",
+			flex: 2,
+			minWidth: 200,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				const val = params?.formattedValue || '';
+				return (
+					<CommonTooltip title={val} placement="bottom">
+						<div onClick={() => handleEditItem(params.row)} className="content-text clickable-cell"
+							style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+							{val}
+						</div>
+					</CommonTooltip>
+				);
+			},
+		},
+		{
+			field: "quantity",
+			headerName: "Quantity",
+			flex: 1,
+			minWidth: 140,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				return (
+					<div className="content-text clickable-cell" onClick={() => handleEditItem(params.row)}>
+						{thousands_separators(params?.formattedValue)} {params.row?.uom}
+					</div>
+				);
+			},
+		},
+		{
+			field: "targetPrice",
+			headerName: "Target Price",
+			flex: 1,
+			minWidth: 130,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				return (
+					<div className="content-text clickable-cell" onClick={() => handleEditItem(params.row)}>
+						{thousands_separators(params?.formattedValue)}
+					</div>
+				);
+			},
+		},
+		...(eventType === 'Auction' ? [{
+			field: "startPrice",
+			headerName: "Start Price",
+			flex: 1,
+			minWidth: 120,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				return (
+					<div className="content-text" onClick={() => handleEditItem(params.row)} style={{ cursor: 'pointer' }}>
+						{thousands_separators(params?.formattedValue)}
+					</div>
+				);
+			},
+		}] : []),
+		...(eventType === 'Auction' ? [{
+			field: "minimumDelta",
+			headerName: tempDataForItemService[0]?.bidTypeID === 1 || tempDataForItemService[0]?.bidTypeID === 5
+				? 'Min Increment'
+				: 'Min Decrement',
+			flex: 1,
+			minWidth: 120,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				return (
+					<div className="content-text" onClick={() => handleEditItem(params.row)} style={{ cursor: 'pointer' }}>
+						{thousands_separators(params?.formattedValue)}
+					</div>
+				);
+			},
+		}] : []),
+		...(eventType === 'Auction' ? [{
+			field: "decreamentOn",
+			headerName: tempDataForItemService[0]?.bidTypeID === 1 || tempDataForItemService[0]?.bidTypeID === 5
+				? 'Increment On'
+				: 'Decrement On',
+			flex: 1,
+			minWidth: 100,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				return (
+					<div className="content-text" onClick={() => handleEditItem(params.row)} style={{ cursor: 'pointer' }}>
+						{params?.formattedValue === 'A' ? 'Amt' : '%age'}
+					</div>
+				);
+			},
+		}] : []),
+		...(eventType === 'Auction' && tempDataForItemService[0]?.bidClosingType === 'S' ? [{
+			field: "itemBidDuration",
+			headerName: "Item Duration",
+			flex: 1,
+			minWidth: 120,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				return (
+					<div className="content-text" onClick={() => handleEditItem(params.row)} style={{ cursor: 'pointer' }}>
+						{params?.formattedValue}
+					</div>
+				);
+			},
+		}] : []),
+		...(eventType === 'RFQ' ? [{
+			field: "plant",
+			headerName: "Delivery Location",
+			flex: 1,
+			minWidth: 150,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				return (
+					<div className="content-text" onClick={() => handleEditItem(params.row)} style={{ cursor: 'pointer' }}>
+						{params?.formattedValue}
+					</div>
+				);
+			},
+		}] : []),
+		...(hasErpId ? [{
+			field: "erpSourceId",
+			headerName: "External SourceId",
+			flex: 1,
+			minWidth: 150,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				return <div className="content-text">{params?.formattedValue}</div>;
+			},
+		}] : []),
+		{
+			field: "actions",
+			headerName: "",
+			flex: 1,
+			minWidth: 100,
+			sortable: false,
+			renderCell: (params) => {
+				if (params.row.isDetailRow) return null;
+				return (
+					<div className="d-flex align-items-center gap-2">
+						{action && (
+							<Tooltip title="Delete Item">
+								<IconButton
+									size="small"
+									onClick={() => handleDeleteItem(params.row.id)}
+									className="text-danger"
+									disabled={itemsList[0]?.bidId && tempDataForItemService[0]?.stage !== 'Draft'}
+								>
+									<HiX />
+								</IconButton>
+							</Tooltip>
+						)}
+						<Tooltip title={expandedRows[params.row?.id] ? "Collapse Details" : "Expand Details"}>
+							<IconButton
+								size="small"
+								onClick={() => handleRowExpand(params.row?.id)}
+								className="text-secondary"
+							>
+								{expandedRows[params.row?.id] ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
+							</IconButton>
+						</Tooltip>
+					</div>
+				);
+			},
+		},
+	];
 
-                                                                <Button
-                                                                    variant="text"
-                                                                    size="small"
-                                                                    className="attached-file-name pointer text-truncate"
-                                                                    onClick={() => downloadFilesOnAzure(item?.itemFile, getFileName(item?.itemFile), atoken)}
-                                                                >
-                                                                    {getFileName(item?.itemFile)}
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                        </tr>
-                                        {item?.itemCategory && <tr>
-
-                                            <td colSpan={action ? 8 : 7}>
-                                                <div className='details'>
-                                                    <div className='description f14 productTdDesc'>
-                                                        Category: {item?.itemCategory}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>}
-                                        {item?.itemImage && <tr>
-                                            <td colSpan={action ? 8 : 7}>
-                                                <div className='details'>
-                                                    <div className='description f14 productTdDesc' style={{ display: 'flex', alignItems: 'center' }}>
-                                                        Image : {<Avatar
-                                                            alt="Logo"
-                                                            src={item?.itemImage}
-                                                            sx={{
-                                                                width: 50,
-                                                                height: 50,
-                                                                marginLeft: 2,
-                                                                borderRadius: 0
-                                                            }}
-                                                            imgProps={{
-                                                                style: {
-                                                                    width: '100%',
-                                                                    height: '100%',
-                                                                    objectFit: 'fill',
-
-                                                                },
-                                                            }}
-                                                        />}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>}
-                                        <tr>
-                                            <td colSpan={action ? 8 : 7}>
-                                                <div className='last-po-details d-flex justify-content-between'>
-                                                    {/* <div className='f14'>PO No.: {item?.poNo}</div> */}
-                                                    <div className='f14'>PO No.: {item?.poNumber}</div>
-                                                    <div className='f14'>PO Date: {item?.poDate ? formatDateViaLocale(item?.poDate, userDetail) : ""}</div>
-                                                    <div className='f14'>Supplier Name: {item?.poVendorName}</div>
-                                                    <div className='f14'>Unit Rate: {item?.poUnitRate}</div>
-                                                    <div className='f14'>PO Value: {item?.poValue}</div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </>
-                                )}
-                            </React.Fragment>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-            <TablePagination
-                rowsPerPageOptions={[10]}
-                component="div"
-                count={itemsList.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-        </>
-    );
+	return (
+		<PETable
+			className="rfq-v2-datagrid"
+			rows={createExpandedRows()}
+			columns={columns}
+			getRowId={getExpandedRowId}
+			getRowHeight={(params) => params.model.isDetailRow ? 130 : 52}
+			disableColumnMenu
+			disableColumnSorting
+			sortingOrder={[]}
+			pageSizeOptions={[10, 25, 50]}
+			pagination
+			initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
+			sx={{
+				'& .MuiDataGrid-row': { cursor: 'pointer' },
+				'& .MuiDataGrid-cell': { overflow: 'visible' },
+				'& .MuiDataGrid-main': { overflow: 'auto' },
+				'& .MuiDataGrid-virtualScroller': { overflowX: 'auto !important', scrollbarWidth: 'thin', scrollbarColor: '#d1d5db #f9fafb' },
+				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar': { height: 8 },
+				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': { background: '#f9fafb' },
+				'& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': { background: '#d1d5db', borderRadius: 4 },
+			}}
+		/>
+	);
 };
 
 export default ProductitemCell;
