@@ -4,11 +4,12 @@ import * as yup from "yup";
 import { actionTypes, useStateValue } from "../../../store";
 import {
 	MenuItem, Menu, Tooltip, Switch, TextField,
-	Button, Modal, Table, Typography, Checkbox,
+	Button, Table, Typography, Checkbox,
 	DialogActions, InputAdornment, Autocomplete,
 	DialogContent, DialogTitle, Dialog, DialogContentText,
 	CircularProgress, Box, Alert, Divider
 } from "@mui/material";
+import { Modal } from 'react-bootstrap';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import IconButton from "@mui/material/IconButton";
 import { ExpandLess, ExpandMore, UnfoldLess, UnfoldMore } from "@mui/icons-material";
