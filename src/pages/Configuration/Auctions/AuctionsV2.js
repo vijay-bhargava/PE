@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useStateValue } from '../../../store';
 import Auctions from './Auctions';
 import '../../../assets/css/rfq-detail-v2.css';
+
+const isDisplayableAuctionCode = (code) => typeof code === 'string' && !!code.trim();
+const normalizeAuctionCode = (code) => code.replace(/\//g, '-');
 
 /**
  * Thin V2 wrapper around the existing Auctions component.
@@ -13,9 +17,25 @@ import '../../../assets/css/rfq-detail-v2.css';
 const AuctionsV2 = ({ claimType, bidtype }) => {
   const navigate = useNavigate();
   const { pageSlug } = useParams();
+  const [{ eventCode }] = useStateValue();
 
   const isNew = !pageSlug || pageSlug === 'add';
-  const crumbLabel = isNew ? 'Auction' : `Auction-${pageSlug}`;
+  const fallbackCrumbLabel = isNew ? 'Auction' : `Auction-${eventCode}`;
+
+  const [stableEventCode, setStableEventCode] = useState(() =>
+    isDisplayableAuctionCode(eventCode) ? normalizeAuctionCode(eventCode) : ''
+  );
+
+  const crumbLabel = useMemo(() => {
+    if (isNew) return 'Auction';
+    return stableEventCode || fallbackCrumbLabel;
+  }, [fallbackCrumbLabel, isNew, stableEventCode]);
+
+  useEffect(() => {
+    if (isDisplayableAuctionCode(eventCode)) {
+      setStableEventCode(normalizeAuctionCode(eventCode));
+    }
+  }, [eventCode]);
 
   const breadcrumb = (
     <nav className="rfq-dv2-breadcrumb" aria-label="breadcrumb">

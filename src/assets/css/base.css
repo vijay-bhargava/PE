@@ -20,6 +20,29 @@
   --font-small: 12px;
 }
 
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.28);
+}
+
 /* Responsive viewport height rules */
 html,
 body {
@@ -992,6 +1015,10 @@ a {
   border: 0px;
 }
 
+#myacccmenu svg {
+  color: #6b7280 !important;
+}
+
 .logo-img {
   max-height: 30px;
   /* ✅ constrain height */
@@ -1075,6 +1102,48 @@ a {
 
 .zindex1400 .modal-content {
   overflow: hidden;
+}
+
+/* Auction detail accordion — matches supplier auctionparticipation.css */
+.auctionDetail-accordion {
+  background: #1d6fc3 !important;
+  color: #fff !important;
+  border-radius: 8px 8px 0 0 !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+}
+
+.auctionDetail-accordion .MuiAccordionSummary-expandIconWrapper {
+  color: #fff !important;
+}
+
+.bid-running-text {
+  font-weight: bold;
+  /* animation: bid-pulse 1.5s infinite; */
+  /* transition: all 0.3s ease-in-out; */
+}
+
+@keyframes bid-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.auction-scrollable {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.auction-scrollable::-webkit-scrollbar {
+  display: none;
 }
 
 .chat-contentWrap {

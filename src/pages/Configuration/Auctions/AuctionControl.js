@@ -2,19 +2,22 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { actionTypes, useStateValue } from "../../../store";
-import { MenuItem, CardContent, Tooltip, Collapse, Switch, TextField, Button, Typography, Checkbox, DialogActions, InputAdornment, Autocomplete, DialogContent, DialogTitle, Dialog, DialogContentText, TableHead, TableContainer, TableRow, TableCell, TableBody, TablePagination, CircularProgress, Box, Alert } from "@mui/material";
-import { Card, DropdownButton, Modal, Table } from "react-bootstrap";
+import {
+	MenuItem, Menu, Tooltip, Switch, TextField,
+	Button, Table, Typography, Checkbox,
+	DialogActions, InputAdornment, Autocomplete,
+	DialogContent, DialogTitle, Dialog, DialogContentText,
+	CircularProgress, Box, Alert, Divider
+} from "@mui/material";
+import { Modal } from 'react-bootstrap';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import IconButton from "@mui/material/IconButton";
-import { ChatOutlined, ExpandLess, ExpandMore, PersonOutlined, UnfoldLess, UnfoldMore } from "@mui/icons-material";
+import { ExpandLess, ExpandMore, UnfoldLess, UnfoldMore } from "@mui/icons-material";
 import { ApiClient } from "../../../Apiclient";
 import { toast } from "react-toastify";
-import { HiDotsVertical, HiMinusSm, HiOutlineX, HiPencilAlt, HiPlusSm } from "react-icons/hi";
-import { LoadingButton } from "@mui/lab";
+import { HiDotsVertical, HiOutlineX, HiPencilAlt } from "react-icons/hi";
 import * as signalR from "@microsoft/signalr";
-import { TiArrowMinimise } from "react-icons/ti";
-import { TbWindowMaximize } from "react-icons/tb";
-import { checkUTC, formatbidtime, formatDateViaLocale, getDateFormatPatteronLocale, userampm } from "../../../utils/common/utility";
+import { checkUTC, formatbidtime, getDateFormatPatteronLocale, userampm } from "../../../utils/common/utility";
 import AuctionCommunication from "./AuctionCommunication";
 import StaggerAuction from "./StaggerAuction";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
@@ -23,13 +26,16 @@ import GridSkeleton from '../../../components/Skeleton/gridSkeleton';
 import TextFieldCell from "../../BaseCells/TextFieldCell";
 import BidGraphs from "./BidGraphs";
 import { DecimalValueRegEx } from "../../../utils/common";
-import { IoMdArrowRoundBack } from "react-icons/io";
 import { LocalizationProvider, MobileDateTimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import NormalVendorTable from "./NormalVendorTable";
+import AuctionDetailBox from "./AuctionDetailBox";
+import { PETableSimple } from '../../../components/RFQ/PETable';
+import { PEPagination } from '../../../components/RFQ/PEPagination';
+import '../../../assets/css/manage-rfq-v2.css';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -37,3651 +43,2854 @@ dayjs.extend(timezone);
 
 const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { }, auctionId }) => {
 
-    const navigate = useNavigate();
-    const [{ atoken, customerid, userDetail, customersuffix }, dispatch, thousands_separators] = useStateValue();
-    const apiClient = new ApiClient(customersuffix);
-    const [allVendorParticipationDetails, SetAllVendorParticipationDetails] = useState([])
-    //console.log("allVendorParticipationDetails:", allVendorParticipationDetails)
-    const [auctionManageData, SetAuctionManageData] = useState([])
-    //console.log("auctionManageData:", auctionManageData)
-    const [vendorListData, setVendorListData] = useState([])
-    const [permissionManager, setPermissionManager] = useState(null);
-    const [loadingPermissions, setLoadingPermissions] = useState(true);
-    const { pageSlug } = useParams();
-    const BidId = auctionId || parseInt(pageSlug);
-    const location = useLocation();
-    const [lineItemsPerPage, setLineItemsPerPage] = useState([]);
-    const [pageNumber, setPageNumber] = useState(1);
-    const [reopenTrigger, setReopenTrigger] = useState(0);
-    const pageNumberRef = useRef(pageNumber);
-    useEffect(() => {
-        pageNumberRef.current = pageNumber;
-    }, [pageNumber]);
-    const [totalCount, setTotalCount] = useState(0);
-    const [runningSlotNumber, setRunningSlotNumber] = useState(null);
-    const [connectionStatus, setConnectionStatus] = useState('connecting'); // 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'failed'
-    const [showRefreshDialog, setShowRefreshDialog] = useState(false);
-    const reconnectAttemptsRef = useRef(0);
-    const maxReconnectAttempts = 3;
-    const connectionTimeoutRef = useRef(null);
-    const reconnectingTimeoutRef = useRef(null);
-    const hasShownDialogRef = useRef(false);
-    const [isFullScreen, setIsFullScreen] = useState(isDifferentPage);
-
-    //signalR
-    const [loading, setLoading] = useState(false);
-    const [isCircleLoading, setIsCircleLoading] = useState(false);
-    const [connection, setConnection] = useState(null);
-    //console.log("state of connection::", connection?._connectionState)
-
-    // Sticky header state
-    const [isHeaderSticky, setIsHeaderSticky] = useState(false);
-    const headerRef = useRef(null);
-    const cardRef = useRef(null);
-
-    useEffect(() => {
-        if (!pageSlug || !atoken) return;
-
-        // Don't create new connection if dialog is shown or if already connecting/connected
-        if (hasShownDialogRef.current || showRefreshDialog) return;
-
-        if (connection && (connection.state === signalR.HubConnectionState.Connected || connection.state === signalR.HubConnectionState.Connecting)) {
-            return;
-        }
-
-        setConnectionStatus('connecting');
-
-        // Set a timeout to show refresh dialog if connection is not established within 3 seconds
-        connectionTimeoutRef.current = setTimeout(() => {
-            if (!hasShownDialogRef.current) {
-                console.error('Connection timeout: Unable to establish connection within 3 seconds.');
-                setConnectionStatus('failed');
-                setShowRefreshDialog(true);
-                hasShownDialogRef.current = true;
-            }
-        }, 3000); // 3 seconds timeout
-        const host = window.location.host;      // buyer.pe.com
-        const cleanHost = host.split(":")[0];   // remove port
-        const tenant = cleanHost.split(".")[0];
-        const connect = new signalR.HubConnectionBuilder()
-            .withUrl(
-                `${process.env.REACT_APP_API_CALL}auctionHub?bidId=${parseInt(pageSlug)}`,
-                {
-                    accessTokenFactory: () => atoken,
-                    headers: {
-                        "X-Tenant": tenant
-                    },
-                    transport:
-                        signalR.HttpTransportType.WebSockets |
-                        signalR.HttpTransportType.ServerSentEvents |
-                        signalR.HttpTransportType.LongPolling,
-                }
-            )
-            .build();
-
-        // Removed automatic reconnection - will be handled manually in onclose
-
-        connect.onclose((error) => {
-            console.error('SignalR closed. Error:', error?.message, error?.stack, error);
-
-            // If dialog already shown, don't do anything
-            if (hasShownDialogRef.current) {
-                setConnection(null);
-                return;
-            }
-
-            setConnection(null);
-
-            // If connection closed with error, attempt one manual reconnection
-            if (error) {
-                setConnectionStatus('reconnecting');
-
-                // Set timeout - if not reconnected in 3 seconds, show dialog
-                if (!reconnectingTimeoutRef.current) {
-                    reconnectingTimeoutRef.current = setTimeout(() => {
-                        if (!hasShownDialogRef.current) {
-                            console.error('Failed to reconnect. Showing refresh dialog.');
-                            setConnectionStatus('failed');
-                            setShowRefreshDialog(true);
-                            hasShownDialogRef.current = true;
-                        }
-                    }, 3000); // 3 seconds timeout
-                }
-
-                // Attempt to reconnect once
-                setTimeout(() => {
-                    if (!hasShownDialogRef.current && connect.state === signalR.HubConnectionState.Disconnected) {
-                        console.log('Attempting manual reconnection...');
-                        connect.start()
-                            .then(() => {
-                                console.log('Reconnected successfully');
-                                if (reconnectingTimeoutRef.current) {
-                                    clearTimeout(reconnectingTimeoutRef.current);
-                                    reconnectingTimeoutRef.current = null;
-                                }
-                                setConnection(connect);
-                                setConnectionStatus('connected');
-                                hasShownDialogRef.current = false;
-                                //toast.success('Connection restored successfully');
-                            })
-                            .catch((err) => {
-                                console.error('Reconnection failed:', err);
-                                // Let the timeout show the dialog
-                            });
-                    }
-                }, 500); // Wait 500ms before attempting reconnection
-            }
-        });
-
-        connect.start()
-            .then(() => {
-                console.log('SignalR Connected for id: ', pageSlug);
-
-                // Clear all timeouts on successful connection
-                if (connectionTimeoutRef.current) {
-                    clearTimeout(connectionTimeoutRef.current);
-                    connectionTimeoutRef.current = null;
-                }
-                if (reconnectingTimeoutRef.current) {
-                    clearTimeout(reconnectingTimeoutRef.current);
-                    reconnectingTimeoutRef.current = null;
-                }
-
-                setConnection(connect);
-                setConnectionStatus('connected');
-                reconnectAttemptsRef.current = 0;
-                hasShownDialogRef.current = false;
-            })
-            .catch((err) => {
-                console.error('Connection failed: ', err);
-                // Initial connection failed, let the timeout show the dialog
-                setConnectionStatus('reconnecting');
-            });
-
-        return () => {
-            // Clear all timeouts and refs on cleanup
-            if (connectionTimeoutRef.current) {
-                clearTimeout(connectionTimeoutRef.current);
-                connectionTimeoutRef.current = null;
-            }
-            if (reconnectingTimeoutRef.current) {
-                clearTimeout(reconnectingTimeoutRef.current);
-                reconnectingTimeoutRef.current = null;
-            }
-            hasShownDialogRef.current = false;
-
-            if (connect) {
-                connect.stop().then(() => console.log('SignalR connection stopped.'));
-                setConnection(null);
-            }
-        };
-    }, [pageSlug, atoken]);
-
-    useEffect(() => {
-
-        const queryParams = new URLSearchParams(location.search);
-
-        const data = queryParams.get("CommId")?.trim();
-        if (data) {
-            dispatch({ type: actionTypes.SET_CommId, value: parseInt(data) });
-        }
-
-        // const pullMessageList = async () => {
-
-        //     var data = {
-        //         CustomerId: customerid,
-        //         SortingColumn: "Id",
-        //         EventId: pageSlug,
-        //         EventType: "Auction",
-        //         CommDetails_CommParticipantUser_UserId: userDetail?.id
-        //     };
-        //     const queryParams = buildQueryParams(data)
-        //     const res = await apiClient.getres(`api/Communication/FindByCommId?${queryParams}`, atoken)
-
-        //     if (res) {
-        //         const data = res?.data?.result ?? []
-
-        //         dispatch({ type: actionTypes.SET_Notificationlist, value: data });
-        //     }
-
-
-        // }
-
-        // // Only run the pullMessageList function if pageSlug is defined
-        // if (pageSlug) {
-        //     pullMessageList();
-        // }
-    }, [pageSlug, customerid, dispatch, atoken]);
-
-    useEffect(() => {
-        // Set up the connection and handle incoming updates
-        if (connection) {
-            connection.on("UpdateAllRanks", (data) => {
-                if (data.length !== 0) {
-                    if (data?.vendors) {
-                        const vendorData = data?.vendors;
-                        if (pageSlug == vendorData[0]?.bidId) {
-
-                            //alert("UpdateAllRanks", data);
-                            if (vendorData[0]?.alertExtension === "Y") {
-                                setBidEndDate(vendorData[0]?.bidEndDate)
-                                getAuctionManageFind();
-                                fetchVendorParameterDetailsLineItems(pageNumberRef.current, rowsPerPage, true);
-                            }
-
-                            fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
-                        }
-                    }
-                    else {
-                        if (pageSlug == data[0]?.bidId) {
-                            //alert("UpdateAllRanks", data);
-                            if (data[0]?.alertExtension === "Y") {
-                                setBidEndDate(data?.bidEndDate)
-                                getAuctionManageFind();
-                                fetchVendorParameterDetailsLineItems(pageNumberRef.current, rowsPerPage, true);
-                            }
-
-                            fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
-                        }
-                    }
-                }
-                else {
-
-                    fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
-                }
-            });
-        }
-    }, [connection, BidId, pageSlug, pageNumberRef.current]);
-
-
-    useEffect(() => {
-        if (connection) {
-            const handleAuctionTimeUpdate = (timeUpdate) => {
-                //alert("AuctionTimeUpdate", timeUpdate);
-                //console.log("Data update received:", timeUpdate);
-
-                const updatedTimeDetail = { ...auctionManageData };
-                let isTimeUpdated = false;
-
-                if (updatedTimeDetail[0].id == timeUpdate?.id) {
-                    const currentDateTime = new Date().toISOString()
-                    if (timeUpdate?.bidEndDate < currentDateTime) {
-                        setIsCircleLoading(true);
-                        setTimeout(() => {
-                            setIsCircleLoading(false);
-                            navigate(`/configuration/manage-auction`);
-                        }, 2000);
-                    } else {
-                        isTimeUpdated = true;
-                        updatedTimeDetail[0].bidStDate = timeUpdate?.bidStDate;
-                        updatedTimeDetail[0].bidEndDate = timeUpdate?.bidEndDate;
-                        updatedTimeDetail[0].bidDuration = timeUpdate?.bidDuration;
-                        updatedTimeDetail[0].extensions = timeUpdate?.extensions;
-                        updatedTimeDetail[0].extensionDuration = timeUpdate?.extensionDuration;
-                    }
-                }
-                if (isTimeUpdated) {
-                    SetAuctionManageData(updatedTimeDetail);
-                    setBidStDate(timeUpdate?.bidStDate);
-                    setBidEndDate(timeUpdate?.bidEndDate);
-                }
-            };
-
-            connection.on("AuctionTimeUpdate", handleAuctionTimeUpdate);
-
-            return () => {
-                connection.off("AuctionTimeUpdate", handleAuctionTimeUpdate);
-            }
-        }
-    }, [connection, auctionManageData, BidId]);
-
-    useEffect(() => {
-
-        fetchVendorParameterDetailsLineItems()
-        //fetchVendorParameterDetails();
-        getAuctionManageFind();
-    }, [atoken, customerid]);
-
-    // calling AllVendorParticipationDetails api here
-    const fetchVendorParameterDetailsLineItems = async (pageNum = pageNumber, pageSize = rowsPerPage, skipFetchDetails = false) => {
-        const eventData = {
-            BidId: auctionId || parseInt(pageSlug),
-            VendorId: 0,
-            PageNumber: pageNum,
-            PageSize: pageSize,
-        };
-
-        setPageNumber(pageNum);
-        const queryParams = buildQueryParams(eventData);
-        const res = await apiClient.getres(
-            `/api/AuctionParticipation/Find?${queryParams}`,
-            atoken
-        );
-        if (res?.data) {
-
-            setLineItemsPerPage(res?.data?.vendorParameterDetails || []);
-
-            if (!skipFetchDetails) {
-                fetchVendorParameterDetails(pageNum, pageSize);
-            }
-
-            const meta = res.data?.pageMetaData?.[0];
-            if (meta) {
-                setTotalCount(meta.totalRecords);
-                setPage(meta.currentPage - 1);
-            }
-        }
-    };
-
-    useEffect(() => {
-        // Fetch role rights on mount so UI doesn't flash access-denied
-        getUserRoleRights();
-    }, [userDetail?.id]);
-
-    const fetchVendorParameterDetails = async (pageNum = pageNumber, pageSize = rowsPerPage) => {
-
-        const eventData = {
-            BidId: auctionId || parseInt(pageSlug),
-            PageNumber: pageNum,
-            PageSize: pageSize,
-        };
-
-        const queryParams = buildQueryParams(eventData);
-        const res = await apiClient.get(
-            `api/AuctionParticipation/AllVendorParticipationDetails?${queryParams}`,
-            //`api/AuctionParticipation/AllVendorParticipationDetails?BidId=${parseInt(pageSlug)}`,
-            atoken
-        );
-        if (res) {
-
-            SetAllVendorParticipationDetails(res?.allVendorParticipationDetail || []);
-        }
-    };
-
-    const [bidStDateTime, setBidStDate] = useState();
-    const [bidEndDateTime, setBidEndDate] = useState();
-    const getAuctionManageFind = async () => {
-
-        const res = await apiClient.get(
-            `api/AuctionManage/Find?CustomerId=${customerid}&Id=${auctionId || pageSlug}`,
-            atoken
-        );
-        if (res) {
-
-            SetAuctionManageData(res?.result || []);
-            setBidStDate(res?.result[0].bidStDate)
-            setBidEndDate(res?.result[0].bidEndDate)
-            setVendorListData(res?.result[0]?.bidVendorInvited || [])
-        }
-
-        if (res?.result[0]?.userAccess?.length > 0) {
-            // Initialize Permission Manager with user access data
-            const permManager = new PermissionManager(res?.result[0]?.userAccess);
-            setPermissionManager(permManager);
-        }
-    };
-
-    const getUserRoleRights = async () => {
-        try {
-            const obj = {
-                FeatureName: "Auction",
-                UserId: userDetail?.id,
-                CreatedById: userDetail?.id,
-            };
-            const queryParams = buildQueryParams(obj);
-            const res = await apiClient.getres(`/api/rolemanagement/GetUserRoleRights?${queryParams}`, atoken);
-            if (res) {
-                const access = res?.data || res?.result?.[0]?.userAccess || res?.result;
-                const permManager = new PermissionManager(access);
-                setPermissionManager(permManager);
-            }
-        } catch (err) {
-            console.error("getUserRoleRights error", err);
-        } finally {
-            setLoadingPermissions(false);
-        }
-    };
-
-    // Simple refresh function
-    const refreshData = async () => {
-        setIsCircleLoading(true);
-        try {
-
-            //getAuctionManageFind();
-            if (checkedVendors.length > 0) {
-                fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
-            }
-            else {
-                getAuctionManageFind();
-            }
-            setTimeout(() => setIsCircleLoading(false), 800);
-        } catch (error) {
-            console.error('Error refreshing:', error);
-            setIsCircleLoading(false);
-        }
-    };
-
-    //bid duration timer update manually starts here
-    const [adjustValue, setAdjustValue] = useState(0); // The value inside the input field
-    const [isValueChanged, setIsValueChanged] = useState(false); // Track if the value is changed by user
-
-    useEffect(() => {
-        if (auctionManageData)
-            setAdjustValue(auctionManageData[0]?.bidDuration)
-    }, [auctionManageData])
-
-    // Handle increase
-    const handleIncrease = () => {
-        setAdjustValue(prev => {
-            if (prev >= 9999999) {
-                return prev;
-            }
-            const newValue = prev + 1;
-            setIsValueChanged(true);
-            return newValue;
-        });
-    };
-
-    // Handle decrease
-    const handleDecrease = () => {
-        if (adjustValue > 0) {
-            setAdjustValue(prev => {
-                const newValue = prev - 1;
-                setIsValueChanged(true); // Mark as changed
-                return newValue;
-            });
-        }
-    };
-
-    const handleBidDurationChange = (e) => {
-        let newValue = e.target.value;
-        newValue = newValue.replace(/[^\d]/g, '');
-        if (newValue === '') {
-            setAdjustValue('');
-            setIsValueChanged(true);
-        } else if (newValue.length <= 7) {
-            setAdjustValue(Number(newValue));
-            setIsValueChanged(true);
-        }
-    };
-
-    const handleGoClick = async () => {
-
-        if (adjustValue < 1 || adjustValue == '') {
-            toast.error("Please enter bid duration.");
-            return;
-        }
-        if (connection.state !== signalR.HubConnectionState.Connected) {
-            console.log("Connection is not in the connected state. Trying to start the connection...");
-            await connection.start();
-            console.log("Connection started successfully!");
-        }
-        if (connection.state === signalR.HubConnectionState.Connected) {
-
-            const res = await apiClient.postres(
-                `/api/AuctionParticipation/AuctionTimeUpdate?BidId=${auctionId || parseInt(pageSlug)}&additionalMins=${adjustValue}&GroupId=${0}`,
-                null,
-                atoken
-            );
-
-            if (res) {
-                //console.log("Bid duration updated successfully.")
-                setIsValueChanged(false)
-            }
-        } else {
-            console.error("Unable to connect to the server.");
-        }
-    };
-    //bid duration timer update manually ends here
-
-    const callbackOnpause = useCallback(
-        (pass) => {
-            getAuctionManageFind()
-        },
-        [auctionId, pageSlug]
-    );
-
-    //timer calculation before bid start here
-    const [timeRemaining, setTimeRemaining] = useState("");
-    const [bidStatus, setBidstatus] = useState(null);
-    console.log("bidStatus:", bidStatus)
-    console.log("bid stage:", auctionManageData[0]?.stage)
-    const [reOpenSuccess, setReOpenSuccess] = useState(false);
-
-    useEffect(() => {
-        let transformedStatus = null;
-
-        if (reOpenSuccess) {
-            transformedStatus = 'Open';
-        } else if (bidStatus == 'running') {
-            transformedStatus = 'Running';
-        } else if (bidStatus == null && timeRemaining == '00:00:00') {
-            transformedStatus = 'Close';
-        }
-
-        if (transformedStatus) {
-            onBidStatusChange(transformedStatus);
-            if (reOpenSuccess) setReOpenSuccess(false);
-        }
-    }, [bidStatus, reOpenSuccess]);
-
-    useEffect(() => {
-        const calculateTimeRemaining = () => {
-            const bidStartDate = new Date(checkUTC(bidStDateTime)).getTime();
-            const currentTime = new Date().getTime();
-            const timeDiff = bidStartDate - currentTime;
-            if (timeDiff > 0) {
-                const formattedTime = formatbidtime(timeDiff)
-                setTimeRemaining(formattedTime);
-                setBidstatus("not_started")
-            } else {
-                const bidEndDate = new Date(checkUTC(bidEndDateTime)).getTime();
-                const currentTime = new Date().getTime();
-                const timeDiff = bidEndDate - currentTime;
-                if (timeDiff > 0) {
-                    const formattedTime = formatbidtime(timeDiff)
-                    setTimeRemaining(formattedTime);
-                    setBidstatus("running")
-                }
-                else {
-                    setTimeRemaining("00:00:00");
-                    clearInterval(timer);
-                    setBidstatus(null)
-                    refreshData();
-                }
-            }
-        };
-        let timer;
-        let flag = new Date(checkUTC(bidEndDateTime)).getTime() > new Date().getTime()
-        if (flag && bidStDateTime && bidEndDateTime) {
-            timer = setInterval(calculateTimeRemaining, 1000);
-            return () => clearInterval(timer);
-        }
-    }, [bidStDateTime, bidEndDateTime]);
-
-    //timer calculation before bid start  ends here 
-
-    // Sticky header scroll listener
-    useEffect(() => {
-        const handleScroll = () => {
-            if (cardRef.current) {
-                const cardTop = cardRef.current.getBoundingClientRect().top;
-                const shouldStick = cardTop <= 70; // When card reaches the main header
-                setIsHeaderSticky(shouldStick);
-            }
-        };
-
-        const mainContent = document.getElementById('mainRightContant');
-        if (mainContent) {
-            mainContent.addEventListener('scroll', handleScroll);
-            return () => mainContent.removeEventListener('scroll', handleScroll);
-        }
-    }, []);
-
-    // Also listen to window scroll in case it's needed
-    useEffect(() => {
-        const handleWindowScroll = () => {
-            if (cardRef.current) {
-                const cardTop = cardRef.current.getBoundingClientRect().top;
-                const shouldStick = cardTop <= 70;
-                setIsHeaderSticky(shouldStick);
-            }
-        };
-
-        window.addEventListener('scroll', handleWindowScroll);
-        return () => window.removeEventListener('scroll', handleWindowScroll);
-    }, []);
-
-    //for the auctiion use
-    const [open, setOpen] = useState(false);
-    const [currentItemIndex, setCurrentItemIndex] = useState(null); // Store current item index or id
-    const [fieldType, setFieldType] = useState('');
-    const [startPrice, setStartPrice] = useState('');
-    const [bidParamId, setBidParamId] = useState('');
-    const [minimumDelta, setMinimumDelta] = useState('');
-    const [maskL1Price, setMaskL1Price] = useState(null);
-    const [hidePrice, setHidePrice] = useState(null);
-    const [showStartPrice, setShowStartPrice] = useState(null);
-
-    const CloseLoadingModal = () => {
-        setOpen(false);
-        setCurrentItemIndex(null);
-    };
-
-    const handleOpen = (type, index, id) => {
-
-        setCurrentItemIndex(index);
-        setFieldType(type);
-        setBidParamId(id)
-        // Populate the values based on the field type
-
-        if (type === 'startPrice') {
-            // setStartPrice(auctionManageData[0]?.bidParamater[index]?.startPrice || '');
-            setStartPrice(lineItemsPerPage[index]?.startPrice || '');
-        } else if (type === 'minimumDelta') {
-            //setMinimumDelta(auctionManageData[0]?.bidParamater[index]?.minimumDelta || '');
-            setMinimumDelta(lineItemsPerPage[index]?.minimumDelta || '');
-        }
-        setOpen(true);
-    };
-
-    const handleSubmit = async (fieldType = "", fieldDecValue = null, fieldFlgBool = null, id) => {
-
-        let finalFieldValue = fieldDecValue;
-
-        if (fieldType === 'startPrice') {
-            finalFieldValue = startPrice;
-        } else if (fieldType === 'minimumDelta') {
-
-            finalFieldValue = minimumDelta;
-
-            // const matchedParameter = auctionManageData[0]?.bidParamater.find(param => param.id === bidParamId);
-            const matchedParameter = lineItemsPerPage?.find(param => param.bidParameterId === bidParamId);
-            if (matchedParameter?.decreamentOn === 'A' && parseFloat(finalFieldValue) == matchedParameter?.startPrice
-                && (auctionManageData[0]?.bidTypeID !== 1 && auctionManageData[0]?.bidTypeID !== 5)) {
-                toast.error("Minimum decrement should not equal to Start Unit Price");
-                return;
-            }
-            if (matchedParameter?.decreamentOn === 'P' && parseFloat(finalFieldValue) > 20
-                && (auctionManageData[0]?.bidTypeID !== 1 && auctionManageData[0]?.bidTypeID !== 5)) {
-                toast.error("Minimum decrement should be less than 20%");
-                return;
-            }
-            if (matchedParameter?.decreamentOn === 'P' && parseFloat(finalFieldValue) > 20
-                && (auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5)) {
-                toast.error("Minimum increment should be less than 20%");
-                return;
-            }
-        }
-
-        const enterParamData = {
-            BidId: auctionId || parseInt(pageSlug), //int
-            ParameterId: fieldFlgBool == null ? bidParamId : id, //int
-            FieldName: fieldType, //string
-            FieldFlg: fieldFlgBool, //boolean (this can be passed for switches)
-            FieldTxt: null, //string (optional if needed)
-            FieldValue: parseFloat(finalFieldValue) ? parseFloat(finalFieldValue) : null, //decimal (if applicable)
-            CreatedBy: userDetail.id, //int
-        };
-
-        try {
-
-            if (connection.state === signalR.HubConnectionState.Connected) {
-                const res = await apiClient.postres(
-                    `/api/AuctionParticipation/UpdateParameterValues`,
-                    enterParamData,
-                    atoken
-                );
-                if (res) {
-
-                    fetchVendorParameterDetailsLineItems(pageNumber, rowsPerPage, true);
-                    //getAuctionManageFind();
-                    console.log('Parameter updated successfully.');
-                }
-            } else {
-                console.error("Unable to connect to the server.");
-            }
-        } catch (err) {
-            console.error("Error submitting bid: ", err);
-        }
-        setOpen(false);
-    };
-
-    //remove quotes
-    const [openRemoveQuote, setOpenRemoveQuote] = useState(false);
-    const [vendorQuotedPrice, setVendorQuotedPrice] = useState(0);
-    const [vendorParamId, setVendorParamId] = useState(0);
-    const [removeRemark, setRemoveRemark] = useState('');
-    const [remarkError, setRemarkError] = useState(false);
-
-    const handleOpenModalRemoveQuote = (quotedPrice, id) => {
-        setOpenRemoveQuote(true)
-        setVendorQuotedPrice(quotedPrice)
-        setVendorParamId(id)
-    };
-
-    const handleRemoveRestrictRemarks = async (id) => {
-        try {
-            const res = await apiClient.postres(`/api/AuctionParticipation/RemoveQuotes?HeaderId=${id}&quotedPrice=0&Remarks='remove'`, null, atoken);
-            if (res) {
-                toast.success('Restrict remark removed successfully.');
-                fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
-            }
-        } catch (err) {
-            console.error('Error removing restrict remark: ', err);
-            toast.error('An error occurred while removing the restrict remark.');
-        }
-    };
-
-    const CloseRemoveQuoteModal = () => {
-        setOpenRemoveQuote(false)
-        setVendorQuotedPrice(0)
-        setVendorParamId(0)
-        setRemoveRemark('');
-    };
-
-    const handleRemoveQoutes = async () => {
-        try {
-            const res = await apiClient.postres(`/api/AuctionParticipation/RemoveQuotes?HeaderId=${vendorParamId}&quotedPrice=${parseFloat(vendorQuotedPrice)}&Remarks=${removeRemark}`, null, atoken)
-            if (res) {
-                toast.success('Quote Removed Successfully.');
-                setOpenRemoveQuote(false)
-                setRemoveRemark('');
-            }
-        } catch (err) {
-            console.error("Error removing quotes: ", err);
-        }
-    };
-
-    const getRankColor = (rankValue) => {
-        if (rankValue == 'L1' || rankValue == 'H1') {
-            return 'blue'; // L1 should be blue
-        } else {
-            return 'red';  // Any rank 2 and beyond should also be red
-        }
-    };
-
-    const [editingVendorId, setEditingVendorId] = useState(null);
-    const [editingParameterId, setEditingParameterId] = useState(null);
-    const [prebidloading, setPreBidLoading] = useState(false);
-    const [prebidValues, setPrebidValues] = useState([]);
-    //console.log("prebidValues:", prebidValues)
-    const handleBlur = () => {
-        setEditingVendorId(null);
-        setEditingParameterId(null);
-        setRestrictVendorId(null);
-        setRestrictParameterId(null);
-    };
-
-    const handleEditPrice = (vendorId, bidParameterId) => {
-        setEditingVendorId(vendorId);
-        setEditingParameterId(bidParameterId);
-    };
-
-    const handlePriceChange = (e, sq) => {
-        const rawValue = e.target.value;
-        const newPrice = parseFloat(rawValue);
-
-        setPrebidValues(prev => {
-            const updatedPrices = [...prev];
-            const existingVendor = updatedPrices.find(item => item.createdById == sq.vendorId && item.bidParameterId == sq.bidParameterId);
-
-            if (rawValue === '') {
-                // Keep entry with empty value so TextField doesn't fall back to sq.quotedPrice
-                if (existingVendor) {
-                    existingVendor.quotedPrice = '';
-                } else {
-                    updatedPrices.push({
-                        id: sq?.id || 0,
-                        createdById: sq.vendorId,
-                        bidParameterId: sq.bidParameterId,
-                        quotedPrice: '',
-                        customerId: parseInt(customerid),
-                        bidId: auctionId || parseInt(pageSlug),
-                        isPrePrice: true,
-                        bidTypeID: auctionManageData[0]?.bidTypeID,
-                        bidSubTypeId: auctionManageData[0]?.bidSubTypeId
-                    });
-                }
-                return updatedPrices;
-            }
-
-            if (newPrice !== 0 && !isNaN(newPrice)) {
-                const bidParameter = lineItemsPerPage?.find(param => param.bidParameterId == sq.bidParameterId);
-                if ((auctionManageData[0]?.bidTypeID !== 1 && auctionManageData[0]?.bidTypeID !== 5) && bidParameter?.startPrice && Number(newPrice) > bidParameter.startPrice) {
-                    toast.error(`You cannot enter more than the start price (${bidParameter.startPrice}) for this bid.`);
-                    return prev;
-                }
-                if (existingVendor) {
-                    existingVendor.quotedPrice = newPrice;
-                } else {
-                    updatedPrices.push({
-                        id: sq?.id || 0,
-                        createdById: sq.vendorId,
-                        bidParameterId: sq.bidParameterId,
-                        quotedPrice: newPrice ?? 0,
-                        customerId: parseInt(customerid),
-                        bidId: auctionId || parseInt(pageSlug),
-                        isPrePrice: true,
-                        bidTypeID: auctionManageData[0]?.bidTypeID,
-                        bidSubTypeId: auctionManageData[0]?.bidSubTypeId
-                    });
-                }
-            }
-            return updatedPrices;
-        });
-    };
-
-
-    //restrict vendor
-    const [restrictVendorId, setRestrictVendorId] = useState(null);
-    //console.log("restrictVendorId:", restrictVendorId)
-    const [restrictParameterId, setRestrictParameterId] = useState(null);
-    const handleCheckboxRestrict = (vendorId, bidParameterId) => {
-
-        setRestrictVendorId(vendorId);
-        setRestrictParameterId(bidParameterId);
-    };
-
-    const handleRestricttChange = (e, sq) => {
-        const newQuote = e.target.value;
-        setPrebidValues(prev => {
-            const updatedPrices = [...prev];
-            const existingVendor = updatedPrices.find(item => item.createdById == sq.vendorId && item.bidParameterId == sq.bidParameterId);
-            if (existingVendor) {
-                existingVendor.restrictRemarks = newQuote;
-            } else {
-                updatedPrices.push({
-                    id: sq?.id || 0,
-                    createdById: sq.vendorId,
-                    bidParameterId: sq.bidParameterId,
-                    restrictRemarks: newQuote ?? '',
-                    customerId: parseInt(customerid),
-                    bidId: auctionId || parseInt(pageSlug),
-                    isPrePrice: true,
-                    bidTypeID: auctionManageData[0]?.bidTypeID,
-                    bidSubTypeId: auctionManageData[0]?.bidSubTypeId
-                });
-            }
-            return updatedPrices;
-        });
-    };
-
-    const submitPrebid = async () => {
-        //console.log("hii there", prebidValues)
-        if (prebidValues.length > 0) {
-            setPreBidLoading(true);
-            for (let prebid of prebidValues) {
-                // const bidParameter = auctionManageData[0]?.bidParamater.find((param) => param.id === prebid.bidParameterId);
-                const bidParameter = lineItemsPerPage?.find((param) => param.bidParameterId === prebid.bidParameterId);
-                if (bidParameter && (auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5)) {
-                    const newPrice = prebid.quotedPrice;
-                    if (bidParameter.startPrice && Number(newPrice) < bidParameter.startPrice) {
-                        toast.error(`Amount should not be less than Start Price (${bidParameter.startPrice}) for this bid.`);
-                        setPreBidLoading(false);
-                        return;
-                    }
-                }
-            }
-            
-            try {
-                const res = await apiClient.postres(
-                    `/api/AuctionParticipation/SubmitPreBid`,
-                    prebidValues,
-                    atoken
-                );
-                if (res) {
-                    
-                    setPrebidValues([]);
-                    toast.success(`PreBid added successfully.`, {
-                        toastId: "prebid_added"
-                    });
-                    fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
-                }
-                else {
-                    toast.error("Error fetching response");
-                }
-            } catch (err) {
-                console.error("Error submitting bid: ", err);
-                toast.error("An error occurred while submitting the bid.");
-            }
-        } else {
-            toast.error(`Enter atleast one prebid.`, {
-                toastId: "prebid_added",
-                autoClose: 2000,
-            });
-        }
-        setPreBidLoading(false);
-    }
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-
-    const [normalPagination, setNormalPagination] = useState(0);
-    const [normalRowsPerPage, setNormalRowsPerPage] = useState(10);
-
-    const handleNormalChangePage = (event, newPage) => {
-        setNormalPagination(newPage);
-        //new add
-        setPageNumber(newPage + 1);
-        fetchVendorParameterDetailsLineItems(newPage + 1, rowsPerPage);
-    };
-
-    const handleNormalChangeRowsPerPage = (event) => {
-        setNormalRowsPerPage(parseInt(event.target.value, 10));
-        setNormalPagination(0);
-        //new add
-        setPageNumber(1); // reset to first page
-        fetchVendorParameterDetailsLineItems(1, event.target.value);
-    };
-
-    // Main Items Table Component
-    const [expandedItemIds, setExpandedItemIds] = useState([]);
-    const [expandAll, setExpandAll] = useState(true);
-
-    const handleExpandToggle = (id, setExpandedItemIds) => {
-
-        setExpandedItemIds(prevIds =>
-            prevIds.includes(id)
-                ? prevIds.filter(itemId => itemId !== id)
-                : [...prevIds, id]
-        );
-    };
-
-    const handleExpandAll = (setExpandAll) => {
-        setExpandAll(true);
-    };
-
-    const handleCollapseAll = (setExpandAll) => {
-        setExpandAll(false);
-    };
-
-    const handleSwitchChange = (setter, handleSubmit, fieldType, id) => (e) => {
-
-        const newValue = e.target.checked;
-        setter(newValue);
-        handleSubmit(fieldType, 0, newValue, id);
-    };
-
-    useEffect(() => {
-
-        if (allVendorParticipationDetails.length > 0) {
-            setExpandedItemIds(expandAll ? allVendorParticipationDetails.map(item => item.bidParameterId) : []);
-        }
-    }, [expandAll, allVendorParticipationDetails]);
-
-    //for Bid details section - collapse by default when auction is running
-    const [expanded, setExpanded] = useState(true);
-
-    // Collapse header when bidStatus becomes "running"
-    useEffect(() => {
-        if (bidStatus === "running") {
-            setExpanded(false);
-        }
-    }, [bidStatus]);
-    const [bidOpen, setBidOpen] = useState(false);
-    const [fieldBidType, setFieldBidType] = useState('');
-    const [subject, setSubject] = useState('');
-    const [description, setDescription] = useState('');
-    const [showRankToVendor, setShowRankToVendor] = useState('');
-    const [maximumExtension, setMaximumExtension] = useState('');
-
-    const handleOpenModal = (type) => {
-        setFieldBidType(type);
-        // Populate the values based on the field type
-        if (type === 'subject') {
-            setSubject(auctionManageData[0]?.subject || '');
-        } else if (type === 'description') {
-            setDescription(auctionManageData[0]?.description?.replace(/<\/?[^>]+(>|$)/g, "") || '');
-        } else if (type === 'showRankToVendor') {
-            setShowRankToVendor(auctionManageData[0]?.showRankToVendor || '');
-        } else if (type === 'maximumExtension') {
-            setMaximumExtension(auctionManageData[0]?.maximumExtension || '');
-        }
-        setBidOpen(true);
-    };
-
-    const handleBidDetailsSubmit = async () => {
-
-        let fieldTxt = null;
-        let fieldValue = null;
-
-        if (fieldBidType === 'subject') {
-            fieldTxt = subject;
-        } else if (fieldBidType === 'description') {
-            fieldTxt = description;
-        } else if (fieldBidType === 'showRankToVendor') {
-            fieldTxt = showRankToVendor;
-        } else if (fieldBidType === 'maximumExtension') {
-            fieldValue = maximumExtension;
-        }
-
-
-        const bidData = {
-            BidId: auctionId || parseInt(pageSlug),
-            ParameterId: 0,   //0 for biddetails only
-            FieldName: fieldBidType, //string
-            FieldFlg: false, //boolean
-            FieldTxt: fieldTxt ? fieldTxt : null, //string
-            FieldValue: parseInt(fieldValue) ? parseInt(fieldValue) : 0,
-            CreatedBy: userDetail.id, //int
-        };
-
-        try {
-            const res = await apiClient.postres(
-                `/api/AuctionParticipation/UpdateParameterValues`,
-                bidData,
-                atoken
-            );
-            if (res) {
-                getAuctionManageFind();
-                console.log('Details updated successfully.');
-            }
-        }
-        catch (err) {
-            console.error("Error updating bid-details: ", err);
-        }
-        setBidOpen(false);
-    };
-    const [approvershow, setApproverShow] = useState(false)
-    const handleApprover = (booleanvalue) => {
-        setApproverShow(booleanvalue)
-    }
-
-    // Check if any vendor has loading factor
-    const hasLoadingFactor = React.useMemo(() => {
-        return auctionManageData[0]?.bidVendorInvited?.some(
-            vendor => vendor.bidLoadingFactor && vendor.bidLoadingFactor.length > 0
-        ) || false;
-    }, [auctionManageData]);
-
-
-    const CloseBidLoadingModal = () => {
-        setBidOpen(false);
-        setSubject("");
-        setDescription("");
-        setShowRankToVendor("");
-        setMaximumExtension("");
-    };
-
-    //to handle add vendor modal
-    const [addVendorModal, setAddVendorModal] = useState(false);
-    const handleCloseAddVendorModal = () => {
-        setAddVendorModal(false);
-        setSelectedVendors([]);
-        setCheckedVendors([]);
-    }
-
-    const handleShowAddVendorModal = () => {
-        getTotalSupplier()
-        setAddVendorModal(true);
-    }
-
-    const [totalSupplier, setTotalSupplier] = useState([]);
-    const [selectedVendors, setSelectedVendors] = useState([]);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filteredVendors, setFilteredVendors] = useState([]);
-    const [checkedVendors, setCheckedVendors] = useState([]);
-
-    useEffect(() => {
-        const results = totalSupplier.filter((vendor) =>
-            (vendor.companyName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (vendor.contactPerson || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (vendor.email || "").toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        setFilteredVendors(results);
-    }, [searchQuery, totalSupplier]);
-
-    const getTotalSupplier = async () => {
-
-        const obj = {
-            CustomerId: customerid,
-        };
-        const queryParams = buildQueryParams(obj);
-
-        const res = await apiClient.getres(
-            `/api/managevendors/GetVendorUsers?${queryParams}`,
-            atoken
-        );
-        try {
-            if (res?.data) {
-
-                setTotalSupplier(res?.data)
-            }
-        } catch (err) {
-            console.error("Error submitting bid: ", err);
-        }
-    };
-
-    const handleCheckboxChange = (vendorId, contactId, isChecked, vendor) => {
-
-        const isDuplicateSupplier = selectedVendors.some(
-            (selected) => selected.vendorId === vendorId && selected.contactId !== contactId
-        );
-
-        if (isDuplicateSupplier) {
-            toast.info("User from this Supplier is already added", {
-                toastId: "supplier_info",
-            });
-            return;
-        }
-
-        setSelectedVendors((prevSelected) =>
-            isChecked
-                ? [...prevSelected, { vendorId, contactId }]
-                : prevSelected.filter((vendor) => vendor.contactId !== contactId)
-        );
-
-        setCheckedVendors((prevChecked) =>
-            isChecked
-                ? [
-                    ...prevChecked,
-                    {
-                        bidId: auctionId || parseInt(pageSlug),
-                        emailId: vendor.email,
-                        vendorID: vendor.vendorId,
-                        contactId: vendor.contactId,
-                        customerId: customerid,
-                        vendorName: vendor.tradeName,
-                        contactPerson: vendor.contactPerson,
-                    },
-                ]
-                : prevChecked.filter((item) => item.contactId !== contactId)
-        );
-    };
-
-    const addVendors = async (event) => {
-        if (checkedVendors.length === 0) {
-            toast.error(`Please select at least one vendor to invite.`);
-            return;
-        }
-
-        const vendorParams = checkedVendors.map((vendor) => ({
-            bidId: auctionId || parseInt(pageSlug),
-            customerId: vendor.customerId,
-            emailId: vendor.emailId,
-            vendorID: parseInt(vendor.vendorID),
-            contactId: vendor.contactId,
-            vendorName: vendor.vendorName,
-            contactPerson: vendor.contactPerson,
-            supplierActionType: "AddVendor",
-            // Action: "AddVendor",
-            createdById: userDetail?.id,
-            createdByName: userDetail?.name
-        }));
-        //console.log("vendorParamsvendorParams::", vendorParams)
-        try {
-            const res = await apiClient.postres(
-                `/api/AuctionInviteVendors/${auctionId || parseInt(pageSlug)}/Add`,
-                vendorParams,
-                atoken
-            );
-            if (res) {
-                setAddVendorModal(false)
-                toast.success(`vendor invited successfully`, {
-                    toastId: "addVendor"
-                })
-                setTimeout(() => {
-                    refreshData();
-                }, 500);
-            }
-            else {
-                return '';
-            }
-        } catch (error) {
-            toast.error(`Error inviting suppliers: ${error.message}`);
-        }
-    };
-
-    //bidgraph
-    const [modal, setModal] = useState(false);
-    const [selectedParameterData, setSelectedParameterData] = useState([]);
-    const OpenModal = (data, index) => {
-
-        const selectedItem = data[index];
-        setModal(true);
-        getLineWiseGraphData(selectedItem)
-    }
-
-    const CloseModal = () => {
-        setModal(false);
-        getLineWiseGraphData([])
-    };
-
-    const getLineWiseGraphData = async (selectedItem) => {
-        const obj = {
-            BidId: auctionId || pageSlug,
-            ParameterId: selectedItem?.bidParameterId,
-            BidTypeId: auctionManageData[0]?.bidTypeID
-        };
-        const queryParams = buildQueryParams(obj);
-        const res = await apiClient.getres(
-            `/api/AuctionParticipation/BIDQuotesTrendGraph?${queryParams}`,
-            atoken
-        );
-
-        try {
-            if (res?.data) {
-                setSelectedParameterData(res?.data)
-            }
-        }
-        catch (err) {
-            console.error("Error submitting bid: ", err);
-        }
-    };
-
-    //handle send reminder
-    const [sendReminderModal, setSendReminderModal] = useState(false);
-    const [selectedSRVendors, setSelectedSRVendors] = useState([]);
-    //console.log("selectedSRVendors::", selectedSRVendors)
-    const [vendorRemarks, setVendorRemarks] = useState({}); // State to hold remarks for each vendor
-    const [searchQueryReminder, setSearchQueryReminder] = useState('');
-    const [filteredVendorsReminder, setFilteredVendorsReminder] = useState([]);
-
-    useEffect(() => {
-        const results = vendorListData.filter((vendor) =>
-            (vendor.vendorName || "").toLowerCase().includes(searchQueryReminder.toLowerCase()) ||
-            (vendor.contactPerson || "").toLowerCase().includes(searchQueryReminder.toLowerCase()) ||
-            (vendor.emailId || "").toLowerCase().includes(searchQueryReminder.toLowerCase())
-        );
-        setFilteredVendorsReminder(results);
-    }, [searchQueryReminder, vendorListData]);
-
-    const handleCloseSendReminderModal = () => {
-        setSendReminderModal(false);
-        setSelectedSRVendors([]);
-        setVendorRemarks({});
-        setSearchQueryReminder('');
-    }
-    const handleShowSendReminderModal = () => {
-        setSendReminderModal(true);
-    }
-
-    const handleSelectAll = (isChecked) => {
-        if (isChecked) {
-            const allVendors = filteredVendorsReminder.map((vendor) => ({
-                bidId: auctionId || parseInt(pageSlug),
-                customerId: vendor.customerId,
-                emailId: vendor.emailId,
-                vendorID: parseInt(vendor.vendorID),
-                contactId: vendor.contactId,
-            }));
-            setSelectedSRVendors(allVendors);
-        } else {
-            setSelectedSRVendors([]);
-        }
-    };
-
-    const handleCheckboxSR = (vendor, isChecked) => {
-        setSelectedSRVendors((prevSelected) => {
-            if (isChecked) {
-                // Add the selected vendor with all details if not already in the list
-                return [
-                    ...prevSelected,
-                    {
-                        bidId: auctionId || parseInt(pageSlug),
-                        customerId: vendor.customerId,
-                        emailId: vendor.emailId,
-                        vendorID: parseInt(vendor.vendorID),
-                        contactId: vendor.contactId,
-                    },
-                ];
-            } else {
-                // Remove the vendor based on vendorID
-                return prevSelected.filter((item) => item.vendorID !== parseInt(vendor.vendorID));
-            }
-        });
-    };
-
-    const handleRemarkChange = (vendorID, remark) => {
-        setVendorRemarks((prevRemarks) => ({
-            ...prevRemarks,
-            [vendorID]: remark,
-        }));
-    };
-
-
-    const handleSend = async (event) => {
-        //event.preventDefault();
-        if (selectedSRVendors.length === 0) {
-            toast.error(`Please select at least one vendor and enter remarks.`);
-            return;
-        }
-
-        const payload = {
-            Email: selectedSRVendors.map((vendor) => vendor.emailId),
-            EventId: auctionId || parseInt(pageSlug),
-            EventType: "Auction",
-            Stage: null,
-            EventSubject: auctionManageData[0]?.subject || null,
-            EventCode: auctionManageData[0]?.eventCode || null,
-            StartDate: auctionManageData[0]?.bidStDate || null,
-            EndDate: auctionManageData[0]?.bidEndDate || null,
-            UserType: 'V',
-            EventCreatedByName: userDetail?.name || null,
-            EventDuration: auctionManageData[0]?.bidDuration || null
-        };
-        try {
-            // const res = await apiClient.postres(`/api/AuctionManage/ BIDActions`, payload, atoken)
-            const res = await apiClient.postres(`/api/eventapprover/SendReminder`, payload, atoken)
-            if (res) {
-                setSendReminderModal(false)
-                setSelectedSRVendors([]);
-                setVendorRemarks({});
-                toast.success(`reminder send successfully`, {
-                    toastId: "remindertoast"
-                })
-            }
-        } catch (error) {
-            toast.error(`Error sending reminder to suppliers: ${error.message}`);
-            setSendReminderModal(false)
-            setSelectedSRVendors([]);
-            setVendorRemarks({});
-        }
-    };
-
-    //handle reOpened
-    const [reOpenAuctionModal, setReOpenAuctionModal] = useState(false);
-    const [reOpenDate, setReOpenDate] = useState(null);
-    const [bidDeadLine, setBidDeadLine] = useState(null);
-    const [bidDuration, setBidDuration] = useState(0);
-    const [extensions, setExtensions] = useState(0);
-
-    const handleCloseReOpenModal = () => {
-        setReOpenAuctionModal(false);
-        setSelectedSRVendors([])
-        setReOpenDate(null)
-        setBidDeadLine(null)
-        setBidDuration(0);
-        setExtensions(0);
-    }
-
-    const handleShowReOpenModal = () => {
-        const bidStDate = checkUTC(auctionManageData[0]?.bidStDate);
-        setReOpenAuctionModal(true);
-
-        if (bidStDate && !isNaN(new Date(bidStDate).getTime())) {
-            const bidStDate2 = dayjs(bidStDate).tz(userDetail?.timeZone);
-            setReOpenDate(bidStDate2);
-        }
-        const bidDuration = auctionManageData[0]?.bidDuration || 0;
-        setBidDuration(bidDuration);
-        setExtensions(auctionManageData[0]?.extensions || 0);
-    };
-
-
-
-    const updateBidEndDate = (startDate, duration) => {
-        if (startDate && duration > 0) {
-            const endDate = dayjs(startDate).tz(userDetail?.timeZone).add(duration, 'minute');
-            // Using Day.js to add minutes
-            setBidDeadLine(endDate);
-            // Convert Day.js object back to native Date
-        }
-    };
-    const updateBidDuration = (startDate, endDate) => {
-        if (startDate && endDate) {
-            const duration = dayjs(endDate).tz(userDetail?.timeZone).diff(dayjs(startDate).tz(userDetail?.timeZone), 'minute'); // Calculate duration in minutes
-            if (duration >= 0 && duration !== bidDuration) { // Avoid overwriting valid durations
-                setBidDuration(duration);
-            }
-        }
-    };
-
-    const handleReOpen = async () => {
-        setLoading(true);
-
-        if (!reOpenDate) {
-            toast.error("Please select a ReOpen Date before proceeding.");
-            setLoading(false);
-            return;
-        }
-
-        if (reOpenDate.isBefore(dayjs().tz(userDetail?.timeZone))) {
-            toast.error("ReOpen Date cannot be in the past.");
-            setLoading(false);
-            return;
-        }
-
-        if (bidDuration < 1 || bidDuration === '') {
-            toast.error("Please enter bid duration.");
-            setLoading(false);
-            return;
-        }
-
-        const payloadReOpen = {
-            bidVendorDetails: null,
-            reOpenDate: reOpenDate?.toISOString() ?? new Date().toISOString(),
-            bidDeadLine: bidDeadLine?.toISOString(),
-            bidDuration,
-            bidId: auctionId || parseInt(pageSlug),
-            Action: "Reopen",
-            extensions,
-            stageDto: {
-                "eventType": "Auction",
-                "currentStage": "Draft",
-                "nextStage": "",
-                "orgId": 0,
-                "orgGroupId": 0
-            }
-        };
-
-        try {
-            const res = await apiClient.postres(`/api/AuctionManage/ BIDActions`, payloadReOpen, atoken);
-            if (res) {
-                setReopenTrigger(prev => prev + 1);
-                setReOpenAuctionModal(false);
-                setReOpenSuccess(true);
-
-                toast.success("Auction Reopen Successfully.", {
-                    toastId: "reOpentoast"
-                });
-                getAuctionManageFind();
-                if (auctionManageData[0]?.bidClosingType === "S") {
-                    fetchVendorParameterDetailsLineItems(pageNumber, rowsPerPage, true);
-                }
-            }
-
-        } catch (error) {
-            if (error?.response?.status === 404) {
-                toast.error("Auction not found. Please contact administrator.");
-            } else {
-                toast.error(
-                    error?.message ||
-                    "Error occurs while reopening auction. Please contact administrator."
-                );
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
-
-    //handle surrogate
-    const [actionmodal, setActionModal] = useState({
-        surrogateSupplierModal: false,
-    });
-
-    const handleActionModel = (fieldname, fieldvalue) => (event) => {
-
-        if (
-            event.type === 'keydown' &&
-            (event.key === 'Tab' || event.key === 'Shift')
-        ) {
-            return;
-        }
-
-        setActionModal({ ...actionmodal, [fieldname]: fieldvalue });
-    };
-
-
-    const validationSchemaSurrogate = yup.object().shape({
-        surrogatename: yup
-            .string("Enter Surrogater Name")
-            .max(200, "Max 40 character")
-            .required("Surrogater name is required"),
-        surrogateemail: yup
-            .string('Enter email')
-            .required('Please enter your email')
-            .email('Enter a valid email'),
-        supplier: yup
-            .object()
-            .test('at-least-one', 'At least one supplier is required', (value) => {
-                return value && Object.keys(value).length > 0;
-            }).required('Suppliers are required')
-    });
-    const formik_Surrogate = useFormik({
-        enableReinitialize: true,
-        initialValues: {
-            supplier: null,
-            surrogatename: "",
-            surrogateemail: "",
-            surrogateReason: ""
-        },
-        validationSchema: validationSchemaSurrogate,
-        onSubmit: async (values) => {
-
-            if (!values?.supplier) {
-                toast.error(`Please Select Supplier`, {
-                    toastId: "surrogatetoasterror"
-                })
-                return
-            }
-
-            const payload = {
-                "name": values?.surrogatename,
-                "vendorId": values?.supplier?.vendorID,
-                "VendorDetailId": values?.supplier?.id,
-                "email": values?.surrogateemail,
-                "bidId": auctionId || parseInt(pageSlug),
-                "reason": values?.surrogateReason,
-                "stages": {
-                    "eventType": "Auction",
-                    "currentStage": "Surrogate",
-                    "nextStage": "Surrogate",
-                    "orgId": 0,
-                    "orgGroupId": 0
-                }
-            }
-
-            const res = await apiClient.postres(`/api/AuctionManage/BIDSurrogate`, payload, atoken)
-            if (res) {
-                setActionModal({ ...actionmodal, ["surrogateSupplierModal"]: false })
-                toast.success(`suppliers surrogated successfully`, {
-                    toastId: "surrogatetoast"
-                })
-                formik_Surrogate.resetForm();
-            }
-        },
-    });
-
-    //handle cancel auction
-    const [modalcancelOpen, setModalCancelOpen] = useState(false);
-    const [cancelReason, setCancelReason] = useState("");
-    const [biderror, setBidError] = useState("");
-    const [showTable, setShowTable] = useState(false);
-
-    const handleCancel = () => {
-        setModalCancelOpen(true);
-    }
-
-    const handleCancelAuctionModal = async (confirm) => {
-        if (confirm) {
-            if (!cancelReason.trim()) {
-                setBidError("This field is required.");
-                return;
-            }
-            else {
-                const cancelbuttonvalue = {
-                    bidId: auctionId || parseInt(pageSlug),
-                    Status: "Cancel",
-                    Comment: cancelReason,
-                    EventType: "Auction",
-                    CurrentStage: auctionManageData[0]?.stage
-                }
-                const queryParams = buildQueryParams(cancelbuttonvalue)
-                const res = await apiClient.postres(`/api/AuctionManage/BIDCancel?${queryParams}`, null, atoken);
-                if (res) {
-                    toast.success(`BID Cancel successfully.`, {
-                        toastId: "Cancel_error"
-                    });
-                    navigate(`/configuration/manage-auction`);
-                }
-            }
-        } else {
-            setModalCancelOpen(false);
-            setCancelReason("");
-            setBidError("");
-        }
-    };
-
-    const handleCancelInputChange = (e) => {
-        const value = e.target.value;
-        if (value.length <= 1000) {
-            setCancelReason(value);
-            if (value.trim()) {
-                setBidError("");
-            }
-        }
-    };
-    const hasOpenBid = auctionManageData[0]?.bidParamater.some(item =>
-        item.itemStatus === "Open"
-    );
-    //console.log("hasOpenBid:", hasOpenBid);
-
-    const goBack = () => {
-        navigate(-1);
-    };
-
-    const toggleFullScreen = () => {
-        if (isFullScreen) {
-            // Exit full screen - go to manage auction view
-            navigate(`/configuration/manage-auction/${BidId}`);
-        } else {
-            // Enter full screen - go to auction control view
-            navigate(`/configuration/auction-control/${BidId}`);
-        }
-        setIsFullScreen(!isFullScreen);
-    };
-
-    const fieldLabelMap = {
-        subject: "Subject",
-        showRankToVendor: "Show Rank To Vendor",
-        maximumExtension: "Maximum Extension",
-        description: "Description",
-    };
-
-
-    // Find running slot number for stagger auctions - runs continuously
-    useEffect(() => {
-        if (auctionManageData[0]?.bidClosingType !== 'S') {
-            setRunningSlotNumber(null);
-            return;
-        }
-
-        const checkRunningSlot = () => {
-            if (!auctionManageData[0]?.bidParamater || auctionManageData[0].bidParamater.length === 0) {
-                setRunningSlotNumber(null);
-                return;
-            }
-
-            const currentTime = new Date().getTime();
-
-            // Get unique group numbers from auctionManageData[0].bidParamater
-            const uniqueGroups = [...new Set(auctionManageData[0].bidParamater.map(item => item.groupNo))];
-
-            // Find the currently running slot
-            for (let groupNo of uniqueGroups) {
-                const groupItems = auctionManageData[0].bidParamater.filter(item => item.groupNo === groupNo);
-                if (groupItems.length > 0) {
-                    const firstItem = groupItems[0];
-                    const slotStartDate = new Date(checkUTC(firstItem.itemStDate)).getTime();
-                    const slotEndDate = new Date(checkUTC(firstItem.itemEndDate)).getTime();
-
-                    // Check if this slot is currently running
-                    if (currentTime >= slotStartDate && currentTime <= slotEndDate) {
-                        setRunningSlotNumber(groupNo);
-                        return;
-                    }
-                }
-            }
-
-            // No running slot found
-            setRunningSlotNumber(null);
-        };
-
-        // Check immediately
-        checkRunningSlot();
-
-        // Then check every second
-        const timer = setInterval(checkRunningSlot, 1000);
-
-        return () => clearInterval(timer);
-    }, [auctionManageData[0]?.bidClosingType, auctionManageData[0]?.bidParamater]);
-
-    // Handler to navigate to running slot
-    const handleRunningSlotClick = () => {
-        if (runningSlotNumber !== null) {
-            fetchVendorParameterDetailsLineItems(runningSlotNumber, rowsPerPage);
-        }
-    };
-
-    if (loadingPermissions) {
-        return <GridSkeleton />;
-    }
-
-    return (
-        <>
-            {/* Connection Status Overlay - Only show during connecting/reconnecting */}
-            {(connectionStatus === 'connecting' || connectionStatus === 'reconnecting') && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 9999,
-                    backdropFilter: 'blur(3px)'
-                }}>
-                    <div style={{
-                        backgroundColor: 'white',
-                        borderRadius: '12px',
-                        padding: '40px',
-                        textAlign: 'center',
-                        maxWidth: '400px',
-                        boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
-                    }}>
-                        {connectionStatus === 'connecting' && (
-                            <>
-                                <div style={{
-                                    width: '60px',
-                                    height: '60px',
-                                    border: '4px solid #f3f3f3',
-                                    borderTop: '4px solid #3498db',
-                                    borderRadius: '50%',
-                                    animation: 'spin 1s linear infinite',
-                                    margin: '0 auto 20px'
-                                }} />
-                                <h3 style={{ color: '#333', marginBottom: '10px', fontSize: '20px' }}>Connecting...</h3>
-                                <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>Establishing connection to auction server</p>
-                            </>
-                        )}
-                        {connectionStatus === 'reconnecting' && (
-                            // <>
-                            //     <div style={{
-                            //         width: '60px',
-                            //         height: '60px',
-                            //         border: '4px solid #f3f3f3',
-                            //         borderTop: '4px solid #ff9800',
-                            //         borderRadius: '50%',
-                            //         animation: 'spin 1s linear infinite',
-                            //         margin: '0 auto 20px'
-                            //     }} />
-                            //     <h3 style={{ color: '#333', marginBottom: '10px', fontSize: '20px' }}>Reconnecting...</h3>
-                            // </>
-                            <>
-                                <div style={{
-                                    width: '60px',
-                                    height: '60px',
-                                    border: '4px solid #f3f3f3',
-                                    borderTop: '4px solid #3498db',
-                                    borderRadius: '50%',
-                                    animation: 'spin 1s linear infinite',
-                                    margin: '0 auto 20px'
-                                }} />
-                                <h3 style={{ color: '#333', marginBottom: '10px', fontSize: '20px' }}>Connecting...</h3>
-                                <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>Establishing connection to auction server</p>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* Refresh Page Dialog - Only show when connection failed */}
-            <Dialog
-                open={showRefreshDialog}
-                disableEscapeKeyDown
-                disableBackdropClick
-            >
-                <DialogTitle style={{ color: '#f44336' }}>
-                    Connection Failed
-                </DialogTitle>
-                <DialogContent style={{ minWidth: '350px' }}>
-                    <DialogContentText>
-                        Unable to establish connection to the auction server after multiple attempts.
-                        <br /><br />
-                        Please refresh the page to reconnect and continue participating in the bid.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        onClick={() => window.location.reload()}
-                        variant="contained"
-                        color="primary"
-                        autoFocus
-                    >
-                        Refresh Page
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* READ Permission Check */}
-            {!(permissionManager?.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.READ) ?? false) ? (
-                <div className="p-3">
-                    <Alert severity="warning">
-                        You don't have permission to view this auction control page.
-                    </Alert>
-                </div>
-            ) : (
-                <>
-                    <div className="row">
-                        <div className={approvershow ? "col-12 col-md-9 col-lg-9" : "col-12 col-md-12 col-lg-12"}>
-                            <div className="mt-2 mb-2">
-                                <Card ref={cardRef}>
-                                    <Card.Header
-                                        ref={headerRef}
-                                        className={`d-flex justify-content-between bgheaderCards align-items-center ${isHeaderSticky ? 'auction-header-fixed' : ''} ${approvershow ? 'auction-header-chat-open' : ''}`}
-                                        style={isHeaderSticky ? {
-                                            position: 'fixed',
-                                            top: '70px',
-                                            left: '70px',
-                                            right: approvershow ? '25%' : '0',
-                                            zIndex: 99,
-                                            backgroundColor: 'var(--vz-primary-color)',
-                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                        } : {
-                                            backgroundColor: 'var(--vz-primary-color)',
-                                        }}
-                                    >
-                                        <div className="col-11 col-md-11 auction-header-content">
-                                            <div className="row justify-content-between w-100 gx-1">
-                                                <div className={`col-md-3 col-12 d-flex align-items-center text-white font-bold pe-0 auction-header-left ${approvershow ? 'chat-open-left' : ''}`}>
-                                                    <div className="f20 fw500"><IoMdArrowRoundBack className="me-2 pointer" onClick={goBack} /></div>
-                                                    <div className="f14 fw500 ps-1"><span>{auctionManageData[0]?.eventCode}</span></div>
-                                                </div>
-                                                {bidStatus !== null ? (
-                                                    <div className={`col-md-9 col-12 text-white text-end auction-header-right ${approvershow ? 'chat-open-right' : ''}`}>
-                                                        {bidStatus == "not_started" && (
-                                                            <span className='f17 fw-bold'>
-                                                                Bid starts in (hh:mm:ss) : <span style={{ color: '#ffc1a8' }}>{timeRemaining}</span>
-                                                            </span>
-                                                        )}
-                                                        {
-                                                            bidStatus == "running" && auctionManageData[0]?.bidClosingType == "S" ? (
-                                                                <>
-                                                                    <span className="f17 fw-bold">
-                                                                        Running (hh:mm:ss): <span>{timeRemaining ?? ''}</span>
-                                                                    </span>
-                                                                    <span className="text-white mx-2 auction-header-divider">|</span>
-                                                                    <span>
-                                                                        <Tooltip
-                                                                            title={isFullScreen ? "Exit Full Screen" : "Enter Full Screen"}
-                                                                            componentsProps={{
-                                                                                tooltip: {
-                                                                                    sx: {
-                                                                                        fontSize: '0.8rem',
-                                                                                        padding: '8px 12px'
-                                                                                    }
-                                                                                }
-                                                                            }}
-                                                                        >
-                                                                            <Button
-                                                                                variant="standard"
-                                                                                className="p-0 auction-custom-button"
-                                                                                onClick={toggleFullScreen}
-                                                                                style={{ minWidth: '40px', padding: '8px' }}
-                                                                            >
-                                                                                {isFullScreen ? (
-                                                                                    <TiArrowMinimise className="text-white f15" />
-                                                                                ) : (
-                                                                                    <TbWindowMaximize className="text-white f15" />
-                                                                                )}
-                                                                            </Button>
-                                                                        </Tooltip>
-                                                                    </span>
-                                                                </>
-                                                            ) : (
-                                                                bidStatus == "running" && auctionManageData[0]?.stage !== 'Paused' && (
-                                                                    <span className="f17 fw-bold">
-                                                                        Running (hh:mm:ss): <span>{timeRemaining}</span>
-                                                                    </span>
-                                                                )
-                                                            )
-                                                        }
-                                                        {auctionManageData[0]?.bidClosingType !== 'S' && (
-                                                            <>
-                                                                {(() => {
-                                                                    const hasEditPermission = permissionManager.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false;
-                                                                    return (
-                                                                        <div className="d-inline-flex align-items-center auction-timer-section">
-                                                                            <span className="auction-control-buttons">
-                                                                                <Button
-                                                                                    variant="standard"
-                                                                                    className="p-0 auction-custom-button"
-                                                                                    onClick={handleDecrease}
-                                                                                    disabled={bidStatus !== "running" || !hasEditPermission || auctionManageData[0]?.extensions > 0}
-                                                                                    style={{ fontSize: "1.5rem", padding: "10px", minWidth: "50px" }}
-                                                                                >
-                                                                                    <HiMinusSm />
-                                                                                </Button>
-                                                                            </span>
-                                                                            <span className="auction-timer-input">
-                                                                                <TextField
-                                                                                    className="bg-white"
-                                                                                    variant="outlined"
-                                                                                    size="small"
-                                                                                    type="number"
-                                                                                    value={adjustValue}
-                                                                                    style={{
-                                                                                        width: "70px",
-                                                                                        minWidth: "70px"
-                                                                                    }}
-                                                                                    inputProps={{
-                                                                                        min: 0,
-                                                                                        maxLength: 7,
-                                                                                        inputMode: 'numeric',
-                                                                                        pattern: "[0-9]*",
-                                                                                        style: {
-                                                                                            paddingTop: "2px",
-                                                                                            paddingBottom: "2px",
-                                                                                        },
-                                                                                    }}
-                                                                                    onKeyDown={(e) => {
-                                                                                        if (
-                                                                                            !/[0-9]/.test(e.key) &&
-                                                                                            e.key !== 'Backspace' &&
-                                                                                            e.key !== 'ArrowLeft' &&
-                                                                                            e.key !== 'ArrowRight' &&
-                                                                                            e.key !== 'Tab'
-                                                                                        ) {
-                                                                                            e.preventDefault();
-                                                                                        }
-                                                                                    }}
-                                                                                    onChange={handleBidDurationChange}
-                                                                                    disabled={bidStatus !== "running" || !hasEditPermission}
-                                                                                    readOnly={!hasEditPermission}
-                                                                                />
-                                                                            </span>
-                                                                            <span className="auction-control-buttons">
-                                                                                <Button
-                                                                                    variant="standard"
-                                                                                    className="p-0 auction-custom-button"
-                                                                                    onClick={handleIncrease}
-                                                                                    disabled={bidStatus !== "running" || !hasEditPermission}
-                                                                                    style={{ fontSize: "1.5rem", padding: "10px", minWidth: "50px" }}
-                                                                                >
-                                                                                    <HiPlusSm />
-                                                                                </Button>
-                                                                            </span>
-                                                                            <span className="text-white mx-2 auction-header-divider">|</span>
-                                                                            <span className="auction-control-buttons">
-                                                                                <Button
-                                                                                    variant="standard"
-                                                                                    className="p-0 auction-custom-button"
-                                                                                    onClick={handleGoClick}
-                                                                                    disabled={bidStatus !== "running" || !isValueChanged || (adjustValue == auctionManageData[0]?.bidDuration) || !hasEditPermission}
-                                                                                >
-                                                                                    <span className="f14 fw500">Go</span>
-                                                                                </Button>
-                                                                            </span>
-                                                                            <span className="text-white mx-2 auction-header-divider">|</span>
-                                                                            <span>
-                                                                                <Tooltip
-                                                                                    title={isFullScreen ? "Exit Full Screen" : "Enter Full Screen"}
-                                                                                    componentsProps={{
-                                                                                        tooltip: {
-                                                                                            sx: {
-                                                                                                fontSize: '0.8rem',
-                                                                                                padding: '8px 12px'
-                                                                                            }
-                                                                                        }
-                                                                                    }}
-                                                                                >
-                                                                                    <Button
-                                                                                        variant="standard"
-                                                                                        className="p-0 auction-custom-button"
-                                                                                        onClick={toggleFullScreen}
-                                                                                        style={{ minWidth: '40px', padding: '8px' }}
-                                                                                    >
-                                                                                        {isFullScreen ? (
-                                                                                            <TiArrowMinimise className="text-white f15" />
-                                                                                        ) : (
-                                                                                            <TbWindowMaximize className="text-white f15" />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </Tooltip>
-                                                                            </span>
-                                                                        </div>
-                                                                    );
-                                                                })()}
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <div className={`col-md-9 col-12 text-white text-end auction-header-right ${approvershow ? 'chat-open-right' : ''}`}>
-                                                        <span className='f17 fw-bold'>Bid status: Close</span>
-                                                        <span className="text-white mx-2 auction-header-divider">|</span>
-                                                        <span style={{ marginLeft: '15px' }}>
-                                                            <Tooltip
-                                                                title={isFullScreen ? "Exit Full Screen" : "Enter Full Screen"}
-                                                                componentsProps={{
-                                                                    tooltip: {
-                                                                        sx: {
-                                                                            fontSize: '0.8rem',
-                                                                            padding: '8px 12px'
-                                                                        }
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <Button
-                                                                    variant="standard"
-                                                                    className="p-0 auction-custom-button"
-                                                                    onClick={toggleFullScreen}
-                                                                    style={{ minWidth: '40px', padding: '8px' }}
-                                                                >
-                                                                    {isFullScreen ? (
-                                                                        <TiArrowMinimise className="text-white f15" />
-                                                                    ) : (
-                                                                        <TbWindowMaximize className="text-white f15" />
-                                                                    )}
-                                                                </Button>
-                                                            </Tooltip>
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <span className="text-white mx-1 auction-header-divider">|</span>
-                                        <div className="col-1 col-md-1 ps-0 text-end d-flex justify-content-end align-items-center auction-chat-controls">
-                                            <span>
-                                                <Tooltip
-                                                    title="Open/Close Chat"
-                                                    componentsProps={{
-                                                        tooltip: {
-                                                            sx: {
-                                                                fontSize: '0.8rem',
-                                                                padding: '8px 12px'
-                                                            }
-                                                        }
-                                                    }}
-                                                >
-                                                    <IconButton
-                                                        onClick={() => handleApprover(!approvershow)}
-                                                        size="small"
-                                                        edge="start"
-                                                        className="pointer"
-                                                    >
-                                                        <div className={` ${approvershow ? 'chat' : 'chat'}`}>
-                                                            {!approvershow ? <ChatOutlined className='f15 text-white' />
-                                                                : <ChatOutlined className='f15 text-white' />}
-                                                        </div>
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </span>
-                                            <Button
-                                                variant="standard"
-                                                className="cardBtn"
-                                                onClick={() => setExpanded(!expanded)}
-                                            >
-                                                {expanded ? <ExpandLess className="text-white" /> : <ExpandMore className="text-white" />}
-                                            </Button>
-                                        </div>
-                                    </Card.Header>
-
-                                    {/* Placeholder to prevent content jumping when header becomes fixed */}
-                                    {isHeaderSticky && (
-                                        <div style={{ height: '60px', backgroundColor: 'transparent' }}></div>
-                                    )}
-
-                                    <Collapse in={expanded}>
-                                        <Card.Body>
-                                            <div className='row mx-1 mb-2'>
-                                                <div className='col-md-12 ms-0 ps-0 d-flex align-items-center'>
-                                                    <div className='f14 fw500' style={{ minWidth: '100px', flexShrink: 0 }}> Subject: </div>
-                                                    <div className="d-flex align-items-center" style={{
-                                                        overflow: 'hidden',
-                                                        flexGrow: 1,
-                                                        minWidth: 0
-                                                    }}>
-                                                        <Tooltip title={auctionManageData[0]?.subject || ''}>
-                                                            <div className="f14 fw400" style={{
-                                                                overflow: 'hidden',
-                                                                textOverflow: 'ellipsis',
-                                                                whiteSpace: 'nowrap',
-                                                                cursor: 'default'
-                                                            }}>
-                                                                {auctionManageData[0]?.subject}
-                                                            </div>
-                                                        </Tooltip>
-                                                        <span onClick={() => handleOpenModal('subject')} className="ms-2" style={{ flexShrink: 0 }}>
-                                                            {bidStatus !== "running" && bidStatus !== null && (permissionManager?.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false) && (
-                                                                <HiPencilAlt
-                                                                    className="text-primary"
-                                                                    size={16}
-                                                                    style={{ cursor: 'pointer' }}
-                                                                />
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className='row mx-1'>
-                                                <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                    <div className='f14 fw500 col-md-6'> Start Time: </div>
-
-                                                    <div className="f14 fw400 col-md-6">
-                                                        {formatDateViaLocale(auctionManageData[0]?.bidStDate, userDetail)}
-                                                    </div>
-                                                </div>
-
-                                                <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                    <div className='f14 fw500 col-md-6'> End Time: </div>
-                                                    <div className='f14 fw400 col-md-6'>
-                                                        {formatDateViaLocale(auctionManageData[0]?.bidEndDate, userDetail)}
-                                                    </div>
-                                                </div>
-
-                                                {auctionManageData[0]?.prebid && auctionManageData[0]?.preBidStDate && auctionManageData[0]?.preBidEndDate && (
-                                                    <>
-                                                        <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                            <div className='f14 fw500 col-md-6'>Prebid Start: </div>
-                                                            <div className='f14 fw400 col-md-6'>
-                                                                {formatDateViaLocale(checkUTC(auctionManageData[0]?.preBidStDate), userDetail)}
-                                                            </div>
-                                                        </div>
-                                                        <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                            <div className='f14 fw500 col-md-6'>Prebid End: </div>
-                                                            <div className='f14 fw400 col-md-6'>
-                                                                {formatDateViaLocale(checkUTC(auctionManageData[0]?.preBidEndDate), userDetail)}
-                                                            </div>
-                                                        </div>
-                                                    </>
-                                                )}
-
-                                                <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                    <div className='f14 fw500 col-md-6'>Closing Type:  </div>
-                                                    <div className='f14 fw400 col-md-6'>
-                                                        {auctionManageData[0]?.bidClosingType == 'A' ? 'All items in one go' : 'Stagger At Item Level'}
-                                                    </div>
-                                                </div>
-
-                                                <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                    <div className='f14 fw500 col-md-6'>Config Duration (mins): </div>
-                                                    <div className='f14 fw400 col-md-6'>
-                                                        {auctionManageData[0]?.bidDuration}
-                                                    </div>
-                                                </div>
-                                                {/* {auctionManageData[0]?.extensions > 0 && */}
-                                                <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                    <div className='f14 fw500 col-md-6'>Actual Duration (mins): </div>
-                                                    <div className='f14 fw400 col-md-6'>
-                                                        {auctionManageData[0]?.bidDuration + (auctionManageData[0]?.extensionDuration * auctionManageData[0]?.extensions ?? 0)}
-                                                    </div>
-                                                </div>
-                                                {/* } */}
-                                                <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                    <div className='f14 fw500 col-md-6'> Type: </div>
-                                                    <div className='f14 fw400 col-md-6'>
-                                                        {auctionManageData[0]?.bidTypeID == 1 ? ' Forward Auction' :
-                                                            auctionManageData[0]?.bidTypeID == 2 ? ' Reverse Auction' :
-                                                                auctionManageData[0]?.bidTypeID == 3 ? ' Freight Auction' :
-                                                                    auctionManageData[0]?.bidTypeID == 4 ? ' Formula Based Auction' :
-                                                                        auctionManageData[0]?.bidTypeID == 5 ? 'French Forward' :
-                                                                            auctionManageData[0]?.bidTypeID == 6 ? 'French Reverse' :
-                                                                                'Unknown Auction'}
-                                                        {auctionManageData[0]?.bidSubTypeId == 81 ? ' (English)' :
-                                                            auctionManageData[0]?.bidSubTypeId == 82 ? ' (Dutch)' :
-                                                                auctionManageData[0]?.bidSubTypeId == 83 ? ' (Japanese)' : ''}
-                                                    </div>
-                                                </div>
-
-                                                <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                    <div className='f14 fw500 col-md-6'>Mask Participants: </div>
-                                                    <div className='f14 fw400 col-md-6'>
-                                                        {auctionManageData[0]?.hideVendor == false ? 'No' : 'Yes'}
-                                                    </div>
-                                                </div>
-                                                <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                    <div className='f14 fw500 col-md-6'>Mask Quote: </div>
-                                                    <div className='f14 fw400 col-md-6'>
-                                                        {auctionManageData[0]?.hideQuote == false ? 'No' : 'Yes'}
-                                                    </div>
-                                                </div>
-
-                                                <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                    <div className='f14 fw500 col-md-6'>Display Vendors Rank: </div>
-                                                    <div className='f14 fw400 col-md-6'>
-                                                        {auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5 ? (
-                                                            auctionManageData[0]?.showRankToVendor === 'Y' ? ' As H1, H2, H3 etc.' :
-                                                                auctionManageData[0]?.showRankToVendor === 'N' ? ' As H1 Or Not H1.' :
-                                                                    auctionManageData[0]?.showRankToVendor === 'T' ? ' Traffic Light.' :
-                                                                        'Unknown Rank'
-                                                        ) : (
-                                                            auctionManageData[0]?.showRankToVendor === 'Y' ? ' As L1, L2, L3 etc.' :
-                                                                auctionManageData[0]?.showRankToVendor === 'N' ? ' As L1 Or Not L1.' :
-                                                                    auctionManageData[0]?.showRankToVendor === 'T' ? ' Traffic Light.' :
-                                                                        'Unknown Rank'
-                                                        )}
-                                                        <span onClick={() => handleOpenModal('showRankToVendor')}>
-                                                            {bidStatus !== null && (permissionManager?.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false) && (
-                                                                <HiPencilAlt
-                                                                    className="text-primary"
-                                                                    size={15}
-                                                                    style={{ cursor: 'pointer', marginLeft: '5px' }}
-                                                                />
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                    <div className='f14 fw500 col-md-6'>Max No. of Extensions:
-                                                    </div>
-                                                    <div className='f14 fw400 col-md-6'>
-                                                        {auctionManageData[0]?.maximumExtension == -1 ? 'Unlimited' : auctionManageData[0]?.maximumExtension}
-                                                        <span onClick={() => handleOpenModal('maximumExtension')}>
-                                                            {bidStatus !== null && (permissionManager?.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false) && (
-                                                                <HiPencilAlt
-                                                                    className="text-primary"
-                                                                    size={15}
-                                                                    style={{ cursor: 'pointer', marginLeft: '5px' }}
-                                                                />
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className='col-md-4 ms-0 ps-0 d-flex justify-content-between'>
-                                                    <div className='f14 fw500 col-md-6'>No Of Extensions:
-                                                    </div>
-                                                    <div className='f14 fw400 col-md-6'>
-                                                        {auctionManageData[0]?.extensions ?? 0}
-                                                    </div>
-                                                </div>
-
-                                                {auctionManageData[0]?.isMultiCurrency && (
-                                                    <div className="col-md-4 ms-0 ps-0">
-                                                        <div style={{ display: "flex", alignItems: "center" }}>
-                                                            <span className="f14 fw500 col-md-6">
-                                                                Base Currency:
-                                                            </span>
-                                                            <span className="f14">
-                                                                {auctionManageData[0]?.baseCurrency}
-                                                            </span>
-
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                <div className="col-md-4 ms-0 ps-0">
-                                                    <div style={{ display: "flex", alignItems: "center" }}>
-                                                        <span className="f14 fw500 col-md-6">
-                                                            Currency Mode:
-                                                        </span>
-                                                        <span className="f14">
-                                                            {auctionManageData[0]?.isMultiCurrency ? "Multi Currency" : auctionManageData[0]?.baseCurrency}
-                                                        </span>
-                                                        {auctionManageData[0]?.isMultiCurrency && (
-                                                            <IconButton onClick={() => setShowTable(!showTable)} className="p-0">
-                                                                {showTable ? <ExpandLess /> : <ExpandMore />}
-                                                            </IconButton>
-                                                        )}
-                                                    </div>
-                                                    {auctionManageData[0]?.isMultiCurrency && showTable && auctionManageData[0]?.multicurrencytList?.length > 0 && (
-                                                        <div className="d-flex align-items-center">
-                                                            <TableContainer className="d-block">
-                                                                <Table size="small" className="d-block" aria-label="currency table">
-                                                                    <TableHead className="d-flex align-items-center justify-content-between">
-                                                                        <TableRow>
-                                                                            <TableCell className="ps-0">Currency</TableCell>
-                                                                            <TableCell align="right">Conversion Factor</TableCell>
-                                                                        </TableRow>
-                                                                    </TableHead>
-                                                                    <TableBody>
-                                                                        {auctionManageData[0]?.multicurrencytList.map((row, index) => (
-                                                                            <TableRow key={index}>
-                                                                                <TableCell className="ps-0" style={{ width: "160px" }}>
-                                                                                    {row?.baseCurrency}
-                                                                                </TableCell>
-                                                                                <TableCell align="right">{row?.currencyConversion}</TableCell>
-                                                                            </TableRow>
-                                                                        ))}
-                                                                    </TableBody>
-                                                                </Table>
-                                                            </TableContainer>
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {auctionManageData[0]?.bidClosingType === 'S' && (
-                                                    <div className="col-md-4 ms-0 ps-0">
-                                                        <span className="f14 fw500">Running Slot:</span>
-                                                        <span className="content-text">
-                                                            {runningSlotNumber !== null ? (
-                                                                <Button
-                                                                    className='p-0 content-text'
-                                                                    variant='standard'
-                                                                    size='small'
-                                                                    onClick={handleRunningSlotClick}
-                                                                    style={{ cursor: 'pointer' }}
-                                                                >
-                                                                    <span style={{ color: "#218cde", fontSize: "14px", fontWeight: "bold" }}>
-                                                                        Slot {runningSlotNumber}
-                                                                    </span>
-                                                                </Button>
-                                                            ) : (
-                                                                <span className="f14 fw500" style={{ fontSize: "14px" }}>
-                                                                    No slot running
-                                                                </span>
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                )}
-
-                                                <div className='col-md-12 ms-0 ps-0'>
-                                                    <div className='f14 fw500'>Bid Description:
-                                                        <span >
-                                                            {bidStatus !== "running" && bidStatus !== null && (permissionManager?.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false) && (
-                                                                <HiPencilAlt
-                                                                    className="text-primary"
-                                                                    size={15}
-                                                                    onClick={() => handleOpenModal('description')}
-                                                                    style={{ cursor: 'pointer', marginLeft: '5px' }}
-                                                                />
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                    <div className='f14 fw400'>
-                                                        <textarea
-                                                            className='w-100 f14 rounded auctionEditor'
-                                                            readOnly
-                                                            style={{
-                                                                resize: 'none',
-                                                                minHeight: '40px',
-                                                                height: 'auto',
-                                                                overflow: 'hidden'
-                                                            }}
-                                                            placeholder='Auction Description'
-                                                            value={auctionManageData[0]?.description?.replace(/<\/?[^>]+(>|$)/g, "") || ""}
-                                                            onInput={(e) => {
-                                                                e.target.style.height = 'auto';
-                                                                e.target.style.height = e.target.scrollHeight + 'px';
-                                                            }}
-                                                            ref={(textarea) => {
-                                                                if (textarea) {
-                                                                    textarea.style.height = 'auto';
-                                                                    textarea.style.height = textarea.scrollHeight + 'px';
-                                                                }
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Card.Body>
-                                    </Collapse>
-                                </Card>
-                            </div>
-                            <div className={isDifferentPage ? "auction-table-fix" : "custom-manage-fix"}>
-                                <div className="table-fix" style={{ marginBottom: '1rem' }}>
-                                    <Card className='shadow' style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                        {
-                                            auctionManageData[0]?.bidClosingType === 'S' ? (
-                                                <StaggerAuction
-                                                    actions={{
-                                                        allVendorParticipationDetails: allVendorParticipationDetails,
-                                                        auctionManageData: auctionManageData,
-                                                        handleExpandToggle: handleExpandToggle,
-                                                        setExpandedItemIds: setExpandedItemIds,
-                                                        expandedItemIds: expandedItemIds,
-                                                        bidStatus: bidStatus,
-                                                        expandAll: expandAll,
-                                                        handleCollapseAll: handleCollapseAll,
-                                                        handleExpandAll: handleExpandAll,
-                                                        setExpandAll: setExpandAll,
-                                                        actionmodal: actionmodal,
-                                                        handleOpen: handleOpen,
-                                                        handleSubmit: handleSubmit,
-                                                        callbackOnpause: callbackOnpause,
-                                                        handleShowAddVendorModal: handleShowAddVendorModal,
-                                                        handleShowSendReminderModal: handleShowSendReminderModal,
-                                                        handleShowReOpenModal: handleShowReOpenModal,
-                                                        setActionModal: setActionModal,
-                                                        handleCancel: handleCancel,
-                                                        normalPagination: normalPagination,
-                                                        normalRowsPerPage: normalRowsPerPage,
-                                                        pageNumber: pageNumber,
-                                                        totalCount: totalCount,
-                                                        lineItemsPerPage: lineItemsPerPage,
-                                                        fetchVendorParameterDetailsLineItems: fetchVendorParameterDetailsLineItems,
-                                                        fetchVendorParameterDetails: fetchVendorParameterDetails,
-                                                        reopenTrigger: reopenTrigger,
-                                                        hasLoadingFactor: hasLoadingFactor
-                                                    }}
-                                                />
-                                            ) : (
-                                                <CardContent className="p-0" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                                                    <div className="custom-scrollbar" style={{
-                                                        overflowY: 'scroll',
-                                                        overflowX: 'hidden',
-                                                        flex: 1,
-                                                        minHeight: 0
-                                                    }}>
-                                                        <style>
-                                                            {`
-                                                                .custom-scrollbar {
-                                                                    scrollbar-width: thin;
-                                                                    scrollbar-color: #c1c1c1 transparent;
-                                                                }
-                                                                .custom-scrollbar::-webkit-scrollbar {
-                                                                    width: 6px;
-                                                                }
-                                                                .custom-scrollbar::-webkit-scrollbar-track {
-                                                                    background: transparent;
-                                                                }
-                                                                .custom-scrollbar::-webkit-scrollbar-thumb {
-                                                                    background: #c1c1c1;
-                                                                    border-radius: 3px;
-                                                                }
-                                                                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                                                                    background: #a8a8a8;
-                                                                }
-                                                                .items-table tbody tr:last-child td {
-                                                                    padding-bottom: 2px;
-                                                                }
-                                                            `}
-                                                        </style>
-                                                        <div style={{ minHeight: 'calc(100% + 2px)' }}>
-                                                            <table className="items-table table-striped mb-0" style={{ width: '100%' }}>
-                                                                <thead className="thead-sticky">
-                                                                    <tr>
-                                                                        <th className='text-white fw500 f14'>S.No</th>
-                                                                        <th className='text-white fw500 f14'>Item / Service</th>
-                                                                        {expandedItemIds.length === 0 && (
-                                                                            <th className='text-white fw500 f14'>
-                                                                                {auctionManageData[0]?.bidTypeID == 1 || auctionManageData[0]?.bidTypeID == 5 ? "H1 Rank" : "L1 Rank"}
-                                                                            </th>
-                                                                        )}
-                                                                        <th className='text-white fw500 f14' style={{ textAlign: "right" }}>Quantity</th>
-                                                                        <th className='text-white fw500 f14' style={{ textAlign: "right" }}>Target Price</th>
-                                                                        <th className='text-white fw500 f14' style={{ textAlign: "right" }}>Show Target Price</th>
-                                                                        <th className='text-white fw500 f14' style={{ textAlign: "right" }}>
-                                                                            {auctionManageData[0]?.bidTypeID == 1 || auctionManageData[0]?.bidTypeID == 5 ? "Show H1 Price" : "Show L1 Price"}
-                                                                        </th>
-                                                                        <th className='text-white fw500 f14' style={{ textAlign: "right" }}>Show Start Price</th>
-                                                                        <th className='text-white fw500 f14' style={{ textAlign: "right" }}>Start price</th>
-                                                                        <th className='text-white fw500 f14' style={{ textAlign: "right" }}>
-                                                                            {auctionManageData[0]?.bidTypeID == 1 || auctionManageData[0]?.bidTypeID == 5 ? "Min. Increment" : "Min. Decrement"}
-                                                                        </th>
-                                                                        <th
-                                                                            className=" d-flex justify-content-end align-items-center"
-                                                                            style={{ textAlign: "right" }}
-                                                                        >
-                                                                            <Tooltip
-                                                                                title={expandAll ? "Collapse All" : "Expand All"}
-                                                                                componentsProps={{
-                                                                                    tooltip: {
-                                                                                        sx: {
-                                                                                            fontSize: '0.8rem',
-                                                                                            padding: '8px 12px'
-                                                                                        }
-                                                                                    }
-                                                                                }}
-                                                                            >
-                                                                                <span
-                                                                                    onClick={expandAll ? () => handleCollapseAll(setExpandAll) : () => handleExpandAll(setExpandAll)}
-                                                                                    style={{
-                                                                                        fontSize: "18px",
-                                                                                        cursor: "pointer",
-                                                                                        color: "white",
-                                                                                        fontWeight: "400",
-                                                                                        marginRight: "8px",
-                                                                                    }}
-                                                                                >
-                                                                                    {expandAll ? <UnfoldLess /> : <UnfoldMore />}
-                                                                                </span>
-                                                                            </Tooltip>
-
-                                                                            <DropdownButton
-                                                                                as={"div"}
-                                                                                key={"end7"}
-                                                                                id={`myacccmenu`}
-                                                                                className="sidebaraccmenu pe-0  "
-                                                                                drop={"bottom"}
-                                                                                title={
-                                                                                    <Tooltip
-                                                                                        title={"Bid Control"}
-                                                                                        componentsProps={{
-                                                                                            tooltip: {
-                                                                                                sx: {
-                                                                                                    fontSize: '0.8rem',
-                                                                                                    padding: '8px 12px'
-                                                                                                }
-                                                                                            }
-                                                                                        }}
-                                                                                    >
-                                                                                        <div>
-                                                                                            <HiDotsVertical />
-                                                                                        </div>
-                                                                                    </Tooltip>
-                                                                                }
-                                                                            >
-                                                                                <span className="shadow rounded min-width-200px">
-                                                                                    {(() => {
-                                                                                        const hasEditPermission = permissionManager.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false;
-                                                                                        return (
-                                                                                            <>
-                                                                                                <MenuItem
-                                                                                                    className="p-2"
-                                                                                                    onClick={() => hasEditPermission && handleShowAddVendorModal("AddSuppliers")}
-                                                                                                    disabled={["Close", "Paused", "Awarded", "Allocation"].includes(auctionManageData[0]?.stage) || bidStatus == null || !hasEditPermission}
-                                                                                                >
-                                                                                                    <span className="f13 fw400">Add Suppliers</span>
-                                                                                                </MenuItem>
-                                                                                                <MenuItem
-                                                                                                    className="p-2"
-                                                                                                    onClick={() => hasEditPermission && handleShowSendReminderModal("Reminder")}
-                                                                                                    disabled={["Close", "Paused", "Awarded", "Allocation"].includes(auctionManageData[0]?.stage) || bidStatus == null || !hasEditPermission}
-                                                                                                >
-                                                                                                    <span className="f13 fw400">Send Reminder</span>
-                                                                                                </MenuItem>
-                                                                                                <MenuItem
-                                                                                                    className="p-2"
-                                                                                                    onClick={() => hasEditPermission && handleShowReOpenModal("Reopened")}
-                                                                                                    // disabled={["Running", "Paused"].includes(auctionManageData[0]?.stage) || bidStatus == 'running' || !hasEditPermission}
-                                                                                                    disabled={["Awarded", "Paused"].includes(auctionManageData[0]?.stage) || bidStatus == 'running' || !hasEditPermission}
-                                                                                                >
-                                                                                                    <span className="f13 fw400">Auction Open</span>
-                                                                                                </MenuItem>
-                                                                                                <MenuItem
-                                                                                                    className="p-2"
-                                                                                                    onClick={() => {
-                                                                                                        if (hasEditPermission) {
-                                                                                                            setActionModal({ ...actionmodal, ["surrogateSupplierModal"]: true });
-                                                                                                        }
-                                                                                                    }}
-                                                                                                    disabled={["Close", "Paused", "Awarded", "Allocation"].includes(auctionManageData[0]?.stage) || bidStatus == null || !hasEditPermission}
-                                                                                                >
-                                                                                                    <span className="f13 fw400">Surrogate Supplier</span>
-                                                                                                </MenuItem>
-                                                                                                <MenuItem
-                                                                                                    className={`p-2 ${bidStatus === "running" ? "disabled-menu-item" : ""}`}
-                                                                                                    onClick={() => hasEditPermission && bidStatus !== "running" && handleCancel()}
-                                                                                                    disabled={["Allocation", "Paused", "Awarded"].includes(auctionManageData[0]?.stage) || bidStatus === "running" || !hasEditPermission}
-                                                                                                >
-                                                                                                    <span className="f13 fw400">Cancel Auction</span>
-                                                                                                </MenuItem>
-                                                                                                <MenuItem
-                                                                                                    className={`p-2 ${bidStatus === "running" ? "disabled-menu-item" : ""}`}
-                                                                                                    onClick={() => hasEditPermission && submitPrebid()}
-                                                                                                    disabled={
-                                                                                                        bidStatus == "running" ||
-                                                                                                        // allVendorParticipationDetails?.some((item) => item.isPrePrice === true || item?.id > 0) ||
-                                                                                                        (auctionManageData[0]?.stage && auctionManageData[0]?.stage !== "Open") ||
-                                                                                                        !hasEditPermission
-                                                                                                    }
-                                                                                                >
-                                                                                                    <span className="f13 fw400">Prebid / Restrict Suppliers</span>
-                                                                                                </MenuItem>
-                                                                                            </>
-                                                                                        );
-                                                                                    })()}
-                                                                                </span>
-                                                                            </DropdownButton>
-                                                                        </th>
-                                                                    </tr>
-                                                                </thead>
-
-                                                                <tbody className="tbody-scroll">
-                                                                    {/* {auctionManageData[0]?.bidParamater.map((item, index) => ( */}
-                                                                    {lineItemsPerPage.map((item, index) => (
-                                                                        // {auctionManageData[0]?.bidParamater.slice(normalPagination * normalRowsPerPage, normalPagination * normalRowsPerPage + normalRowsPerPage).map((item, index) => (
-                                                                        <React.Fragment key={item.bidParameterId}>
-                                                                            <tr className="border-bottom text-primary">
-                                                                                <td className="fw500 f13 ps-2">{normalPagination * normalRowsPerPage + index + 1}</td>
-                                                                                {/* <td className="fw500 f13 ps-2">{index + 1}</td> */}
-                                                                                <td
-                                                                                    className="fw-bold f13 ps-2"
-                                                                                    style={{
-                                                                                        //cursor: "pointer",
-                                                                                        cursor: (auctionManageData[0]?.hideVendor === true && bidStatus === 'running') ? "default" : "pointer",
-                                                                                        maxWidth: "150px",
-                                                                                        whiteSpace: "nowrap",
-                                                                                        overflow: "hidden",
-                                                                                        textOverflow: "ellipsis"
-                                                                                    }}
-                                                                                    //onClick={() => OpenModal(auctionManageData[0]?.bidParamater, index)}
-                                                                                    // onClick={() => OpenModal(auctionManageData[0]?.bidParamater, normalPagination * normalRowsPerPage + index)}
-                                                                                    //onClick={() => OpenModal(lineItemsPerPage, index)}
-                                                                                    onClick={() => !(auctionManageData[0]?.hideVendor === true && bidStatus === 'running') && OpenModal(lineItemsPerPage, index)}
-
-                                                                                >
-                                                                                    <Tooltip
-                                                                                        //title="Open Graph"
-                                                                                        title={(auctionManageData[0]?.hideVendor === true && bidStatus === 'running') ? "" : "Open Graph"}
-                                                                                        componentsProps={{
-                                                                                            tooltip: {
-                                                                                                sx: {
-                                                                                                    fontSize: '0.8rem',
-                                                                                                    padding: '8px 12px'
-                                                                                                }
-                                                                                            }
-                                                                                        }}
-                                                                                    >
-                                                                                        <span>
-                                                                                            {item.itemName}
-                                                                                        </span>
-                                                                                    </Tooltip>
-                                                                                </td>
-                                                                                {expandedItemIds.length === 0 && (
-                                                                                    <td className="f13 fw500 productTd text-primary ps-2">
-                                                                                        {(() => {
-                                                                                            const linkedVendors = allVendorParticipationDetails.filter(vendor => vendor.bidParameterId === item.bidParameterId);
-                                                                                            const targetRank = auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5 ? "H1" : "L1";
-                                                                                            const vendor = linkedVendors.find(vendor => vendor.rankValue === targetRank);
-                                                                                            return vendor ? vendor.companyName : <span className="text-danger">N/A</span>;
-                                                                                        })()}
-                                                                                    </td>
-                                                                                )}
-                                                                                <td className="fw500 f13" align="right">{thousands_separators(item.quantity)}<span className='ms-1'>{item.uom}</span></td>
-                                                                                <td className="fw500 f13" align="right">{thousands_separators(item.targetPrice)}</td>
-                                                                                <td className="f13 fw500 productTd" align="center">
-                                                                                    {(() => {
-                                                                                        const hasEditPermission = permissionManager.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false;
-                                                                                        return (
-                                                                                            <Switch
-                                                                                                checked={item?.hidePrice}
-                                                                                                inputProps={{ "aria-label": "controlled" }}
-                                                                                                classes={{
-                                                                                                    thumb: "MuiSwitch-thumb",
-                                                                                                    switchBase: "MuiSwitch-switchBase",
-                                                                                                    checked: "Mui-checked",
-                                                                                                }}
-                                                                                                onChange={handleSwitchChange(setHidePrice, handleSubmit, 'hidePrice', item?.bidParameterId)}
-                                                                                                disabled={bidStatus !== "not_started" || ["Close", "Paused", "Allocation", "Awarded"].includes(auctionManageData[0]?.stage) || !hasEditPermission}
-                                                                                            />
-                                                                                        );
-                                                                                    })()}
-                                                                                </td>
-                                                                                <td className="f13 fw500 productTd" align="center">
-                                                                                    {(() => {
-                                                                                        const hasEditPermission = permissionManager.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false;
-                                                                                        return (
-                                                                                            <Switch
-                                                                                                checked={item?.maskL1Price}
-                                                                                                inputProps={{ "aria-label": "controlled" }}
-                                                                                                classes={{
-                                                                                                    thumb: "MuiSwitch-thumb",
-                                                                                                    switchBase: "MuiSwitch-switchBase",
-                                                                                                    checked: "Mui-checked",
-                                                                                                }}
-                                                                                                onChange={handleSwitchChange(setMaskL1Price, handleSubmit, 'maskL1Price', item?.bidParameterId)}
-                                                                                                disabled={["Close", "Paused", "Allocation", "Awarded"].includes(auctionManageData[0]?.stage) || bidStatus == null || !hasEditPermission}
-                                                                                            />
-                                                                                        );
-                                                                                    })()}
-                                                                                </td>
-                                                                                <td className="f13 fw500 productTd" align="center">
-                                                                                    {(() => {
-                                                                                        const hasEditPermission = permissionManager.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false;
-                                                                                        return (
-                                                                                            <Switch
-                                                                                                checked={item?.showStartPrice}
-                                                                                                inputProps={{ "aria-label": "controlled" }}
-                                                                                                classes={{
-                                                                                                    thumb: "MuiSwitch-thumb",
-                                                                                                    switchBase: "MuiSwitch-switchBase",
-                                                                                                    checked: "Mui-checked",
-                                                                                                }}
-                                                                                                onChange={handleSwitchChange(setShowStartPrice, handleSubmit, 'showStartPrice', item?.bidParameterId)}
-                                                                                                disabled={["Close", "Paused", "Allocation", "Awarded"].includes(auctionManageData[0]?.stage) || bidStatus == null || !hasEditPermission}
-                                                                                            />
-                                                                                        );
-                                                                                    })()}
-                                                                                </td>
-                                                                                <td className="f13 fw500 productTd" align="right">
-                                                                                    {thousands_separators(item?.startPrice)}
-                                                                                    {(() => {
-                                                                                        const hasEditPermission = permissionManager.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false;
-                                                                                        return (
-                                                                                            !["Close", "Paused", "Allocation", "Awarded"].includes(auctionManageData[0]?.stage) && bidStatus != null && hasEditPermission ? (
-                                                                                                <HiPencilAlt
-                                                                                                    onClick={() => handleOpen('startPrice', index, item?.bidParameterId)}
-                                                                                                    className="text-primary"
-                                                                                                    style={{ cursor: 'pointer', marginLeft: '5px' }}
-                                                                                                />
-                                                                                            ) : null
-                                                                                        );
-                                                                                    })()}
-                                                                                </td>
-                                                                                <td className="f13 fw500 productTd" align="right">
-                                                                                    {thousands_separators(item?.minimumDelta)}
-                                                                                    {(() => {
-                                                                                        const hasEditPermission = permissionManager.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false;
-                                                                                        return (
-                                                                                            !["Close", "Paused", "Allocation", "Awarded"].includes(auctionManageData[0]?.stage) && bidStatus != null && hasEditPermission ? (
-                                                                                                <HiPencilAlt
-                                                                                                    onClick={() => handleOpen('minimumDelta', index, item?.bidParameterId)}
-                                                                                                    className="text-primary"
-                                                                                                    style={{ cursor: 'pointer', marginLeft: '5px' }}
-                                                                                                />
-                                                                                            ) : null
-                                                                                        );
-                                                                                    })()}
-                                                                                </td>
-                                                                                <td align="right">
-                                                                                    <IconButton onClick={() => handleExpandToggle(item.bidParameterId, setExpandedItemIds)}>
-                                                                                        {expandedItemIds.includes(item.bidParameterId) ? <ExpandLess /> : <ExpandMore />}
-                                                                                    </IconButton>
-                                                                                </td>
-                                                                            </tr>
-                                                                            {expandedItemIds.includes(item.bidParameterId) && (
-                                                                                <tr className="border-none">
-                                                                                    <td colSpan="13 p-0">
-                                                                                        {/* <VendorTable key={item?.id} auctionItem={item} /> */}
-                                                                                        <NormalVendorTable
-                                                                                            auctionItem={{
-                                                                                                item,
-                                                                                                allVendorParticipationDetails,
-                                                                                                auctionManageData,
-                                                                                                page,
-                                                                                                rowsPerPage,
-                                                                                                getRankColor,
-                                                                                                bidStatus,
-                                                                                                handleCheckboxRestrict,
-                                                                                                restrictVendorId,
-                                                                                                prebidValues,
-                                                                                                handleRestricttChange,
-                                                                                                handleBlur,
-                                                                                                editingVendorId,
-                                                                                                handlePriceChange,
-                                                                                                handleOpenModalRemoveQuote,
-                                                                                                handleRemoveRestrictRemarks,
-                                                                                                thousands_separators,
-                                                                                                handleEditPrice,
-                                                                                                restrictParameterId,
-                                                                                                editingParameterId,
-                                                                                                hasLoadingFactor,
-                                                                                                permissionManager: permissionManager,
-                                                                                                hasRemovePermission: permissionManager.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.REMOVE)
-                                                                                            }}
-                                                                                        />
-                                                                                    </td>
-                                                                                </tr>
-                                                                            )}
-                                                                        </React.Fragment>
-                                                                    ))}
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                    <TablePagination
-                                                        component="div"
-                                                        //count={auctionManageData[0]?.bidParamater.length}
-                                                        count={totalCount}
-                                                        page={normalPagination}
-                                                        rowsPerPage={normalRowsPerPage}
-                                                        onPageChange={handleNormalChangePage}
-                                                        onRowsPerPageChange={handleNormalChangeRowsPerPage}
-                                                        rowsPerPageOptions={[10, 20, 30]}
-                                                        sx={{ borderTop: '1px solid #e0e0e0' }}
-                                                    />
-                                                </CardContent>
-                                            )
-                                        }
-                                    </Card >
-                                </div >
-
-                            </div>
-                        </div >
-                        {<div className={`col-md-3 ${!approvershow ? 'd-none' : ''}`}>
-                            <AuctionCommunication
-                                connection={connection}
-                                bidId={BidId}
-                                handleApprover={handleApprover}
-                                VendorsCommID={auctionManageData[0]?.bidVendorInvited}
-                                permissionManager={permissionManager}
-                            />
-                        </div>}
-                    </div >
-                    <Modal
-                        size="sm"
-                        show={open}
-                        backdrop="static"
-                        keyboard={false}
-                        value={"Loading"}
-                        className="zindex1280"
-                        backdropClassName="zindex1280"
-                        centered
-                        contentClassName="border-0"
-                        onHide={() => CloseLoadingModal()}
-                    >
-                        <Modal.Header className="pt-2 pb-2 bgheaderCards">
-                            <Modal.Title id="modal-heading">
-                                <div className="d-flex align-items-center f14 text-white">
-                                    {/* {fieldType == 'startPrice' ? 'Start Price' : 'Minimum Decrement'} */}
-                                    {fieldType === 'startPrice'
-                                        ? 'Start Price'
-                                        : (auctionManageData[0]?.bidTypeID == 1 || auctionManageData[0]?.bidTypeID == 5
-                                            ? 'Minimum Increment'
-                                            : 'Minimum Decrement')}
-                                </div>
-                            </Modal.Title>
-                            <IconButton
-                                onClick={() => CloseLoadingModal()}
-                                size="small"
-                                edge="start"
-                            >
-                                <HiOutlineX className="f20 text-white" />
-                            </IconButton>
-                        </Modal.Header>
-                        <Modal.Body className="p-0">
-                            <div className="p-3">
-                                <div className="row align-items-center">
-                                    <div className="col-md-12 mb-2">
-                                        {fieldType == 'startPrice' && (
-                                            <TextField
-                                                label="Start Price"
-                                                value={startPrice}
-                                                type="number"
-                                                //onChange={(e) => setStartPrice(e.target.value)}
-                                                onChange={(e) => {
-                                                    if (DecimalValueRegEx.test(e.target.value)) {
-                                                        setStartPrice(e.target.value)
-                                                        //formik.setFieldValue("startPrice", parseFloat(e.target.value));
-                                                    }
-                                                    else if (e.target.value === "") {
-                                                        setStartPrice('')
-                                                        //formik.setFieldValue("startPrice", '');
-                                                    }
-                                                }}
-                                                fullWidth
-                                            >
-                                            </TextField>
-                                        )}
-                                    </div>
-                                    <div className="col-md-12 mb-2">
-                                        {fieldType == 'minimumDelta' && (
-                                            <TextField
-                                                label={auctionManageData[0]?.bidTypeID == 1 || auctionManageData[0]?.bidTypeID == 5 ? 'Minimum Increment' : 'Minimum Decrement'}
-                                                value={minimumDelta}
-                                                type="number"
-                                                //onChange={(e) => setMinimumDelta(e.target.value)}
-                                                onChange={(e) => {
-                                                    if (DecimalValueRegEx.test(e.target.value)) {
-                                                        setMinimumDelta(e.target.value)
-                                                        //formik.setFieldValue("startPrice", parseFloat(e.target.value));
-                                                    }
-                                                    else if (e.target.value === "") {
-                                                        setMinimumDelta('')
-                                                        //formik.setFieldValue("startPrice", '');
-                                                    }
-                                                }}
-                                                fullWidth
-                                            >
-                                            </TextField>
-                                        )}
-                                    </div>
-                                    <div className="col-md-12 text-end">
-                                        <LoadingButton
-                                            variant='contained'
-                                            type="submit"
-                                            color='primary'
-                                            className='text-capitalize text-end'
-                                            size='small'
-                                            onClick={() => handleSubmit(fieldType, fieldType === 'startPrice' ? startPrice : minimumDelta)}
-                                        >
-                                            Update
-                                        </LoadingButton>
-                                    </div>
-                                </div>
-                            </div>
-                        </Modal.Body>
-                    </Modal>
-                    <Modal
-                        size="md"
-                        show={bidOpen}
-                        backdrop="static"
-                        keyboard={false}
-                        centered
-                        onHide={CloseBidLoadingModal}
-                    >
-                        <Modal.Header className="pt-2 pb-2 bgheaderCards">
-                            <Modal.Title id="modal-heading">
-                                <div className="d-flex align-items-center f14 text-white">
-                                    {/* {fieldBidType} */}
-                                    {fieldLabelMap[fieldBidType] || ""}
-                                </div>
-                            </Modal.Title>
-                            <IconButton
-                                onClick={CloseBidLoadingModal}
-                                size="small"
-                                edge="start"
-                            >
-                                <HiOutlineX className="f20 text-white" />
-                            </IconButton>
-                        </Modal.Header>
-                        <Modal.Body className="p-0">
-                            <div className="p-3">
-                                <div className="row">
-                                    <div className="col-md-12 mb-2">
-
-                                        {fieldBidType == 'subject' && (
-                                            <TextField
-                                                label="Bid Subject"
-                                                value={subject}
-                                                onChange={(e) => {
-                                                    if (e.target.value.length <= 200) {
-                                                        setSubject(e.target.value);
-                                                    }
-                                                }}
-                                                helperText={`${subject.length}/200`}
-                                                fullWidth
-                                                multiline
-                                                minRows={2}
-                                                maxRows={3}
-                                            >
-                                            </TextField>
-                                        )}
-                                        {fieldBidType == 'description' && (
-                                            <TextField
-                                                label="Bid Description"
-                                                value={description}
-                                                onChange={(e) => {
-                                                    if (e.target.value.length <= 2000) {
-                                                        setDescription(e.target.value);
-                                                    }
-                                                }}
-                                                helperText={`${description.length}/2000`}
-                                                fullWidth
-                                                multiline
-                                                minRows={5}
-                                                maxRows={10}
-                                            >
-                                            </TextField>
-                                        )}
-                                        {fieldBidType === 'showRankToVendor' && (
-                                            <TextField
-                                                select
-                                                label="Display Vendor Rank"
-                                                value={showRankToVendor}
-                                                onChange={(e) => setShowRankToVendor(e.target.value)}
-                                                fullWidth
-                                            >
-                                                <MenuItem value="Y">
-                                                    {auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5
-                                                        ? 'As H1, H2, H3 etc.'
-                                                        : 'As L1, L2, L3 etc.'}
-                                                </MenuItem>
-                                                <MenuItem value="N">
-                                                    {auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5
-                                                        ? 'As H1 Or Not H1.'
-                                                        : 'As L1 Or Not L1.'}
-                                                </MenuItem>
-                                                {/* <MenuItem value="T">Traffic Light.</MenuItem> */}
-                                            </TextField>
-                                        )}
-                                        {fieldBidType == 'maximumExtension' && (
-                                            <TextField
-                                                select
-                                                label="Extensions"
-                                                value={maximumExtension}
-                                                onChange={(e) => setMaximumExtension(e.target.value)}
-                                                fullWidth
-                                            >
-                                                {[-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((ext) => (
-                                                    <MenuItem
-                                                        key={ext}
-                                                        value={ext}
-                                                        disabled={auctionManageData[0]?.extensions > ext && ext !== -1 && ext !== 0} // disable items < current extensions, except -1 (unlimited) and 0
-                                                    >
-                                                        {ext === -1 ? 'Unlimited' : ext}
-                                                    </MenuItem>
-                                                ))}
-                                            </TextField>
-                                        )}
-
-                                    </div>
-                                    <div className="col-md-12 text-end">
-
-                                        <LoadingButton
-                                            variant='contained'
-                                            color='primary'
-                                            className='text-capitalize'
-                                            size='small'
-                                            type="submit"
-                                            onClick={handleBidDetailsSubmit}
-                                        >
-                                            Update
-                                        </LoadingButton>
-                                    </div>
-                                </div>
-                            </div>
-                        </Modal.Body>
-                    </Modal>
-                    {/* <Modal
-                        show={openRemoveQuote}
-                        onHide={CloseRemoveQuoteModal}
-                        backdrop="static"
-                        keyboard={false}
-                        centered
-                    >
-                        <Modal.Header>
-                            <Modal.Title className='f14'>Remove Quotes</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <Typography>Do you want to remove this quote? If yes, click "OK". If no, click "Cancel".</Typography>
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="secondary" onClick={CloseRemoveQuoteModal}>
-                                Cancel
-                            </Button>
-                            <Button variant="primary" onClick={handleRemoveQoutes}>
-                                OK
-                            </Button>
-                        </Modal.Footer>
-                    </Modal> */}
-                    <Modal
-                        show={openRemoveQuote}
-                        onHide={CloseRemoveQuoteModal}
-                        backdrop="static"
-                        keyboard={false}
-                        centered
-                    >
-                        <Modal.Header>
-                            <Modal.Title className='f14'>Remove Quote</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <Typography className="mb-3">
-                                You are about to remove this quote. Please provide a reason for removal.
-                            </Typography>
-                            <TextField
-                                label="Remarks"
-                                value={removeRemark}
-                                onChange={(e) => {
-                                    if (e.target.value.length <= 200) {
-                                        setRemoveRemark(e.target.value);
-                                        if (e.target.value.trim()) {
-                                            setRemarkError(false);
-                                        }
-                                    }
-                                }}
-                                fullWidth
-                                multiline
-                                rows={3}
-                                required
-                                error={remarkError}
-                                helperText={
-                                    remarkError
-                                        ? 'Remarks are required'
-                                        : `${removeRemark.length}/200`
-                                }
-                                autoFocus
-                            />
-
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="secondary" onClick={CloseRemoveQuoteModal}>
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="primary"
-                                onClick={() => {
-                                    if (!removeRemark.trim()) {
-                                        setRemarkError(true);
-                                        return;
-                                    }
-                                    handleRemoveQoutes(removeRemark);
-                                }}
-                            >
-                                Remove
-                            </Button>
-                        </Modal.Footer>
-                    </Modal>
-                    <Modal
-                        size="lg"
-                        show={addVendorModal}
-                        backdrop="static"
-                        centered
-                        contentClassName="border-0 rounded"
-                        className="zindex1280"
-                        backdropClassName="zindex1280"
-                        onHide={() => handleCloseAddVendorModal()}
-                    >
-                        <Modal.Header className="pt-2 pb-2 bgheaderCards">
-                            <Modal.Title id="modal-heading">
-                                <div className="d-flex align-items-center f14 text-white">
-                                    {"Add Suppliers"}
-                                </div>
-                            </Modal.Title>
-
-                            <IconButton
-                                onClick={() => handleCloseAddVendorModal()}
-                                size="small"
-                                edge="start"
-                            >
-                                <HiOutlineX className="text-white" />
-                            </IconButton>
-                        </Modal.Header>
-                        <Modal.Body className="p-0 inviteModal scrollable-container">
-                            <div>
-                                <div className="p-3">
-
-                                    <div className="reTable">
-                                        <div className="row">
-                                            <div className="col-md-12">
-                                                <TextField
-                                                    id="standard-search"
-                                                    label="Search Vendors"
-                                                    type="search"
-                                                    className="w-100 m"
-                                                    size="small"
-                                                    variant="standard"
-                                                    value={searchQuery}
-                                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="row">
-                                            <div className="col-md-12 mt-2">
-                                                <div className="reMainTable">
-                                                    <Table striped bordered hover>
-                                                        <thead className="rethead">
-                                                            <tr>
-                                                                <th style={{ width: "4%" }}>
-                                                                </th>
-                                                                <th>Suppliers</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="retr">
-                                                            {filteredVendors.map((vendor) => {
-                                                                const isAlreadyInvited = vendorListData.some(
-                                                                    (checked) => checked.vendorID === vendor.vendorId
-                                                                );
-
-                                                                return (
-                                                                    <tr key={vendor.contactId}>
-                                                                        <td width="4%">
-                                                                            <Checkbox
-                                                                                className="p-0"
-                                                                                size="medium"
-                                                                                checked={selectedVendors.some((selected) => selected.contactId === vendor.contactId)}
-                                                                                disabled={isAlreadyInvited}
-                                                                                onChange={(e) =>
-                                                                                    handleCheckboxChange(vendor.vendorId, vendor.contactId, e.target.checked, vendor)
-                                                                                }
-                                                                            />
-                                                                        </td>
-                                                                        <td width="40%">
-                                                                            {`${vendor.companyName} | ${vendor.contactPerson} | ${vendor.email}`}
-                                                                        </td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </tbody>
-                                                    </Table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="row mt-2">
-                                            <div className="col-md-12 mb-3 d-flex justify-content-end">
-                                                <LoadingButton
-
-                                                    color="primary"
-                                                    size="medium"
-                                                    className="text-white text-capitalize mb-3 mr-3"
-                                                    variant="contained"
-                                                    type="button"
-                                                    onClick={addVendors}
-                                                >
-                                                    ADD
-                                                </LoadingButton>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </Modal.Body>
-                    </Modal>
-                    <Modal
-                        size="lg"
-                        show={sendReminderModal}
-                        backdrop="static"
-                        centered
-                        contentClassName="border-0 rounded"
-                        className="zindex1280"
-                        backdropClassName="zindex1280"
-                        onHide={() => handleCloseSendReminderModal()}
-                    >
-                        <Modal.Header className="pt-2 pb-2 bgheaderCards">
-                            <Modal.Title id="modal-heading">
-                                <div className="d-flex align-items-center f14 text-white">
-                                    {"Send Reminder"}
-                                </div>
-                            </Modal.Title>
-
-                            <IconButton
-                                onClick={() => handleCloseSendReminderModal()}
-                                size="small"
-                                edge="start"
-                            >
-                                <HiOutlineX className="text-white" />
-                            </IconButton>
-                        </Modal.Header>
-                        <Modal.Body className="p-0 inviteModal scrollable-container">
-                            {/* <form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off"> */}
-                            <div>
-                                <div className="p-3">
-
-                                    <div className="reTable">
-                                        <div className="row">
-                                            <div className="col-md-12">
-                                                <TextField
-                                                    id="standard-search"
-                                                    label="Search Vendors"
-                                                    type="search"
-                                                    className="w-100 m"
-                                                    size="small"
-                                                    variant="standard"
-                                                    value={searchQueryReminder}
-                                                    onChange={(e) => setSearchQueryReminder(e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="row">
-                                            <div className="col-md-12 mt-2">
-                                                <div className="reMainTable">
-                                                    <Table striped bordered hover>
-                                                        <thead className="rethead">
-                                                            <tr>
-                                                                <th style={{ width: "4%" }}>
-                                                                    <Checkbox
-                                                                        className="p-0"
-                                                                        size="medium"
-                                                                        checked={selectedSRVendors.length === filteredVendorsReminder.length && filteredVendorsReminder.length > 0}
-                                                                        indeterminate={
-                                                                            selectedSRVendors.length > 0 &&
-                                                                            selectedSRVendors.length < filteredVendorsReminder.length
-                                                                        }
-                                                                        onChange={(e) => handleSelectAll(e.target.checked)}
-                                                                    />
-                                                                </th>
-                                                                <th>Suppliers</th>
-                                                                <th style={{ width: "40%" }}>Remarks</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="retr">
-                                                            {filteredVendorsReminder.map((vendor) => (
-                                                                <tr key={vendor.id}>
-                                                                    <td width="4%">
-                                                                        <Checkbox
-                                                                            className="p-0"
-                                                                            size="medium"
-                                                                            checked={selectedSRVendors.some((item) => item.vendorID === vendor.vendorID)}
-                                                                            onChange={(e) => handleCheckboxSR(vendor, e.target.checked)}
-                                                                        />
-                                                                    </td>
-                                                                    <td width="45%">
-                                                                        {`${vendor.vendorName} | ${vendor.contactPerson} | ${vendor.emailId}`}
-                                                                    </td>
-                                                                    <td width="50%">
-                                                                        <textarea
-                                                                            rows={2}
-                                                                            className="formulaEditor w-100"
-                                                                            placeholder="Remarks"
-                                                                            value={vendorRemarks[vendor.vendorID] || ""}
-                                                                            onChange={(e) => handleRemarkChange(vendor.vendorID, e.target.value)}
-                                                                        />
-                                                                    </td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </Table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="row mt-2">
-                                            <div className="col-md-12 mb-3 d-flex justify-content-end">
-                                                <LoadingButton
-                                                    color="primary"
-                                                    size="medium"
-                                                    className="text-white text-capitalize mb-3 mr-3"
-                                                    variant="contained"
-                                                    type="button"
-                                                    onClick={handleSend}
-                                                >
-                                                    Send
-                                                </LoadingButton>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </Modal.Body>
-                    </Modal>
-                    <Modal
-                        size="lg"
-                        show={reOpenAuctionModal}
-                        backdrop="static"
-                        keyboard={false}
-                        centered
-                        onHide={handleCloseReOpenModal}
-                    >
-                        <Modal.Header className="pt-2 pb-2 bgheaderCards">
-                            <Modal.Title className="text-white f15 fw500">Reopen Auction</Modal.Title>
-                            <IconButton onClick={handleCloseReOpenModal} size="small">
-                                <HiOutlineX className="f20 text-white" />
-                            </IconButton>
-                        </Modal.Header>
-
-                        <Modal.Body className="p-4">
-                            <div className="mb-3">
-                                <Typography className="f13 text-muted mb-3">
-                                    Configure the auction schedule to reopen bidding. Select the start date and duration for the auction.
-                                </Typography>
-                            </div>
-
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <div className="row g-3">
-                                    <div className="col-12 col-md-6 col-lg-4">
-                                        <MobileDateTimePicker
-                                            label="Reopen Date & Time"
-                                            timezone={userDetail?.timeZone}
-                                            minDateTime={dayjs().tz(userDetail?.timeZone)}
-                                            value={
-                                                reOpenDate
-                                                    ? dayjs(reOpenDate).tz(userDetail?.timeZone)
-                                                    : null
-                                            }
-                                            onChange={(newDate) => {
-                                                const tzDate = newDate
-                                                    ? dayjs(newDate).tz(userDetail?.timeZone)
-                                                    : null;
-
-                                                setReOpenDate(tzDate);
-
-                                                if (bidDuration && auctionManageData[0]?.bidClosingType !== 'S') {
-                                                    updateBidEndDate(tzDate, bidDuration);
-                                                }
-                                            }}
-                                            className="w-100"
-                                            format={getDateFormatPatteronLocale(userDetail)}
-                                            ampm={userampm(userDetail)}
-                                            slotProps={{
-                                                textField: {
-                                                    variant: 'outlined',
-                                                    size: 'small',
-                                                    InputLabelProps: { shrink: true }
-                                                },
-                                                actionBar: { actions: ['clear', 'cancel', 'accept'] }
-                                            }}
-                                        />
-                                    </div>
-
-                                    <div className="col-12 col-md-6 col-lg-4">
-                                        <TextField
-                                            label="Bid Duration (Minutes)"
-                                            value={bidDuration || ''}
-                                            onChange={(e) => {
-                                                const newDuration = e.target.value;
-                                                if (newDuration == "") {
-                                                    setBidDuration("");
-                                                } else if (/^\d*$/.test(newDuration)) {
-                                                    const numericValue = Number(newDuration);
-                                                    if (numericValue > 0 && auctionManageData[0]?.bidClosingType !== 'S') {
-                                                        setBidDuration(numericValue);
-                                                        updateBidEndDate(reOpenDate, numericValue);
-                                                    }
-                                                }
-                                            }}
-                                            className="w-100"
-                                            variant="outlined"
-                                            size="small"
-                                            InputLabelProps={{ shrink: true }}
-                                            inputProps={{ inputMode: 'numeric', pattern: "[0-9]*" }}
-                                            disabled={auctionManageData[0]?.bidClosingType == 'S'}
-                                            helperText={auctionManageData[0]?.bidClosingType == 'S' ? "Not applicable for staggered auctions" : ""}
-                                        />
-                                    </div>
-
-                                    <div className="col-12 col-md-6 col-lg-4">
-                                        <MobileDateTimePicker
-                                            label="End Date & Time"
-                                            timezone={userDetail?.timeZone}
-                                            minDateTime={dayjs().tz(userDetail?.timeZone)}
-                                            value={
-                                                bidDeadLine
-                                                    ? dayjs(bidDeadLine).tz(userDetail?.timeZone)
-                                                    : null
-                                            }
-                                            onChange={(newDate) => {
-                                                const tzDate = newDate
-                                                    ? dayjs(newDate).tz(userDetail?.timeZone)
-                                                    : null;
-
-                                                if (reOpenDate && tzDate) {
-                                                    updateBidDuration(reOpenDate, tzDate);
-                                                }
-                                            }}
-                                            className="w-100"
-                                            format={getDateFormatPatteronLocale(userDetail)}
-                                            ampm={userampm(userDetail)}
-                                            disabled
-                                            slotProps={{
-                                                textField: {
-                                                    variant: 'outlined',
-                                                    size: 'small',
-                                                    InputLabelProps: { shrink: true },
-                                                    helperText: "Auto-calculated based on duration"
-                                                },
-                                                actionBar: { actions: ['clear', 'cancel', 'accept'] }
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </LocalizationProvider>
-
-                            <div className="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
-                                <Button
-                                    variant="outlined"
-                                    size="medium"
-                                    className="text-capitalize px-4"
-                                    onClick={handleCloseReOpenModal}
-                                >
-                                    Cancel
-                                </Button>
-                                <LoadingButton
-                                    color="primary"
-                                    loading={loading}
-                                    size="medium"
-                                    className="text-white text-capitalize px-4"
-                                    variant="contained"
-                                    onClick={handleReOpen}
-                                >
-                                    <span>Reopen Auction</span>
-                                </LoadingButton>
-                            </div>
-                        </Modal.Body>
-                    </Modal>
-                    <Modal
-                        size="lg"
-                        show={modal}
-                        backdrop="static"
-                        keyboard={false}
-                        centered
-                        contentClassName="border-0 rounded"
-                        onHide={() => CloseModal()}
-                    >
-                        <Modal.Header className="pt-2 pb-2 bgheaderCards">
-                            <Modal.Title id="modal-heading">
-                                <div className="d-flex align-items-center f14 text-white">Bidding Trend</div>
-                            </Modal.Title>
-
-                            <IconButton onClick={() => CloseModal()} size="small" edge="start">
-                                <HiOutlineX className="text-white" />
-                            </IconButton>
-                        </Modal.Header>
-                        <Modal.Body className="p-0">
-                            <div className="p-3">
-                                <BidGraphs
-                                    selectedParameterData={selectedParameterData}
-                                    auctionManageData={auctionManageData}
-                                    bidStatus={bidStatus}
-                                />
-                            </div>
-                        </Modal.Body>
-                    </Modal>
-                    <Dialog open={actionmodal["surrogateSupplierModal"]} onClose={() => handleActionModel("surrogateSupplierModal", false)}>
-                        <DialogTitle>{"Surrogate Supplier"}</DialogTitle>
-                        <form onSubmit={formik_Surrogate.handleSubmit} autoComplete="off">
-                            <DialogContent style={{ minWidth: "300px" }}>
-
-                                <div className="row mt-2 ">
-                                    <div className="col-12 mb-4">
-                                        <Autocomplete
-                                            id="supplierforsurrogate"
-                                            name="Supplier"
-                                            size="small"
-                                            className="w-100 f14"
-                                            options={vendorListData || []}
-                                            getOptionLabel={(option) =>
-                                                `${option.vendorName} - ${option.emailId}`
-                                            } // Adjust this if your options are objects
-                                            value={formik_Surrogate.values.supplier ?? null}
-                                            onChange={(event, value) => {
-
-                                                formik_Surrogate.setFieldValue("supplier", value)
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField
-                                                    {...params}
-                                                    label="Supplier *"
-                                                    variant="outlined"
-                                                    error={formik_Surrogate.touched.supplier && Boolean(formik_Surrogate.errors.supplier)}
-                                                    helperText={formik_Surrogate.touched.supplier && formik_Surrogate.errors.supplier}
-                                                />
-                                            )}
-                                        />
-                                    </div>
-
-                                    <div className="col-12 mb-4">
-
-                                        <TextFieldCell
-                                            id="surrogatename"
-                                            name="surrogatename"
-                                            label="Surrogater Name *"
-                                            placeholder=""
-                                            maxLength={200}
-                                            value={formik_Surrogate.values.surrogatename}
-                                            onChange={formik_Surrogate.handleChange}
-                                            error={
-                                                formik_Surrogate.touched.surrogatename &&
-                                                Boolean(formik_Surrogate.errors.surrogatename)
-                                            }
-                                            helperText={
-                                                formik_Surrogate.touched.surrogatename &&
-                                                formik_Surrogate.errors.surrogatename
-                                            }
-                                            InputProps={{
-                                                endAdornment: formik_Surrogate.values.surrogatename && (
-                                                    <InputAdornment position="end">
-                                                        <Typography
-                                                            variant="body2"
-                                                            color="textSecondary"
-                                                        >
-                                                            {formik_Surrogate.values.surrogatename.length}/200
-                                                        </Typography>
-                                                    </InputAdornment>
-                                                ),
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="col-12 mb-4">
-
-                                        <TextFieldCell
-                                            id="surrogateemail"
-                                            name="surrogateemail"
-                                            label="Surrogater Email *"
-                                            placeholder=""
-                                            maxLength={200}
-                                            value={formik_Surrogate.values.surrogateemail}
-                                            onChange={formik_Surrogate.handleChange}
-                                            error={
-                                                formik_Surrogate.touched.surrogateemail &&
-                                                Boolean(formik_Surrogate.errors.surrogateemail)
-                                            }
-                                            helperText={
-                                                formik_Surrogate.touched.surrogateemail &&
-                                                formik_Surrogate.errors.surrogateemail
-                                            }
-                                            InputProps={{
-                                                endAdornment: formik_Surrogate.values.surrogateemail && (
-                                                    <InputAdornment position="end">
-                                                        <Typography
-                                                            variant="body2"
-                                                            color="textSecondary"
-                                                        >
-                                                            {formik_Surrogate.values.surrogateemail.length}/200
-                                                        </Typography>
-                                                    </InputAdornment>
-                                                ),
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="col-12 mb-4">
-
-                                        <TextFieldCell
-                                            id="surrogateReason"
-                                            name="surrogateReason"
-                                            label="Remark"
-                                            placeholder=""
-                                            maxLength={200}
-                                            value={formik_Surrogate.values.surrogateReason}
-                                            onChange={formik_Surrogate.handleChange}
-                                            error={
-                                                formik_Surrogate.touched.surrogateReason &&
-                                                Boolean(formik_Surrogate.errors.surrogateReason)
-                                            }
-                                            helperText={
-                                                formik_Surrogate.touched.surrogateReason &&
-                                                formik_Surrogate.errors.surrogateReason
-                                            }
-                                            InputProps={{
-                                                endAdornment: formik_Surrogate.values.surrogateReason && (
-                                                    <InputAdornment position="end">
-                                                        <Typography
-                                                            variant="body2"
-                                                            color="textSecondary"
-                                                        >
-                                                            {formik_Surrogate.values.surrogateReason.length}/200
-                                                        </Typography>
-                                                    </InputAdornment>
-                                                ),
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-
-                            </DialogContent>
-                            <DialogActions>
-                                <Button
-                                    onClick={() => setActionModal({ ...actionmodal, ["surrogateSupplierModal"]: false })}
-                                >Cancel</Button>
-                                <Button type="submit" variant="contained" autoFocus>
-                                    Invite
-                                </Button>
-                            </DialogActions>
-                        </form>
-                    </Dialog>
-                    <Dialog
-                        open={modalcancelOpen}
-                        onClose={() => handleCancelAuctionModal(false)}
-                        maxWidth="sm"
-                        fullWidth
-                    >
-                        <DialogTitle className="pt-2 pb-2 px-3 bgheaderCards d-flex justify-content-between align-items-center">
-                            <Typography className="text-white f15 fw500">Cancel Auction</Typography>
-                            <IconButton onClick={() => handleCancelAuctionModal(false)} size="small">
-                                <HiOutlineX className="f20 text-white" />
-                            </IconButton>
-                        </DialogTitle>
-                        <DialogContent className="pt-3 px-3">
-                            <Typography className="f14 text-muted mb-3">
-                                You are about to cancel this auction. Please provide a reason for cancellation.
-                            </Typography>
-                            <TextField
-                                autoFocus
-                                label="Cancellation Reason"
-                                type="text"
-                                fullWidth
-                                multiline
-                                rows={3}
-                                value={cancelReason}
-                                onChange={handleCancelInputChange}
-                                error={Boolean(biderror)}
-                                helperText={biderror || `${cancelReason.length}/1000`}
-                                placeholder="Enter the reason for cancelling this auction..."
-                                variant="outlined"
-                                size="small"
-                                inputProps={{ maxLength: 1000 }}
-                            />
-                        </DialogContent>
-                        <DialogActions className="p-3 pt-2">
-                            <Button
-                                onClick={() => handleCancelAuctionModal(false)}
-                                variant="outlined"
-                                size="medium"
-                                className="text-capitalize px-4"
-                            >
-                                Keep Auction
-                            </Button>
-                            <Button
-                                onClick={() => handleCancelAuctionModal(true)}
-                                variant="contained"
-                                color="error"
-                                size="medium"
-                                className="text-capitalize px-4"
-                                autoFocus
-                            >
-                                Cancel Auction
-                            </Button>
-                        </DialogActions>
-                    </Dialog>
-                    <div>
-                        {isCircleLoading && (
-                            <div
-                                style={{
-                                    position: 'fixed',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Semi-transparent overlay
-                                    backdropFilter: 'blur(5px)',  // Blur the background
-                                    zIndex: 9998,
-                                }}
-                            ></div>
-                        )}
-                        {isCircleLoading && (
-                            <Box
-                                sx={{
-                                    position: 'fixed',
-                                    top: '50%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    zIndex: 9999,  // Ensures spinner is on top of the blur
-                                }}
-                            >
-                                <CircularProgress />
-                            </Box>
-                        )}
-                    </div>
-                </>
-            )}
-        </>
-
-    );
+	const navigate = useNavigate();
+	const [{ atoken, customerid, userDetail, customersuffix }, dispatch, thousands_separators] = useStateValue();
+	const apiClient = new ApiClient(customersuffix);
+	const [allVendorParticipationDetails, SetAllVendorParticipationDetails] = useState([])
+	//console.log("allVendorParticipationDetails:", allVendorParticipationDetails)
+	const [auctionManageData, SetAuctionManageData] = useState([])
+	//console.log("auctionManageData:", auctionManageData)
+	const [vendorListData, setVendorListData] = useState([])
+	const [permissionManager, setPermissionManager] = useState(null);
+	const [loadingPermissions, setLoadingPermissions] = useState(true);
+	const { pageSlug } = useParams();
+	const BidId = auctionId || parseInt(pageSlug);
+	const location = useLocation();
+	const [lineItemsPerPage, setLineItemsPerPage] = useState([]);
+	const [pageNumber, setPageNumber] = useState(1);
+	const [reopenTrigger, setReopenTrigger] = useState(0);
+	const pageNumberRef = useRef(pageNumber);
+	useEffect(() => {
+		pageNumberRef.current = pageNumber;
+	}, [pageNumber]);
+	const [totalCount, setTotalCount] = useState(0);
+	const [runningSlotNumber, setRunningSlotNumber] = useState(null);
+	const [connectionStatus, setConnectionStatus] = useState('connecting'); // 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'failed'
+	const [showRefreshDialog, setShowRefreshDialog] = useState(false);
+	const reconnectAttemptsRef = useRef(0);
+	const connectionTimeoutRef = useRef(null);
+	const reconnectingTimeoutRef = useRef(null);
+	const hasShownDialogRef = useRef(false);
+	const [isFullScreen, setIsFullScreen] = useState(isDifferentPage);
+
+	//signalR
+	const [loading, setLoading] = useState(false);
+	const [isCircleLoading, setIsCircleLoading] = useState(false);
+	const [connection, setConnection] = useState(null);
+	//console.log("state of connection::", connection?._connectionState)
+
+	// Sticky header state
+	const [isHeaderSticky, setIsHeaderSticky] = useState(false);
+	const cardRef = useRef(null);
+
+	useEffect(() => {
+		if (!pageSlug || !atoken) return;
+
+		// Don't create new connection if dialog is shown or if already connecting/connected
+		if (hasShownDialogRef.current || showRefreshDialog) return;
+
+		if (connection && (connection.state === signalR.HubConnectionState.Connected || connection.state === signalR.HubConnectionState.Connecting)) {
+			return;
+		}
+
+		setConnectionStatus('connecting');
+
+		// Set a timeout to show refresh dialog if connection is not established within 3 seconds
+		connectionTimeoutRef.current = setTimeout(() => {
+			if (!hasShownDialogRef.current) {
+				console.error('Connection timeout: Unable to establish connection within 3 seconds.');
+				setConnectionStatus('failed');
+				setShowRefreshDialog(true);
+				hasShownDialogRef.current = true;
+			}
+		}, 3000); // 3 seconds timeout
+		const host = window.location.host;      // buyer.pe.com
+		const cleanHost = host.split(":")[0];   // remove port
+		const tenant = cleanHost.split(".")[0];
+		const connect = new signalR.HubConnectionBuilder()
+			.withUrl(
+				`${process.env.REACT_APP_API_CALL}auctionHub?bidId=${parseInt(pageSlug)}`,
+				{
+					accessTokenFactory: () => atoken,
+					headers: {
+						"X-Tenant": tenant
+					},
+					transport:
+						signalR.HttpTransportType.WebSockets |
+						signalR.HttpTransportType.ServerSentEvents |
+						signalR.HttpTransportType.LongPolling,
+				}
+			)
+			.build();
+
+		// Removed automatic reconnection - will be handled manually in onclose
+
+		connect.onclose((error) => {
+			console.error('SignalR closed. Error:', error?.message, error?.stack, error);
+
+			// If dialog already shown, don't do anything
+			if (hasShownDialogRef.current) {
+				setConnection(null);
+				return;
+			}
+
+			setConnection(null);
+
+			// If connection closed with error, attempt one manual reconnection
+			if (error) {
+				setConnectionStatus('reconnecting');
+
+				// Set timeout - if not reconnected in 3 seconds, show dialog
+				if (!reconnectingTimeoutRef.current) {
+					reconnectingTimeoutRef.current = setTimeout(() => {
+						if (!hasShownDialogRef.current) {
+							console.error('Failed to reconnect. Showing refresh dialog.');
+							setConnectionStatus('failed');
+							setShowRefreshDialog(true);
+							hasShownDialogRef.current = true;
+						}
+					}, 3000); // 3 seconds timeout
+				}
+
+				// Attempt to reconnect once
+				setTimeout(() => {
+					if (!hasShownDialogRef.current && connect.state === signalR.HubConnectionState.Disconnected) {
+						console.log('Attempting manual reconnection...');
+						connect.start()
+							.then(() => {
+								console.log('Reconnected successfully');
+								if (reconnectingTimeoutRef.current) {
+									clearTimeout(reconnectingTimeoutRef.current);
+									reconnectingTimeoutRef.current = null;
+								}
+								setConnection(connect);
+								setConnectionStatus('connected');
+								hasShownDialogRef.current = false;
+								//toast.success('Connection restored successfully');
+							})
+							.catch((err) => {
+								console.error('Reconnection failed:', err);
+								// Let the timeout show the dialog
+							});
+					}
+				}, 500); // Wait 500ms before attempting reconnection
+			}
+		});
+
+		connect.start()
+			.then(() => {
+				console.log('SignalR Connected for id: ', pageSlug);
+
+				// Clear all timeouts on successful connection
+				if (connectionTimeoutRef.current) {
+					clearTimeout(connectionTimeoutRef.current);
+					connectionTimeoutRef.current = null;
+				}
+				if (reconnectingTimeoutRef.current) {
+					clearTimeout(reconnectingTimeoutRef.current);
+					reconnectingTimeoutRef.current = null;
+				}
+
+				setConnection(connect);
+				setConnectionStatus('connected');
+				reconnectAttemptsRef.current = 0;
+				hasShownDialogRef.current = false;
+			})
+			.catch((err) => {
+				console.error('Connection failed: ', err);
+				// Initial connection failed, let the timeout show the dialog
+				setConnectionStatus('reconnecting');
+			});
+
+		return () => {
+			// Clear all timeouts and refs on cleanup
+			if (connectionTimeoutRef.current) {
+				clearTimeout(connectionTimeoutRef.current);
+				connectionTimeoutRef.current = null;
+			}
+			if (reconnectingTimeoutRef.current) {
+				clearTimeout(reconnectingTimeoutRef.current);
+				reconnectingTimeoutRef.current = null;
+			}
+			hasShownDialogRef.current = false;
+
+			if (connect) {
+				connect.stop().then(() => console.log('SignalR connection stopped.'));
+				setConnection(null);
+			}
+		};
+	}, [pageSlug, atoken]);
+
+	useEffect(() => {
+
+		const queryParams = new URLSearchParams(location.search);
+
+		const data = queryParams.get("CommId")?.trim();
+		if (data) {
+			dispatch({ type: actionTypes.SET_CommId, value: parseInt(data) });
+		}
+
+		// const pullMessageList = async () => {
+
+		//     var data = {
+		//         CustomerId: customerid,
+		//         SortingColumn: "Id",
+		//         EventId: pageSlug,
+		//         EventType: "Auction",
+		//         CommDetails_CommParticipantUser_UserId: userDetail?.id
+		//     };
+		//     const queryParams = buildQueryParams(data)
+		//     const res = await apiClient.getres(`api/Communication/FindByCommId?${queryParams}`, atoken)
+
+		//     if (res) {
+		//         const data = res?.data?.result ?? []
+
+		//         dispatch({ type: actionTypes.SET_Notificationlist, value: data });
+		//     }
+
+
+		// }
+
+		// // Only run the pullMessageList function if pageSlug is defined
+		// if (pageSlug) {
+		//     pullMessageList();
+		// }
+	}, [pageSlug, customerid, dispatch, atoken]);
+
+	useEffect(() => {
+		// Set up the connection and handle incoming updates
+		if (connection) {
+			connection.on("UpdateAllRanks", (data) => {
+				if (data.length !== 0) {
+					if (data?.vendors) {
+						const vendorData = data?.vendors;
+						if (pageSlug === vendorData[0]?.bidId) {
+
+							//alert("UpdateAllRanks", data);
+							if (vendorData[0]?.alertExtension === "Y") {
+								setBidEndDate(vendorData[0]?.bidEndDate)
+								getAuctionManageFind();
+								fetchVendorParameterDetailsLineItems(pageNumberRef.current, rowsPerPage, true);
+							}
+
+							fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
+						}
+					}
+					else {
+						if (pageSlug === data[0]?.bidId) {
+							//alert("UpdateAllRanks", data);
+							if (data[0]?.alertExtension === "Y") {
+								setBidEndDate(data?.bidEndDate)
+								getAuctionManageFind();
+								fetchVendorParameterDetailsLineItems(pageNumberRef.current, rowsPerPage, true);
+							}
+
+							fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
+						}
+					}
+				}
+				else {
+
+					fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
+				}
+			});
+		}
+	}, [connection, BidId, pageSlug, pageNumberRef.current]);
+
+
+	useEffect(() => {
+		if (connection) {
+			const handleAuctionTimeUpdate = (timeUpdate) => {
+				//alert("AuctionTimeUpdate", timeUpdate);
+				//console.log("Data update received:", timeUpdate);
+
+				const updatedTimeDetail = { ...auctionManageData };
+				let isTimeUpdated = false;
+
+				if (updatedTimeDetail[0].id === timeUpdate?.id) {
+					const currentDateTime = new Date().toISOString()
+					if (timeUpdate?.bidEndDate < currentDateTime) {
+						setIsCircleLoading(true);
+						setTimeout(() => {
+							setIsCircleLoading(false);
+							navigate(`/configuration/manage-auction`);
+						}, 2000);
+					} else {
+						isTimeUpdated = true;
+						updatedTimeDetail[0].bidStDate = timeUpdate?.bidStDate;
+						updatedTimeDetail[0].bidEndDate = timeUpdate?.bidEndDate;
+						updatedTimeDetail[0].bidDuration = timeUpdate?.bidDuration;
+						updatedTimeDetail[0].extensions = timeUpdate?.extensions;
+						updatedTimeDetail[0].extensionDuration = timeUpdate?.extensionDuration;
+					}
+				}
+				if (isTimeUpdated) {
+					SetAuctionManageData(updatedTimeDetail);
+					setBidStDate(timeUpdate?.bidStDate);
+					setBidEndDate(timeUpdate?.bidEndDate);
+				}
+			};
+
+			connection.on("AuctionTimeUpdate", handleAuctionTimeUpdate);
+
+			return () => {
+				connection.off("AuctionTimeUpdate", handleAuctionTimeUpdate);
+			}
+		}
+	}, [connection, auctionManageData, BidId]);
+
+	useEffect(() => {
+
+		fetchVendorParameterDetailsLineItems()
+		//fetchVendorParameterDetails();
+		getAuctionManageFind();
+	}, [atoken, customerid]);
+
+	// calling AllVendorParticipationDetails api here
+	const fetchVendorParameterDetailsLineItems = async (pageNum = pageNumber, pageSize = rowsPerPage, skipFetchDetails = false) => {
+		const eventData = {
+			BidId: auctionId || parseInt(pageSlug),
+			VendorId: 0,
+			PageNumber: pageNum,
+			PageSize: pageSize,
+		};
+
+		setPageNumber(pageNum);
+		const queryParams = buildQueryParams(eventData);
+		const res = await apiClient.getres(
+			`/api/AuctionParticipation/Find?${queryParams}`,
+			atoken
+		);
+		if (res?.data) {
+
+			setLineItemsPerPage(res?.data?.vendorParameterDetails || []);
+
+			if (!skipFetchDetails) {
+				fetchVendorParameterDetails(pageNum, pageSize);
+			}
+
+			const meta = res.data?.pageMetaData?.[0];
+			if (meta) {
+				setTotalCount(meta.totalRecords);
+				setPage(meta.currentPage - 1);
+			}
+		}
+	};
+
+	useEffect(() => {
+		// Fetch role rights on mount so UI doesn't flash access-denied
+		getUserRoleRights();
+	}, [userDetail?.id]);
+
+	const fetchVendorParameterDetails = async (pageNum = pageNumber, pageSize = rowsPerPage) => {
+
+		const eventData = {
+			BidId: auctionId || parseInt(pageSlug),
+			PageNumber: pageNum,
+			PageSize: pageSize,
+		};
+
+		const queryParams = buildQueryParams(eventData);
+		const res = await apiClient.get(
+			`api/AuctionParticipation/AllVendorParticipationDetails?${queryParams}`,
+			//`api/AuctionParticipation/AllVendorParticipationDetails?BidId=${parseInt(pageSlug)}`,
+			atoken
+		);
+		if (res) {
+
+			SetAllVendorParticipationDetails(res?.allVendorParticipationDetail || []);
+		}
+	};
+
+	const [bidStDateTime, setBidStDate] = useState();
+	const [bidEndDateTime, setBidEndDate] = useState();
+	const getAuctionManageFind = async () => {
+
+		const res = await apiClient.get(
+			`api/AuctionManage/Find?CustomerId=${customerid}&Id=${auctionId || pageSlug}`,
+			atoken
+		);
+		if (res) {
+
+			SetAuctionManageData(res?.result || []);
+			setBidStDate(res?.result[0].bidStDate)
+			setBidEndDate(res?.result[0].bidEndDate)
+			setVendorListData(res?.result[0]?.bidVendorInvited || [])
+		}
+
+		if (res?.result[0]?.userAccess?.length > 0) {
+			// Initialize Permission Manager with user access data
+			const permManager = new PermissionManager(res?.result[0]?.userAccess);
+			setPermissionManager(permManager);
+		}
+	};
+
+	const getUserRoleRights = async () => {
+		try {
+			const obj = {
+				FeatureName: "Auction",
+				UserId: userDetail?.id,
+				CreatedById: userDetail?.id,
+			};
+			const queryParams = buildQueryParams(obj);
+			const res = await apiClient.getres(`/api/rolemanagement/GetUserRoleRights?${queryParams}`, atoken);
+			if (res) {
+				const access = res?.data || res?.result?.[0]?.userAccess || res?.result;
+				const permManager = new PermissionManager(access);
+				setPermissionManager(permManager);
+			}
+		} catch (err) {
+			console.error("getUserRoleRights error", err);
+		} finally {
+			setLoadingPermissions(false);
+		}
+	};
+
+	// Simple refresh function
+	const refreshData = async () => {
+		setIsCircleLoading(true);
+		try {
+
+			//getAuctionManageFind();
+			if (checkedVendors.length > 0) {
+				fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
+			}
+			else {
+				getAuctionManageFind();
+			}
+			setTimeout(() => setIsCircleLoading(false), 800);
+		} catch (error) {
+			console.error('Error refreshing:', error);
+			setIsCircleLoading(false);
+		}
+	};
+
+	//bid duration timer update manually starts here
+	const [adjustValue, setAdjustValue] = useState(0); // The value inside the input field
+	const [isValueChanged, setIsValueChanged] = useState(false); // Track if the value is changed by user
+
+	useEffect(() => {
+		if (auctionManageData)
+			setAdjustValue(auctionManageData[0]?.bidDuration)
+	}, [auctionManageData])
+
+	// Handle increase
+	const handleIncrease = () => {
+		setAdjustValue(prev => {
+			if (prev >= 9999999) {
+				return prev;
+			}
+			const newValue = prev + 1;
+			setIsValueChanged(true);
+			return newValue;
+		});
+	};
+
+	// Handle decrease
+	const handleDecrease = () => {
+		if (adjustValue > 0) {
+			setAdjustValue(prev => {
+				const newValue = prev - 1;
+				setIsValueChanged(true); // Mark as changed
+				return newValue;
+			});
+		}
+	};
+
+	const handleBidDurationChange = (e) => {
+		let newValue = e.target.value;
+		newValue = newValue.replace(/[^\d]/g, '');
+		if (newValue === '') {
+			setAdjustValue('');
+			setIsValueChanged(true);
+		} else if (newValue.length <= 7) {
+			setAdjustValue(Number(newValue));
+			setIsValueChanged(true);
+		}
+	};
+
+	const handleGoClick = async () => {
+
+		if (adjustValue < 1 || adjustValue === '') {
+			toast.error("Please enter bid duration.");
+			return;
+		}
+		if (connection.state !== signalR.HubConnectionState.Connected) {
+			console.log("Connection is not in the connected state. Trying to start the connection...");
+			await connection.start();
+			console.log("Connection started successfully!");
+		}
+		if (connection.state === signalR.HubConnectionState.Connected) {
+
+			const res = await apiClient.postres(
+				`/api/AuctionParticipation/AuctionTimeUpdate?BidId=${auctionId || parseInt(pageSlug)}&additionalMins=${adjustValue}&GroupId=${0}`,
+				null,
+				atoken
+			);
+
+			if (res) {
+				//console.log("Bid duration updated successfully.")
+				setIsValueChanged(false)
+			}
+		} else {
+			console.error("Unable to connect to the server.");
+		}
+	};
+	//bid duration timer update manually ends here
+
+	const callbackOnpause = useCallback(
+		(pass) => {
+			getAuctionManageFind()
+		},
+		[auctionId, pageSlug]
+	);
+
+	//timer calculation before bid start here
+	const [timeRemaining, setTimeRemaining] = useState("");
+	const [bidStatus, setBidstatus] = useState(null);
+	console.log("bidStatus:", bidStatus)
+	console.log("bid stage:", auctionManageData[0]?.stage)
+	const [reOpenSuccess, setReOpenSuccess] = useState(false);
+
+	useEffect(() => {
+		let transformedStatus = null;
+
+		if (reOpenSuccess) {
+			transformedStatus = 'Open';
+		} else if (bidStatus === 'running') {
+			transformedStatus = 'Running';
+		} else if (bidStatus === null && timeRemaining === '00:00:00') {
+			transformedStatus = 'Close';
+		}
+
+		if (transformedStatus) {
+			onBidStatusChange(transformedStatus);
+			if (reOpenSuccess) setReOpenSuccess(false);
+		}
+	}, [bidStatus, reOpenSuccess]);
+
+	useEffect(() => {
+		const calculateTimeRemaining = () => {
+			const bidStartDate = new Date(checkUTC(bidStDateTime)).getTime();
+			const currentTime = new Date().getTime();
+			const timeDiff = bidStartDate - currentTime;
+			if (timeDiff > 0) {
+				const formattedTime = formatbidtime(timeDiff)
+				setTimeRemaining(formattedTime);
+				setBidstatus("not_started")
+			} else {
+				const bidEndDate = new Date(checkUTC(bidEndDateTime)).getTime();
+				const currentTime = new Date().getTime();
+				const timeDiff = bidEndDate - currentTime;
+				if (timeDiff > 0) {
+					const formattedTime = formatbidtime(timeDiff)
+					setTimeRemaining(formattedTime);
+					setBidstatus("running")
+				}
+				else {
+					setTimeRemaining("00:00:00");
+					clearInterval(timer);
+					setBidstatus(null)
+					refreshData();
+				}
+			}
+		};
+		let timer;
+		let flag = new Date(checkUTC(bidEndDateTime)).getTime() > new Date().getTime()
+		if (flag && bidStDateTime && bidEndDateTime) {
+			timer = setInterval(calculateTimeRemaining, 1000);
+			return () => clearInterval(timer);
+		}
+	}, [bidStDateTime, bidEndDateTime]);
+
+	//timer calculation before bid start  ends here 
+
+	// Sticky header scroll listener
+	useEffect(() => {
+		const handleScroll = () => {
+			if (cardRef.current) {
+				const cardTop = cardRef.current.getBoundingClientRect().top;
+				const shouldStick = cardTop <= 70; // When card reaches the main header
+				setIsHeaderSticky(shouldStick);
+			}
+		};
+
+		const mainContent = document.getElementById('mainRightContant');
+		if (mainContent) {
+			mainContent.addEventListener('scroll', handleScroll);
+			return () => mainContent.removeEventListener('scroll', handleScroll);
+		}
+	}, []);
+
+	// Also listen to window scroll in case it's needed
+	useEffect(() => {
+		const handleWindowScroll = () => {
+			if (cardRef.current) {
+				const cardTop = cardRef.current.getBoundingClientRect().top;
+				const shouldStick = cardTop <= 70;
+				setIsHeaderSticky(shouldStick);
+			}
+		};
+
+		window.addEventListener('scroll', handleWindowScroll);
+		return () => window.removeEventListener('scroll', handleWindowScroll);
+	}, []);
+
+	//for the auctiion use
+	const [open, setOpen] = useState(false);
+	const [currentItemIndex, setCurrentItemIndex] = useState(null); // Store current item index or id
+	const [fieldType, setFieldType] = useState('');
+	const [startPrice, setStartPrice] = useState('');
+	const [bidParamId, setBidParamId] = useState('');
+	const [minimumDelta, setMinimumDelta] = useState('');
+	const [maskL1Price, setMaskL1Price] = useState(null);
+	const [hidePrice, setHidePrice] = useState(null);
+	const [showStartPrice, setShowStartPrice] = useState(null);
+
+	const CloseLoadingModal = () => {
+		setOpen(false);
+		setCurrentItemIndex(null);
+	};
+
+	const handleOpen = (type, index, id) => {
+		setCurrentItemIndex(index);
+		setFieldType(type);
+		setBidParamId(id);
+		const item = lineItemsPerPage.find(p => p.bidParameterId === id);
+		if (type === 'startPrice') {
+			setStartPrice(item?.startPrice || '');
+		} else if (type === 'minimumDelta') {
+			setMinimumDelta(item?.minimumDelta || '');
+		}
+		setOpen(true);
+	};
+
+	const handleSubmit = async (fieldType = "", fieldDecValue = null, fieldFlgBool = null, id) => {
+
+		let finalFieldValue = fieldDecValue;
+
+		if (fieldType === 'startPrice') {
+			finalFieldValue = startPrice;
+		} else if (fieldType === 'minimumDelta') {
+
+			finalFieldValue = minimumDelta;
+
+			// const matchedParameter = auctionManageData[0]?.bidParamater.find(param => param.id === bidParamId);
+			const matchedParameter = lineItemsPerPage?.find(param => param.bidParameterId === bidParamId);
+			if (matchedParameter?.decreamentOn === 'A' && parseFloat(finalFieldValue) === matchedParameter?.startPrice
+				&& (auctionManageData[0]?.bidTypeID !== 1 && auctionManageData[0]?.bidTypeID !== 5)) {
+				toast.error("Minimum decrement should not equal to Start Unit Price");
+				return;
+			}
+			if (matchedParameter?.decreamentOn === 'P' && parseFloat(finalFieldValue) > 20
+				&& (auctionManageData[0]?.bidTypeID !== 1 && auctionManageData[0]?.bidTypeID !== 5)) {
+				toast.error("Minimum decrement should be less than 20%");
+				return;
+			}
+			if (matchedParameter?.decreamentOn === 'P' && parseFloat(finalFieldValue) > 20
+				&& (auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5)) {
+				toast.error("Minimum increment should be less than 20%");
+				return;
+			}
+		}
+
+		const enterParamData = {
+			BidId: auctionId || parseInt(pageSlug), //int
+			ParameterId: fieldFlgBool === null ? bidParamId : id, //int
+			FieldName: fieldType, //string
+			FieldFlg: fieldFlgBool, //boolean (this can be passed for switches)
+			FieldTxt: null, //string (optional if needed)
+			FieldValue: parseFloat(finalFieldValue) ? parseFloat(finalFieldValue) : null, //decimal (if applicable)
+			CreatedBy: userDetail.id, //int
+		};
+
+		try {
+
+			if (connection.state === signalR.HubConnectionState.Connected) {
+				const res = await apiClient.postres(
+					`/api/AuctionParticipation/UpdateParameterValues`,
+					enterParamData,
+					atoken
+				);
+				if (res) {
+
+					fetchVendorParameterDetailsLineItems(pageNumber, rowsPerPage, true);
+					//getAuctionManageFind();
+					console.log('Parameter updated successfully.');
+				}
+			} else {
+				console.error("Unable to connect to the server.");
+			}
+		} catch (err) {
+			console.error("Error submitting bid: ", err);
+		}
+		setOpen(false);
+	};
+
+	//remove quotes
+	const [openRemoveQuote, setOpenRemoveQuote] = useState(false);
+	const [vendorQuotedPrice, setVendorQuotedPrice] = useState(0);
+	const [vendorParamId, setVendorParamId] = useState(0);
+	const [removeRemark, setRemoveRemark] = useState('');
+	const [remarkError, setRemarkError] = useState(false);
+
+	const handleOpenModalRemoveQuote = (quotedPrice, id) => {
+		setOpenRemoveQuote(true)
+		setVendorQuotedPrice(quotedPrice)
+		setVendorParamId(id)
+	};
+
+	const handleRemoveRestrictRemarks = async (id) => {
+		try {
+			const res = await apiClient.postres(`/api/AuctionParticipation/RemoveQuotes?HeaderId=${id}&quotedPrice=0&Remarks='remove'`, null, atoken);
+			if (res) {
+				toast.success('Restrict remark removed successfully.');
+				fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
+			}
+		} catch (err) {
+			console.error('Error removing restrict remark: ', err);
+			toast.error('An error occurred while removing the restrict remark.');
+		}
+	};
+
+	const CloseRemoveQuoteModal = () => {
+		setOpenRemoveQuote(false)
+		setVendorQuotedPrice(0)
+		setVendorParamId(0)
+		setRemoveRemark('');
+	};
+
+	const handleRemoveQoutes = async () => {
+		try {
+			const res = await apiClient.postres(`/api/AuctionParticipation/RemoveQuotes?HeaderId=${vendorParamId}&quotedPrice=${parseFloat(vendorQuotedPrice)}&Remarks=${removeRemark}`, null, atoken)
+			if (res) {
+				toast.success('Quote Removed Successfully.');
+				setOpenRemoveQuote(false)
+				setRemoveRemark('');
+			}
+		} catch (err) {
+			console.error("Error removing quotes: ", err);
+		}
+	};
+
+	const getRankColor = (rankValue) => {
+		if (rankValue === 'L1' || rankValue === 'H1') {
+			return 'blue'; // L1 should be blue
+		} else {
+			return 'red';  // Any rank 2 and beyond should also be red
+		}
+	};
+
+	const [editingVendorId, setEditingVendorId] = useState(null);
+	const [editingParameterId, setEditingParameterId] = useState(null);
+	const [prebidloading, setPreBidLoading] = useState(false);
+	const [prebidValues, setPrebidValues] = useState([]);
+	//console.log("prebidValues:", prebidValues)
+	const handleBlur = () => {
+		setEditingVendorId(null);
+		setEditingParameterId(null);
+		setRestrictVendorId(null);
+		setRestrictParameterId(null);
+	};
+
+	const handleEditPrice = (vendorId, bidParameterId) => {
+		setEditingVendorId(vendorId);
+		setEditingParameterId(bidParameterId);
+	};
+
+	const handlePriceChange = (e, sq) => {
+		const rawValue = e.target.value;
+		const newPrice = parseFloat(rawValue);
+
+		setPrebidValues(prev => {
+			const updatedPrices = [...prev];
+			const existingVendor = updatedPrices.find(item => item.createdById === sq.vendorId && item.bidParameterId === sq.bidParameterId);
+
+			if (rawValue === '') {
+				// Keep entry with empty value so TextField doesn't fall back to sq.quotedPrice
+				if (existingVendor) {
+					existingVendor.quotedPrice = '';
+				} else {
+					updatedPrices.push({
+						id: sq?.id || 0,
+						createdById: sq.vendorId,
+						bidParameterId: sq.bidParameterId,
+						quotedPrice: '',
+						customerId: parseInt(customerid),
+						bidId: auctionId || parseInt(pageSlug),
+						isPrePrice: true,
+						bidTypeID: auctionManageData[0]?.bidTypeID,
+						bidSubTypeId: auctionManageData[0]?.bidSubTypeId
+					});
+				}
+				return updatedPrices;
+			}
+
+			if (newPrice !== 0 && !isNaN(newPrice)) {
+				const bidParameter = lineItemsPerPage?.find(param => param.bidParameterId === sq.bidParameterId);
+				if ((auctionManageData[0]?.bidTypeID !== 1 && auctionManageData[0]?.bidTypeID !== 5) && bidParameter?.startPrice && Number(newPrice) > bidParameter.startPrice) {
+					toast.error(`You cannot enter more than the start price (${bidParameter.startPrice}) for this bid.`);
+					return prev;
+				}
+				if (existingVendor) {
+					existingVendor.quotedPrice = newPrice;
+				} else {
+					updatedPrices.push({
+						id: sq?.id || 0,
+						createdById: sq.vendorId,
+						bidParameterId: sq.bidParameterId,
+						quotedPrice: newPrice ?? 0,
+						customerId: parseInt(customerid),
+						bidId: auctionId || parseInt(pageSlug),
+						isPrePrice: true,
+						bidTypeID: auctionManageData[0]?.bidTypeID,
+						bidSubTypeId: auctionManageData[0]?.bidSubTypeId
+					});
+				}
+			}
+			return updatedPrices;
+		});
+	};
+
+
+	//restrict vendor
+	const [restrictVendorId, setRestrictVendorId] = useState(null);
+	//console.log("restrictVendorId:", restrictVendorId)
+	const [restrictParameterId, setRestrictParameterId] = useState(null);
+	const handleCheckboxRestrict = (vendorId, bidParameterId) => {
+
+		setRestrictVendorId(vendorId);
+		setRestrictParameterId(bidParameterId);
+	};
+
+	const handleRestricttChange = (e, sq) => {
+		const newQuote = e.target.value;
+		setPrebidValues(prev => {
+			const updatedPrices = [...prev];
+			const existingVendor = updatedPrices.find(item => item.createdById === sq.vendorId && item.bidParameterId === sq.bidParameterId);
+			if (existingVendor) {
+				existingVendor.restrictRemarks = newQuote;
+			} else {
+				updatedPrices.push({
+					id: sq?.id || 0,
+					createdById: sq.vendorId,
+					bidParameterId: sq.bidParameterId,
+					restrictRemarks: newQuote ?? '',
+					customerId: parseInt(customerid),
+					bidId: auctionId || parseInt(pageSlug),
+					isPrePrice: true,
+					bidTypeID: auctionManageData[0]?.bidTypeID,
+					bidSubTypeId: auctionManageData[0]?.bidSubTypeId
+				});
+			}
+			return updatedPrices;
+		});
+	};
+
+	const submitPrebid = async () => {
+		//console.log("hii there", prebidValues)
+		if (prebidValues.length > 0) {
+			setPreBidLoading(true);
+			for (let prebid of prebidValues) {
+				// const bidParameter = auctionManageData[0]?.bidParamater.find((param) => param.id === prebid.bidParameterId);
+				const bidParameter = lineItemsPerPage?.find((param) => param.bidParameterId === prebid.bidParameterId);
+				if (bidParameter && (auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5)) {
+					const newPrice = prebid.quotedPrice;
+					if (bidParameter.startPrice && Number(newPrice) < bidParameter.startPrice) {
+						toast.error(`Amount should not be less than Start Price (${bidParameter.startPrice}) for this bid.`);
+						setPreBidLoading(false);
+						return;
+					}
+				}
+			}
+
+			try {
+				const res = await apiClient.postres(
+					`/api/AuctionParticipation/SubmitPreBid`,
+					prebidValues,
+					atoken
+				);
+				if (res) {
+
+					setPrebidValues([]);
+					toast.success(`PreBid added successfully.`, {
+						toastId: "prebid_added"
+					});
+					fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
+				}
+				else {
+					toast.error("Error fetching response");
+				}
+			} catch (err) {
+				console.error("Error submitting bid: ", err);
+				toast.error("An error occurred while submitting the bid.");
+			}
+		} else {
+			toast.error(`Enter atleast one prebid.`, {
+				toastId: "prebid_added",
+				autoClose: 2000,
+			});
+		}
+		setPreBidLoading(false);
+	}
+	const [page, setPage] = useState(0);
+	const [rowsPerPage, setRowsPerPage] = useState(10);
+
+	const [normalPagination, setNormalPagination] = useState(0);
+	const [normalRowsPerPage, setNormalRowsPerPage] = useState(10);
+
+	const handleNormalChangePage = (event, newPage) => {
+		setNormalPagination(newPage);
+		//new add
+		setPageNumber(newPage + 1);
+		fetchVendorParameterDetailsLineItems(newPage + 1, rowsPerPage);
+	};
+
+	const handleNormalChangeRowsPerPage = (event) => {
+		setNormalRowsPerPage(parseInt(event.target.value, 10));
+		setNormalPagination(0);
+		//new add
+		setPageNumber(1); // reset to first page
+		fetchVendorParameterDetailsLineItems(1, event.target.value);
+	};
+
+	// Main Items Table Component
+	const [expandedItemIds, setExpandedItemIds] = useState([]);
+	const [expandAll, setExpandAll] = useState(true);
+	const [bidControlAnchor, setBidControlAnchor] = useState(null);
+
+	const handleExpandToggle = (id, setExpandedItemIds) => {
+
+		setExpandedItemIds(prevIds =>
+			prevIds.includes(id)
+				? prevIds.filter(itemId => itemId !== id)
+				: [...prevIds, id]
+		);
+	};
+
+	const handleExpandAll = (setExpandAll) => {
+		setExpandAll(true);
+	};
+
+	const handleCollapseAll = (setExpandAll) => {
+		setExpandAll(false);
+	};
+
+	const handleSwitchChange = (setter, handleSubmit, fieldType, id) => (e) => {
+
+		const newValue = e.target.checked;
+		setter(newValue);
+		handleSubmit(fieldType, 0, newValue, id);
+	};
+
+	useEffect(() => {
+
+		if (allVendorParticipationDetails.length > 0) {
+			setExpandedItemIds(expandAll ? allVendorParticipationDetails.map(item => item.bidParameterId) : []);
+		}
+	}, [expandAll, allVendorParticipationDetails]);
+
+	//for Bid details section - collapse by default when auction is running
+	const [expanded, setExpanded] = useState(true);
+
+	// Collapse header when bidStatus becomes "running"
+	useEffect(() => {
+		if (bidStatus === "running") {
+			setExpanded(false);
+		}
+	}, [bidStatus]);
+	const [bidOpen, setBidOpen] = useState(false);
+	const [fieldBidType, setFieldBidType] = useState('');
+	const [subject, setSubject] = useState('');
+	const [description, setDescription] = useState('');
+	const [showRankToVendor, setShowRankToVendor] = useState('');
+	const [maximumExtension, setMaximumExtension] = useState('');
+
+	const handleOpenModal = (type) => {
+		setFieldBidType(type);
+		// Populate the values based on the field type
+		if (type === 'subject') {
+			setSubject(auctionManageData[0]?.subject || '');
+		} else if (type === 'description') {
+			setDescription(auctionManageData[0]?.description?.replace(/<\/?[^>]+(>|$)/g, "") || '');
+		} else if (type === 'showRankToVendor') {
+			setShowRankToVendor(auctionManageData[0]?.showRankToVendor || '');
+		} else if (type === 'maximumExtension') {
+			setMaximumExtension(auctionManageData[0]?.maximumExtension || '');
+		}
+		setBidOpen(true);
+	};
+
+	const handleBidDetailsSubmit = async () => {
+
+		let fieldTxt = null;
+		let fieldValue = null;
+
+		if (fieldBidType === 'subject') {
+			fieldTxt = subject;
+		} else if (fieldBidType === 'description') {
+			fieldTxt = description;
+		} else if (fieldBidType === 'showRankToVendor') {
+			fieldTxt = showRankToVendor;
+		} else if (fieldBidType === 'maximumExtension') {
+			fieldValue = maximumExtension;
+		}
+
+
+		const bidData = {
+			BidId: auctionId || parseInt(pageSlug),
+			ParameterId: 0,   //0 for biddetails only
+			FieldName: fieldBidType, //string
+			FieldFlg: false, //boolean
+			FieldTxt: fieldTxt ? fieldTxt : null, //string
+			FieldValue: parseInt(fieldValue) ? parseInt(fieldValue) : 0,
+			CreatedBy: userDetail.id, //int
+		};
+
+		try {
+			const res = await apiClient.postres(
+				`/api/AuctionParticipation/UpdateParameterValues`,
+				bidData,
+				atoken
+			);
+			if (res) {
+				getAuctionManageFind();
+				console.log('Details updated successfully.');
+			}
+		}
+		catch (err) {
+			console.error("Error updating bid-details: ", err);
+		}
+		setBidOpen(false);
+	};
+	const [approvershow, setApproverShow] = useState(false)
+	const handleApprover = (booleanvalue) => {
+		setApproverShow(booleanvalue)
+	}
+
+	// Check if any vendor has loading factor
+	const hasLoadingFactor = React.useMemo(() => {
+		return auctionManageData[0]?.bidVendorInvited?.some(
+			vendor => vendor.bidLoadingFactor && vendor.bidLoadingFactor.length > 0
+		) || false;
+	}, [auctionManageData]);
+
+
+	const CloseBidLoadingModal = () => {
+		setBidOpen(false);
+		setSubject("");
+		setDescription("");
+		setShowRankToVendor("");
+		setMaximumExtension("");
+	};
+
+	//to handle add vendor modal
+	const [addVendorModal, setAddVendorModal] = useState(false);
+	const handleCloseAddVendorModal = () => {
+		setAddVendorModal(false);
+		setSelectedVendors([]);
+		setCheckedVendors([]);
+	}
+
+	const handleShowAddVendorModal = () => {
+		getTotalSupplier()
+		setAddVendorModal(true);
+	}
+
+	const [totalSupplier, setTotalSupplier] = useState([]);
+	const [selectedVendors, setSelectedVendors] = useState([]);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [filteredVendors, setFilteredVendors] = useState([]);
+	const [checkedVendors, setCheckedVendors] = useState([]);
+
+	useEffect(() => {
+		const results = totalSupplier.filter((vendor) =>
+			(vendor.companyName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+			(vendor.contactPerson || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+			(vendor.email || "").toLowerCase().includes(searchQuery.toLowerCase())
+		);
+		setFilteredVendors(results);
+	}, [searchQuery, totalSupplier]);
+
+	const getTotalSupplier = async () => {
+
+		const obj = {
+			CustomerId: customerid,
+		};
+		const queryParams = buildQueryParams(obj);
+
+		const res = await apiClient.getres(
+			`/api/managevendors/GetVendorUsers?${queryParams}`,
+			atoken
+		);
+		try {
+			if (res?.data) {
+
+				setTotalSupplier(res?.data)
+			}
+		} catch (err) {
+			console.error("Error submitting bid: ", err);
+		}
+	};
+
+	const handleCheckboxChange = (vendorId, contactId, isChecked, vendor) => {
+
+		const isDuplicateSupplier = selectedVendors.some(
+			(selected) => selected.vendorId === vendorId && selected.contactId !== contactId
+		);
+
+		if (isDuplicateSupplier) {
+			toast.info("User from this Supplier is already added", {
+				toastId: "supplier_info",
+			});
+			return;
+		}
+
+		setSelectedVendors((prevSelected) =>
+			isChecked
+				? [...prevSelected, { vendorId, contactId }]
+				: prevSelected.filter((vendor) => vendor.contactId !== contactId)
+		);
+
+		setCheckedVendors((prevChecked) =>
+			isChecked
+				? [
+					...prevChecked,
+					{
+						bidId: auctionId || parseInt(pageSlug),
+						emailId: vendor.email,
+						vendorID: vendor.vendorId,
+						contactId: vendor.contactId,
+						customerId: customerid,
+						vendorName: vendor.tradeName,
+						contactPerson: vendor.contactPerson,
+					},
+				]
+				: prevChecked.filter((item) => item.contactId !== contactId)
+		);
+	};
+
+	const addVendors = async (event) => {
+		if (checkedVendors.length === 0) {
+			toast.error(`Please select at least one vendor to invite.`);
+			return;
+		}
+
+		const vendorParams = checkedVendors.map((vendor) => ({
+			bidId: auctionId || parseInt(pageSlug),
+			customerId: vendor.customerId,
+			emailId: vendor.emailId,
+			vendorID: parseInt(vendor.vendorID),
+			contactId: vendor.contactId,
+			vendorName: vendor.vendorName,
+			contactPerson: vendor.contactPerson,
+			supplierActionType: "AddVendor",
+			// Action: "AddVendor",
+			createdById: userDetail?.id,
+			createdByName: userDetail?.name
+		}));
+		//console.log("vendorParamsvendorParams::", vendorParams)
+		try {
+			const res = await apiClient.postres(
+				`/api/AuctionInviteVendors/${auctionId || parseInt(pageSlug)}/Add`,
+				vendorParams,
+				atoken
+			);
+			if (res) {
+				setAddVendorModal(false)
+				toast.success(`vendor invited successfully`, {
+					toastId: "addVendor"
+				})
+				setTimeout(() => {
+					refreshData();
+				}, 500);
+			}
+			else {
+				return '';
+			}
+		} catch (error) {
+			toast.error(`Error inviting suppliers: ${error.message}`);
+		}
+	};
+
+	//bidgraph
+	const [modal, setModal] = useState(false);
+	const [selectedParameterData, setSelectedParameterData] = useState([]);
+	const OpenModal = (data, index) => {
+
+		const selectedItem = data[index];
+		setModal(true);
+		getLineWiseGraphData(selectedItem)
+	}
+
+	const CloseModal = () => {
+		setModal(false);
+		getLineWiseGraphData([])
+	};
+
+	const getLineWiseGraphData = async (selectedItem) => {
+		const obj = {
+			BidId: auctionId || pageSlug,
+			ParameterId: selectedItem?.bidParameterId,
+			BidTypeId: auctionManageData[0]?.bidTypeID
+		};
+		const queryParams = buildQueryParams(obj);
+		const res = await apiClient.getres(
+			`/api/AuctionParticipation/BIDQuotesTrendGraph?${queryParams}`,
+			atoken
+		);
+
+		try {
+			if (res?.data) {
+				setSelectedParameterData(res?.data)
+			}
+		}
+		catch (err) {
+			console.error("Error submitting bid: ", err);
+		}
+	};
+
+	//handle send reminder
+	const [sendReminderModal, setSendReminderModal] = useState(false);
+	const [selectedSRVendors, setSelectedSRVendors] = useState([]);
+	//console.log("selectedSRVendors::", selectedSRVendors)
+	const [vendorRemarks, setVendorRemarks] = useState({}); // State to hold remarks for each vendor
+	const [searchQueryReminder, setSearchQueryReminder] = useState('');
+	const [filteredVendorsReminder, setFilteredVendorsReminder] = useState([]);
+
+	useEffect(() => {
+		const results = vendorListData.filter((vendor) =>
+			(vendor.vendorName || "").toLowerCase().includes(searchQueryReminder.toLowerCase()) ||
+			(vendor.contactPerson || "").toLowerCase().includes(searchQueryReminder.toLowerCase()) ||
+			(vendor.emailId || "").toLowerCase().includes(searchQueryReminder.toLowerCase())
+		);
+		setFilteredVendorsReminder(results);
+	}, [searchQueryReminder, vendorListData]);
+
+	const handleCloseSendReminderModal = () => {
+		setSendReminderModal(false);
+		setSelectedSRVendors([]);
+		setVendorRemarks({});
+		setSearchQueryReminder('');
+	}
+	const handleShowSendReminderModal = () => {
+		setSendReminderModal(true);
+	}
+
+	const handleSelectAll = (isChecked) => {
+		if (isChecked) {
+			const allVendors = filteredVendorsReminder.map((vendor) => ({
+				bidId: auctionId || parseInt(pageSlug),
+				customerId: vendor.customerId,
+				emailId: vendor.emailId,
+				vendorID: parseInt(vendor.vendorID),
+				contactId: vendor.contactId,
+			}));
+			setSelectedSRVendors(allVendors);
+		} else {
+			setSelectedSRVendors([]);
+		}
+	};
+
+	const handleCheckboxSR = (vendor, isChecked) => {
+		setSelectedSRVendors((prevSelected) => {
+			if (isChecked) {
+				// Add the selected vendor with all details if not already in the list
+				return [
+					...prevSelected,
+					{
+						bidId: auctionId || parseInt(pageSlug),
+						customerId: vendor.customerId,
+						emailId: vendor.emailId,
+						vendorID: parseInt(vendor.vendorID),
+						contactId: vendor.contactId,
+					},
+				];
+			} else {
+				// Remove the vendor based on vendorID
+				return prevSelected.filter((item) => item.vendorID !== parseInt(vendor.vendorID));
+			}
+		});
+	};
+
+	const handleRemarkChange = (vendorID, remark) => {
+		setVendorRemarks((prevRemarks) => ({
+			...prevRemarks,
+			[vendorID]: remark,
+		}));
+	};
+
+
+	const handleSend = async (event) => {
+		//event.preventDefault();
+		if (selectedSRVendors.length === 0) {
+			toast.error(`Please select at least one vendor and enter remarks.`);
+			return;
+		}
+
+		const payload = {
+			Email: selectedSRVendors.map((vendor) => vendor.emailId),
+			EventId: auctionId || parseInt(pageSlug),
+			EventType: "Auction",
+			Stage: null,
+			EventSubject: auctionManageData[0]?.subject || null,
+			EventCode: auctionManageData[0]?.eventCode || null,
+			StartDate: auctionManageData[0]?.bidStDate || null,
+			EndDate: auctionManageData[0]?.bidEndDate || null,
+			UserType: 'V',
+			EventCreatedByName: userDetail?.name || null,
+			EventDuration: auctionManageData[0]?.bidDuration || null
+		};
+		try {
+			// const res = await apiClient.postres(`/api/AuctionManage/ BIDActions`, payload, atoken)
+			const res = await apiClient.postres(`/api/eventapprover/SendReminder`, payload, atoken)
+			if (res) {
+				setSendReminderModal(false)
+				setSelectedSRVendors([]);
+				setVendorRemarks({});
+				toast.success(`reminder send successfully`, {
+					toastId: "remindertoast"
+				})
+			}
+		} catch (error) {
+			toast.error(`Error sending reminder to suppliers: ${error.message}`);
+			setSendReminderModal(false)
+			setSelectedSRVendors([]);
+			setVendorRemarks({});
+		}
+	};
+
+	//handle reOpened
+	const [reOpenAuctionModal, setReOpenAuctionModal] = useState(false);
+	const [reOpenDate, setReOpenDate] = useState(null);
+	const [bidDeadLine, setBidDeadLine] = useState(null);
+	const [bidDuration, setBidDuration] = useState(0);
+	const [extensions, setExtensions] = useState(0);
+
+	const handleCloseReOpenModal = () => {
+		setReOpenAuctionModal(false);
+		setSelectedSRVendors([])
+		setReOpenDate(null)
+		setBidDeadLine(null)
+		setBidDuration(0);
+		setExtensions(0);
+	}
+
+	const handleShowReOpenModal = () => {
+		const bidStDate = checkUTC(auctionManageData[0]?.bidStDate);
+		setReOpenAuctionModal(true);
+
+		if (bidStDate && !isNaN(new Date(bidStDate).getTime())) {
+			const bidStDate2 = dayjs(bidStDate).tz(userDetail?.timeZone);
+			setReOpenDate(bidStDate2);
+		}
+		const bidDuration = auctionManageData[0]?.bidDuration || 0;
+		setBidDuration(bidDuration);
+		setExtensions(auctionManageData[0]?.extensions || 0);
+	};
+
+
+
+	const updateBidEndDate = (startDate, duration) => {
+		if (startDate && duration > 0) {
+			const endDate = dayjs(startDate).tz(userDetail?.timeZone).add(duration, 'minute');
+			// Using Day.js to add minutes
+			setBidDeadLine(endDate);
+			// Convert Day.js object back to native Date
+		}
+	};
+	const updateBidDuration = (startDate, endDate) => {
+		if (startDate && endDate) {
+			const duration = dayjs(endDate).tz(userDetail?.timeZone).diff(dayjs(startDate).tz(userDetail?.timeZone), 'minute'); // Calculate duration in minutes
+			if (duration >= 0 && duration !== bidDuration) { // Avoid overwriting valid durations
+				setBidDuration(duration);
+			}
+		}
+	};
+
+	const handleReOpen = async () => {
+		setLoading(true);
+
+		if (!reOpenDate) {
+			toast.error("Please select a ReOpen Date before proceeding.");
+			setLoading(false);
+			return;
+		}
+
+		if (reOpenDate.isBefore(dayjs().tz(userDetail?.timeZone))) {
+			toast.error("ReOpen Date cannot be in the past.");
+			setLoading(false);
+			return;
+		}
+
+		if (bidDuration < 1 || bidDuration === '') {
+			toast.error("Please enter bid duration.");
+			setLoading(false);
+			return;
+		}
+
+		const payloadReOpen = {
+			bidVendorDetails: null,
+			reOpenDate: reOpenDate?.toISOString() ?? new Date().toISOString(),
+			bidDeadLine: bidDeadLine?.toISOString(),
+			bidDuration,
+			bidId: auctionId || parseInt(pageSlug),
+			Action: "Reopen",
+			extensions,
+			stageDto: {
+				"eventType": "Auction",
+				"currentStage": "Draft",
+				"nextStage": "",
+				"orgId": 0,
+				"orgGroupId": 0
+			}
+		};
+
+		try {
+			const res = await apiClient.postres(`/api/AuctionManage/ BIDActions`, payloadReOpen, atoken);
+			if (res) {
+				setReopenTrigger(prev => prev + 1);
+				setReOpenAuctionModal(false);
+				setReOpenSuccess(true);
+
+				toast.success("Auction Reopen Successfully.", {
+					toastId: "reOpentoast"
+				});
+				getAuctionManageFind();
+				if (auctionManageData[0]?.bidClosingType === "S") {
+					fetchVendorParameterDetailsLineItems(pageNumber, rowsPerPage, true);
+				}
+			}
+
+		} catch (error) {
+			if (error?.response?.status === 404) {
+				toast.error("Auction not found. Please contact administrator.");
+			} else {
+				toast.error(
+					error?.message ||
+					"Error occurs while reopening auction. Please contact administrator."
+				);
+			}
+		} finally {
+			setLoading(false);
+		}
+	};
+
+
+	//handle surrogate
+	const [actionmodal, setActionModal] = useState({
+		surrogateSupplierModal: false,
+	});
+
+	const handleActionModel = (fieldname, fieldvalue) => (event) => {
+
+		if (
+			event.type === 'keydown' &&
+			(event.key === 'Tab' || event.key === 'Shift')
+		) {
+			return;
+		}
+
+		setActionModal({ ...actionmodal, [fieldname]: fieldvalue });
+	};
+
+
+	const validationSchemaSurrogate = yup.object().shape({
+		surrogatename: yup
+			.string("Enter Surrogater Name")
+			.max(200, "Max 40 character")
+			.required("Surrogater name is required"),
+		surrogateemail: yup
+			.string('Enter email')
+			.required('Please enter your email')
+			.email('Enter a valid email'),
+		supplier: yup
+			.object()
+			.test('at-least-one', 'At least one supplier is required', (value) => {
+				return value && Object.keys(value).length > 0;
+			}).required('Suppliers are required')
+	});
+	const formik_Surrogate = useFormik({
+		enableReinitialize: true,
+		initialValues: {
+			supplier: null,
+			surrogatename: "",
+			surrogateemail: "",
+			surrogateReason: ""
+		},
+		validationSchema: validationSchemaSurrogate,
+		onSubmit: async (values) => {
+
+			if (!values?.supplier) {
+				toast.error(`Please Select Supplier`, {
+					toastId: "surrogatetoasterror"
+				})
+				return
+			}
+
+			const payload = {
+				"name": values?.surrogatename,
+				"vendorId": values?.supplier?.vendorID,
+				"VendorDetailId": values?.supplier?.id,
+				"email": values?.surrogateemail,
+				"bidId": auctionId || parseInt(pageSlug),
+				"reason": values?.surrogateReason,
+				"stages": {
+					"eventType": "Auction",
+					"currentStage": "Surrogate",
+					"nextStage": "Surrogate",
+					"orgId": 0,
+					"orgGroupId": 0
+				}
+			}
+
+			const res = await apiClient.postres(`/api/AuctionManage/BIDSurrogate`, payload, atoken)
+			if (res) {
+				setActionModal({ ...actionmodal, ["surrogateSupplierModal"]: false })
+				toast.success(`suppliers surrogated successfully`, {
+					toastId: "surrogatetoast"
+				})
+				formik_Surrogate.resetForm();
+			}
+		},
+	});
+
+	//handle cancel auction
+	const [modalcancelOpen, setModalCancelOpen] = useState(false);
+	const [cancelReason, setCancelReason] = useState("");
+	const [biderror, setBidError] = useState("");
+	const [showTable, setShowTable] = useState(false);
+
+	const handleCancel = () => {
+		setModalCancelOpen(true);
+	}
+
+	const handleCancelAuctionModal = async (confirm) => {
+		if (confirm) {
+			if (!cancelReason.trim()) {
+				setBidError("This field is required.");
+				return;
+			}
+			else {
+				const cancelbuttonvalue = {
+					bidId: auctionId || parseInt(pageSlug),
+					Status: "Cancel",
+					Comment: cancelReason,
+					EventType: "Auction",
+					CurrentStage: auctionManageData[0]?.stage
+				}
+				const queryParams = buildQueryParams(cancelbuttonvalue)
+				const res = await apiClient.postres(`/api/AuctionManage/BIDCancel?${queryParams}`, null, atoken);
+				if (res) {
+					toast.success(`BID Cancel successfully.`, {
+						toastId: "Cancel_error"
+					});
+					navigate(`/configuration/manage-auction`);
+				}
+			}
+		} else {
+			setModalCancelOpen(false);
+			setCancelReason("");
+			setBidError("");
+		}
+	};
+
+	const handleCancelInputChange = (e) => {
+		const value = e.target.value;
+		if (value.length <= 1000) {
+			setCancelReason(value);
+			if (value.trim()) {
+				setBidError("");
+			}
+		}
+	};
+
+	const toggleFullScreen = () => {
+		if (isFullScreen) {
+			// Exit full screen - go to manage auction view
+			navigate(`/configuration/manage-auction/${BidId}`);
+		} else {
+			// Enter full screen - go to auction control view
+			navigate(`/configuration/auction-control/${BidId}`);
+		}
+		setIsFullScreen(!isFullScreen);
+	};
+
+	const fieldLabelMap = {
+		subject: "Subject",
+		showRankToVendor: "Show Rank To Vendor",
+		maximumExtension: "Maximum Extension",
+		description: "Description",
+	};
+
+
+	// Find running slot number for stagger auctions - runs continuously
+	useEffect(() => {
+		if (auctionManageData[0]?.bidClosingType !== 'S') {
+			setRunningSlotNumber(null);
+			return;
+		}
+
+		const checkRunningSlot = () => {
+			if (!auctionManageData[0]?.bidParamater || auctionManageData[0].bidParamater.length === 0) {
+				setRunningSlotNumber(null);
+				return;
+			}
+
+			const currentTime = new Date().getTime();
+
+			// Get unique group numbers from auctionManageData[0].bidParamater
+			const uniqueGroups = [...new Set(auctionManageData[0].bidParamater.map(item => item.groupNo))];
+
+			// Find the currently running slot
+			for (let groupNo of uniqueGroups) {
+				const groupItems = auctionManageData[0].bidParamater.filter(item => item.groupNo === groupNo);
+				if (groupItems.length > 0) {
+					const firstItem = groupItems[0];
+					const slotStartDate = new Date(checkUTC(firstItem.itemStDate)).getTime();
+					const slotEndDate = new Date(checkUTC(firstItem.itemEndDate)).getTime();
+
+					// Check if this slot is currently running
+					if (currentTime >= slotStartDate && currentTime <= slotEndDate) {
+						setRunningSlotNumber(groupNo);
+						return;
+					}
+				}
+			}
+
+			// No running slot found
+			setRunningSlotNumber(null);
+		};
+
+		// Check immediately
+		checkRunningSlot();
+
+		// Then check every second
+		const timer = setInterval(checkRunningSlot, 1000);
+
+		return () => clearInterval(timer);
+	}, [auctionManageData[0]?.bidClosingType, auctionManageData[0]?.bidParamater]);
+
+	// Handler to navigate to running slot
+	const handleRunningSlotClick = () => {
+		if (runningSlotNumber !== null) {
+			fetchVendorParameterDetailsLineItems(runningSlotNumber, rowsPerPage);
+		}
+	};
+
+	if (loadingPermissions) {
+		return <GridSkeleton />;
+	}
+
+	return (
+		<>
+			{/* Connection Status Overlay - Only show during connecting/reconnecting */}
+			{(connectionStatus === 'connecting' || connectionStatus === 'reconnecting') && (
+				<div style={{
+					position: 'fixed',
+					top: 0,
+					left: 0,
+					right: 0,
+					bottom: 0,
+					backgroundColor: 'rgba(0, 0, 0, 0.7)',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					zIndex: 9999,
+					backdropFilter: 'blur(3px)'
+				}}>
+					<div style={{
+						backgroundColor: 'white',
+						borderRadius: '12px',
+						padding: '40px',
+						textAlign: 'center',
+						maxWidth: '400px',
+						boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
+					}}>
+						{connectionStatus === 'connecting' && (
+							<>
+								<div style={{
+									width: '60px',
+									height: '60px',
+									border: '4px solid #f3f3f3',
+									borderTop: '4px solid #3498db',
+									borderRadius: '50%',
+									animation: 'spin 1s linear infinite',
+									margin: '0 auto 20px'
+								}} />
+								<h3 style={{ color: '#333', marginBottom: '10px', fontSize: '20px' }}>Connecting...</h3>
+								<p style={{ color: '#666', margin: 0, fontSize: '14px' }}>Establishing connection to auction server</p>
+							</>
+						)}
+						{connectionStatus === 'reconnecting' && (
+							<>
+								<div style={{
+									width: '60px',
+									height: '60px',
+									border: '4px solid #f3f3f3',
+									borderTop: '4px solid #3498db',
+									borderRadius: '50%',
+									animation: 'spin 1s linear infinite',
+									margin: '0 auto 20px'
+								}} />
+								<h3 style={{ color: '#333', marginBottom: '10px', fontSize: '20px' }}>Connecting...</h3>
+								<p style={{ color: '#666', margin: 0, fontSize: '14px' }}>Establishing connection to auction server</p>
+							</>
+						)}
+					</div>
+				</div>
+			)}
+
+			{/* Refresh Page Dialog - Only show when connection failed */}
+			<Dialog
+				open={showRefreshDialog}
+				disableEscapeKeyDown
+				disableBackdropClick
+			>
+				<DialogTitle style={{ color: '#f44336' }}>
+					Connection Failed
+				</DialogTitle>
+				<DialogContent style={{ minWidth: '350px' }}>
+					<DialogContentText>
+						Unable to establish connection to the auction server after multiple attempts.
+						<br /><br />
+						Please refresh the page to reconnect and continue participating in the bid.
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={() => window.location.reload()}
+						variant="contained"
+						color="primary"
+						autoFocus
+					>
+						Refresh Page
+					</Button>
+				</DialogActions>
+			</Dialog>
+
+			{/* READ Permission Check */}
+			{!(permissionManager?.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.READ) ?? false) ? (
+				<div className="p-3">
+					<Alert severity="warning">
+						You don't have permission to view this auction control page.
+					</Alert>
+				</div>
+			) : (
+				<>
+					<>
+						<div className="rfq-v2-page" style={{ padding: '0px' }}>
+							<div className="rfq-v2-card">
+								<AuctionDetailBox
+									auctionData={auctionManageData[0]}
+									bidStatus={bidStatus}
+									timeRemaining={timeRemaining}
+									expanded={expanded}
+									onExpandChange={() => setExpanded(!expanded)}
+									isFullScreen={isFullScreen}
+									onToggleFullScreen={toggleFullScreen}
+									onToggleChat={() => handleApprover(!approvershow)}
+									userDetail={userDetail}
+									permissionManager={permissionManager}
+									adjustValue={adjustValue}
+									isValueChanged={isValueChanged}
+									onDecrease={handleDecrease}
+									onIncrease={handleIncrease}
+									onDurationChange={handleBidDurationChange}
+									onGoClick={handleGoClick}
+									showCurrencyTable={showTable}
+									onToggleCurrencyTable={() => setShowTable(!showTable)}
+									runningSlotNumber={runningSlotNumber}
+									onRunningSlotClick={handleRunningSlotClick}
+									onEditField={handleOpenModal}
+								/>
+								{/* Scrollable item table area */}
+								<div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+									{auctionManageData[0]?.bidClosingType === 'S' ? (
+										<div className="p-2 flex-grow-1 auction-scrollable" style={{ overflowY: 'auto' }}>
+											<StaggerAuction
+												actions={{
+													allVendorParticipationDetails: allVendorParticipationDetails,
+													auctionManageData: auctionManageData,
+													handleExpandToggle: handleExpandToggle,
+													setExpandedItemIds: setExpandedItemIds,
+													expandedItemIds: expandedItemIds,
+													bidStatus: bidStatus,
+													expandAll: expandAll,
+													handleCollapseAll: handleCollapseAll,
+													handleExpandAll: handleExpandAll,
+													setExpandAll: setExpandAll,
+													actionmodal: actionmodal,
+													handleOpen: handleOpen,
+													handleSubmit: handleSubmit,
+													callbackOnpause: callbackOnpause,
+													handleShowAddVendorModal: handleShowAddVendorModal,
+													handleShowSendReminderModal: handleShowSendReminderModal,
+													handleShowReOpenModal: handleShowReOpenModal,
+													setActionModal: setActionModal,
+													handleCancel: handleCancel,
+													normalPagination: normalPagination,
+													normalRowsPerPage: normalRowsPerPage,
+													pageNumber: pageNumber,
+													totalCount: totalCount,
+													lineItemsPerPage: lineItemsPerPage,
+													fetchVendorParameterDetailsLineItems: fetchVendorParameterDetailsLineItems,
+													fetchVendorParameterDetails: fetchVendorParameterDetails,
+													reopenTrigger: reopenTrigger,
+													hasLoadingFactor: hasLoadingFactor
+												}}
+											/>
+										</div>
+									) : (() => {
+										const hasEditPerm = permissionManager?.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false;
+										const isForwardType = auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5;
+										const auctionTableColumns = [
+											{
+												key: 'sno', label: 'S.No', width: '52px',
+												renderCell: (_, row, index) => normalPagination * normalRowsPerPage + index + 1,
+											},
+											{
+												key: 'itemName', label: 'Item / Service',
+												renderCell: (v, row, index) => (
+													<Tooltip title={(auctionManageData[0]?.hideVendor === true && bidStatus === 'running') ? '' : 'Open Graph'}>
+														<span
+															style={{ cursor: (auctionManageData[0]?.hideVendor === true && bidStatus === 'running') ? 'default' : 'pointer', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', color: '#1976d2', fontWeight: 700 }}
+															onClick={() => !(auctionManageData[0]?.hideVendor === true && bidStatus === 'running') && OpenModal(lineItemsPerPage, index)}
+														>
+															{v}
+														</span>
+													</Tooltip>
+												),
+											},
+											...(expandedItemIds.length === 0 ? [{
+												key: '__rank__',
+												label: isForwardType ? 'H1 Rank' : 'L1 Rank',
+												renderCell: (_, row) => {
+													const linked = allVendorParticipationDetails.filter(v => v.bidParameterId === row.bidParameterId);
+													const vendor = linked.find(v => v.rankValue === (isForwardType ? 'H1' : 'L1'));
+													return vendor ? vendor.companyName : <span className="text-danger">N/A</span>;
+												},
+											}] : []),
+											{
+												key: 'quantity', label: 'Quantity',
+												renderCell: (v, row) => <>{thousands_separators(v)}<span className='ms-1'>{row.uom}</span></>,
+											},
+											{
+												key: 'targetPrice', label: 'Target Price',
+												renderCell: (v) => thousands_separators(v),
+											},
+											{
+												key: 'hidePrice', label: 'Show Target Price',
+												renderCell: (v, row) => (
+													<Switch checked={row?.hidePrice}
+														onChange={handleSwitchChange(setHidePrice, handleSubmit, 'hidePrice', row?.bidParameterId)}
+														disabled={bidStatus !== 'not_started' || ['Close', 'Paused', 'Allocation', 'Awarded'].includes(auctionManageData[0]?.stage) || !hasEditPerm}
+													/>
+												),
+											},
+											{
+												key: 'maskL1Price', label: isForwardType ? 'Show H1 Price' : 'Show L1 Price',
+												renderCell: (v, row) => (
+													<Switch checked={row?.maskL1Price}
+														onChange={handleSwitchChange(setMaskL1Price, handleSubmit, 'maskL1Price', row?.bidParameterId)}
+														disabled={['Close', 'Paused', 'Allocation', 'Awarded'].includes(auctionManageData[0]?.stage) || bidStatus === null || !hasEditPerm}
+													/>
+												),
+											},
+											{
+												key: 'showStartPrice', label: 'Show Start Price',
+												renderCell: (v, row) => (
+													<Switch checked={row?.showStartPrice}
+														onChange={handleSwitchChange(setShowStartPrice, handleSubmit, 'showStartPrice', row?.bidParameterId)}
+														disabled={['Close', 'Paused', 'Allocation', 'Awarded'].includes(auctionManageData[0]?.stage) || bidStatus === null || !hasEditPerm}
+													/>
+												),
+											},
+											{
+												key: 'startPrice', label: 'Start Price',
+												renderCell: (v, row, index) => (
+													<>
+														{thousands_separators(row?.startPrice)}
+														{!['Close', 'Paused', 'Allocation', 'Awarded'].includes(auctionManageData[0]?.stage) && bidStatus != null && hasEditPerm && (
+															<HiPencilAlt onClick={() => handleOpen('startPrice', index, row?.bidParameterId)} className="text-primary" style={{ cursor: 'pointer', marginLeft: '5px' }} />
+														)}
+													</>
+												),
+											},
+											{
+												key: 'minimumDelta', label: isForwardType ? 'Min. Increment' : 'Min. Decrement',
+												renderCell: (v, row, index) => (
+													<>
+														{thousands_separators(row?.minimumDelta)}
+														{!['Close', 'Paused', 'Allocation', 'Awarded'].includes(auctionManageData[0]?.stage) && bidStatus != null && hasEditPerm && (
+															<HiPencilAlt onClick={() => handleOpen('minimumDelta', index, row?.bidParameterId)} className="text-primary" style={{ cursor: 'pointer', marginLeft: '5px' }} />
+														)}
+													</>
+												),
+											},
+											{
+												key: '__actions__', label: '', width: '80px',
+												renderHeader: () => (
+													<div className="d-flex justify-content-end align-items-center">
+														<Tooltip title={expandAll ? 'Collapse All' : 'Expand All'}>
+															<span
+																onClick={expandAll ? () => handleCollapseAll(setExpandAll) : () => handleExpandAll(setExpandAll)}
+																style={{ fontSize: '18px', cursor: 'pointer', color: '#6b7280', marginRight: '8px' }}
+															>
+																{expandAll ? <UnfoldLess /> : <UnfoldMore />}
+															</span>
+														</Tooltip>
+														<div onClick={(e) => setBidControlAnchor(e.currentTarget)} style={{ cursor: 'pointer', display: 'inline-flex' }}>
+															<div className="pe-icon-btn pe-icon-btn--close"><HiDotsVertical /></div>
+														</div>
+														<Menu
+															anchorEl={bidControlAnchor}
+															open={Boolean(bidControlAnchor)}
+															onClose={() => setBidControlAnchor(null)}
+															anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+															transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+															PaperProps={{
+																sx: {
+																	width: '200px !important', minWidth: '200px !important', maxWidth: '200px !important', borderRadius: 1,
+																	'& .MuiMenu-list': { paddingTop: 0, paddingBottom: 2, width: '100%', },
+																	'& .MuiMenuItem-root': {
+																		width: '100%', boxSizing: 'border-box', fontSize: 12, padding: '7px 10px',
+																		minHeight: 34, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+																	},
+																},
+															}}
+														>
+															<MenuItem sx={{ fontSize: 13 }}
+																onClick={() => { setBidControlAnchor(null); hasEditPerm && handleShowAddVendorModal('AddSuppliers'); }}
+																disabled={['Close', 'Paused', 'Awarded', 'Allocation'].includes(auctionManageData[0]?.stage) || bidStatus === null || !hasEditPerm}
+															>Add Suppliers</MenuItem>
+															<MenuItem sx={{ fontSize: 13 }}
+																onClick={() => { setBidControlAnchor(null); hasEditPerm && handleShowSendReminderModal('Reminder'); }}
+																disabled={['Close', 'Paused', 'Awarded', 'Allocation'].includes(auctionManageData[0]?.stage) || bidStatus === null || !hasEditPerm}
+															>Send Reminder</MenuItem>
+															<MenuItem sx={{ fontSize: 13 }}
+																onClick={() => { setBidControlAnchor(null); hasEditPerm && handleShowReOpenModal('Reopened'); }}
+																disabled={['Awarded', 'Paused'].includes(auctionManageData[0]?.stage) || bidStatus === 'running' || !hasEditPerm}
+															>Auction Open</MenuItem>
+															<MenuItem sx={{ fontSize: 13 }}
+																onClick={() => { setBidControlAnchor(null); hasEditPerm && setActionModal({ ...actionmodal, surrogateSupplierModal: true }); }}
+																disabled={['Close', 'Paused', 'Awarded', 'Allocation'].includes(auctionManageData[0]?.stage) || bidStatus === null || !hasEditPerm}
+															>Surrogate Supplier</MenuItem>
+															<Divider />
+															<MenuItem sx={{ fontSize: 13, color: '#b8232f' }}
+																onClick={() => { setBidControlAnchor(null); hasEditPerm && bidStatus !== 'running' && handleCancel(); }}
+																disabled={['Allocation', 'Paused', 'Awarded'].includes(auctionManageData[0]?.stage) || bidStatus === 'running' || !hasEditPerm}
+															>Cancel Auction</MenuItem>
+															<MenuItem sx={{ fontSize: 13 }}
+																onClick={() => { setBidControlAnchor(null); hasEditPerm && submitPrebid(); }}
+																disabled={bidStatus === 'running' || (auctionManageData[0]?.stage && auctionManageData[0]?.stage !== 'Open') || !hasEditPerm}
+															>Prebid / Restrict Suppliers</MenuItem>
+														</Menu>
+													</div>
+												),
+												renderCell: (_, row) => (
+													<IconButton size="small" onClick={() => handleExpandToggle(row.bidParameterId, setExpandedItemIds)}>
+														{expandedItemIds.includes(row.bidParameterId) ? <ExpandLess /> : <ExpandMore />}
+													</IconButton>
+												),
+											},
+										];
+										return (
+											<>
+												<PETableSimple
+													rows={lineItemsPerPage}
+													columns={auctionTableColumns}
+													getRowKey={(row) => row.bidParameterId}
+													getExpandContent={(row) => (
+														<NormalVendorTable
+															auctionItem={{
+																item: row,
+																allVendorParticipationDetails,
+																auctionManageData,
+																page,
+																rowsPerPage,
+																getRankColor,
+																bidStatus,
+																handleCheckboxRestrict,
+																restrictVendorId,
+																prebidValues,
+																handleRestricttChange,
+																handleBlur,
+																editingVendorId,
+																handlePriceChange,
+																handleOpenModalRemoveQuote,
+																handleRemoveRestrictRemarks,
+																thousands_separators,
+																handleEditPrice,
+																restrictParameterId,
+																editingParameterId,
+																hasLoadingFactor,
+																permissionManager: permissionManager,
+																hasRemovePermission: permissionManager?.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.REMOVE)
+															}}
+														/>
+													)}
+													expandedKeys={new Set(expandedItemIds)}
+													onExpandToggle={(key) => handleExpandToggle(key, setExpandedItemIds)}
+													wrapperStyle={{ borderRadius: 0, border: 'none', borderTop: '1px solid #e5e7eb' }}
+												/>
+												<PEPagination
+													page={normalPagination + 1}
+													pageSize={normalRowsPerPage}
+													totalRows={totalCount}
+													pageSizeOptions={[10, 20, 30]}
+													onPageChange={(p) => handleNormalChangePage(null, p - 1)}
+													onPageSizeChange={(n) => handleNormalChangeRowsPerPage({ target: { value: n } })}
+												/>
+											</>
+										);
+									})()}
+								</div>
+							</div>
+						</div>
+
+						{approvershow && (
+							<div className="rfq-v2-filter-panel v2-notif-drawer-panel">
+								<AuctionCommunication
+									connection={connection}
+									bidId={BidId}
+									handleApprover={handleApprover}
+									VendorsCommID={auctionManageData[0]?.bidVendorInvited}
+									permissionManager={permissionManager}
+								/>
+							</div>
+						)}
+					</>
+					<Modal
+						size="sm"
+						show={open}
+						backdrop="static"
+						keyboard={false}
+						value={"Loading"}
+						className="rfq-create-modal zindex1280"
+						backdropClassName="zindex1280"
+						centered
+						contentClassName="border-0 rounded-default"
+						onHide={() => CloseLoadingModal()}
+					>
+						<Modal.Header className="pt-2 pb-2">
+							<Modal.Title>
+								<span style={{ fontSize: 14 }}>
+									{fieldType === 'startPrice'
+										? 'Start Price'
+										: (auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5
+											? 'Minimum Increment'
+											: 'Minimum Decrement')}
+								</span>
+							</Modal.Title>
+							<button type="button" className="rfq-modal-close-btn" onClick={() => CloseLoadingModal()}>
+								<HiOutlineX style={{ fontSize: 16 }} />
+							</button>
+						</Modal.Header>
+						<Modal.Body className="p-0">
+							<div className="p-3">
+								<div className="row align-items-center">
+									<div className="col-md-12 mb-2">
+										{fieldType === 'startPrice' && (
+											<TextField
+												label="Start Price"
+												value={startPrice}
+												type="number"
+												size="small"
+												InputLabelProps={{ shrink: true }}
+												onChange={(e) => {
+													if (DecimalValueRegEx.test(e.target.value)) {
+														setStartPrice(e.target.value)
+													}
+													else if (e.target.value === "") {
+														setStartPrice('')
+													}
+												}}
+												fullWidth
+											/>
+										)}
+									</div>
+									<div className="col-md-12 mb-2">
+										{fieldType === 'minimumDelta' && (
+											<TextField
+												label={auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5 ? 'Minimum Increment' : 'Minimum Decrement'}
+												value={minimumDelta}
+												type="number"
+												size="small"
+												InputLabelProps={{ shrink: true }}
+												onChange={(e) => {
+													if (DecimalValueRegEx.test(e.target.value)) {
+														setMinimumDelta(e.target.value)
+													}
+													else if (e.target.value === "") {
+														setMinimumDelta('')
+													}
+												}}
+												fullWidth
+											/>
+										)}
+									</div>
+									<div className="col-md-12 d-flex justify-content-end mt-2">
+										<button type="button" className="pe-btn pe-btn--primary"
+											onClick={() => handleSubmit(fieldType, fieldType === 'startPrice' ? startPrice : minimumDelta)}
+										>
+											Update
+										</button>
+									</div>
+								</div>
+							</div>
+						</Modal.Body>
+					</Modal>
+					<Modal
+						size="md"
+						show={bidOpen}
+						backdrop="static"
+						keyboard={false}
+						centered
+						className="rfq-create-modal"
+						contentClassName="border-0 rounded-default"
+						onHide={CloseBidLoadingModal}
+					>
+						<Modal.Header className="pt-2 pb-2">
+							<Modal.Title>
+								<span style={{ fontSize: 14 }}>{fieldLabelMap[fieldBidType] || ""}</span>
+							</Modal.Title>
+							<button type="button" className="rfq-modal-close-btn" onClick={CloseBidLoadingModal}>
+								<HiOutlineX style={{ fontSize: 16 }} />
+							</button>
+						</Modal.Header>
+						<Modal.Body className="p-0">
+							<div className="p-3">
+								{fieldBidType === 'subject' && (
+									<div className="mb-3">
+										<label className="pe-field-label">Bid Subject</label>
+										<TextField
+											value={subject}
+											onChange={(e) => {
+												if (e.target.value.length <= 200) setSubject(e.target.value);
+											}}
+											helperText={`${subject.length}/200`}
+											size="small"
+											fullWidth
+											multiline
+											minRows={2}
+											maxRows={4}
+										/>
+									</div>
+								)}
+								{fieldBidType === 'description' && (
+									<div className="mb-3">
+										<label className="pe-field-label">Bid Description</label>
+										<TextField
+											value={description}
+											onChange={(e) => {
+												if (e.target.value.length <= 2000) setDescription(e.target.value);
+											}}
+											helperText={`${description.length}/2000`}
+											size="small"
+											fullWidth
+											multiline
+											minRows={5}
+											maxRows={10}
+										/>
+									</div>
+								)}
+								{fieldBidType === 'showRankToVendor' && (
+									<div className="mb-3">
+										<label className="pe-field-label">Display Vendor Rank</label>
+										<TextField
+											select
+											value={showRankToVendor}
+											onChange={(e) => setShowRankToVendor(e.target.value)}
+											size="small"
+											fullWidth
+										>
+											<MenuItem value="Y">
+												{auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5
+													? 'As H1, H2, H3 etc.'
+													: 'As L1, L2, L3 etc.'}
+											</MenuItem>
+											<MenuItem value="N">
+												{auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5
+													? 'As H1 Or Not H1.'
+													: 'As L1 Or Not L1.'}
+											</MenuItem>
+										</TextField>
+									</div>
+								)}
+								{fieldBidType === 'maximumExtension' && (
+									<div className="mb-3">
+										<label className="pe-field-label">Max No. of Extensions</label>
+										<TextField
+											select
+											value={maximumExtension}
+											onChange={(e) => setMaximumExtension(e.target.value)}
+											size="small"
+											fullWidth
+										>
+											{[-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((ext) => (
+												<MenuItem
+													key={ext}
+													value={ext}
+													disabled={auctionManageData[0]?.extensions > ext && ext !== -1 && ext !== 0}
+												>
+													{ext === -1 ? 'Unlimited' : ext}
+												</MenuItem>
+											))}
+										</TextField>
+									</div>
+								)}
+								<div className="d-flex justify-content-end gap-2 mt-3">
+									<button type="button" className="pe-btn pe-btn--ghost" onClick={CloseBidLoadingModal}>
+										Cancel
+									</button>
+									<button type="button" className="pe-btn pe-btn--primary" onClick={handleBidDetailsSubmit}>
+										Update
+									</button>
+								</div>
+							</div>
+						</Modal.Body>
+					</Modal>
+					<Modal
+						show={openRemoveQuote}
+						onHide={CloseRemoveQuoteModal}
+						backdrop="static"
+						keyboard={false}
+						centered
+						className="rfq-create-modal"
+						contentClassName="border-0 rounded-default"
+					>
+						<Modal.Header className="pt-2 pb-2">
+							<Modal.Title><span style={{ fontSize: 14 }}>Remove Quote</span></Modal.Title>
+							<button type="button" className="rfq-modal-close-btn" onClick={CloseRemoveQuoteModal}>
+								<HiOutlineX style={{ fontSize: 16 }} />
+							</button>
+						</Modal.Header>
+						<Modal.Body className="p-3">
+							<p className="f13 text-muted mb-3">
+								You are about to remove this quote. Please provide a reason for removal.
+							</p>
+							<TextField
+								label="Remarks"
+								value={removeRemark}
+								onChange={(e) => {
+									if (e.target.value.length <= 200) {
+										setRemoveRemark(e.target.value);
+										if (e.target.value.trim()) {
+											setRemarkError(false);
+										}
+									}
+								}}
+								fullWidth
+								multiline
+								rows={3}
+								size="small"
+								InputLabelProps={{ shrink: true }}
+								required
+								error={remarkError}
+								helperText={remarkError ? 'Remarks are required' : `${removeRemark.length}/200`}
+								autoFocus
+							/>
+						</Modal.Body>
+						<Modal.Footer className="border-top pt-2 pb-2">
+							<button type="button" className="pe-btn pe-btn--ghost" onClick={CloseRemoveQuoteModal}>
+								Cancel
+							</button>
+							<button
+								type="button"
+								className="pe-btn pe-btn--danger"
+								onClick={() => {
+									if (!removeRemark.trim()) {
+										setRemarkError(true);
+										return;
+									}
+									handleRemoveQoutes(removeRemark);
+								}}
+							>
+								Remove
+							</button>
+						</Modal.Footer>
+					</Modal>
+					<Modal
+						size="lg"
+						show={addVendorModal}
+						backdrop="static"
+						centered
+						className="rfq-create-modal rfq-modal-extralarge zindex1280"
+						contentClassName="border-0 rounded-default"
+						backdropClassName="zindex1280"
+						onHide={() => handleCloseAddVendorModal()}
+					>
+						<Modal.Header className="pt-2 pb-2">
+							<Modal.Title><span style={{ fontSize: 14 }}>Add Suppliers</span></Modal.Title>
+							<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseAddVendorModal()}>
+								<HiOutlineX style={{ fontSize: 16 }} />
+							</button>
+						</Modal.Header>
+						<Modal.Body className="p-0 inviteModal scrollable-container">
+							<div>
+								<div className="p-3">
+
+									<div className="reTable">
+										<div className="row">
+											<div className="col-md-12">
+												<TextField
+													id="standard-search"
+													label="Search Vendors"
+													type="search"
+													className="w-100 m"
+													size="small"
+													variant="standard"
+													value={searchQuery}
+													onChange={(e) => setSearchQuery(e.target.value)}
+												/>
+											</div>
+										</div>
+										<div className="row">
+											<div className="col-md-12 mt-2">
+												<div className="reMainTable">
+													<Table striped bordered hover>
+														<thead className="rethead">
+															<tr>
+																<th style={{ width: "4%" }}>
+																</th>
+																<th>Suppliers</th>
+															</tr>
+														</thead>
+														<tbody className="retr">
+															{filteredVendors.map((vendor) => {
+																const isAlreadyInvited = vendorListData.some(
+																	(checked) => checked.vendorID === vendor.vendorId
+																);
+
+																return (
+																	<tr key={vendor.contactId}>
+																		<td width="4%">
+																			<Checkbox
+																				className="p-0"
+																				size="medium"
+																				checked={selectedVendors.some((selected) => selected.contactId === vendor.contactId)}
+																				disabled={isAlreadyInvited}
+																				onChange={(e) =>
+																					handleCheckboxChange(vendor.vendorId, vendor.contactId, e.target.checked, vendor)
+																				}
+																			/>
+																		</td>
+																		<td width="40%">
+																			{`${vendor.companyName} | ${vendor.contactPerson} | ${vendor.email}`}
+																		</td>
+																	</tr>
+																);
+															})}
+														</tbody>
+													</Table>
+												</div>
+											</div>
+										</div>
+										<div className="row mt-2">
+											<div className="col-md-12 mb-3 d-flex justify-content-end">
+												<button type="button" className="pe-btn pe-btn--primary" onClick={addVendors}>
+													Add
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</Modal.Body>
+					</Modal>
+					<Modal
+						size="lg"
+						show={sendReminderModal}
+						backdrop="static"
+						centered
+						className="rfq-create-modal rfq-modal-extralarge zindex1280"
+						contentClassName="border-0 rounded-default"
+						backdropClassName="zindex1280"
+						onHide={() => handleCloseSendReminderModal()}
+					>
+						<Modal.Header className="pt-2 pb-2">
+							<Modal.Title><span style={{ fontSize: 14 }}>Send Reminder</span></Modal.Title>
+							<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseSendReminderModal()}>
+								<HiOutlineX style={{ fontSize: 16 }} />
+							</button>
+						</Modal.Header>
+						<Modal.Body className="p-0 inviteModal scrollable-container">
+							{/* <form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off"> */}
+							<div>
+								<div className="p-3">
+
+									<div className="reTable">
+										<div className="row">
+											<div className="col-md-12">
+												<TextField
+													id="standard-search"
+													label="Search Vendors"
+													type="search"
+													className="w-100 m"
+													size="small"
+													variant="standard"
+													value={searchQueryReminder}
+													onChange={(e) => setSearchQueryReminder(e.target.value)}
+												/>
+											</div>
+										</div>
+										<div className="row">
+											<div className="col-md-12 mt-2">
+												<div className="reMainTable">
+													<Table striped bordered hover>
+														<thead className="rethead">
+															<tr>
+																<th style={{ width: "4%" }}>
+																	<Checkbox
+																		className="p-0"
+																		size="medium"
+																		checked={selectedSRVendors.length === filteredVendorsReminder.length && filteredVendorsReminder.length > 0}
+																		indeterminate={
+																			selectedSRVendors.length > 0 &&
+																			selectedSRVendors.length < filteredVendorsReminder.length
+																		}
+																		onChange={(e) => handleSelectAll(e.target.checked)}
+																	/>
+																</th>
+																<th>Suppliers</th>
+																<th style={{ width: "40%" }}>Remarks</th>
+															</tr>
+														</thead>
+														<tbody className="retr">
+															{filteredVendorsReminder.map((vendor) => (
+																<tr key={vendor.id}>
+																	<td width="4%">
+																		<Checkbox
+																			className="p-0"
+																			size="medium"
+																			checked={selectedSRVendors.some((item) => item.vendorID === vendor.vendorID)}
+																			onChange={(e) => handleCheckboxSR(vendor, e.target.checked)}
+																		/>
+																	</td>
+																	<td width="45%">
+																		{`${vendor.vendorName} | ${vendor.contactPerson} | ${vendor.emailId}`}
+																	</td>
+																	<td width="50%">
+																		<textarea
+																			rows={2}
+																			className="formulaEditor w-100"
+																			placeholder="Remarks"
+																			value={vendorRemarks[vendor.vendorID] || ""}
+																			onChange={(e) => handleRemarkChange(vendor.vendorID, e.target.value)}
+																		/>
+																	</td>
+																</tr>
+															))}
+														</tbody>
+													</Table>
+												</div>
+											</div>
+										</div>
+										<div className="row mt-2">
+											<div className="col-md-12 mb-3 d-flex justify-content-end">
+												<button type="button" className="pe-btn pe-btn--primary" onClick={handleSend}>
+													Send
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</Modal.Body>
+					</Modal>
+					<Modal
+						size="lg"
+						show={reOpenAuctionModal}
+						backdrop="static"
+						keyboard={false}
+						centered
+						className="rfq-create-modal rfq-modal-extralarge"
+						contentClassName="border-0 rounded-default"
+						onHide={handleCloseReOpenModal}
+					>
+						<Modal.Header className="pt-2 pb-2">
+							<Modal.Title><span style={{ fontSize: 14 }}>Reopen Auction</span></Modal.Title>
+							<button type="button" className="rfq-modal-close-btn" onClick={handleCloseReOpenModal}>
+								<HiOutlineX style={{ fontSize: 16 }} />
+							</button>
+						</Modal.Header>
+
+						<Modal.Body className="p-4">
+							<div className="mb-3">
+								<Typography className="f13 text-muted mb-3">
+									Configure the auction schedule to reopen bidding. Select the start date and duration for the auction.
+								</Typography>
+							</div>
+
+							<LocalizationProvider dateAdapter={AdapterDayjs}>
+								<div className="row g-3">
+									<div className="col-12 col-md-6 col-lg-4">
+										<MobileDateTimePicker
+											label="Reopen Date & Time"
+											timezone={userDetail?.timeZone}
+											minDateTime={dayjs().tz(userDetail?.timeZone)}
+											value={
+												reOpenDate
+													? dayjs(reOpenDate).tz(userDetail?.timeZone)
+													: null
+											}
+											onChange={(newDate) => {
+												const tzDate = newDate
+													? dayjs(newDate).tz(userDetail?.timeZone)
+													: null;
+
+												setReOpenDate(tzDate);
+
+												if (bidDuration && auctionManageData[0]?.bidClosingType !== 'S') {
+													updateBidEndDate(tzDate, bidDuration);
+												}
+											}}
+											className="w-100"
+											format={getDateFormatPatteronLocale(userDetail)}
+											ampm={userampm(userDetail)}
+											slotProps={{
+												textField: {
+													variant: 'outlined',
+													size: 'small',
+													InputLabelProps: { shrink: true }
+												},
+												actionBar: { actions: ['clear', 'cancel', 'accept'] }
+											}}
+										/>
+									</div>
+
+									<div className="col-12 col-md-6 col-lg-4">
+										<TextField
+											label="Bid Duration (Minutes)"
+											value={bidDuration || ''}
+											onChange={(e) => {
+												const newDuration = e.target.value;
+												if (newDuration === "") {
+													setBidDuration("");
+												} else if (/^\d*$/.test(newDuration)) {
+													const numericValue = Number(newDuration);
+													if (numericValue > 0 && auctionManageData[0]?.bidClosingType !== 'S') {
+														setBidDuration(numericValue);
+														updateBidEndDate(reOpenDate, numericValue);
+													}
+												}
+											}}
+											className="w-100"
+											variant="outlined"
+											size="small"
+											InputLabelProps={{ shrink: true }}
+											inputProps={{ inputMode: 'numeric', pattern: "[0-9]*" }}
+											disabled={auctionManageData[0]?.bidClosingType === 'S'}
+											helperText={auctionManageData[0]?.bidClosingType === 'S' ? "Not applicable for staggered auctions" : ""}
+										/>
+									</div>
+
+									<div className="col-12 col-md-6 col-lg-4">
+										<MobileDateTimePicker
+											label="End Date & Time"
+											timezone={userDetail?.timeZone}
+											minDateTime={dayjs().tz(userDetail?.timeZone)}
+											value={
+												bidDeadLine
+													? dayjs(bidDeadLine).tz(userDetail?.timeZone)
+													: null
+											}
+											onChange={(newDate) => {
+												const tzDate = newDate
+													? dayjs(newDate).tz(userDetail?.timeZone)
+													: null;
+
+												if (reOpenDate && tzDate) {
+													updateBidDuration(reOpenDate, tzDate);
+												}
+											}}
+											className="w-100"
+											format={getDateFormatPatteronLocale(userDetail)}
+											ampm={userampm(userDetail)}
+											disabled
+											slotProps={{
+												textField: {
+													variant: 'outlined',
+													size: 'small',
+													InputLabelProps: { shrink: true },
+													helperText: "Auto-calculated based on duration"
+												},
+												actionBar: { actions: ['clear', 'cancel', 'accept'] }
+											}}
+										/>
+									</div>
+								</div>
+							</LocalizationProvider>
+
+							<div className="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
+								<button type="button" className="pe-btn pe-btn--ghost" onClick={handleCloseReOpenModal}>
+									Cancel
+								</button>
+								<button type="button" className="pe-btn pe-btn--primary" onClick={handleReOpen} disabled={loading}>
+									{loading ? 'Reopening...' : 'Reopen Auction'}
+								</button>
+							</div>
+						</Modal.Body>
+					</Modal>
+					<Modal
+						size="lg"
+						show={modal}
+						backdrop="static"
+						keyboard={false}
+						centered
+						className="rfq-create-modal bid-trend-modal"
+						contentClassName="border-0 rounded-default"
+						onHide={() => CloseModal()}
+					>
+						<Modal.Header className="pt-2 pb-2">
+							<Modal.Title>
+								<span style={{ fontSize: 14 }}>Bidding Trend</span>
+							</Modal.Title>
+							<button type="button" className="rfq-modal-close-btn" onClick={() => CloseModal()}>
+								<HiOutlineX style={{ fontSize: 16 }} />
+							</button>
+						</Modal.Header>
+						<Modal.Body className="p-0" style={{ display: 'flex', flexDirection: 'column', height: 'calc(90vh - 60px)', overflow: 'hidden' }}>
+							<div className="p-3" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+								<BidGraphs
+									selectedParameterData={selectedParameterData}
+									auctionManageData={auctionManageData}
+									bidStatus={bidStatus}
+								/>
+							</div>
+						</Modal.Body>
+					</Modal>
+					<Dialog open={actionmodal["surrogateSupplierModal"]} onClose={() => handleActionModel("surrogateSupplierModal", false)}>
+						<DialogTitle>{"Surrogate Supplier"}</DialogTitle>
+						<form onSubmit={formik_Surrogate.handleSubmit} autoComplete="off">
+							<DialogContent style={{ minWidth: "300px" }}>
+
+								<div className="row mt-2 ">
+									<div className="col-12 mb-4">
+										<Autocomplete
+											id="supplierforsurrogate"
+											name="Supplier"
+											size="small"
+											className="w-100 f14"
+											options={vendorListData || []}
+											getOptionLabel={(option) =>
+												`${option.vendorName} - ${option.emailId}`
+											} // Adjust this if your options are objects
+											value={formik_Surrogate.values.supplier ?? null}
+											onChange={(event, value) => {
+
+												formik_Surrogate.setFieldValue("supplier", value)
+											}}
+											renderInput={(params) => (
+												<TextField
+													{...params}
+													label="Supplier *"
+													variant="outlined"
+													error={formik_Surrogate.touched.supplier && Boolean(formik_Surrogate.errors.supplier)}
+													helperText={formik_Surrogate.touched.supplier && formik_Surrogate.errors.supplier}
+												/>
+											)}
+										/>
+									</div>
+
+									<div className="col-12 mb-4">
+
+										<TextFieldCell
+											id="surrogatename"
+											name="surrogatename"
+											label="Surrogater Name *"
+											placeholder=""
+											maxLength={200}
+											value={formik_Surrogate.values.surrogatename}
+											onChange={formik_Surrogate.handleChange}
+											error={
+												formik_Surrogate.touched.surrogatename &&
+												Boolean(formik_Surrogate.errors.surrogatename)
+											}
+											helperText={
+												formik_Surrogate.touched.surrogatename &&
+												formik_Surrogate.errors.surrogatename
+											}
+											InputProps={{
+												endAdornment: formik_Surrogate.values.surrogatename && (
+													<InputAdornment position="end">
+														<Typography
+															variant="body2"
+															color="textSecondary"
+														>
+															{formik_Surrogate.values.surrogatename.length}/200
+														</Typography>
+													</InputAdornment>
+												),
+											}}
+										/>
+									</div>
+									<div className="col-12 mb-4">
+
+										<TextFieldCell
+											id="surrogateemail"
+											name="surrogateemail"
+											label="Surrogater Email *"
+											placeholder=""
+											maxLength={200}
+											value={formik_Surrogate.values.surrogateemail}
+											onChange={formik_Surrogate.handleChange}
+											error={
+												formik_Surrogate.touched.surrogateemail &&
+												Boolean(formik_Surrogate.errors.surrogateemail)
+											}
+											helperText={
+												formik_Surrogate.touched.surrogateemail &&
+												formik_Surrogate.errors.surrogateemail
+											}
+											InputProps={{
+												endAdornment: formik_Surrogate.values.surrogateemail && (
+													<InputAdornment position="end">
+														<Typography
+															variant="body2"
+															color="textSecondary"
+														>
+															{formik_Surrogate.values.surrogateemail.length}/200
+														</Typography>
+													</InputAdornment>
+												),
+											}}
+										/>
+									</div>
+									<div className="col-12 mb-4">
+
+										<TextFieldCell
+											id="surrogateReason"
+											name="surrogateReason"
+											label="Remark"
+											placeholder=""
+											maxLength={200}
+											value={formik_Surrogate.values.surrogateReason}
+											onChange={formik_Surrogate.handleChange}
+											error={
+												formik_Surrogate.touched.surrogateReason &&
+												Boolean(formik_Surrogate.errors.surrogateReason)
+											}
+											helperText={
+												formik_Surrogate.touched.surrogateReason &&
+												formik_Surrogate.errors.surrogateReason
+											}
+											InputProps={{
+												endAdornment: formik_Surrogate.values.surrogateReason && (
+													<InputAdornment position="end">
+														<Typography
+															variant="body2"
+															color="textSecondary"
+														>
+															{formik_Surrogate.values.surrogateReason.length}/200
+														</Typography>
+													</InputAdornment>
+												),
+											}}
+										/>
+									</div>
+								</div>
+
+							</DialogContent>
+							<DialogActions>
+								<Button
+									onClick={() => setActionModal({ ...actionmodal, ["surrogateSupplierModal"]: false })}
+								>Cancel</Button>
+								<Button type="submit" variant="contained" autoFocus>
+									Invite
+								</Button>
+							</DialogActions>
+						</form>
+					</Dialog>
+					<Dialog
+						open={modalcancelOpen}
+						onClose={() => handleCancelAuctionModal(false)}
+						maxWidth="sm"
+						fullWidth
+					>
+						<DialogTitle className="pt-2 pb-2 px-3 d-flex justify-content-between align-items-center" style={{ borderBottom: '1px solid #e5e7eb' }}>
+							<span style={{ fontSize: 14, fontWeight: 500 }}>Cancel Auction</span>
+							<button type="button" className="rfq-modal-close-btn" onClick={() => handleCancelAuctionModal(false)}>
+								<HiOutlineX style={{ fontSize: 16 }} />
+							</button>
+						</DialogTitle>
+						<DialogContent className="pt-3 px-3">
+							<Typography className="f14 text-muted mb-3">
+								You are about to cancel this auction. Please provide a reason for cancellation.
+							</Typography>
+							<TextField
+								autoFocus
+								label="Cancellation Reason"
+								type="text"
+								fullWidth
+								multiline
+								rows={3}
+								value={cancelReason}
+								onChange={handleCancelInputChange}
+								error={Boolean(biderror)}
+								helperText={biderror || `${cancelReason.length}/1000`}
+								placeholder="Enter the reason for cancelling this auction..."
+								variant="outlined"
+								size="small"
+								inputProps={{ maxLength: 1000 }}
+							/>
+						</DialogContent>
+						<DialogActions className="p-3 pt-2">
+							<Button
+								onClick={() => handleCancelAuctionModal(false)}
+								variant="outlined"
+								size="medium"
+								className="text-capitalize px-4"
+							>
+								Keep Auction
+							</Button>
+							<Button
+								onClick={() => handleCancelAuctionModal(true)}
+								variant="contained"
+								color="error"
+								size="medium"
+								className="text-capitalize px-4"
+								autoFocus
+							>
+								Cancel Auction
+							</Button>
+						</DialogActions>
+					</Dialog>
+					<div>
+						{isCircleLoading && (
+							<div
+								style={{
+									position: 'fixed',
+									top: 0,
+									left: 0,
+									right: 0,
+									bottom: 0,
+									backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Semi-transparent overlay
+									backdropFilter: 'blur(5px)',  // Blur the background
+									zIndex: 9998,
+								}}
+							></div>
+						)}
+						{isCircleLoading && (
+							<Box
+								sx={{
+									position: 'fixed',
+									top: '50%',
+									left: '50%',
+									transform: 'translate(-50%, -50%)',
+									zIndex: 9999,  // Ensures spinner is on top of the blur
+								}}
+							>
+								<CircularProgress />
+							</Box>
+						)}
+					</div>
+				</>
+			)}
+		</>
+
+	);
 };
 
 export default AuctionControl;

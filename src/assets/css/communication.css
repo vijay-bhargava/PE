@@ -146,13 +146,15 @@
 .avatar {
   width: 35px;
   height: 35px;
-  background-color: #38a169; /* Equivalent to bg-green-500 */
+  background-color: #38a169;
   color: #ffffff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
 }
 
 .query-info {
@@ -162,6 +164,7 @@
 
 .query-author {
   font-weight: 600;
+  font-size: 13px;
 }
 
 .query-message {
@@ -226,7 +229,7 @@
 }
 
 .main-participants {
-  color: #0d6efd;
+  color: #2082DB;
   font-size: 0.775rem;
 }
 
@@ -726,8 +729,8 @@ input:focus + .user-list-dropdown {
   background-color: red; /* Color for inactive status */
 }
 .query-company {
-  font-size: 0.9em; /* Slightly smaller font size */
-  color: gray; /* Color for the company name */
+  font-size: 12px;
+  color: gray;
 }
 
 .custom-buttom:hover {

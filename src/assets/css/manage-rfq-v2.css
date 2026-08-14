@@ -1920,6 +1920,10 @@
   max-width: 520px;
 }
 
+.rfq-create-modal.bid-trend-modal .modal-dialog {
+  max-width: 860px;
+}
+
 .rfq-modal-close-btn {
   width: 30px;
   height: 30px;

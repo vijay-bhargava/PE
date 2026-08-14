@@ -148,19 +148,28 @@ export function PETableSimple({
   rows,
   getRowKey,
   wrapperStyle,
-  getExpandContent,  // optional: (row) => JSX — enables expandable rows
+  getExpandContent,      // optional: (row) => JSX — enables expandable rows
+  expandedKeys: controlledExpandedKeys,  // optional: controlled Set of expanded row keys
+  onExpandToggle,        // optional: (key) => void — called when a row is toggled in controlled mode
 }) {
-  const [expandedKeys, setExpandedKeys] = useState(new Set());
+  const [internalKeys, setInternalKeys] = useState(new Set());
+  const isControlled = controlledExpandedKeys !== undefined;
+  const expandedKeys = isControlled ? controlledExpandedKeys : internalKeys;
 
   const toggleExpand = (key) => {
-    setExpandedKeys(prev => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
-    });
+    if (isControlled) {
+      onExpandToggle?.(key);
+    } else {
+      setInternalKeys(prev => {
+        const next = new Set(prev);
+        next.has(key) ? next.delete(key) : next.add(key);
+        return next;
+      });
+    }
   };
 
-  const allColumns = getExpandContent
+  // In controlled mode the caller provides their own expand column; only add the auto column in uncontrolled mode.
+  const allColumns = (getExpandContent && !isControlled)
     ? [...columns, {
       key: '__expand__', label: '', width: 48,
       renderCell: (_, row, index) => {

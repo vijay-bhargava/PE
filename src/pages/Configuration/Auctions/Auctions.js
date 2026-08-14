@@ -2,23 +2,21 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import IconButton from "@mui/material/IconButton";
-import { HiOutlineX, HiX, HiPlusSm, HiOutlineDotsHorizontal, HiPlus, HiOutlinePencil, HiPencilAlt, HiDotsVertical, HiCalculator, HiRefresh } from "react-icons/hi";
+import { HiOutlineX, HiPencilAlt } from "react-icons/hi";
 import {
-	Autocomplete, Alert, Button, ButtonGroup,
+	Autocomplete, Alert, Button,
 	Checkbox, Dialog, DialogActions,
-	DialogContent, DialogContentText, DialogTitle, Divider,
+	DialogContent, DialogContentText, DialogTitle,
 	FormControl, FormControlLabel, FormHelperText, FormLabel,
-	InputAdornment, InputLabel, Menu, MenuItem, Radio, RadioGroup,
-	Select, Stack, TextField, Tooltip, Typography, Badge,
+	InputAdornment, MenuItem, Radio, RadioGroup,
+	TextField, Tooltip, Typography, Badge,
 	createFilterOptions, Card, CardHeader, CardContent,
 } from "@mui/material";
-import { Close, ExpandMore } from "@mui/icons-material";
-import { Dropdown, DropdownButton, Modal } from "react-bootstrap";
+import { Modal } from "react-bootstrap";
 import Drawer from "@mui/material/Drawer";
 import Tabs from "@mui/material/Tabs";
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import Tab from "@mui/material/Tab";
-import Pagination from "@mui/material/Pagination";
 import Box from "@mui/material/Box";
 import TextFieldCell from "../../BaseCells/TextFieldCell";
 import LoadingButton from "@mui/lab/LoadingButton";
@@ -28,18 +26,23 @@ import FilePresentIcon from '@mui/icons-material/FilePresent';
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
 import "react-quill/dist/quill.snow.css";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { AuctionCTAddModal, IntegerRegex, InvitedSupplierForBidModal, findObjListByValueFromArray, getPayloadWithStage, getStageInfo, handlesaveAttachment, pullMessageCount, downloadExcelTemplate } from "../../../utils/common";
+import {
+	AuctionCTAddModal, IntegerRegex, InvitedSupplierForBidModal,
+	findObjListByValueFromArray, getPayloadWithStage, getStageInfo,
+	handlesaveAttachment, pullMessageCount, downloadExcelTemplate
+} from "../../../utils/common";
 import { actionTypes, useStateValue } from "../../../store";
-import { checkUTC, cleanAndConvertToArray, extractTextFromHTML, formatDateViaLocale2, getAuctionItemServiceFind, getAuctionManageFind, getCurrency, getDateFormatPatteronLocale, getLibraryOrgEntityFind, getPurchaseOrgList, scrollToTargetC, userampm } from "../../../utils/common/utility";
+import {
+	checkUTC, cleanAndConvertToArray, extractTextFromHTML,
+	getAuctionItemServiceFind, getAuctionManageFind, getCurrency,
+	getDateFormatPatteronLocale, getLibraryOrgEntityFind, scrollToTargetC, userampm
+} from "../../../utils/common/utility";
 import { toast } from "react-toastify";
 import AddEditCurrency from "../../../utils/common/AddEditCurrency";
-import { BackButton, MemoizedEventStageFlow } from "../../../utils/common/component";
 import { ApiClient, api } from "../../../Apiclient";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
 import AttachmentWorkFlow from "../../BaseCells/attachmentworkflow";
 import EventApprovalBox from "../../BaseCells/eventapprovalbox";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import ProductitemCell from "../RequestForQuotation/ProductitemCell";
 import AddQuestionFormCell from "../RequestForQuotation/AddQuestionFormCell";
 import AddProductsCell from "./AddProductsCell";
@@ -65,8 +68,6 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const Auctions = ({ claimType, breadcrumb }) => {
-	const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-	const checkedIcon = <CheckBoxIcon fontSize="small" />;
 	const fileInputRef = useRef(null);
 	const navigate = useNavigate();
 	const apiClient = new ApiClient(api);
@@ -143,10 +144,10 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	const handleChange = (event, newValue) => {
 		setIsUserInitiatedTabChange(true);
 		setValue(newValue);
-		if (newValue == "5") {
+		if (newValue === "5") {
 
 			setSelectedMenuItem("Submit")
-			if (newValue == "5" && stagelist?.some(item => item.currentStage == "Under Pre Approval")) {
+			if (newValue === "5" && stagelist?.some(item => item.currentStage === "Under Pre Approval")) {
 				setApproverShow(true)
 			}
 		}
@@ -170,7 +171,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	}, [atoken]);
 
 	useEffect(() => {
-		if (value == 8 || value == "8") {
+		if (value === 8 || value === "8") {
 			// Check allocation status from EventAllocationScreen via ref
 			if (NFASOBRFQRef.current && typeof NFASOBRFQRef.current.isAllocationSubmitted === 'function') {
 				const submitted = NFASOBRFQRef.current.isAllocationSubmitted();
@@ -183,11 +184,11 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				setSelectedMenuItem("Save");
 			}
 		}
-		if (idFromURL == null) {
+		if (idFromURL === null) {
 			setApproverShow(false);
 		}
-		else if (value == 5) {
-			if (stagelist?.some(item => item.currentStage == "Under Pre Approval")) {
+		else if (value === 5) {
+			if (stagelist?.some(item => item.currentStage === "Under Pre Approval")) {
 				setApproverShow(true);
 			}
 		}
@@ -301,6 +302,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 
 	const toggleDrawer = (anchor, open) => (event) => {
 		if (
+			event &&
 			event.type === "keydown" &&
 			(event.key === "Tab" || event.key === "Shift")
 		) {
@@ -450,7 +452,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			tnC: "",
 			bidClosingType: "A",
 			bidSubTypeId: 81,
-			showRankToVendor: bidtype?.id == 4 ? "N" : "Y",
+			showRankToVendor: bidtype?.id === 4 ? "N" : "Y",
 			maximumExtension: -1,
 			extensionDuration: 2,
 			hideVendor: false,
@@ -473,7 +475,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					formik.setFieldError('bidDuration', 'Bid duration is required');
 					return;
 				}
-				if (formik.values.extensionDuration < 1 && formik.values.extensionDuration == '') {
+				if (formik.values.extensionDuration < 1 && formik.values.extensionDuration === '') {
 					formik.setFieldError('extensionDuration', 'Extension duration is required');
 					return;
 				}
@@ -538,7 +540,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					quotesinWords: values.quotesinWords,
 					rankToVendorPost: values.rankToVendorPost,
 					noOfStaggerItems: parseInt(values?.noOfStaggerItems),
-					multicurrencytList: inputList?.[0]?.baseCurrency == "" ? [] : inputList,
+					multicurrencytList: inputList?.[0]?.baseCurrency === "" ? [] : inputList,
 					stage: currentStage,
 					configureDate: maxNow,
 					isMultiCurrency: values.isMultiCurrency,
@@ -774,7 +776,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 
 	const handleInputChange = (e, index, fieldname) => {
 		let { name, value } = e.target;
-		if (fieldname == "currencyConversion") {
+		if (fieldname === "currencyConversion") {
 			if (!IntegerRegex.test(value)) {
 				const list = [...inputList];
 				list[index][name] = "";
@@ -865,6 +867,9 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				}
 
 				setTempDataEditData(res?.result);
+				if (res?.result?.[0]?.eventCode) {
+					dispatch({ type: actionTypes.SET_EVENTCODE, value: res.result[0].eventCode });
+				}
 				// Removing 'bidParamater' from each object in the array for use on tab 2
 				const filteredData = res?.result?.map((item) => {
 					const { bidParamater, ...rest } = item;
@@ -897,7 +902,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					formik.setFieldValue("bidStDate", dayjs(bidStDate).tz(userDetail?.timeZone));
 				}
 
-				if (res?.result?.[0]?.bidEndDate && res?.result?.[0]?.bidDuration == 0) {
+				if (res?.result?.[0]?.bidEndDate && res?.result?.[0]?.bidDuration === 0) {
 					formik.setFieldValue("bidEndDate", null);
 				} else {
 					const bidEndDate = checkUTC(res?.result?.[0]?.bidEndDate)
@@ -932,7 +937,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				if (res?.result?.[0]?.tnC) {
 					formik.setFieldValue("tnC", res?.result?.[0]?.tnC);
 				}
-				if (res?.result?.[0]?.baseCurrency && res?.result?.[0]?.baseCurrency != "") {
+				if (res?.result?.[0]?.baseCurrency && res?.result?.[0]?.baseCurrency !== "") {
 					formik.setFieldValue("baseCurrency", res?.result?.[0]?.baseCurrency);
 				}
 				formik.setFieldValue("isMultiCurrency", res?.result?.[0]?.isMultiCurrency ?? false);
@@ -1106,7 +1111,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			const data = res?.data?.result;
 			console.debug("pullAuctionItemServiceFindCallBack: fetched items count", data?.length, data?.slice?.(0, 3));
 			setbidItemsList(data);
-			if (tempDataEditData.length > 0 && tempDataEditData[0].bidClosingType == "S") {
+			if (tempDataEditData.length > 0 && tempDataEditData[0].bidClosingType === "S") {
 				const totalBidDuration = data.reduce(
 					(sum, item) => sum + (item.itemBidDuration || 0),
 					0
@@ -1119,7 +1124,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				}
 			}
 
-			if (tempDataEditData.length > 0 && tempDataEditData[0].bidSubTypeId == 82) {
+			if (tempDataEditData.length > 0 && tempDataEditData[0].bidSubTypeId === 82) {
 
 				//const DutchitemBidDuration = (data[0]?.startPrice - data[0]?.ceilingPrice) / data[0]?.priceDecAmount * data[0]?.priceDecFrq + data[0]?.priceDecFrq;
 				const DutchitemBidDuration = data.reduce(
@@ -1279,7 +1284,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 
 	const handlecurrencytermmodal = () => {
 		const updatedlist = commercialLibFind.map((x, i) => {
-			if (x.termsId == selectedcommercialterm?.termsId) {
+			if (x.termsId === selectedcommercialterm?.termsId) {
 				x.bidTermCurrency = commcurrencyList;
 			}
 			return x;
@@ -1336,7 +1341,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 
 	const callbackItemAdd = useCallback(
 		(pass, dutchBidDuration) => {
-			if (dutchBidDuration != null) {
+			if (dutchBidDuration !== null) {
 				formik.setFieldValue('bidDuration', dutchBidDuration);
 			}
 			pullAuctionItemServiceFindCallBack(idFromURL).then(() => {
@@ -1397,7 +1402,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		if (!SelectedCommercialLibrary && generaltermsDDl.length > 0 && LibraryTermsList.length > 0) {
 			const libraryId = LibraryTermsList[0]?.libraryId;
 
-			const obj = generaltermsDDl.find(x => x.id == libraryId);
+			const obj = generaltermsDDl.find(x => x.id === libraryId);
 			setSelectedCommercialLibrary({
 				...obj,
 				grandTotalTermName: LibraryTermsList[0].grandTotalTermName
@@ -1408,12 +1413,12 @@ const Auctions = ({ claimType, breadcrumb }) => {
 
 	const saveBidCommLibraryAdd = async () => {
 
-		if (isCommLibrarySaved && tempDataEditData[0]?.auctionCT.length > 0 && value == 5) {
+		if (isCommLibrarySaved && tempDataEditData[0]?.auctionCT.length > 0 && value === 5) {
 			return true; // Skip execution if already saved
 		}
 
 		const selectedCommTerms = commercialLibFind?.filter(
-			(s) => s.isSelected == true
+			(s) => s.isSelected === true
 		);
 		//console.log("selectedCommTerms:::", selectedCommTerms)
 		if (
@@ -1448,7 +1453,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				if (x?.formulavalue) {
 					const fieldNameGroup = Array.from(x.fieldNameGroup.split(","));
 					let notIncluded = [...new Set(fieldNameGroup.filter(element => !commercialfieldlist.includes(element)))];
-					if (notIncluded.length == 1) {
+					if (notIncluded.length === 1) {
 						if (notIncluded[0]?.trim() === "") {
 							notIncluded = [];
 						}
@@ -1551,31 +1556,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		if (data) {
 			dispatch({ type: actionTypes.SET_CommId, value: parseInt(data) });
 		}
-
-		// const pullMessageList = async () => {
-
-		//     var data = {
-		//         CustomerId: customerid,
-		//         SortingColumn: "Id",
-		//         EventId: pageSlug,
-		//         EventType: "Auction",
-		//         CommDetails_CommParticipantUser_UserId: userDetail?.id,
-		//     };
-		//     const queryParams = buildQueryParams(data)
-		//     const res = await apiClient.getres(`api/Communication/FindByCommId?${queryParams}`, atoken)
-
-		//     if (res) {
-		//         const data = res?.data?.result ?? []
-
-		//         dispatch({ type: actionTypes.SET_Notificationlist, value: data });
-		//     }
-
-
-		// }
-
-		// if (pageSlug) {
-		//     pullMessageList();
-		// }
 	}, [pageSlug, customerid, dispatch, atoken]); // Dependencies for the effect
 
 	useEffect(() => {
@@ -1592,7 +1572,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	}, [userDetail, eventType, eventId]);
 
 	const handleSaveContinue = () => {
-		if (value == 1) {
+		if (value === 1) {
 
 			if (formik.values.bidStDate && (!formik.values.bidEndDate || isNaN(dayjs(formik.values.bidEndDate)))) {
 				// Calculate bidEndDate using bidStDate and bidDuration
@@ -1648,7 +1628,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			}
 			formik.handleSubmit();
 		}
-		if (value == 2) {
+		if (value === 2) {
 
 			if (bidItemsList?.length < 1) {
 				toast.info("please add items to continue");
@@ -1668,10 +1648,10 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				setValue(4);
 			}
 		}
-		if (value == 3) {
+		if (value === 3) {
 			saveBidCommLibraryAdd();
 		}
-		if (value == 4) {
+		if (value === 4) {
 			saveSelectedSuppliers();
 		}
 	};
@@ -1687,7 +1667,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		const isStageRequired = stagelist?.filter((x) => x.wfname)
 		for (const stage of isStageRequired) {
 			const matchingWorkflow = approverInWorkflow.find(workflow => workflow.stage === stage.wfname);
-			if (matchingWorkflow && matchingWorkflow.approvers.length == 0) {
+			if (matchingWorkflow && matchingWorkflow.approvers.length === 0) {
 				toast.error(`Error: The mandatory  workflow "${stage.wfname}" has no approvers.`);
 				return false;
 			}
@@ -1715,7 +1695,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			return false;
 		}
 
-		if (formik.values.bidClosingType == 'S') {
+		if (formik.values.bidClosingType === 'S') {
 			const invalidItems = bidItemsList.map((item, index) => (
 				{ ...item, serial: index + 1 })).filter(item => item.itemBidDuration <= 0);
 			if (invalidItems.length > 0) {
@@ -1745,7 +1725,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		const missingFieldsItems = bidItemsList.map((item, index) => (
 			{ ...item, serial: index + 1 })).filter(item => item.minimumDelta <= 0 || item.startPrice <= 0);
 		// if (missingFieldsItems.length > 0) {
-		if (missingFieldsItems.length > 0 && tempDataEditData[0]?.bidSubTypeId != 82) {
+		if (missingFieldsItems.length > 0 && tempDataEditData[0]?.bidSubTypeId !== 82) {
 			const serialNumbers = missingFieldsItems.map(item => item.serial).join(", ");
 			toast.error(`Give serial no. are missing some fields: ${serialNumbers}`, {
 				position: toast.POSITION.TOP_CENTER,
@@ -1774,7 +1754,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	const handleBidSubmit = async () => {
 
 		setLoading(true)
-		if (bidtype?.id == 3 || bidtype?.id == 4) {
+		if (bidtype?.id === 3 || bidtype?.id === 4) {
 
 			const isSaveSuccessful = await saveBidCommLibraryAdd();
 
@@ -1794,8 +1774,8 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		const rfqParam = tempDataEditData?.[0]?.bidParamater?.find(
 			p => p?.eventType === "RFQ" && p?.eventId
 		);
-		// if (tempDataEditData[0]?.bidParamater[0]?.eventId && tempDataEditData[0]?.bidParamater[0]?.eventType == 'RFQ') {
-		if (rfqParam?.eventId && rfqParam?.eventType == 'RFQ') {
+		// if (tempDataEditData[0]?.bidParamater[0]?.eventId && tempDataEditData[0]?.bidParamater[0]?.eventType === 'RFQ') {
+		if (rfqParam?.eventId && rfqParam?.eventType === 'RFQ') {
 			//submitPrebid();
 
 			try {
@@ -1903,16 +1883,16 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	}, [idFromURL, bidpreview, tempDataEditData]);
 
 	useEffect(() => {
-		// if (value == 1 && idFromURL && idFromURL > 0) {    
+		// if (value === 1 && idFromURL && idFromURL > 0) {    
 		//     pullgetAuctionManageFind(idFromURL);
 		// }
-		if (value == 2 && idFromURL && bidItemsList.length !== 0) {
+		if (value === 2 && idFromURL && bidItemsList.length !== 0) {
 			pullAuctionItemServiceFind(idFromURL);
 		}
-		if (value == 3) {
+		if (value === 3) {
 			pullLibraryOrgEntityFind();
 		}
-		if (value == 4 || value == 5) {
+		if (value === 4 || value === 5) {
 			getTotalSupplier();
 			getCategorylist();
 		}
@@ -2142,7 +2122,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		list[index]["subject"] = tempDataEditData?.[0]?.subject;
 		//list[index]["companyName"] = userDetail.customerName;
 
-		const selectedList = list?.filter((s) => s.isSelected == true);
+		const selectedList = list?.filter((s) => s.isSelected === true);
 		if (selectedList?.length > 75) {
 			toast.info(`You can select only 75 suppliers`, {
 				toastId: "suppliermax_info"
@@ -2157,7 +2137,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	const clearSelectedSupplier = async (x, value) => {
 
 		const matchedVendor = tempDataEditData[0]?.bidVendorInvited.find(
-			(vendor) => vendor?.vendorID == x?.vendorId
+			(vendor) => vendor?.vendorID === x?.vendorId
 		);
 		if (matchedVendor) {
 			try {
@@ -2185,7 +2165,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		const list = [...totalSupplier];
 		list[index]["isSelected"] = value;
 		setTotalSupplier(list);
-		const selectedList = list?.filter((s) => s.isSelected == true);
+		const selectedList = list?.filter((s) => s.isSelected === true);
 
 		setSelectedSupplier(selectedList);
 	};
@@ -2257,10 +2237,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	const [factorType, setFactorType] = useState('');
 	const [factorPerc, setFactorPerc] = useState(0);
 	const [loadingAmount, setLoadingAmount] = useState(0); // Add this to your state
-	const [loadingFactors, setLoadingFactors] = useState([]);
-	const [editIndex, setEditIndex] = useState(null);
 	const [filteredLoadingFactors, setFilteredLoadingFactors] = useState([]);
-	//console.log("filteredLoadingFactors::", filteredLoadingFactors)
 	const [errors, setErrors] = useState({});
 
 	const validationSchemaloading = yup.object({
@@ -2324,131 +2301,8 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		}
 	};
 
-	const handleAddLoadingFactor = () => {
-		setLoadingUpdateBtn(true)
-		const formValues = {
-			factorDesc,
-			factorType,
-			...(factorType === 'A' ? { loadingAmount } : { factorPerc }),
-			loadingOn
-		};
-		const validationErrors = validateForm(formValues);
-		if (validationErrors) {
-			setErrors(validationErrors);
-			setLoadingUpdateBtn(false)
-			return;
-		}
-
-		const newLoadingFactor = {
-			bidId: parseInt(idFromURL),
-			version: 1,
-			customerId: parseInt(customerid),
-			vendorId: storeVId,
-			factorDesc: factorDesc,
-			factorType: factorType,
-			...(factorType === 'A' ? { loadingAmount: parseFloat(loadingAmount) } : { factorPerc: parseFloat(factorPerc) }),
-			loadingOn: "BID",
-			createdById: userDetail?.id,
-			createdByName: userDetail?.name
-		};
-
-		let updatedLoadingFactors;
-
-		if (editIndex !== null) {
-			updatedLoadingFactors = [...filteredLoadingFactors];
-			updatedLoadingFactors[editIndex] = newLoadingFactor;
-			setEditIndex(null);
-		} else {
-			updatedLoadingFactors = [...filteredLoadingFactors, newLoadingFactor];
-		}
-
-
-		setLoadingFactors(updatedLoadingFactors);
-		const vendorLoadingFactors = updatedLoadingFactors.filter(factor => factor.vendorId === storeVId);
-		setFilteredLoadingFactors(vendorLoadingFactors);
-
-		const updatedSuppliers = selectedSupplier.map((supplier) => {
-			if (supplier.id === storeVId) {
-				const existingFactors = supplier.bidLoadingFactor || [];
-				if (editIndex !== null) {
-					existingFactors[editIndex] = newLoadingFactor;
-				} else {
-					existingFactors.push(newLoadingFactor);
-				}
-				return { ...supplier, bidLoadingFactor: existingFactors };
-			}
-			return supplier;
-		});
-
-		setSelectedSupplier(updatedSuppliers);
-
-		setFactorDesc('');
-		setFactorType('');
-		setFactorPerc(0);
-		setLoadingOn('');
-		setLoadingAmount('');
-		setErrors({});
-		setLoadingUpdateBtn(true);
-	};
-
-	const handleDeleteLoadingFactor = (index) => {
-
-		setLoadingUpdateBtn(true);
-		const updatedLoadingFactors = filteredLoadingFactors.filter((_, i) => i !== index);
-		setLoadingFactors(updatedLoadingFactors);
-
-		const vendorLoadingFactors = updatedLoadingFactors.filter(factor => factor.vendorId === storeVId);
-		setFilteredLoadingFactors(vendorLoadingFactors);
-
-		const updatedSuppliers = selectedSupplier.map((supplier) => {
-			if (supplier.id === storeVId) {
-				const existingFactors = supplier.bidLoadingFactor || [];
-				const updatedFactors = existingFactors.filter((_, i) => i !== index);
-				return { ...supplier, bidLoadingFactor: updatedFactors };
-			}
-			return supplier;
-		});
-
-		setSelectedSupplier(updatedSuppliers);
-	};
-
 	const [loadingupdatebtn, setLoadingUpdateBtn] = useState(false)
 
-	const handleEditLoadingFactor = (index) => {
-		setLoadingUpdateBtn(true)
-		if (filteredLoadingFactors && filteredLoadingFactors.length > index) {
-			const factor = filteredLoadingFactors[index];
-			setFactorDesc(factor.factorDesc || '');
-			setFactorType(factor.factorType || '');
-			if (factor.factorType === 'A') {
-				setLoadingAmount(factor.loadingAmount || 0);
-			} else {
-				setFactorPerc(factor.factorPerc || 0);
-			}
-			setLoadingOn(factor.loadingOn || '');
-			setEditIndex(index);
-			setStoreVId(factor.vendorId)
-		} else if (tempDataEditData && tempDataEditData[0]?.bidVendorInvited) {
-			const vendorData = tempDataEditData[0].bidVendorInvited.find(v => v.vendorID === storeVId);
-			if (vendorData && vendorData.bidLoadingFactor && vendorData.bidLoadingFactor.length > index) {
-				const factor = vendorData.bidLoadingFactor[index];
-				setFactorDesc(factor.factorDesc || '');
-				setFactorType(factor.factorType || '');
-				setFactorPerc(factor.factorPerc || 0);
-				setLoadingOn(factor.loadingOn || '');
-				setEditIndex(index);
-			} else {
-				console.error('Loading factor data not found or index out of bounds');
-			}
-		} else {
-			console.error('Loading factors or temp data is not properly defined');
-		}
-	};
-
-	// const validationSchemaApprover = yup.object().shape({
-	//     // approveComment: yup.string().required("reason is required"),
-	//     remarks: yup.string().required("reason is required")
-	// });
 	const validationSchemaApprover = yup.object().shape({
 		remarks: yup.string().when('IsApproved', {
 			is: false,
@@ -2463,24 +2317,15 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			customerId: parseInt(customerid),
 			eventId: parseInt(idFromURL),
 			eventType: "Auction",
-			IsApproved: tempDataEditData[0]?.approverCount == 1 ? "" : true,
-			vendorId: tempDataEditData[0]?.approverCount == 1 ? "" : 0,
+			IsApproved: tempDataEditData[0]?.approverCount === 1 ? "" : true,
+			vendorId: tempDataEditData[0]?.approverCount === 1 ? "" : 0,
 			remarks: "",
 			activityId: parseInt(activityId),
 			stageId: 0
 		},
 		validationSchema: validationSchemaApprover,
 		onSubmit: async (values) => {
-
 			setLoading(true)
-			const bidStDate = checkUTC(tempDataEditData[0].bidStDate);
-			const currentDate = new Date();
-			const isCurrentAfterBid = currentDate > new Date(bidStDate);
-			// if (isCurrentAfterBid && values?.actionType == "Approved" && !values?.vendorId) {
-			//     toast.info("Start date of auction is passsed.Please revert to send back to creator for edit auction.");
-			//     setLoading(false);
-			//     return;
-			// }
 			const actionData = {
 				customerId: parseInt(customerid),
 				eventId: parseInt(idFromURL),
@@ -2565,8 +2410,8 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	useEffect(() => {
 		//const eventType = tempDataEditData?.[0]?.bidParamater?.[0]?.eventType;
 		const hasEventType = tempDataEditData?.[0]?.bidParamater?.some(p => p?.eventType === "RFQ");
-		// if (value == 5 && eventType === "RFQ") {
-		if (value == 5 && hasEventType) {
+		// if (value === 5 && eventType === "RFQ") {
+		if (value === 5 && hasEventType) {
 
 			FetchPreBidPrice();
 		}
@@ -2579,8 +2424,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	};
 
 	const [confirmClearAllItems, setConfirmClearAllItems] = useState(false);
-
-
 
 	const handleClearAll = async (changeSource) => {
 
@@ -2603,7 +2446,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		}
 	};
 
-
 	const handleButtonGroup = () => {
 
 		switch (selectedMenuItem) {
@@ -2624,7 +2466,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			default:
 				return ""
 		}
-
 	}
 
 	const handleClearAllItems = (value) => {
@@ -2633,28 +2474,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			handleClearAll()
 		} else {
 			setConfirmClearAllItems(false);
-		}
-	};
-
-	const updateSupplierLoadingFactor = async () => {
-
-		filteredLoadingFactors.forEach(x => {
-			x.id = 0
-		});
-		try {
-			const res = await apiClient.postres(`/api/AuctionManage/${parseInt(idFromURL)}/${storeVId}/AuctionLoadingFactor`, filteredLoadingFactors, atoken);
-			if (res) {
-
-				toast.success("Loading Factor updated successfully", {
-					toastId: "loading_factor_update"
-				});
-				setLoadingUpdateBtn(false);
-				setLoadingModal(false);
-			}
-		} catch (error) {
-
-			console.error("Error updating loading factor:", error);
-			toast.error("Failed to update loading factor");
 		}
 	};
 
@@ -2769,10 +2588,10 @@ const Auctions = ({ claimType, breadcrumb }) => {
 
 	const downloadItemsExcel = async () => {
 		let templateId;
-		if ((bidtype?.id == 1 || bidtype?.id == 5) && formik.values.bidClosingType === "S") {
+		if ((bidtype?.id === 1 || bidtype?.id === 5) && formik.values.bidClosingType === "S") {
 			templateId = 8;
 		}
-		else if ((bidtype?.id == 1 || bidtype?.id == 5) && formik.values.bidClosingType !== "S") {
+		else if ((bidtype?.id === 1 || bidtype?.id === 5) && formik.values.bidClosingType !== "S") {
 			templateId = 7;
 		}
 		else if (bidtype?.id !== 1 && bidtype?.id !== 5 && formik.values.bidClosingType === "S") {
@@ -2811,30 +2630,13 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	const isClosedView = currentStage === 'Close' || currentStage === 'Awarded';
 	const [workflowPanelTab, setWorkflowPanelTab] = useState('workflow');
 
-	// Status pill dropdown — same dynamic stagelist the old horizontal
-	// stepper (MemoizedEventStageFlow) used, just shown as a dropdown now.
-	const [statusAnchorEl, setStatusAnchorEl] = useState(null);
-
-	const handleStatusMenuOpen = (event) => setStatusAnchorEl(event.currentTarget);
-	const handleStatusMenuClose = () => setStatusAnchorEl(null);
-
-	const auctionStatusSteps = Array.isArray(stagelist) && stagelist.length > 0
-		? stagelist.map(s => s.stageName || s.currentStage).filter(Boolean)
-		: [currentStage || 'Draft'];
-	const currentStatusIndex = Math.max(
-		0,
-		auctionStatusSteps.findIndex(
-			(step) => step.toLowerCase() === (currentStage || '').trim().toLowerCase()
-		)
-	);
-
 	const [open, setOpen] = React.useState(false);
 	const [selectedMenuItem, setSelectedMenuItem] = useState("Save & Continue");
 	const [anchorEl, setAnchorEl] = React.useState(null);
 
 	const handleMenuClick = (item) => {
 
-		if (item != "Save as Templates") {
+		if (item !== "Save as Templates") {
 			setSelectedMenuItem(item);
 		}
 		setAnchorEl(null);
@@ -2868,14 +2670,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 
 	}
 
-	const handleMenuOpen = (event) => {
-		setAnchorEl(event.currentTarget);
-	};
-
-	const handleMenuClose = () => {
-		setAnchorEl(null);
-	};
-
 	const handleClose = () => {
 		setOpen(false);
 		setTemplateTitle(""); // Clear on close
@@ -2884,7 +2678,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		setTemplateTitle(formik?.values?.subject || ""); // Prefill with subject
 		setOpen(true);
 	};
-
 
 	// RFQ Template Title
 	const [TemplateTitle, setTemplateTitle] = useState("")
@@ -2931,7 +2724,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			email: "",
 			Reason: ""
 		},
-		validationSchema: selectedAction == "Surrogate BID" ? validationSchemaSurrogate : "",
+		validationSchema: selectedAction === "Surrogate BID" ? validationSchemaSurrogate : "",
 		onSubmit: async (values) => {
 
 			if (!values?.supplier) {
@@ -2941,7 +2734,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				return
 			}
 
-			if (selectedAction == "Surrogate BID") {
+			if (selectedAction === "Surrogate BID") {
 				const payload = {
 					"name": values?.name,
 					"vendorId": values?.supplier?.vendorId,
@@ -2970,7 +2763,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				}
 
 			}
-			else if (selectedAction == "Send Reminder") {
+			else if (selectedAction === "Send Reminder") {
 
 				const v = values?.supplier;
 				const bidVendorDetails = {
@@ -3018,32 +2811,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		}
 		setModalBaseCurr(true);
 	}
-
-	const getBidTypeTitle = (bidType) => {
-		const bidTypeID = tempDataEditData?.[0]?.bidTypeID;
-
-		if (bidType?.bidTypeName) {
-			switch (bidType.bidTypeName) {
-				case "Reverse Auction": return "Reverse Auction";
-				case "Forward Auction": return "Forward Auction";
-				case "Formula Based Auction": return "Formula Based Auction";
-				case "Freight Auction": return "Freight Auction";
-				case "French Forward Auction": return "French Forward";
-				case "French Reverse Auction": return "French Reverse";
-				default: return "Unknown Auction";
-			}
-		}
-
-		switch (bidTypeID) {
-			case 1: return "Forward Auction";
-			case 2: return "Reverse Auction";
-			case 3: return "Freight Auction";
-			case 4: return "Formula Based Auction";
-			case 5: return "French Forward";
-			case 6: return "French Reverse";
-			default: return "Unknown Auction";
-		}
-	};
 
 	//allocation modal
 	const handleAllocation = () => {
@@ -3209,32 +2976,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		}
 	};
 
-
-	const handleSupplierSurrogate = (v, action) => {
-
-		setState({ ...state, surrogateDrawer: true });
-		if (action == "Surrogate") {
-			setSelectedAction("Surrogate BID")
-		}
-		else if (action == "Reminder") {
-			setSelectedAction("Send Reminder")
-		}
-
-		formik_Action.setFieldValue("supplier", v)
-	}
-
-	const handleSupplierAction = (v, action) => {
-
-		switch (action) {
-			case "Surrogate":
-				return handleSupplierSurrogate(v, action)
-			case "Reminder":
-				return handleSupplierSurrogate(v, action)
-			default:
-				return null;
-		}
-	};
-
 	//calling api for mapping data when coming from rfq
 	const FetchPreBidPrice = async () => {
 		try {
@@ -3342,272 +3083,91 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			return false;
 		}
 	};
-	console.log("formik----", formik.values)
+
 	return (
 		<>
 			<div className="mainContainer d-flex rfq-modern-shell">
 				<div className={`leftContent ${isClosedView || approvershow ? "col-9" : "col-12"} d-flex flex-column`}>
 					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ overflow: 'hidden', minHeight: 0 }}>
-						{isClosedView ? (
-							<div className="rfq-dv2-page-head border-bottom mb-3" style={{ flexShrink: 0 }}>
-								<div className="rfq-dv2-head-top">
-									{breadcrumb}
-									<div className="rfq-dv2-actions">
-										<button
-											type="button"
-											className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost"
-											onClick={() => handleMenuClick('Cancel')}
-											disabled={!pageSlug}
-										>
-											Cancel
-										</button>
-										{currentStage === 'Awarded' && (
-											<>
-												<button
-													type="button"
-													className="rfq-dv2-action-btn pe-btn--secondary"
-													onClick={() => handleMenuClick('Send Mail to suppliers')}
-												>
+						<div className="rfq-dv2-page-head border-bottom mb-3" style={{ flexShrink: 0 }}>
+							<div className="rfq-dv2-head-top">
+								{breadcrumb}
+								<div className="rfq-dv2-actions">
+									{!loading ? (
+										<>
+											{/* Cancel — always first */}
+											<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost" onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
+												Cancel
+											</button>
+											{/* Secondary actions */}
+											{stagearray.includes(currentStage) && (
+												<button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Draft')}>
+													Save as Draft
+												</button>
+											)}
+											{idFromURL && currentStage && currentStage === 'Draft' && (
+												<button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Templates')}>
+													Save as Templates
+												</button>
+											)}
+											{currentStage === 'Allocation' && value === "8" && (
+												<button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleMenuClick('Save & Close')}>
+													Save &amp; Close
+												</button>
+											)}
+											{currentStage === 'Awarded' && (
+												<button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleMenuClick('Send Mail to suppliers')}>
 													Send Mail to suppliers
 												</button>
-												<button
-													type="button"
-													className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
-													onClick={() => handleMenuClick('Create NFA')}
-												>
+											)}
+											{currentStage === 'Awarded' && (
+												<button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleMenuClick('Create NFA')}>
 													Create NFA
 												</button>
-											</>
-										)}
-										{currentStage === 'Close' && (
-											<button
-												type="button"
-												className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
-												onClick={() => handleMenuClick('ForwardForAllocation')}
-											>
-												Forward For Allocation
-											</button>
-										)}
-									</div>
-								</div>
-								<div className="rfq-dv2-head-bottom">
-									<span className="rfq-dv2-meta-item">
-										<span className="rfq-dv2-meta-label">Status</span>
-										<button
-											type="button"
-											className={`rfq-dv2-status-pill`}
-											onClick={handleStatusMenuOpen}
-										>
-											<span className="rfq-dv2-status-dot" />
-											{currentStage}
-										</button>
-									</span>
-									{formik?.values?.bidStDate && (
-										<span className="rfq-dv2-meta-item">
-											<span className="rfq-dv2-meta-label">Start Date/Time:</span>{" "}
-											<span className="rfq-dv2-meta-value">
-												{formatDateViaLocale2(formik?.values?.bidStDate, userDetail)}
-											</span>
-										</span>
-									)}
-									{formik?.values?.bidEndDate && (
-										<span className="rfq-dv2-meta-item">
-											<span className="rfq-dv2-meta-label">End Date/Time:</span>{" "}
-											<span className="rfq-dv2-meta-value">
-												{formatDateViaLocale2(formik?.values?.bidEndDate, userDetail)}
-											</span>
-										</span>
-									)}
-									<Menu
-										anchorEl={statusAnchorEl}
-										open={Boolean(statusAnchorEl)}
-										onClose={handleStatusMenuClose}
-										classes={{ paper: "rfq-dv2-status-menu-paper" }}
-										anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-										transformOrigin={{ vertical: "top", horizontal: "left" }}
-										PaperProps={{
-											style: {
-												width: 280,
-												minWidth: 280,
-												maxWidth: 280,
-												overflow: "hidden",
-											}
-										}}
-									>
-										<div className="rfq-dv2-status-menu">
-											<div className="rfq-dv2-status-menu-title">Auction Status</div>
-											<div className="rfq-dv2-status-menu-list">
-												{auctionStatusSteps.map((step, index) => {
-													const stepClass =
-														index < currentStatusIndex
-															? ""
-															: index === currentStatusIndex
-																? "is-current"
-																: "is-future";
-													return (
-														<div key={step} className={`rfq-dv2-status-step ${stepClass}`}>
-															<span className="rfq-dv2-status-step-icon" />
-															<span>{step}</span>
-														</div>
-													);
-												})}
-											</div>
-										</div>
-									</Menu>
-								</div>
-							</div>
-						) : (
-							<div className="d-flex justify-content-between align-items-center border-bottom mb-3 bg-grey">
-								<div className="d-flex align-items-center">
-									<BackButton
-										title={
-											tempDataEditData[0]?.eventCode
-												? `${getBidTypeTitle(bidtype)} | ${tempDataEditData[0]?.eventCode}`
-												: idFromURL
-													? `${getBidTypeTitle(bidtype)} | ${idFromURL}`
-													: getBidTypeTitle(bidtype)
-										}
-										modal={true}
-									/>
-								</div>
-								{/* Stage Flow - centered between title and buttons */}
-								<div className="d-flex justify-content-center flex-grow-1">
-									<MemoizedEventStageFlow
-										stagelist={stagelist}
-										currentStage={currentStage}
-									/>
-								</div>
-								{/* Action Buttons */}
-								<div className="d-flex align-items-center gap-2">
-									{!loading ? (
-										actionType && activityId ? (
-											<Button
-												type="button"
-												size="small"
-												className="button-text text-white"
-												variant="contained"
-												onClick={() =>
-													setState({
-														...state,
-														openInvoiceApproved: true,
-													})
-												}
-											>
-												Action
-											</Button>
-										) : (
-											<ButtonGroup variant="contained">
-												<Button
-													variant="contained"
-													className="p-2 pt-1 pb-1"
-													onClick={handleButtonGroup}
-													sx={{ padding: '2px 8px', minHeight: '28px', lineHeight: '1' }}
-													disabled={value == 8 ? currentStage != 'Allocation' : !stagearray.includes(currentStage)}
-												>
-													<span className="text-capitalize">{selectedMenuItem}</span>
-												</Button>
-
-												<Button
-													variant="contained"
-													className="button-text text-white"
-													onClick={handleMenuOpen}
-													sx={{ padding: '2px 8px', minHeight: '28px', lineHeight: '1' }}
-												>
-													<ExpandMore />
-												</Button>
-
-												<Menu
-													anchorEl={anchorEl}
-													open={Boolean(anchorEl)}
-													onClose={handleMenuClose}
-												>
+											)}
+											{currentStage === 'Close' && (
+												<button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleMenuClick('ForwardForAllocation')}>
+													Forward For Allocation
+												</button>
+											)}
+											{/* Primary actions */}
+											{actionType && activityId ? (
+												<button type="button" className="pe-btn pe-btn--primary" onClick={() => setState({ ...state, openInvoiceApproved: true })}>
+													Action
+												</button>
+											) : (
+												<>
 													{value === "5" && (
-														<MenuItem onClick={() => handleMenuClick('Submit')}>
-															<div>
-																<span className="text-capitalize">
-																	Submit
-																</span>
-															</div>
-														</MenuItem>
+														<button type="button" className="pe-btn pe-btn--primary" onClick={() => handleMenuClick('Submit')}>
+															Submit
+														</button>
 													)}
-
-													{currentStage == 'Draft' && value !== "5" && (
-														<MenuItem onClick={() => handleMenuClick('Save & Continue')}>
-															<div>
-																<span className="text-capitalize">
-																	{value === 4 ? "Save Suppliers" : "Save & Continue"}
-																</span>
-															</div>
-														</MenuItem>
+													{currentStage === 'Draft' && value !== "5" && (
+														<button
+															type="button"
+															className="pe-btn pe-btn--primary"
+															onClick={handleButtonGroup}
+															disabled={!stagearray.includes(currentStage)}
+														>
+															{value === 4 ? "Save Suppliers" : "Save & Continue"}
+														</button>
 													)}
-													{currentStage == 'Allocation' && value == "8" && (
-														<MenuItem onClick={() => handleMenuClick('Save')}>
-															<div>
-																<span className="text-capitalize"> Save </span>
-															</div>
-														</MenuItem>
+													{currentStage === 'Allocation' && value === "8" && (
+														<button type="button" className="pe-btn pe-btn--primary" onClick={() => handleMenuClick('Save')}>
+															Save
+														</button>
 													)}
-													{currentStage == 'Allocation' && value == "8" && (
-														<MenuItem onClick={() => handleMenuClick('Save & Close')}>
-															<div>
-																<span className="text-capitalize"> Save & Close </span>
-															</div>
-														</MenuItem>
-													)}
-													{currentStage == 'Close' && (
-														<MenuItem onClick={() => handleMenuClick('ForwardForAllocation')}>
-															<div>
-																<span className="text-capitalize"> Forward For Allocation</span>
-															</div>
-														</MenuItem>
-													)}
-
-													{currentStage == 'Awarded' && (
-														<MenuItem onClick={() => handleMenuClick('Send Mail to suppliers')}>
-															<div>
-																<span className="text-capitalize"> Send Mail to suppliers </span>
-															</div>
-														</MenuItem>
-													)}
-													{currentStage == 'Awarded' && (
-														<MenuItem onClick={() => handleMenuClick('Create NFA')}>
-															<div>
-																<span className="text-capitalize"> Create NFA </span>
-															</div>
-														</MenuItem>
-													)}
-
-													{stagearray.includes(currentStage) && (
-														<MenuItem onClick={() => handleMenuClick('Save as Draft')}>
-															<div>
-																<span className="text-capitalize">Save as Draft</span>
-															</div>
-														</MenuItem>
-													)}
-
-													{idFromURL && currentStage && currentStage == 'Draft' && (
-														<MenuItem onClick={() => handleMenuClick('Save as Templates')}>
-															<div>
-																<span className="text-capitalize">Save as Templates</span>
-															</div>
-														</MenuItem>
-													)}
-													<MenuItem onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
-														<div>
-															<span className="text-capitalize">Cancel</span>
-														</div>
-													</MenuItem>
-												</Menu>
-											</ButtonGroup>
-										)
+												</>
+											)}
+										</>
 									) : (
-										<Button className="button-text text-white">
-											{value == 5 ? "Publishing..." : "Submit..."}
-										</Button>
+										<button type="button" className="pe-btn pe-btn--primary" disabled>
+											{value === 5 ? "Publishing..." : "Saving..."}
+										</button>
 									)}
 								</div>
 							</div>
-						)}
+						</div>
 
 						{/* Tab Navigation and Icons Header */}
 						<div className="d-flex justify-content-between align-items-center border-bottom mb-3">
@@ -3648,7 +3208,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 										label={<span className="section-heading" style={{ color: '#1a2742' }}>Invite Supplier</span>}
 										disabled={!idFromURL}
 									/>
-									{idFromURL && currentStage.trim() == "Draft" && (
+									{idFromURL && currentStage.trim() === "Draft" && (
 										<Tab
 											value={5}
 											label={<span className="section-heading" style={{ color: '#1a2742' }}>Preview</span>}
@@ -3667,7 +3227,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 											label={<span className="section-heading" style={{ color: '#1a2742' }}>Recent Queries</span>}
 										/>
 									)}
-									{idFromURL && (currentStage.trim() == "Allocation" || currentStage.trim() == "Awarded") && stagelist?.some(item => item.currentStage == "Allocation") && (
+									{idFromURL && (currentStage.trim() === "Allocation" || currentStage.trim() === "Awarded") && stagelist?.some(item => item.currentStage === "Allocation") && (
 										<Tab
 											value={8}
 											label={<span className="section-heading" style={{ color: '#1a2742' }}>Allocation</span>}
@@ -3709,7 +3269,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 						</div>
 						<div className="flex-grow-1 p-1 hidden-scrollbar">
 
-							{value == 1 && (() => {
+							{value === 1 && (() => {
 								if (loadingPermissions) return <GridSkeleton />;
 								const hasReadPermission = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false;
 								const hasEditPermission = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false;
@@ -3882,7 +3442,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 																		formik.setFieldValue('bidEndDate', newValue);
 																		updateBidDuration(formik.values.bidStDate, newValue);
 																	}}
-																	disabled={formik.values.bidClosingType == 'S' || formik.values.bidSubTypeId == 82 || !hasEditPermission}
+																	disabled={formik.values.bidClosingType === 'S' || formik.values.bidSubTypeId === 82 || !hasEditPermission}
 																	format={getDateFormatPatteronLocale(userDetail)}
 																	ampm={userampm(userDetail)}
 																/>
@@ -3917,7 +3477,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 																		formik.setFieldValue('bidDuration', newDuration);
 																		updateBidEndDate(formik.values.bidStDate, newDuration);
 																	}}
-																	disabled={formik.values.bidClosingType == 'S' || formik.values.bidSubTypeId == 82 || !hasEditPermission}
+																	disabled={formik.values.bidClosingType === 'S' || formik.values.bidSubTypeId === 82 || !hasEditPermission}
 																/>
 																{formik.errors.bidDuration && formik.touched.bidDuration && (
 																	<div className="error error-red" style={{ fontSize: '12px' }}>
@@ -3926,7 +3486,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 																)}
 															</div>
 															<div className="col-12 col-md-3 col-lg-3 mb-4">
-																{bidtype?.id == 1 || bidtype?.id == 5 ? (
+																{bidtype?.id === 1 || bidtype?.id === 5 ? (
 																	<TextField
 																		id="showRankToVendor"
 																		name="showRankToVendor"
@@ -3953,7 +3513,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 																		label="Display Vendors Rank*"
 																		variant="outlined"
 																		value={formik.values.showRankToVendor}
-																		disabled={!hasEditPermission || formik.values.bidSubTypeId == 82}
+																		disabled={!hasEditPermission || formik.values.bidSubTypeId === 82}
 																		onChange={formik.handleChange}
 																	>
 																		<MenuItem value="Y">As L1, L2, L3 etc.</MenuItem>
@@ -3976,7 +3536,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 																		label="Closing Type *"
 																		variant="outlined"
 																		value={formik.values.bidClosingType}
-																		disabled={formik.values.bidSubTypeId == 82 || bidtype?.id == 4 || bidtype?.id == 5 || bidtype?.id == 6 || !hasEditPermission}
+																		disabled={formik.values.bidSubTypeId === 82 || bidtype?.id === 4 || bidtype?.id === 5 || bidtype?.id === 6 || !hasEditPermission}
 																		onChange={(event) => {
 
 																			const selectedValue = event.target.value;
@@ -4029,7 +3589,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 																		label="Auction Type *"
 																		variant="outlined"
 																		value={formik.values.bidSubTypeId}
-																		disabled={bidtype?.id == 4 || !hasEditPermission}
+																		disabled={bidtype?.id === 4 || !hasEditPermission}
 																		//onChange={formik.handleChange}
 																		onChange={(e) => {
 																			const value = e.target.value;
@@ -4156,7 +3716,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 														</div>
 														<div className="col-12 ">
 															<div className="row">
-																{formik.values.bidClosingType == 'S' && (
+																{formik.values.bidClosingType === 'S' && (
 																	<div className="col-12 col-md-3 col-lg-3 mb-4">
 																		<TextField
 																			id="extensionDuration"
@@ -4254,7 +3814,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 																	onChange={(e) => {
 																		formik.setFieldValue(
 																			"isMultiCurrency",
-																			e.target.value == "true" ? true : false
+																			e.target.value === "true" ? true : false
 																		);
 																		formik.setFieldValue(
 																			"baseCurrency",
@@ -4391,7 +3951,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 																											<div className="col-lg-1 col-6 ms-0 ps-0 ">
 																												<Button
 																													disabled={
-																														inputList?.length ==
+																														inputList?.length ===
 																														1 || !hasRemovePermission
 																													}
 																													variant="standard"
@@ -4435,9 +3995,9 @@ const Auctions = ({ claimType, breadcrumb }) => {
 																														<Button
 																															variant="outlined"
 																															disabled={
-																																x.currencyConversion ==
+																																x.currencyConversion ===
 																																"" ||
-																																x.baseCurrency ==
+																																x.baseCurrency ===
 																																"" || !hasCreatePermission
 																															}
 																															size="small"
@@ -4723,7 +4283,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									callbackItemAdd={callbackItemAdd}
 								/>
 							)}
-							{((value == 3) &&
+							{((value === 3) &&
 								// (!iscomercialseadDisabled === false)) ? (
 								<div className="mb-5 custom-fix">
 									<div className="p-3 pt-0 ps-2 pe-2">
@@ -4849,7 +4409,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 																			</thead>
 																			<tbody >
 																				{commercialLibFind?.map((item, index) => (
-																					<tr className={`${index % 2 == 0 ? "even" : "odd"
+																					<tr className={`${index % 2 === 0 ? "even" : "odd"
 																						}`}
 																						key={index}>
 																						<td className='f14'>
@@ -5111,7 +4671,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 							)}
 
 
-							{value == 6 && (loadingPermissions ? <GridSkeleton /> :
+							{value === 6 && (loadingPermissions ? <GridSkeleton /> :
 								<AuctionControl
 									key={"AuctionControl"}
 									action={!actionType}
@@ -5121,7 +4681,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 								/>
 							)}
 
-							{value == 7 && (loadingPermissions ? <GridSkeleton /> :
+							{value === 7 && (loadingPermissions ? <GridSkeleton /> :
 								<QueryList
 									pageSlug={pageSlug}
 									key={"QueryList"}
@@ -5133,7 +4693,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 								/>
 							)}
 
-							{value == 8 && (loadingPermissions ? <GridSkeleton /> :
+							{value === 8 && (loadingPermissions ? <GridSkeleton /> :
 								<EventAllocationScreen
 									props={{
 										eventId: 0,
@@ -5349,7 +4909,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 												disabled
 											/>
 										</div>
-										{selectedAction == "Surrogate BID" &&
+										{selectedAction === "Surrogate BID" &&
 											<>
 												<div className="col-12 col-md-6 mb-4">
 													<TextFieldCell
@@ -5518,7 +5078,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 											<div className="mb-4 textblue f14"></div>
 											<div className="row">
 												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													{tempDataEditData[0]?.approverCount == 1 ? (
+													{tempDataEditData[0]?.approverCount === 1 ? (
 														<TextField
 															id="vendorId"
 															InputLabelProps={{
@@ -5630,24 +5190,15 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				backdrop="static"
 				keyboard={false}
 				centered
-				contentClassName="border-0 "
+				className="rfq-create-modal"
+				contentClassName="border-0 rounded-default"
 				onHide={() => handleCloseModal1()}
-				style={{ borderRadius: "5px" }}
 			>
-				<Modal.Header className="bgheaderCards p-2">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14  text-white">
-							Select Currency Mode
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => handleCloseModal1()}
-						size="small"
-						edge="start"
-						color="white"
-					>
-						<Close className="text-white" />
-					</IconButton>
+				<Modal.Header className="pt-2 pb-2">
+					<Modal.Title><span style={{ fontSize: 14 }}>Select Currency Mode</span></Modal.Title>
+					<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseModal1()}>
+						<HiOutlineX style={{ fontSize: 16 }} />
+					</button>
 				</Modal.Header>
 				<Modal.Body className="p-0">
 					<div className="p-2">
@@ -5763,23 +5314,15 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				backdrop="static"
 				keyboard={false}
 				centered
+				className="rfq-create-modal"
+				contentClassName="border-0 rounded-default"
 				onHide={() => handleCloseBaseCurr()}
-				style={{ borderRadius: "5px" }}
 			>
-				<Modal.Header className="bgheaderCards p-2">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14  text-white">
-							Select Base Currency
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => handleCloseBaseCurr()}
-						size="small"
-						edge="start"
-						color="white"
-					>
-						<Close className="text-white" />
-					</IconButton>
+				<Modal.Header className="pt-2 pb-2">
+					<Modal.Title><span style={{ fontSize: 14 }}>Select Base Currency</span></Modal.Title>
+					<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseBaseCurr()}>
+						<HiOutlineX style={{ fontSize: 16 }} />
+					</button>
 				</Modal.Header>
 				<Modal.Body className="p-0">
 					<div className="p-2">
@@ -5988,13 +5531,15 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				backdrop="static"
 				keyboard={false}
 				centered
+				className="rfq-create-modal"
+				contentClassName="border-0 rounded-default"
 				onHide={handleCloseReOpenModal}
 			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title className="text-white f14 fw500">Pull Data From RFQ</Modal.Title>
-					<IconButton onClick={handleCloseReOpenModal} size="small">
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
+				<Modal.Header className="pt-2 pb-2">
+					<Modal.Title><span style={{ fontSize: 14 }}>Pull Data From RFQ</span></Modal.Title>
+					<button type="button" className="rfq-modal-close-btn" onClick={handleCloseReOpenModal}>
+						<HiOutlineX style={{ fontSize: 16 }} />
+					</button>
 				</Modal.Header>
 
 				<Modal.Body className="p-3">
@@ -6022,13 +5567,15 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				backdrop="static"
 				keyboard={false}
 				centered
+				className="rfq-create-modal"
+				contentClassName="border-0 rounded-default"
 				onHide={handleClosePRModal}
 			>
-				<Modal.Header className="pt-1 pb-1 bgheaderCards">
-					<Modal.Title className="text-white f14 fw500">Pull Data From PR</Modal.Title>
-					<IconButton onClick={handleClosePRModal} size="small">
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
+				<Modal.Header className="pt-2 pb-2">
+					<Modal.Title><span style={{ fontSize: 14 }}>Pull Data From PR</span></Modal.Title>
+					<button type="button" className="rfq-modal-close-btn" onClick={handleClosePRModal}>
+						<HiOutlineX style={{ fontSize: 16 }} />
+					</button>
 				</Modal.Header>
 				<Modal.Body className="p-3">
 					<div className="row mb-2 align-items-center">
@@ -6187,16 +5734,12 @@ const Auctions = ({ claimType, breadcrumb }) => {
 												}
 												return updatedList;
 											});
-
 											toggleOpenDrawer("AddNewTerm", false);
 											setEditRecordData(null);
 										}
-
-
 									}}
 									editRecordData={tempDataEditData[0]}
 									LibraryTermsList={LibraryTermsList}
-
 								/>
 							</Box>
 						</div>
@@ -6209,24 +5752,15 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					backdrop="static"
 					keyboard={false}
 					centered
-					contentClassName="border-0 "
+					className="rfq-create-modal"
+					contentClassName="border-0 rounded-default"
 					onHide={() => handleCloseModal01()}
-					style={{ borderRadius: "5px" }}
 				>
-					<Modal.Header className="bgheaderCards p-2">
-						<Modal.Title id="modal-heading">
-							<div className="d-flex align-items-center f14  text-white">
-								Select Currency Mode
-							</div>
-						</Modal.Title>
-						<IconButton
-							onClick={() => handleCloseModal01()}
-							size="small"
-							edge="start"
-							color="white"
-						>
-							<Close className="text-white" />
-						</IconButton>
+					<Modal.Header className="pt-2 pb-2">
+						<Modal.Title><span style={{ fontSize: 14 }}>Select Currency Mode</span></Modal.Title>
+						<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseModal01()}>
+							<HiOutlineX style={{ fontSize: 16 }} />
+						</button>
 					</Modal.Header>
 					<Modal.Body className="p-0">
 						<div className="p-2">
@@ -6350,21 +5884,17 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					show={OpenCurrencyModal}
 					backdrop="static"
 					keyboard={false}
-					className="zindex1280"
+					className="rfq-create-modal zindex1280"
 					backdropClassName="zindex1280"
 					centered
-					contentClassName="border-0"
+					contentClassName="border-0 rounded-default"
 					onHide={() => CloseCurrencyModal()}
 				>
-					<Modal.Header className="pt-2 pb-2 bgheaderCards">
-						<Modal.Title id="modal-heading">
-							<div className="d-flex align-items-center f14 text-white">
-								Manage Currency
-							</div>
-						</Modal.Title>
-						<IconButton onClick={() => CloseCurrencyModal()} size="small" edge="start">
-							<HiOutlineX className="f20 text-white" />
-						</IconButton>
+					<Modal.Header className="pt-2 pb-2">
+						<Modal.Title><span style={{ fontSize: 14 }}>Manage Currency</span></Modal.Title>
+						<button type="button" className="rfq-modal-close-btn" onClick={() => CloseCurrencyModal()}>
+							<HiOutlineX style={{ fontSize: 16 }} />
+						</button>
 					</Modal.Header>
 					<Modal.Body className="p-0">
 						<div className="p-3">

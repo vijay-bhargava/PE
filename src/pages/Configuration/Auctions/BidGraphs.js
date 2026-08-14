@@ -1,6 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Container, TablePagination, Button, Menu, MenuItem } from '@mui/material';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
+import { Menu, MenuItem } from '@mui/material';
+import { PETableSimple } from '../../../components/RFQ/PETable';
+import { PEPagination } from '../../../components/RFQ/PEPagination';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { ListOutlined } from '@mui/icons-material';
@@ -10,7 +15,7 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 // Function to transform data for chart - each vendor gets their own data points
 const groupByVendor = (selectedParameterData) => {
   // Sort by submission time to maintain chronological order
-  const sortedData = selectedParameterData?.sort((a, b) => 
+  const sortedData = selectedParameterData?.sort((a, b) =>
     new Date(a.submissionTime) - new Date(b.submissionTime)
   );
 
@@ -76,17 +81,6 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
   // Function to toggle full screen
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
-  };
-
-  // Handle page change
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  // Handle rows per page change
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
   };
 
   const sortedData = selectedParameterData?.slice().sort((a, b) => b.id - a.id);
@@ -630,7 +624,6 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
     .filter(p => p !== null && p !== undefined);
 
   const maxPrice = Math.max(...prices);
-  const minPrice = Math.min(...prices);
 
   // Calculate industry-standard nice intervals
   const getNiceNumber = (value, round) => {
@@ -668,24 +661,18 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
   const adjustedYMax = Math.ceil(yMax / niceInterval) * niceInterval;
   const numberOfTicks = Math.round(adjustedYMax / niceInterval) + 1;
 
-
-  //ANurag added ends for price yaxis
-  const yaxisdata = Array.from(new Set([
-    ...prices, finalYMin, adjustedYMax
-  ])).sort((a, b) => a - b);
-  let xaxisdata = [];
   let minX = "";
   let maxX = "";
   // Calculate min and max prices for X-axis
   if (selectedParameterData && selectedParameterData.length !== 0) {
 
     // Transform submissionTime to Date objects, ignoring null/undefined
-    const times = selectedParameterData.map(d => formatDateViaLocale(d.submissionTime)).filter(d => d !== null && d !== undefined);
     const transformedData = selectedParameterData
       .map(d => {
         if (d.submissionTime) {
           return new Date(d.submissionTime + "Z");
         }
+        return undefined;
       })
       .filter(d => d !== undefined);
     if (transformedData && transformedData.length !== 0) {
@@ -699,22 +686,12 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
 
       // Format min and max times
       minX = formatDateViaLocale(mintime.toISOString());
-      maxX = formatDateViaLocale(maxtime.toISOString());
-
-      // Sort transformedData (Date objects), then format
-      const sortedFormattedData = transformedData
-        .sort((a, b) => a - b)
-        .map(date => formatDateViaLocale(date.toISOString()));
-
-      // Build final x-axis data including min and max
-      const xdata = [minX, ...sortedFormattedData, maxX];
-
-      //console.log("xdata::", xdata);
+      maxX = formatDateViaLocale(maxtime.toISOString());;
     }
   }
 
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, height: '100%', overflow: 'hidden' }}>
       {/* Full Screen Modal */}
       {isFullScreen && (
         <div
@@ -737,10 +714,10 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
             justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: '20px',
-            borderBottom: '2px solid #0d6efd',
+            borderBottom: '2px solid #1D6FC3',
             paddingBottom: '10px'
           }}>
-            <h2 style={{ margin: 0, color: '#0d6efd', fontSize: '20px', fontWeight: 'bold' }}>
+            <h2 style={{ margin: 0, color: '#1D6FC3', fontSize: '20px', fontWeight: 'bold' }}>
               Bidding Trend - Full Screen
             </h2>
             <button
@@ -757,7 +734,6 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                boxShadow: '0 2px 8px rgba(220, 53, 69, 0.3)',
                 transition: 'all 0.3s ease',
                 minWidth: 'auto',
                 letterSpacing: '0.5px'
@@ -765,15 +741,13 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = '#c82333';
                 e.target.style.transform = 'translateY(-1px)';
-                e.target.style.boxShadow = '0 4px 12px rgba(220, 53, 69, 0.4)';
               }}
               onMouseLeave={(e) => {
                 e.target.style.backgroundColor = '#dc3545';
                 e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 2px 8px rgba(220, 53, 69, 0.3)';
               }}
             >
-              ✕ Exit
+              <span>✕</span> Exit
             </button>
           </div>
 
@@ -875,10 +849,10 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
                       // Find the vendor who submitted at this exact time
                       const dataPoint = filteredData.find(d => d.name === label);
                       const submittingVendor = dataPoint?.submittedBy;
-                      
+
                       // Only show the vendor who actually submitted
                       const relevantData = payload.find(p => p.dataKey === submittingVendor);
-                      
+
                       if (relevantData) {
                         return (
                           <div style={{
@@ -954,134 +928,63 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
       )}
 
       {/* Normal View */}
-      <Container>
-        {!sortedData.some(item => item.quotedPrice && item.quotedPrice > 0) ? (
-          <div className="text-center mt-4">
-            <h5>No supplier has quoted yet.</h5>
-          </div>
-        ) : (
-          <>
-            <div className="row mb-2" style={{
-              backgroundColor: '#f8f9fa',
-              borderRadius: '6px',
-              padding: '5px',
-              border: '1px solid #e9ecef'
-            }}>
-              <div className="col-md-6">
-                <div className="fw500" style={{
-                  color: '#495057',
-                  fontSize: '12px',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}>
-                  Auction Start: <span style={{ fontWeight: '600', marginLeft: '6px', color: '#28a745' }}>
-                    {formatDateViaLocale(auctionManageData[0]?.bidStDate)}
-                  </span>
-                </div>
-              </div>
-              <div className="col-md-6 text-end">
-                <div className="fw500" style={{
-                  color: '#495057',
-                  fontSize: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-end'
-                }}>
-                  Auction End: <span style={{ fontWeight: '600', marginLeft: '6px', color: '#dc3545' }}>
-                    {formatDateViaLocale(auctionManageData[0]?.bidEndDate)}
-                  </span>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    className="text-primary"
-                    onClick={handleClick}
-                    style={{
-                      borderRadius: '4px',
-                      textTransform: 'none',
-                      fontWeight: '500',
-                      fontSize: '10px',
-                      padding: '2px 6px',
-                      minWidth: 'auto',
-                      marginLeft: '12px'
-                    }}
-                  >
-                    <ListOutlined style={{ marginRight: '2px', fontSize: '14px' }} />
-                    Export
-                  </Button>
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleClose}
-                    PaperProps={{
-                      style: {
-                        borderRadius: '6px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                      }
-                    }}
-                  >
-                    <MenuItem onClick={() => { toggleFullScreen(); handleClose(); }} style={{ fontSize: '12px', padding: '6px 12px' }}>
-                      {isFullScreen ? '🗗 Exit Full Screen' : '🗖 Full Screen'}
-                    </MenuItem>
-                    <MenuItem onClick={() => { downloadImage(); handleClose(); }} style={{ fontSize: '12px', padding: '6px 12px' }}>
-                      📊 Image
-                    </MenuItem>
-                    <MenuItem onClick={() => { downloadPDF(); handleClose(); }} style={{ fontSize: '12px', padding: '6px 12px' }}>
-                      <PictureAsPdfIcon fontSize="small" style={{ marginRight: '4px' }} />PDF
-                    </MenuItem>
-                    <MenuItem onClick={() => { downloadCSV(); handleClose(); }} style={{ fontSize: '12px', padding: '6px 12px' }}>
-                      <TextSnippetIcon fontSize="small" style={{ marginRight: '4px' }} />CSV
-                    </MenuItem>
-                  </Menu>
-                </div>
-              </div>
+      {!sortedData.some(item => item.quotedPrice && item.quotedPrice > 0) ? (
+        <div className="text-center mt-4">
+          <h5>No supplier has quoted yet.</h5>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          {/* Info bar — pinned top */}
+          <div className="d-flex align-items-center justify-content-between px-1 mb-2" style={{ flexShrink: 0 }}>
+            <span style={{ fontSize: '12px', color: '#495057' }}>
+              Auction Start: <span style={{ fontWeight: 600, color: '#28a745' }}>{formatDateViaLocale(auctionManageData[0]?.bidStDate)}</span>
+            </span>
+            <div className="d-flex align-items-center gap-2">
+              <span style={{ fontSize: '12px', color: '#495057' }}>
+                Auction End: <span style={{ fontWeight: 600, color: '#dc3545' }}>{formatDateViaLocale(auctionManageData[0]?.bidEndDate)}</span>
+              </span>
+              <button type="button" className="pe-btn pe-btn--secondary" style={{ fontSize: 11, padding: '2px 8px' }} onClick={handleClick}>
+                <ListOutlined style={{ fontSize: 14, marginRight: 2, verticalAlign: 'middle' }} />Export
+              </button>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+                PaperProps={{ style: { borderRadius: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' } }}
+              >
+                <MenuItem onClick={() => { toggleFullScreen(); handleClose(); }} style={{ fontSize: '12px', padding: '6px 12px' }}>
+                  {isFullScreen ? '🗗 Exit Full Screen' : '🗖 Full Screen'}
+                </MenuItem>
+                <MenuItem onClick={() => { downloadImage(); handleClose(); }} style={{ fontSize: '12px', padding: '6px 12px' }}>
+                  📊 Image
+                </MenuItem>
+                <MenuItem onClick={() => { downloadPDF(); handleClose(); }} style={{ fontSize: '12px', padding: '6px 12px' }}>
+                  <PictureAsPdfIcon fontSize="small" style={{ marginRight: '4px' }} />PDF
+                </MenuItem>
+                <MenuItem onClick={() => { downloadCSV(); handleClose(); }} style={{ fontSize: '12px', padding: '6px 12px' }}>
+                  <TextSnippetIcon fontSize="small" style={{ marginRight: '4px' }} />CSV
+                </MenuItem>
+              </Menu>
             </div>
+          </div>
 
-            <div className="chart-container" style={{
-              backgroundColor: '#fff',
-              borderRadius: '10px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-              //padding: '10px',
-              marginBottom: '10px',
-              border: '1px solid #e8e9ea',
-              width: '100%',
-              maxWidth: '1200px',
-              margin: '0 auto 10px auto'
-            }}>
-              <ResponsiveContainer ref={chartRef} width="100%" height={400}>
+          {/* Scrollable: chart + table */}
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+            <div style={{ border: '1px solid #e8e9ea', borderRadius: '8px', marginBottom: '12px', background: '#fff' }}>
+              <ResponsiveContainer ref={chartRef} width="100%" height={340}>
                 <LineChart
-                  width={730}
-                  height={350}
                   data={filteredData}
                   margin={{ top: 15, right: 30, left: 20, bottom: 40 }}
                 >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#e8e9ea"
-                    opacity={0.7}
-                  />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e8e9ea" opacity={0.7} />
                   <XAxis
                     dataKey="name"
                     domain={[minX, maxX]}
                     ticks={[...filteredData.map(d => d.name)]}
-                    tick={{
-                      fontSize: 11,
-                      fill: '#6c757d',
-                      fontFamily: 'Arial, sans-serif'
-                    }}
+                    tick={{ fontSize: 11, fill: '#6c757d' }}
                     axisLine={{ stroke: '#dee2e6', strokeWidth: 1 }}
                     tickLine={{ stroke: '#dee2e6' }}
-                    label={{
-                      value: 'Submission Time',
-                      position: 'insideBottom',
-                      offset: -5,
-                      style: {
-                        fontSize: 12,
-                        fontWeight: '600',
-                        fill: '#495057',
-                        fontFamily: 'Arial, sans-serif'
-                      }
-                    }}
+                    label={{ value: 'Submission Time', position: 'insideBottom', offset: -5, style: { fontSize: 12, fontWeight: 600, fill: '#495057' } }}
                   />
                   <YAxis
                     axisLine={{ stroke: '#dee2e6', strokeWidth: 1 }}
@@ -1094,50 +997,20 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
                       if (value >= 20000) return `${(value / 1000).toFixed(0)}K`;
                       return `${value.toLocaleString('en-IN')}`;
                     }}
-                    tick={{
-                      fontSize: 11,
-                      fill: '#6c757d',
-                      fontFamily: 'Arial, sans-serif'
-                    }}
-                    label={{
-                      value: 'Quoted Price',
-                      position: 'insideLeft',
-                      angle: -90,
-                      offset: 10,
-                      style: {
-                        fontSize: 12,
-                        fontWeight: '600',
-                        fill: '#495057',
-                        fontFamily: 'Arial, sans-serif',
-                        textAnchor: 'middle'
-                      }
-                    }}
+                    tick={{ fontSize: 11, fill: '#6c757d' }}
+                    label={{ value: 'Quoted Price', position: 'insideLeft', angle: -90, offset: 10, style: { fontSize: 12, fontWeight: 600, fill: '#495057', textAnchor: 'middle' } }}
                   />
                   <Tooltip
                     content={({ active, payload, label }) => {
                       if (active && payload && payload.length) {
-                        // Find the vendor who submitted at this exact time
                         const dataPoint = filteredData.find(d => d.name === label);
                         const submittingVendor = dataPoint?.submittedBy;
-                        
-                        // Only show the vendor who actually submitted
                         const relevantData = payload.find(p => p.dataKey === submittingVendor);
-                        
                         if (relevantData) {
                           return (
-                            <div style={{
-                              backgroundColor: '#fff',
-                              border: '1px solid #dee2e6',
-                              borderRadius: '8px',
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                              fontSize: '12px',
-                              fontFamily: 'Arial, sans-serif',
-                              padding: '8px'
-                            }}>
-                              <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#495057' }}>
-                                Time: {label}
-                              </p>
-                              <p style={{ margin: 0, color: relevantData.color, fontWeight: '600' }}>
+                            <div style={{ backgroundColor: '#fff', border: '1px solid #dee2e6', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', fontSize: '12px', padding: '8px' }}>
+                              <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#495057' }}>Time: {label}</p>
+                              <p style={{ margin: 0, color: relevantData.color, fontWeight: 600 }}>
                                 {vendorNameMap[relevantData.dataKey] || relevantData.dataKey}: ₹{relevantData.value?.toLocaleString('en-IN')}
                               </p>
                             </div>
@@ -1146,29 +1019,11 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
                       }
                       return null;
                     }}
-                    cursor={{
-                      stroke: '#6c757d',
-                      strokeWidth: 1,
-                      strokeDasharray: '5 5'
-                    }}
+                    cursor={{ stroke: '#6c757d', strokeWidth: 1, strokeDasharray: '5 5' }}
                   />
-                  <Legend
-                    wrapperStyle={{
-                      fontSize: '12px',
-                      fontFamily: 'Arial, sans-serif',
-                      paddingTop: '15px'
-                    }}
-                    iconType="line"
-                    formatter={(value) => vendorNameMap[value] || value}
-                  />
+                  <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '15px' }} iconType="line" formatter={(value) => vendorNameMap[value] || value} />
                   {uniquesupplierlist?.map((vendorName, index) => {
-                    // Enhanced color palette for better visual distinction
-                    const colors = [
-                      '#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed',
-                      '#db2777', '#0891b2', '#65a30d', '#dc2626', '#9333ea',
-                      '#0369a1', '#be123c', '#047857', '#a16207', '#6d28d9'
-                    ];
-
+                    const colors = ['#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed', '#db2777', '#0891b2', '#65a30d', '#9333ea', '#0369a1'];
                     return (
                       <Line
                         key={vendorName}
@@ -1176,136 +1031,41 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
                         stroke={colors[index % colors.length]}
                         strokeWidth={3}
                         connectNulls={true}
-                        dot={{
-                          fill: colors[index % colors.length],
-                          strokeWidth: 2,
-                          stroke: '#fff',
-                          r: 5
-                        }}
-                        activeDot={{
-                          r: 7,
-                          stroke: colors[index % colors.length],
-                          strokeWidth: 2,
-                          fill: '#fff'
-                        }}
-                        strokeDasharray={index === 0 ? "0" : index % 2 === 0 ? "0" : "5 5"}
+                        dot={{ fill: colors[index % colors.length], strokeWidth: 2, stroke: '#fff', r: 5 }}
+                        activeDot={{ r: 7, stroke: colors[index % colors.length], strokeWidth: 2, fill: '#fff' }}
+                        strokeDasharray={index % 2 === 0 ? "0" : "5 5"}
                       />
                     );
                   })}
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <div className="table-responsive graph-Table" style={{
-              backgroundColor: '#fff',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-              border: '1px solid #e8e9ea',
-              marginTop: '15px'
-            }}>
-              <table className="itemstable stripped" style={{
-                margin: 0,
-                width: '100%',
-                borderCollapse: 'collapse'
-              }}>
-                <thead style={{
-                  backgroundColor: '#f8f9fa',
-                  borderBottom: '1px solid #dee2e6'
-                }}>
-                  <tr>
-                    <th className="fw500" style={{
-                      padding: '10px 12px',
-                      borderRight: '1px solid #dee2e6',
-                      textAlign: 'center',
-                      color: '#ffffff',
-                      fontSize: '12px',
-                      fontWeight: '600'
-                    }}>S.No</th>
-                    <th className="fw500" style={{
-                      padding: '10px 12px',
-                      borderRight: '1px solid #dee2e6',
-                      color: '#ffffff',
-                      fontSize: '12px',
-                      fontWeight: '600'
-                    }}>Supplier Name</th>
-                    <th className="fw500" style={{
-                      padding: '10px 12px',
-                      borderRight: '1px solid #dee2e6',
-                      textAlign: 'right',
-                      color: '#ffffff',
-                      fontSize: '12px',
-                      fontWeight: '600'
-                    }}>Quoted Price</th>
-                    <th className="fw500" style={{
-                      padding: '10px 12px',
-                      textAlign: 'center',
-                      color: '#ffffff',
-                      fontSize: '12px',
-                      fontWeight: '600'
-                    }}>Submission Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedItems.length > 0 && paginatedItems.filter((item) => item.quotedPrice).map((item, index) => (
-                    <tr
-                      className={index % 2 === 0 ? 'even' : 'odd'}
-                      key={index}
-                      style={{
-                        backgroundColor: index % 2 === 0 ? '#f8f9fa' : '#ffffff',
-                        transition: 'background-color 0.2s ease',
-                        borderBottom: '1px solid #e9ecef'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e3f2fd'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#f8f9fa' : '#ffffff'}
-                    >
-                      <td style={{
-                        padding: '10px 12px',
-                        borderRight: '1px solid #e9ecef',
-                        fontWeight: '600',
-                        textAlign: 'center',
-                        color: '#6c757d',
-                        fontSize: '12px'
-                      }}>{page * rowsPerPage + index + 1}</td>
-                      <td style={{
-                        padding: '10px 12px',
-                        borderRight: '1px solid #e9ecef',
-                        color: '#495057',
-                        fontWeight: '500',
-                        fontSize: '12px'
-                      }}>{getVendorDisplayName(item.vendorName)}</td>
-                      <td style={{
-                        padding: '10px 12px',
-                        borderRight: '1px solid #e9ecef',
-                        fontWeight: '700',
-                        color: '#28a745',
-                        textAlign: 'right',
-                        fontSize: '13px'
-                      }}>{item.quotedPrice?.toLocaleString('en-IN')}</td>
-                      <td style={{
-                        padding: '10px 12px',
-                        color: '#6c757d',
-                        fontSize: '11px',
-                        textAlign: 'center',
-                        fontFamily: 'monospace',
-                        fontWeight: '500'
-                      }}>{formatDateViaLocale(item.submissionTime, null, true)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <TablePagination
-              rowsPerPageOptions={[10]}
-              component="div"
-              count={selectedParameterData.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
+
+            <PETableSimple
+              columns={[
+                { key: 'sno', label: 'S.No', width: 60, renderCell: (_, row, idx) => page * rowsPerPage + idx + 1 },
+                { key: 'vendorName', label: 'Supplier Name', renderCell: (v) => getVendorDisplayName(v) },
+                { key: 'quotedPrice', label: 'Quoted Price', renderCell: (v) => <span style={{ color: '#28a745', fontWeight: 700 }}>{v?.toLocaleString('en-IN')}</span> },
+                { key: 'submissionTime', label: 'Submission Time', renderCell: (v) => formatDateViaLocale(v, null, true) },
+              ]}
+              rows={paginatedItems.filter(item => item.quotedPrice)}
+              getRowKey={(_, idx) => idx}
+              wrapperStyle={{ borderRadius: 0, border: '1px solid #e5e7eb' }}
             />
-          </>
-        )}
-      </Container>
-    </>
+          </div>
+
+          {/* Pagination — pinned bottom */}
+          <PEPagination
+            page={page + 1}
+            pageSize={rowsPerPage}
+            totalRows={sortedData.filter(item => item.quotedPrice).length}
+            pageSizeOptions={[10, 20, 30]}
+            onPageChange={(p) => setPage(p - 1)}
+            onPageSizeChange={(n) => { setRowsPerPage(n); setPage(0); }}
+          />
+        </div>
+      )}
+    </div>
   );
 };
 export default BidGraphs;
