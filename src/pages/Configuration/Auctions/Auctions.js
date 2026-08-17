@@ -1,16 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+﻿import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import IconButton from "@mui/material/IconButton";
-import { HiOutlineX, HiPencilAlt } from "react-icons/hi";
+import { HiOutlineX } from "react-icons/hi";
 import {
-	Autocomplete, Alert, Button,
-	Checkbox, Dialog, DialogActions,
-	DialogContent, DialogContentText, DialogTitle,
-	FormControl, FormControlLabel, FormHelperText, FormLabel,
-	InputAdornment, MenuItem, Radio, RadioGroup,
-	TextField, Tooltip, Typography, Badge,
-	createFilterOptions, Card, CardHeader, CardContent,
+	Button, Dialog, DialogActions, DialogContent,
+	DialogContentText, DialogTitle, InputAdornment, MenuItem,
+	TextField, Tooltip, Typography, createFilterOptions
 } from "@mui/material";
 import { Modal } from "react-bootstrap";
 import Drawer from "@mui/material/Drawer";
@@ -21,10 +17,10 @@ import Box from "@mui/material/Box";
 import TextFieldCell from "../../BaseCells/TextFieldCell";
 import LoadingButton from "@mui/lab/LoadingButton";
 import HistoryCell from "../../BaseCells/HistoryCell";
-import ReactQuill from "react-quill";
-import FilePresentIcon from '@mui/icons-material/FilePresent';
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
 import "react-quill/dist/quill.snow.css";
+import '../../../assets/css/rfq-detail-v2.css';
+import '../../../assets/css/design-system.css';
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
 	AuctionCTAddModal, IntegerRegex, InvitedSupplierForBidModal,
@@ -35,7 +31,7 @@ import { actionTypes, useStateValue } from "../../../store";
 import {
 	checkUTC, cleanAndConvertToArray, extractTextFromHTML,
 	getAuctionItemServiceFind, getAuctionManageFind, getCurrency,
-	getDateFormatPatteronLocale, getLibraryOrgEntityFind, scrollToTargetC, userampm
+	getLibraryOrgEntityFind, scrollToTargetC
 } from "../../../utils/common/utility";
 import { toast } from "react-toastify";
 import AddEditCurrency from "../../../utils/common/AddEditCurrency";
@@ -43,25 +39,24 @@ import { ApiClient, api } from "../../../Apiclient";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
 import AttachmentWorkFlow from "../../BaseCells/attachmentworkflow";
 import EventApprovalBox from "../../BaseCells/eventapprovalbox";
-import ProductitemCell from "../RequestForQuotation/ProductitemCell";
 import AddQuestionFormCell from "../RequestForQuotation/AddQuestionFormCell";
 import AddProductsCell from "./AddProductsCell";
+import CommonBottomDrawer from "../../../components/CommonBottomDrawer";
 import { sanitizeInput } from "../../../utils/common/santize";
 import GridSkeleton from "../../../components/Skeleton/gridSkeleton";
-import SelectedSupplierCell from "../RequestForQuotation/SelectedSupplierCell";
 import { FastApiClient } from "../../../FastApiClient";
-import BidGeneralPreview from "./BidGeneralPreview";
+import AuctionPreviewTab from "./AuctionPreviewTab";
+import AuctionCommercialTab from "./AuctionCommercialTab";
+import AuctionGeneralTab from './AuctionGeneralTab';
 import BidItemsTab from "./BidItemsTab";
 import BidInviteSupplierTab from "./BidInviteSupplierTab";
 import BidLoadingFactor from "./BidLoadingFactor";
 import AuctionControl from "./AuctionControl";
 import QueryList from "../../CommunucationHub/QueryList"
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider, MobileDateTimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { DataGrid } from "@mui/x-data-grid";
+import { PETable } from "../../../components/RFQ/PETable";
 import EventAllocationScreen from "../../../components/Event/EventAllocationScreen";
 import EventCommercialDrawer from "../../../components/Event/EventCommercialDrawer";
 dayjs.extend(utc);
@@ -72,9 +67,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	const navigate = useNavigate();
 	const apiClient = new ApiClient(api);
 
-	const [{ atoken, customerid, roleClaims, userDetail, bidtype, eventType, eventId }, dispatch] =
-		useStateValue();
-	//console.log("userDetailuserDetail:", userDetail)
+	const [{ atoken, customerid, roleClaims, userDetail, bidtype, eventType, eventId }, dispatch] = useStateValue();
 	const [loading, setLoading] = useState(false);
 	const [modal1, setModal1] = useState(false);
 	const [modalBaseCurr, setModalBaseCurr] = useState(false);
@@ -145,15 +138,12 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		setIsUserInitiatedTabChange(true);
 		setValue(newValue);
 		if (newValue === "5") {
-
 			setSelectedMenuItem("Submit")
-			if (newValue === "5" && stagelist?.some(item => item.currentStage === "Under Pre Approval")) {
+			if (stagelist?.some(item => item.currentStage === "Under Pre Approval")) {
 				setApproverShow(true)
 			}
-		}
-		else {
+		} else {
 			setSelectedMenuItem("Save & Continue")
-			setApproverShow(false)
 		}
 	};
 
@@ -187,17 +177,11 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		if (idFromURL === null) {
 			setApproverShow(false);
 		}
-		else if (value === 5) {
-			if (stagelist?.some(item => item.currentStage === "Under Pre Approval")) {
-				setApproverShow(true);
-			}
-		}
 	}, [value, idFromURL]);
 
 	useEffect(() => {
 		if (currentStage !== "Draft" && ["Open", "Running"].includes(tempDataEditData[0]?.stage) && value === 1 && !isUserInitiatedTabChange) {
 			setValue(6)
-			setApproverShow(false)
 		}
 	}, [tempDataEditData, currentStage, value, isUserInitiatedTabChange]);
 
@@ -368,7 +352,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	};
 
 	// Note: avoid early returns here to keep hooks order stable; render skeleton inside JSX instead.
-
 
 	const updateBidEndDate = (bidStDate, bidDuration) => {
 		if (bidStDate && bidDuration > 0) {
@@ -680,7 +663,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	}, [formik.submitCount, formik.errors]);
 
 	const [rfqloadingfactor, setRfqloadingfactor] = useState([]);
-	//console.log("rfqloadingfactor::", rfqloadingfactor)
+
 	const pullRfqLoadingFactor = async (rfqId) => {
 
 		let data = {
@@ -753,8 +736,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		}
 	};
 
-
-
 	const [shouldSubmit, setShouldSubmit] = useState(false);
 	const [isCallbackSubmit, setIsCallbackSubmit] = useState(false); // Flag to track callback submission
 
@@ -800,7 +781,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		setcommcurrencyList(list);
 	};
 	const [attachmentCount, setAttachmentCount] = useState(0);
-	//console.log("attachmentCount::", attachmentCount)
+
 	const attachmentdrawerref = useRef()
 
 	const handleAttachmentCount = (count) => {
@@ -1935,8 +1916,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			const emails = data?.map((item) => item.email);
 			const resetSuppliers = totalSupplier?.map((supplier) => {
 				return { ...supplier, isShow: false };
-
-				return supplier;
 			});
 
 			const updatedSuppliers = resetSuppliers?.map((supplier) => {
@@ -1949,8 +1928,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		} else {
 			const resetSuppliers = totalSupplier?.map((supplier) => {
 				return { ...supplier, isShow: false };
-
-				return supplier;
 			});
 			setTotalSupplier(resetSuppliers);
 		}
@@ -2228,10 +2205,8 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		}
 	};
 
-
 	//loading factor code start
 	const [storeVId, setStoreVId] = useState('');
-	//console.log("storeVId::", storeVId)
 	const [factorDesc, setFactorDesc] = useState('');
 	const [loadingOn, setLoadingOn] = useState('');
 	const [factorType, setFactorType] = useState('');
@@ -2266,7 +2241,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			})
 	});
 
-
 	const handleLoadingFactorClick = (vendor, index) => {
 
 		const vendorId = vendor?.id;
@@ -2300,8 +2274,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			return errors;
 		}
 	};
-
-	const [loadingupdatebtn, setLoadingUpdateBtn] = useState(false)
 
 	const validationSchemaApprover = yup.object().shape({
 		remarks: yup.string().when('IsApproved', {
@@ -2469,7 +2441,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	}
 
 	const handleClearAllItems = (value) => {
-
 		if (value) {
 			handleClearAll()
 		} else {
@@ -2479,14 +2450,12 @@ const Auctions = ({ claimType, breadcrumb }) => {
 
 	// to save attachment as rfq created related to attachment workflow
 	const [attachmentforevent, setAttachmentforEvent] = useState(null);
-	//console.log("attachmentforevent::", attachmentforevent)
 	const [isUploading, setIsUploading] = useState(false);
 	const handleattachmentforevent = useCallback((data) => {
 		setAttachmentforEvent(data);
 	}, []);
 
 	const handleFileChange = (event) => {
-
 		const file = event.target.files[0];
 		handleExcelImport(file);
 		event.target.value = "";
@@ -2616,11 +2585,8 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		setSelectedMenuItem("Save & Continue")
 	};
 
-
-
 	const [approvershow, setApproverShow] = useState(true)
 	const handleApprover = (booleanvalue) => {
-
 		setApproverShow(booleanvalue)
 	}
 
@@ -2635,7 +2601,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	const [anchorEl, setAnchorEl] = React.useState(null);
 
 	const handleMenuClick = (item) => {
-
 		if (item !== "Save as Templates") {
 			setSelectedMenuItem(item);
 		}
@@ -2649,9 +2614,9 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	};
 
 	const handleSelectButtonGroup = (selectedMenuItem) => {
-
 		switch (selectedMenuItem) {
-
+			case "Save as Draft":
+				return handleSaveContinue()
 			case "Save as Templates":
 				return handleClickOpen()
 			case "Cancel":
@@ -2667,7 +2632,6 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			default:
 				return ""
 		}
-
 	}
 
 	const handleClose = () => {
@@ -2685,26 +2649,36 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	const handleSaveTemplate = async () => {
 
 		if (!TemplateTitle.trim()) {
-			toast.error("please enter valid name")
-			return "";
+			toast.error("Please enter a valid template name")
+			return;
+		}
+		if (TemplateTitle.trim().length > 150) {
+			toast.error("Template title must be 150 characters or less")
+			return;
 		}
 		if (!idFromURL) {
-			toast.error("BID ID must be there to create template")
-			return "";
+			toast.error("Please save the auction first before creating a template")
+			return;
 		}
 
-		const data = {
-			"templateTitle": TemplateTitle.trim(),
-			"subject": formik?.values?.subject.trim(),
-			"eventType": "Auction",
-			"eventId": idFromURL,
-			"customerId": customerid,
-			"eventTypeId": bidtype?.id
-		}
-		const res = await apiClient.postres("/api/EventTemplate/Add", data, atoken)
-		if (res) {
-			toast.success("Template saved successfully")
-			setOpen(false)
+		try {
+			const subject = (formik?.values?.subject?.trim() || TemplateTitle.trim()).substring(0, 100);
+			const data = {
+				"templateTitle": TemplateTitle.trim(),
+				"subject": subject,
+				"eventType": "Auction",
+				"eventId": idFromURL,
+				"customerId": customerid
+			}
+			const res = await apiClient.postres("/api/EventTemplate/Add", data, atoken)
+			if (res) {
+				toast.success("Template saved successfully")
+				setOpen(false)
+			} else {
+				toast.error("Failed to save template. Please try again.")
+			}
+		} catch (err) {
+			toast.error("An error occurred while saving the template.")
 		}
 	}
 
@@ -2759,9 +2733,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					})
 					formik_Action.resetForm();
 					return;
-
 				}
-
 			}
 			else if (selectedAction === "Send Reminder") {
 
@@ -3087,7 +3059,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	return (
 		<>
 			<div className="mainContainer d-flex rfq-modern-shell">
-				<div className={`leftContent ${isClosedView || approvershow ? "col-9" : "col-12"} d-flex flex-column`}>
+				<div className={`leftContent ${approvershow ? "col-9" : "col-12"} d-flex flex-column`}>
 					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ overflow: 'hidden', minHeight: 0 }}>
 						<div className="rfq-dv2-page-head border-bottom mb-3" style={{ flexShrink: 0 }}>
 							<div className="rfq-dv2-head-top">
@@ -3173,7 +3145,8 @@ const Auctions = ({ claimType, breadcrumb }) => {
 						<div className="d-flex justify-content-between align-items-center border-bottom mb-3">
 							<Box sx={{
 								flexGrow: 1,
-								maxWidth: { xs: 280, sm: 480, md: '100%' },
+								minWidth: 0,
+								overflow: 'hidden',
 							}}>
 								<Tabs
 									value={value}
@@ -3269,998 +3242,33 @@ const Auctions = ({ claimType, breadcrumb }) => {
 						</div>
 						<div className="flex-grow-1 p-1 hidden-scrollbar">
 
-							{value === 1 && (() => {
-								if (loadingPermissions) return <GridSkeleton />;
-								const hasReadPermission = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false;
-								const hasEditPermission = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false;
-								const hasCreatePermission = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false;
-								const hasRemovePermission = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.REMOVE) ?? false;
-								if (!hasReadPermission) {
-									return (
-										<div className="p-4">
-											<Alert severity="error">
-												<div className="d-flex align-items-center">
-													<HiOutlineX className="me-2 f18" />
-													Access Denied: You don't have permission to view General settings.
-												</div>
-											</Alert>
-										</div>
-									);
-								}
-								return (
-									<>
-										{stagearray.includes(currentStage) && (
-											<div className='custom-fix p-3 pe-2 ps-2'>
-												<form onSubmit={formik.handleSubmit} autoComplete="off">
-													<div className="row mt-2">
-														<div className="col-12 mb-4">
-															<TextFieldCell
-																id="subject"
-																name="subject"
-																label="Subject *"
-																placeholder=""
-																maxLength={200}
-																disabled={!hasEditPermission}
-																value={formik.values.subject}
-																onChange={formik.handleChange}
-																error={formik.touched.subject && Boolean(formik.errors.subject)}
-																helperText={formik.touched.subject && formik.errors.subject}
-																InputProps={{
-																	endAdornment: formik.values.subject && (
-																		<InputAdornment position="end">
-																			<Typography
-																				variant="body2"
-																				color="textSecondary"
-																			>
-																				{formik.values.subject.length}/200
-																			</Typography>
-																		</InputAdornment>
-																	),
-																}}
-															/>
-															{formik.values.subject && (
-																<div
-																	style={{
-																		fontSize: "0.8em",
-																		color: "blue",
-																		textAlign: "end",
-																	}}
-																>
-																</div>
-															)}
-														</div>
-														<div className="col-12 mb-3">
-															<div className="f12 text-muted mb-1">
-																Description *
-															</div>
-															<ReactQuill
-																id="descriptionquill"
-																theme="snow"
-																preserveWhitespace
-																className=""
-																readOnly={!hasEditPermission}
-																value={formik.values.description}
-																onChange={(value) => {
-
-																	const description = extractTextFromHTML(value);
-
-																	const length = description.length;
-																	if (length <= 2000) {
-																		formik.setFieldValue(
-																			"description",
-																			value
-																		);
-																	} else {
-
-																		formik.setFieldValue(
-																			"description",
-																			formik.values.description
-																		);
-																		toast.error('Description greater than 2000 character is not allowed', {
-																			toastId: "descerr"
-																		});
-
-																	}
-																}}
-															/>
-															{formik.values.description !== undefined && (
-																<div
-																	style={{
-																		fontSize: "0.8em",
-																		color: "grey",
-																		textAlign: "end",
-																	}}
-																>
-																	{`${extractTextFromHTML(formik.values.description).length}/2000`}{" "}
-																</div>
-															)}
-															{formik.touched.description &&
-																Boolean(formik.errors.description) ? (
-																<>
-																	<FormHelperText className="text-danger">
-																		{formik.errors.description}
-																	</FormHelperText>
-																</>
-															) : (
-																<></>
-															)}
-														</div>
-														<LocalizationProvider dateAdapter={AdapterDayjs}>
-															<div className="col-12 col-md-3 col-lg-3 mb-4">
-																<MobileDateTimePicker
-																	variant="outlined"
-																	label="Start Date *"
-																	size="small"
-																	name="bidStDate"
-																	id="bidStDate"
-																	timezone={userDetail?.timeZone}
-																	disabled={!hasEditPermission}
-																	minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)} // Set min date/time to current
-																	value={formik.values.bidStDate}
-																	className="w-100 f14"
-																	slotProps={{
-																		textField: {
-																			variant: 'outlined',
-																			size: 'small',
-																			InputLabelProps: { shrink: true },
-																			error: formik.touched.bidStDate && Boolean(formik.errors.bidStDate),
-																			helperText: formik.touched.bidStDate && formik.errors.bidStDate
-																		},
-																		actionBar: { actions: ["clear", "cancel", "accept"] }
-																	}}
-																	onChange={(newValue) => {
-
-																		formik.setFieldValue('bidStDate', newValue);
-																		updateBidEndDate(newValue, formik.values.bidDuration);
-																		updateBidDuration(newValue, formik.values.bidEndDate);
-																	}}
-																	format={getDateFormatPatteronLocale(userDetail)}
-																	ampm={userampm(userDetail)}
-																/>
-															</div>
-															<div className="col-12 col-md-3 col-lg-3 mb-4">
-																<MobileDateTimePicker
-																	variant="outlined"
-																	label="End Date"
-																	size="small"
-																	name="bidEndDate"
-																	id="bidEndDate"
-																	timezone={userDetail?.timeZone}
-																	minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-																	value={formik.values.bidEndDate}
-																	className="w-100 f14"
-																	slotProps={{
-																		textField: {
-																			variant: 'outlined',
-																			size: 'small',
-																			InputLabelProps: { shrink: true },
-																		},
-																		actionBar: { actions: ["clear", "cancel", "accept"] }
-																	}}
-																	onChange={(newValue) => {
-
-																		formik.setFieldValue('bidEndDate', newValue);
-																		updateBidDuration(formik.values.bidStDate, newValue);
-																	}}
-																	disabled={formik.values.bidClosingType === 'S' || formik.values.bidSubTypeId === 82 || !hasEditPermission}
-																	format={getDateFormatPatteronLocale(userDetail)}
-																	ampm={userampm(userDetail)}
-																/>
-															</div>
-															<div className="col-12 col-md-3 col-lg-3 mb-4">
-																<TextField
-																	name="bidDuration"
-																	id="bidDuration"
-																	className="w-100 f14"
-																	value={formik.values.bidDuration || ''}
-																	size="small"
-																	label={`Duration (mins)${formik.values.bidClosingType !== 'S' ? ' *' : ''}`}
-																	variant="outlined"
-																	inputProps={{
-																		maxLength: 7,
-																		inputMode: 'numeric',
-																		pattern: "[0-9]*"
-																	}}
-																	onKeyDown={(e) => {
-																		if (
-																			!/[0-9]/.test(e.key) &&
-																			e.key !== 'Backspace' &&
-																			e.key !== 'ArrowLeft' &&
-																			e.key !== 'ArrowRight' &&
-																			e.key !== 'Tab'
-																		) {
-																			e.preventDefault();
-																		}
-																	}}
-																	onChange={(e) => {
-																		const newDuration = e.target.value ? e.target.value : 0;
-																		formik.setFieldValue('bidDuration', newDuration);
-																		updateBidEndDate(formik.values.bidStDate, newDuration);
-																	}}
-																	disabled={formik.values.bidClosingType === 'S' || formik.values.bidSubTypeId === 82 || !hasEditPermission}
-																/>
-																{formik.errors.bidDuration && formik.touched.bidDuration && (
-																	<div className="error error-red" style={{ fontSize: '12px' }}>
-																		{formik.errors.bidDuration}
-																	</div>
-																)}
-															</div>
-															<div className="col-12 col-md-3 col-lg-3 mb-4">
-																{bidtype?.id === 1 || bidtype?.id === 5 ? (
-																	<TextField
-																		id="showRankToVendor"
-																		name="showRankToVendor"
-																		select
-																		className="w-100 f14"
-																		size="small"
-																		label="Display Vendors Rank*"
-																		variant="outlined"
-																		value={formik.values.showRankToVendor}
-																		disabled={!hasEditPermission}
-																		onChange={formik.handleChange}
-																	>
-																		<MenuItem value="Y">As H1, H2, H3 etc.</MenuItem>
-																		<MenuItem value="N">As H1 Or Not H1.</MenuItem>
-																		{/* <MenuItem value="T">Traffic Light.</MenuItem> */}
-																	</TextField>
-																) : (
-																	<TextField
-																		id="showRankToVendor"
-																		name="showRankToVendor"
-																		select
-																		className="w-100 f14"
-																		size="small"
-																		label="Display Vendors Rank*"
-																		variant="outlined"
-																		value={formik.values.showRankToVendor}
-																		disabled={!hasEditPermission || formik.values.bidSubTypeId === 82}
-																		onChange={formik.handleChange}
-																	>
-																		<MenuItem value="Y">As L1, L2, L3 etc.</MenuItem>
-																		<MenuItem value="N">As L1 Or Not L1.</MenuItem>
-																		{/* <MenuItem value="T">Traffic Light.</MenuItem> */}
-																	</TextField>
-																)}
-															</div>
-														</LocalizationProvider>
-														<div className="col-12">
-															<div className="row">
-																<div className="col-12 col-md-3 col-lg-3 mb-4">
-
-																	<TextField
-																		id="bidClosingType"
-																		name="bidClosingType"
-																		select
-																		className="w-100 f14"
-																		size="small"
-																		label="Closing Type *"
-																		variant="outlined"
-																		value={formik.values.bidClosingType}
-																		disabled={formik.values.bidSubTypeId === 82 || bidtype?.id === 4 || bidtype?.id === 5 || bidtype?.id === 6 || !hasEditPermission}
-																		onChange={(event) => {
-
-																			const selectedValue = event.target.value;
-																			formik.setFieldValue("bidClosingType", selectedValue);
-
-																			if (selectedValue === 'S') {
-																				formik.setFieldValue("noOfStaggerItems", 1);
-																				formik.setFieldValue("bidEndDate", null);
-																				formik.setFieldValue("bidDuration", 0);
-																			} else {
-																				formik.setFieldValue("noOfStaggerItems", 0);
-																				formik.setFieldValue("bidEndDate", null);
-																				formik.setFieldValue("bidDuration", 0);
-																			}
-																		}}
-																	>
-																		<MenuItem value='A'>
-																			All Items In One go
-																		</MenuItem>
-																		<MenuItem value='S'>
-																			Stagger At Item Level
-																		</MenuItem>
-
-																	</TextField>
-																</div>
-																{formik.values.bidClosingType === 'S' && (
-																	<div className="col-12 col-md-3 col-lg-3 mb-4">
-																		<div className="">
-																			<TextField
-																				id="noOfStaggerItems"
-																				name="noOfStaggerItems"
-																				className="w-100 f14"
-																				size="small"
-																				label="Items to run simultaneously *"
-																				variant="outlined"
-																				value={formik.values.noOfStaggerItems}
-																				disabled={!hasEditPermission}
-																				onChange={formik.handleChange}
-																			/>
-																		</div>
-																	</div>
-																)}
-																<div className="col-12 col-md-3 col-lg-3 mb-4">
-																	<TextField
-																		name="bidSubTypeId"
-																		id="bidSubTypeId"
-																		select
-																		className="w-100 f14"
-																		size="small"
-																		label="Auction Type *"
-																		variant="outlined"
-																		value={formik.values.bidSubTypeId}
-																		disabled={bidtype?.id === 4 || !hasEditPermission}
-																		//onChange={formik.handleChange}
-																		onChange={(e) => {
-																			const value = e.target.value;
-																			formik.setFieldValue("bidSubTypeId", value);
-																			if (value === 82) {
-																				formik.setFieldValue("showRankToVendor", "N");
-																				formik.setFieldValue("bidEndDate", null);
-																				formik.setFieldValue("bidDuration", 0);
-																				formik.setFieldValue("bidClosingType", 'A');
-																			} else {
-																				formik.setFieldValue("showRankToVendor", "Y");
-																				formik.setFieldValue("bidEndDate", null);
-																				formik.setFieldValue("bidDuration", 0);
-																				formik.setFieldValue("bidClosingType", 'A');
-																			}
-																		}}
-																	>
-																		<MenuItem value={81}>
-																			English
-																		</MenuItem>
-																		<MenuItem value={83}>
-																			Japanese
-																		</MenuItem>
-																		<MenuItem value={82}>
-																			Dutch
-																		</MenuItem>
-
-																	</TextField>
-																</div>
-																<div className="col-12 col-md-3 col-lg-3 mb-4">
-																	<TextField
-																		id="maximumExtension"
-																		name="maximumExtension"
-																		select
-																		className="w-100 f14"
-																		size="small"
-																		label="Maximum No. of Bid Extensions"
-																		variant="outlined"
-																		value={formik.values.maximumExtension}
-																		onChange={(e) => {
-																			const value = parseInt(e.target.value, 10);
-																			formik.setFieldValue("maximumExtension", value);
-																			if (value === 0) {
-																				formik.setFieldValue("extensionDuration", 0);
-																			} else {
-																				formik.setFieldValue("extensionDuration", 2);
-																			}
-																		}}
-																	>
-																		<MenuItem value={-1}>
-																			Unlimited
-																		</MenuItem>
-																		<MenuItem value={0}>
-																			0
-																		</MenuItem>
-																		<MenuItem value={1}>
-																			1
-																		</MenuItem>
-																		<MenuItem value={2}>
-																			2
-																		</MenuItem>
-																		<MenuItem value={3}>
-																			3
-																		</MenuItem>
-																		<MenuItem value={4}>
-																			4
-																		</MenuItem>
-																		<MenuItem value={5}>
-																			5
-																		</MenuItem>
-																		<MenuItem value={6}>
-																			6
-																		</MenuItem>
-																		<MenuItem value={7}>
-																			7
-																		</MenuItem>
-																		<MenuItem value={18}>
-																			8
-																		</MenuItem>
-																		<MenuItem value={9}>
-																			9
-																		</MenuItem>
-																		<MenuItem value={10}>
-																			10
-																		</MenuItem>
-																	</TextField>
-																</div>
-																{formik.values.bidClosingType !== 'S' && (
-																	<div className="col-12 col-md-3 col-lg-3 mb-4">
-																		<TextField
-																			id="extensionDuration"
-																			name="extensionDuration"
-																			className="w-100 f14"
-																			size="small"
-																			label="Extension Duration (mins)"
-																			variant="outlined"
-																			InputProps={{
-																				inputProps: {
-																					min: 0,
-																					max: 10,
-																					step: 1,
-																				},
-																			}}
-																			value={formik.values.extensionDuration}
-																			onChange={(e) => {
-																				const value = e.target.value;
-																				if (value === "" || parseInt(value, 10) <= 10) {
-																					formik.setFieldValue(
-																						"extensionDuration",
-																						value === "" ? "" : parseInt(value, 10)
-																					);
-																				}
-																			}}
-																			disabled={formik.values.maximumExtension === 0 || !hasEditPermission}
-																		/>
-																		{formik.errors.extensionDuration && formik.touched.extensionDuration && (
-																			<div className="error error-red" style={{ fontSize: "12px" }}>
-																				{formik.errors.extensionDuration}
-																			</div>
-																		)}
-																	</div>
-																)}
-															</div>
-														</div>
-														<div className="col-12 ">
-															<div className="row">
-																{formik.values.bidClosingType === 'S' && (
-																	<div className="col-12 col-md-3 col-lg-3 mb-4">
-																		<TextField
-																			id="extensionDuration"
-																			name="extensionDuration"
-																			className="w-100 f14"
-																			size="small"
-																			label="Extension Duration (In Minutes)"
-																			variant="outlined"
-																			InputProps={{
-																				inputProps: {
-																					min: 0,
-																					max: 10,
-																					step: 1,
-																				},
-																			}}
-																			value={formik.values.extensionDuration}
-																			onChange={(e) => {
-																				const value = e.target.value;
-																				if (value === "" || parseInt(value, 10) <= 10) {
-																					formik.setFieldValue(
-																						"extensionDuration",
-																						value === "" ? "" : parseInt(value, 10)
-																					);
-																				}
-																			}}
-																			disabled={formik.values.maximumExtension === 0 || !hasEditPermission}
-																		/>
-																		{formik.errors.extensionDuration && formik.touched.extensionDuration && (
-																			<div className="error error-red" style={{ fontSize: "12px" }}>
-																				{formik.errors.extensionDuration}
-																			</div>
-																		)}
-																	</div>
-																)}
-																<div className="col-12 col-md-3 col-lg-3 mb-4">
-																	<TextField
-																		id="hideVendor"
-																		name="hideVendor"
-																		select
-																		className="w-100 f14"
-																		size="small"
-																		label="Mask Participants during Bidding *"
-																		variant="outlined"
-																		value={formik.values.hideVendor}
-																		disabled={!hasEditPermission}
-																		onChange={(event) => {
-																			formik.setFieldValue('hideVendor', event.target.value === 'true');
-																		}}
-																	>
-																		<MenuItem value='false'>
-																			No
-																		</MenuItem>
-																		<MenuItem value='true'>
-																			Yes
-																		</MenuItem>
-																	</TextField>
-																</div>
-																<div className="col-12 col-md-3 col-lg-3 mb-4">
-																	<TextField
-																		id="hideQuote"
-																		name="hideQuote"
-																		select
-																		className="w-100 f14"
-																		size="small"
-																		label="Mask Quotes during Bidding *"
-																		variant="outlined"
-																		value={formik.values.hideQuote}
-																		disabled={!hasEditPermission}
-																		onChange={(event) => {
-																			formik.setFieldValue('hideQuote', event.target.value === 'true');
-																		}}
-																	>
-																		<MenuItem value='false'>
-																			No
-																		</MenuItem>
-																		<MenuItem value='true'>
-																			Yes
-																		</MenuItem>
-																	</TextField>
-																</div>
-															</div>
-														</div>
-														<div className="col-12 mb-1">
-															<FormControl className="w-100">
-																<FormLabel id="baseCurrency">
-																	<span className="f13">
-																		Select Currency Mode
-																	</span>
-																</FormLabel>
-																<RadioGroup
-																	row
-																	aria-labelledby="baseCurrency"
-																	name="baseCurrency"
-																	value={formik.values.isMultiCurrency}
-																	onChange={(e) => {
-																		formik.setFieldValue(
-																			"isMultiCurrency",
-																			e.target.value === "true" ? true : false
-																		);
-																		formik.setFieldValue(
-																			"baseCurrency",
-																			userDetail?.defaultCurrency
-																		);
-																	}}
-																>
-																	<FormControlLabel
-																		value={false}
-																		control={<Radio />}
-																		disabled={!hasEditPermission}
-																		label={
-																			<span >
-																				Base Currency{" "}
-																				{userDetail &&
-																					userDetail?.defaultCurrency ? (
-																					<span className="f12 text-primary pointer" onClick={handleBaseCurrency}>
-																						({`${formik?.values?.baseCurrency || userDetail?.defaultCurrency}`})
-																					</span>
-																				) : (
-																					<span className="f12 pointer" onClick={handleBaseCurrency}>(INR)</span>
-																				)}
-																			</span>
-																		}
-																	/>
-																	<FormControlLabel
-																		value={true}
-																		control={<Radio />}
-																		disabled={!hasEditPermission}
-																		label="Multiple Currency"
-																	/>
-																</RadioGroup>
-															</FormControl>
-															{
-																formik.values.isMultiCurrency ? (
-																	<>
-																		<div className="row">
-																			<div className="col-12">
-																				<div className="row">
-																					<div className="col-12 col-lg-12 mt-3">
-																						{inputList?.map((x, i) => {
-																							return (
-																								<div
-																									className="row  d-flex align-items-center w-100 mb-3"
-																									key={i}
-																								>
-																									<div className="col-lg-4 col-12">
-																										<Autocomplete
-																											id={"baseCurrency" + i}
-																											name="baseCurrency"
-																											options={[
-																												...(currencyList?.filter(cl => cl.currencyNm !== (userDetail?.defaultCurrency || "INR")) || []),
-																												{ currencyNm: "Add New", id: "new" }
-																											]}
-																											getOptionLabel={(option) => option.currencyNm ?? ''}
-																											disabled={!hasEditPermission}
-																											onChange={(event, value) => {
-																												if (value?.id === "new") {
-																													setOpenCurrencyModal(true);
-																												} else {
-																													handleInputChange({ target: { value: value?.currencyNm, name: "baseCurrency" } }, i);
-																												}
-																											}}
-																											onOpen={() => {
-																												if (currencyList.length === 0)
-																													pullgetCurrency();
-																											}}
-																											value={
-																												currencyList.find(
-																													(option) => option.currencyNm === x.baseCurrency
-																												) || (x.baseCurrency ? { currencyNm: x.baseCurrency } : null)
-																											}
-																											isOptionEqualToValue={(option, value) => {
-																												if (!value) return false;
-																												if (option.id === "new") return false;
-																												return option.currencyNm === value.currencyNm;
-																											}}
-																											renderInput={(params) => (
-																												<TextField
-																													{...params}
-																													InputLabelProps={{
-																														shrink: true,
-																													}}
-																													name="baseCurrency"
-																													label="Select Currency *"
-																													variant="outlined"
-																													size="small"
-																													className="w-100 f14"
-																												/>
-																											)}
-																											renderOption={(props, option) => (
-																												<Box
-																													component="li"
-																													{...props}
-																													key={option.id || option.currencyNm}
-																													style={
-																														option.id === "new"
-																															? {
-																																fontStyle: "italic",
-																																color: "blue",
-																																cursor: "pointer",
-																																textDecoration: "underline",
-																															}
-																															: {}
-																													}
-																												>
-																													{option.currencyNm}
-																												</Box>
-																											)}
-																											noOptionsText="No options"
-																											style={{ width: '100%' }}
-																										/>
-																									</div>
-																									<div className="col-lg-4 col-12">
-																										<TextField
-																											variant="outlined"
-																											InputLabelProps={{
-																												shrink: true,
-																											}}
-																											className={`w-100 ${x.baseCurrency && x.currencyConversion <= 0 ? 'invalid-input' : ''}`}
-																											required
-																											disabled={!hasEditPermission}
-																											id={`currency-conversion-${i}`}
-																											label="Enter currency conversion factor"
-																											value={x.currencyConversion}
-																											size="small"
-																											name="currencyConversion"
-																											placeholder=""
-																											onChange={(e) => handleInputChange(e, i, "currencyConversion")}
-																										/>
-																									</div>
-																									{x.id > 0 ? (
-																										<>
-																											<div className="col-lg-1 col-6 ms-0 ps-0 ">
-																												<Button
-																													disabled={
-																														inputList?.length ===
-																														1 || !hasRemovePermission
-																													}
-																													variant="standard"
-																													color="error"
-																													size="medium"
-																													onClick={() =>
-																														handleRemoveClick(i)
-																													}
-																												>
-																													<HiOutlineX className="text-danger" />
-																												</Button>
-																											</div>
-																										</>
-																									) : (
-																										<>
-																											{inputList.length !==
-																												1 && (
-																													<div className="col-lg-1 col-6 ms-0 ps-0 ">
-																														<Button
-																															variant="standard"
-																															color="error"
-																															size="medium"
-																															disabled={!hasRemovePermission}
-																															onClick={() =>
-																																handleRemoveClick(
-																																	i
-																																)
-																															}
-																														>
-																															<HiOutlineX className="text-danger" style={{ fontSize: "0.975rem" }} />
-																														</Button>
-																													</div>
-																												)}
-																										</>
-																									)}
-																									{inputList?.length ? (
-																										<>
-																											{inputList.length - 1 ===
-																												i && (
-																													<div className="col-lg-2 col-6 pe-0 ms-0 ps-0 currencyButton" >
-																														<Button
-																															variant="outlined"
-																															disabled={
-																																x.currencyConversion ===
-																																"" ||
-																																x.baseCurrency ===
-																																"" || !hasCreatePermission
-																															}
-																															size="small"
-																															color="primary"
-																															className="f11"
-																															onClick={
-																																handleAddClick
-																															}
-																														>
-																															+ Add More
-																														</Button>
-																													</div>
-																												)}
-																										</>
-																									) : null}
-
-																								</div>
-																							);
-																						})}
-																					</div>
-																				</div>
-																			</div>
-																		</div>
-																	</>
-																) : (
-																	<></>
-																)}
-														</div>
-
-														<div className="col-12 mb-1">
-															<div className="f12 text-muted mb-1">
-																<span>Terms & Conditions *</span>
-																{idFromURL && (
-																	<span>
-																		<Tooltip title="Attachments">
-																			<IconButton
-																				size="small"
-																				className="border-primary  bg-white"
-																				onClick={() => {
-																					if (attachmentdrawerref.current) {
-																						attachmentdrawerref?.current?.handledrawer()
-																					}
-																				}}
-																			>
-																				<Badge
-																					style={{ padding: "0px 4px", fontSize: "10px" }}
-																					// badgeContent={attachmentCount}
-																					// color={attachmentCount > 0 ? "success" : "info"}
-																					badgeContent={attachmentforevent?.filter(a => a.fileType === "TC").length || 0}
-																					color={attachmentforevent?.some(a => a.fileType === "TC") ? "success" : "info"}
-																				>
-																					<FilePresentIcon className="f17" />
-																				</Badge>
-																			</IconButton>
-																		</Tooltip>
-																	</span>
-																)}
-															</div>
-
-															<ReactQuill
-																id="tnC"
-																theme="snow"
-																preserveWhitespace
-																className=""
-																readOnly={!hasEditPermission}
-																value={formik.values.tnC}
-																onChange={(value) => {
-																	const termandcondition = extractTextFromHTML(value);
-																	const length = termandcondition.length;
-																	if (length <= 2000) {
-																		formik.setFieldValue(
-																			"tnC",
-																			value
-																		);
-																	} else {
-																		formik.setFieldValue(
-																			"tnC",
-																			formik.values.tnC
-																		);
-																		toast.error('Term and Condition greater than 2000 character is not allowed', {
-																			toastId: "t&cerr"
-																		});
-																	}
-																}}
-															/>
-															{formik.values.tnC && extractTextFromHTML(formik.values.tnC)?.length && <div
-																style={{
-																	fontSize: "0.8em",
-																	color: "grey",
-																	textAlign: "end",
-																}}
-															>
-																{`${extractTextFromHTML(formik.values.tnC)?.length ?? 0
-																	}/2000`}{" "}
-															</div>}
-															{formik.touched.tnC &&
-																Boolean(formik.errors.tnC) ? (
-																<>
-																	<FormHelperText className="text-danger">
-																		{formik.errors.tnC}
-																	</FormHelperText>
-																</>
-															) : (
-																<></>
-															)}
-														</div>
-
-														<div className="col-12 mt-4">
-															<div className="row">
-																<div className="col-md-12 col-lg-12 d-flex  mb-4">
-																	<div className="col-12 col-md-3 col-lg-3 mb-4">
-																		<FormControlLabel
-																			control={
-																				<Checkbox
-																					checked={formik.values.quotesinWords}
-																				/>
-																			}
-																			id="quotesinWords"
-																			label={
-																				<span className="f12 muted">
-																					Quotes in Word
-																				</span>
-																			}
-																			name="quotesinWords"
-																			value={formik.values.quotesinWords}
-																			disabled={!hasEditPermission}
-																			onChange={formik.handleChange}
-																		/>
-
-																	</div>
-
-																	<div className="col-12 col-md-3 col-lg-3 mb-4">
-
-																		<FormControlLabel
-																			control={
-																				<Checkbox
-																					checked={formik.values.rankToVendorPost}
-																				/>
-																			}
-																			id="rankToVendorPost"
-																			label={
-																				<span className="f12 muted">
-																					Rank Post Participation
-																				</span>
-																			}
-																			name="rankToVendorPost"
-																			className="me-0 pe-0"
-																			value={formik.values.rankToVendorPost}
-																			disabled={!hasEditPermission}
-																			onChange={formik.handleChange}
-																		/>
-																	</div>
-																	<div className="col-12 col-md-6 col-lg-6 mb-4 d-flex">
-																		<FormControlLabel
-																			className=" me-0 pe-0"
-																			style={{ width: "31%" }}
-																			control={
-																				<Checkbox
-																					checked={formik.values.prebid}
-																				/>
-																			}
-																			id="prebid"
-																			label={
-																				<span className="f12 muted">
-																					Pre Bid
-																				</span>
-																			}
-																			name="prebid"
-																			value={formik.values.prebid}
-																			disabled={!hasEditPermission}
-																			onChange={formik.handleChange}
-																		/>
-																		<div>
-																			{formik.values.prebid && (
-																				<div className="date-time-picker">
-																					<LocalizationProvider dateAdapter={AdapterDayjs}>
-																						<div className="date-time-picker d-flex justify-content-end">
-																							<div className="me-2">
-																								<MobileDateTimePicker
-																									variant="outlined"
-																									label="Start Date *"
-																									size="small"
-																									name='preBidStDate'
-																									id='preBidStDate'
-																									timezone={userDetail?.timeZone}
-																									disabled={!hasEditPermission}
-																									minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-																									value={formik.values.preBidStDate}
-																									className='w-100 f14 pt-1 pb-1 me-1'
-																									slotProps={{
-																										textField: {
-																											variant: 'outlined', size: 'small',
-																											InputLabelProps: { shrink: true },
-																										},
-																										actionBar: { actions: ["clear", "cancel", "accept"] }
-																									}}
-																									onChange={newValue => {
-																										formik.setFieldValue('preBidStDate', newValue);
-																									}}
-																									format={getDateFormatPatteronLocale(userDetail)}
-																									ampm={userampm(userDetail)}
-																								/>
-																							</div>
-																							<div>
-																								<MobileDateTimePicker
-																									variant="outlined"
-																									label="End Date *"
-																									size="small"
-																									name='preBidEndDate'
-																									id='preBidEndDate'
-																									timezone={userDetail?.timeZone}
-																									disabled={!hasEditPermission}
-																									minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-																									value={formik.values.preBidEndDate}
-																									className='w-100 f14  pt-1 pb-1'
-																									slotProps={{
-																										textField: {
-																											variant: 'outlined', size: 'small',
-																											InputLabelProps: { shrink: true },
-																										},
-																										actionBar: { actions: ["clear", "cancel", "accept"] }
-																									}}
-																									onChange={newValue => {
-																										formik.setFieldValue('preBidEndDate', newValue);
-																									}}
-																									format={getDateFormatPatteronLocale(userDetail)}
-																									ampm={userampm(userDetail)}
-																								/>
-																							</div>
-																						</div>
-																					</LocalizationProvider>
-
-																				</div>
-																			)}
-																		</div>
-																	</div>
-																</div>
-																<div className="row justify-content-end align-items-end">
-																	<div className="col-md-12">
-																	</div>
-																</div>
-															</div>
-														</div>
-													</div>
-												</form>
-											</div>
-										)}
-										{!stagearray.includes(currentStage) && !showGeneralAccessDenied && idFromURL && idFromURL !== 'add' && (
-											<>
-												<BidGeneralPreview
-													formik={formik}
-													inputList={inputList}
-													bidtype={bidtype}
-													stagearray={stagearray}
-													currentStage={currentStage}
-													handletabEdit={handletabEdit}
-												//purchaseAllList={purchaseAllList}
-												/>
-											</>
-										)}
-									</>
-								);
-							})()}
+							{value === 1 && (
+								<AuctionGeneralTab
+									loadingPermissions={loadingPermissions}
+									permissionManager={permissionManager}
+									stagearray={stagearray}
+									currentStage={currentStage}
+									formik={formik}
+									bidtype={bidtype}
+									idFromURL={idFromURL}
+									userDetail={userDetail}
+									inputList={inputList}
+									handleInputChange={handleInputChange}
+									handleAddClick={handleAddClick}
+									handleRemoveClick={handleRemoveClick}
+									currencyList={currencyList}
+									pullgetCurrency={pullgetCurrency}
+									openCurrencyModal={OpenCurrencyModal}
+									setOpenCurrencyModal={setOpenCurrencyModal}
+									handleBaseCurrency={handleBaseCurrency}
+									attachmentdrawerref={attachmentdrawerref}
+									attachmentforevent={attachmentforevent}
+									updateBidEndDate={updateBidEndDate}
+									updateBidDuration={updateBidDuration}
+									handletabEdit={handletabEdit}
+									showGeneralAccessDenied={showGeneralAccessDenied}
+								/>
+							)}
 							{value === 2 && (
 								<BidItemsTab
 									loadingPermissions={loadingPermissions}
@@ -4283,219 +3291,22 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									callbackItemAdd={callbackItemAdd}
 								/>
 							)}
-							{((value === 3) &&
-								// (!iscomercialseadDisabled === false)) ? (
-								<div className="mb-5 custom-fix">
-									<div className="p-3 pt-0 ps-2 pe-2">
-										<div className="d-flex justify-content-between align-items-center">
-											<div className="flex-grow-1">
-												<div className="row mt-2">
-													<div className="col-12 col-md-10 col-lg-6">
-														<Autocomplete
-															disablePortal
-															id="combo-box-demo"
-															size="small"
-															options={
-																!generaltermsDDl
-																	? [{ label: "Loading...", id: 0 }]
-																	: generaltermsDDl
-															}
-															getOptionLabel={(option) =>
-																option?.libraryEntity ?? ""
-															}
-															className="w-100"
-															fullWidth
-															value={selectedCommercalDll}
-															renderOption={(props, option, { selected }) => (
-																<div {...props} className="d-block">
-																	<div className="p-1">
-																		<div className="ms-2">
-																			{option?.libraryEntity
-																				? option.libraryEntity
-																				: "No selection"}
-																		</div>
-
-																	</div>
-																</div>
-
-															)}
-
-															onChange={(e, values) => {
-																setSelectedCommercalDll(values);
-																getLibraryTermsList(values)
-																setSelectedCommercialLibrary(values);
-															}}
-															renderInput={(params) => (
-																<TextField
-																	{...params}
-																	InputLabelProps={{
-																		shrink: true,
-																	}}
-																	label="Select Commercial Terms"
-																/>
-															)}
-															disabled={!stagearray.includes(currentStage)}
-														/>
-													</div>
-												</div>
-											</div>
-											<div className="text-end">
-												{/* <Button
-                                                    variant="text"
-                                                    size="large"
-                                                    startIcon={<HiPlusSm />}
-                                                    className="text-capitalize blue-text font-normal me-3"
-                                                    onClick={() => toggleOpenDrawer("AddNewTerm", true)}
-                                                    disabled={!SelectedCommercialLibrary || !permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.CREATE)}
-                                                >
-                                                    Add More
-                                                </Button> */}
-											</div>
-										</div>
-										<div className="row mt-2"
-											style={{
-												pointerEvents: !stagearray.includes(currentStage) ? "none" : "auto",
-												opacity: !stagearray.includes(currentStage) ? 0.6 : 1,
-												backgroundColor: !stagearray.includes(currentStage) ? "#f5f5f5" : "transparent"
-											}}
-										>
-											<div className="col-12 col-md-12">
-												<div className="">
-
-													<div className="row">
-														<div className="col-12 zebracolor">
-															{commercialLibFind &&
-																commercialLibFind?.length > 0 ? (
-																<>
-																	<div className="table-responsive">
-																		<table
-																			className={`itemstable`}
-																		>
-																			<thead>
-																				<tr>
-																					<th className='text-white fw500 f14'>
-																						<Checkbox
-																							checked={LibraryTermsList?.every(term => term?.isSelected === true)}
-																							className="text-white"
-																							size="medium"
-																							onChange={(e) =>
-																								handleComItemAllCheck(
-																									e.target.checked
-																								)
-																							}
-																						/>
-																					</th>
-																					<th className='text-white fw500 f14'>
-																						Name
-																					</th>
-																					<th className='text-white fw500 f14'>
-																						UOM
-																					</th>
-																					{commercialLibFind.some(item => item.commValue) && (
-																						<th className='text-white fw500 f14' >
-																							Fixed Value
-																						</th>
-																					)}
-																					{commercialLibFind.some(item => item.formulavalue) && (
-																						<th className='text-white fw500 f14' style={{ width: "100px" }} >
-																							Formula value
-																						</th>
-																					)}
-																					<th className="text-white fw500 f14" style={{ width: "100px" }} >
-
-
-																					</th>
-																				</tr>
-																			</thead>
-																			<tbody >
-																				{commercialLibFind?.map((item, index) => (
-																					<tr className={`${index % 2 === 0 ? "even" : "odd"
-																						}`}
-																						key={index}>
-																						<td className='f14'>
-																							<Checkbox
-																								size="medium"
-																								checked={item?.isSelected}
-																								onChange={(e) =>
-																									handleComItemCheck(
-																										index,
-																										e.target.checked
-																									)
-																								}
-																							/>
-																						</td>
-																						<td className="f14">
-																							{item?.name}
-																							<div className="text-muted f12">
-
-																								{item?.libraryEntity}
-																							</div>
-																						</td>
-																						<td className="f14">
-																							<div className="d-flex">
-																								<div>
-																									{item?.valuetype === "Currency" ? (
-																										<div className="d-flex">
-																											<span className="col-md-10" style={{
-																												cursor: "pointer",
-																												position: 'relative',
-																												left: "-20px",
-																												color: "#007bff",
-																												textDecoration: "underline",
-																											}}
-																												onClick={(e) =>
-																													handleChangeCom(index, e.target.value, item)
-																												}
-																											>
-																												{item?.valuetype}
-																												<span className="f12 fw600">
-																													{item?.bidTermCurrency?.length
-																														? `(${item?.bidTermCurrency[0]?.baseCurrency ?? ''}/${item?.bidTermCurrency[0]?.currencyConversion ?? ''})`
-																														: `(${formik?.values?.baseCurrency}/${item?.currencyConversion || "1"})`}
-																												</span>
-																											</span>
-																										</div>
-																									) : (
-																										<div>{item?.valuetype}</div>
-																									)}
-																								</div>
-																							</div>
-																						</td>
-
-																						{
-																							commercialLibFind.some(item => item.commValue) && (
-																								<td className="f14">
-																									{item.commValue || ""}
-																								</td>
-																							)
-																						}
-
-																						{
-																							commercialLibFind.some(item => item.formulavalue) && (
-																								<td className="f14">
-																									{item.formulavalue || ""}
-																								</td>
-																							)
-																						}
-																						< td className="f14 d-flex" >
-
-																						</td>
-																					</tr>
-																				))}
-																			</tbody>
-																		</table>
-																	</div>
-																</>
-															) : (
-																<></>
-															)}
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
+							{(value === 3) && (
+								<AuctionCommercialTab
+									generaltermsDDl={generaltermsDDl}
+									selectedCommercalDll={selectedCommercalDll}
+									setSelectedCommercalDll={setSelectedCommercalDll}
+									getLibraryTermsList={getLibraryTermsList}
+									setSelectedCommercialLibrary={setSelectedCommercialLibrary}
+									stagearray={stagearray}
+									currentStage={currentStage}
+									commercialLibFind={commercialLibFind}
+									LibraryTermsList={LibraryTermsList}
+									handleComItemAllCheck={handleComItemAllCheck}
+									handleComItemCheck={handleComItemCheck}
+									handleChangeCom={handleChangeCom}
+									formik={formik}
+								/>
 							)}
 							{value === 4 && (
 								<BidInviteSupplierTab
@@ -4529,147 +3340,22 @@ const Auctions = ({ claimType, breadcrumb }) => {
 								/>
 							)}
 							{value === 5 && bidpreview && (
-
-								<div className="custom-fix">
-
-									{/* Bid General Details */}
-									<Card sx={{ mb: 3, boxShadow: 2 }}>
-										<CardHeader
-											title={
-												<Typography sx={{ color: "#1976d2", fontWeight: 400, fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
-													📝 Bid General Details
-												</Typography>
-											}
-											action={
-												stagearray.includes(currentStage) && (
-													<IconButton size="small" sx={{ bgcolor: "#fff" }} onClick={() => handletabEdit(1)}>
-														<HiPencilAlt className="f17 text-primary" />
-													</IconButton>
-												)
-											}
-											sx={{ backgroundColor: "#fff", py: 1.5 }}
-										/>
-										<CardContent>
-											<BidGeneralPreview formik={formik} inputList={inputList} purchaseAllList={purchaseAllList} bidtype={bidtype} />
-										</CardContent>
-									</Card>
-
-									{/* Item Details */}
-									<>
-										{/* === Heading like RFQ Items === */}
-										<div className="d-flex justify-content-between align-items-center mb-3" id="auctionitemsdetails">
-											<Typography
-												sx={{
-													mb: 3,
-													color: "#1976d2",
-													fontWeight: 400,
-													fontSize: "14px"
-												}}
-											>
-												📝 Item Details
-											</Typography>
-
-											{stagearray.includes(currentStage) && (
-												<IconButton
-													size="small"
-													className="bg-light"
-													onClick={() => handletabEdit(2)}
-												>
-													<HiPencilAlt className="f17 text-primary" />
-												</IconButton>
-											)}
-										</div>
-
-										{/* === Card without header, with scroll === */}
-										<Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-											<CardContent sx={{ p: 2 }}>
-
-												<ProductitemCell
-													action={false}
-													itemsList={bidItemsList}
-													handleEditItem={handleEditItem}
-													handleDeleteItem={handleDeleteItem}
-													tempDataForItemService={tempDataForItemService}
-													eventType="Auction"
-												/>
-
-											</CardContent>
-										</Card>
-									</>
-
-									{/* Commercial Details (conditionally) */}
-									{bidtype && ![1, 2, 5, 6].includes(bidtype.id) && (
-										<Card sx={{ mb: 3, boxShadow: 2 }}>
-											<CardHeader
-												title={
-													<Typography sx={{ color: "#1976d2", fontWeight: 400, fontSize: "14px" }}>
-														📝 BID Commercial Details
-													</Typography>
-												}
-												action={
-													stagearray.includes(currentStage) && (
-														<IconButton size="small" sx={{ bgcolor: "#fff" }} onClick={() => handletabEdit(3)}>
-															<HiPencilAlt className="f17 text-primary" />
-														</IconButton>
-													)
-												}
-												sx={{ backgroundColor: "#fff", py: 1.5 }}
-											/>
-											<CardContent>
-												{commercialLibFind?.filter(s => s.isSelected)?.length > 0 ? (
-													<div>
-														{/* Table Header */}
-														<div className="d-flex mb-2">
-															<div className="col-3 f14 fw500">Name</div>
-															<div className="col-3 f14 fw500">UOM</div>
-															<div className="col-3 f14 fw500">Fixed Value</div>
-															<div className="col-3 f14 fw500">Formula Value</div>
-														</div>
-														{/* Data Rows */}
-														{commercialLibFind.filter(x => x.isSelected).map((item, index) => (
-															<div className={`d-flex border-bottom py-1 ${index % 2 === 0 ? "even" : "odd"}`} key={index}>
-																<div className="col-3">
-																	<div>{item.name}</div>
-																	<div className="text-muted f10">{item.libraryEntity}</div>
-																</div>
-																<div className="col-3">{item.valuetype}</div>
-																<div className="col-3">{item.commValue}</div>
-																<div className="col-3">{item.formulavalue}</div>
-															</div>
-														))}
-													</div>
-												) : (
-													<div>No commercial details selected.</div>
-												)}
-											</CardContent>
-										</Card>
-									)}
-
-									{/* Invited Suppliers */}
-									<Card sx={{ mb: 3, boxShadow: 2 }}>
-										<CardHeader
-											title={
-												<Typography sx={{ color: "#1976d2", fontWeight: 400, fontSize: "14px" }}>
-													📝 Invited Suppliers
-												</Typography>
-											}
-											action={
-												stagearray.includes(currentStage) && (
-													<IconButton size="small" sx={{ bgcolor: "#fff" }} onClick={() => handletabEdit(4)}>
-														<HiPencilAlt className="f17 text-primary" />
-													</IconButton>
-												)
-											}
-											sx={{ backgroundColor: "#fff", py: 1.5 }}
-										/>
-										<CardContent>
-											<SelectedSupplierCell selectedsupplier={selectedSupplier} />
-										</CardContent>
-									</Card>
-
-								</div>
+								<AuctionPreviewTab
+									formik={formik}
+									inputList={inputList}
+									purchaseAllList={purchaseAllList}
+									bidtype={bidtype}
+									stagearray={stagearray}
+									currentStage={currentStage}
+									handletabEdit={handletabEdit}
+									bidItemsList={bidItemsList}
+									handleEditItem={handleEditItem}
+									handleDeleteItem={handleDeleteItem}
+									tempDataForItemService={tempDataForItemService}
+									commercialLibFind={commercialLibFind}
+									selectedSupplier={selectedSupplier}
+								/>
 							)}
-
 
 							{value === 6 && (loadingPermissions ? <GridSkeleton /> :
 								<AuctionControl
@@ -4712,56 +3398,43 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				</div>
 
 				{/* Right content - Approval Section */}
-				<div className={`rightContent ${isClosedView || approvershow ? "col-3" : "d-none"}`}>
+				<div className={`rightContent ${approvershow ? "col-3" : "d-none"}`}>
 					<div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column approver-panel" style={{ overflow: 'hidden' }}>
 
-						{isClosedView ? (
-							<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2 rfq-dv2-workflow-head">
-								<div className="rfq-dv2-workflow-tabs">
-									<button
-										type="button"
-										className={`rfq-dv2-workflow-tab ${workflowPanelTab === "workflow" ? "active" : ""}`}
-										onClick={() => setWorkflowPanelTab("workflow")}
-									>
-										Approval Workflow
-									</button>
-									<button
-										type="button"
-										className={`rfq-dv2-workflow-tab ${workflowPanelTab === "history" ? "active" : ""}`}
-										onClick={() => setWorkflowPanelTab("history")}
-									>
-										View History
-									</button>
-									<button
-										type="button"
-										className={`rfq-dv2-workflow-tab ${workflowPanelTab === "attachments" ? "active" : ""}`}
-										onClick={() => setWorkflowPanelTab("attachments")}
-									>
-										Attachments
-									</button>
-								</div>
-								<IconButton
-									onClick={() => handleApprover(false)}
-									size="small"
-									className="text-muted"
+						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2 rfq-dv2-workflow-head">
+							<div className="rfq-dv2-workflow-tabs">
+								<button
+									type="button"
+									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "workflow" ? "active" : ""}`}
+									onClick={() => setWorkflowPanelTab("workflow")}
 								>
-									<HiOutlineX className="f16" />
-								</IconButton>
-							</div>
-						) : (
-							<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2">
-								<div className="section-heading mb-0 pb-4">Approval Workflow</div>
-								<IconButton
-									onClick={() => handleApprover(false)}
-									size="small"
-									className="text-muted"
+									Approval Workflow
+								</button>
+								<button
+									type="button"
+									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "history" ? "active" : ""}`}
+									onClick={() => setWorkflowPanelTab("history")}
 								>
-									<HiOutlineX className="f16" />
-								</IconButton>
+									View History
+								</button>
+								<button
+									type="button"
+									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "attachments" ? "active" : ""}`}
+									onClick={() => setWorkflowPanelTab("attachments")}
+								>
+									Attachments
+								</button>
 							</div>
-						)}
+							<IconButton
+								onClick={() => handleApprover(false)}
+								size="small"
+								className="text-muted"
+							>
+								<HiOutlineX className="f16" />
+							</IconButton>
+						</div>
 						<div className="flex-grow-1">
-							{(isClosedView || approvershow) && (!isClosedView || workflowPanelTab === "workflow") && (
+							{workflowPanelTab === "workflow" && (
 								<EventApprovalBox
 									requestCell={requestCell}
 									handleEventAppList={handleEventAppList}
@@ -4776,12 +3449,12 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									currentStage={currentStage}
 								/>
 							)}
-							{isClosedView && workflowPanelTab === "history" && (
+							{workflowPanelTab === "history" && (
 								<div className="p-2">
 									<HistoryCell eventtype="Auction" eventId={idFromURL} permissionManager={permissionManager} />
 								</div>
 							)}
-							{isClosedView && workflowPanelTab === "attachments" && (
+							{workflowPanelTab === "attachments" && (
 								<div className="p-2">
 									<AttachmentWorkFlow
 										eventtype="Auction"
@@ -4799,44 +3472,34 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				</div>
 			</div>
 
-			<React.Fragment key="topaddProduct">
-				<Drawer
-					anchor="right"
-					open={state["addProductDrawer"]}
-				>
-					<Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-						<div className="flex flex-col">
-							<Box className="bgheaderNotificationCards">
-								<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-									<div className="ms-3 text-white">Add Product</div>
-									<div>
-										<IconButton
-											onClick={toggleDrawer("addProductDrawer", false)}
-											size="small"
-											edge="start"
-											sx={{ mr: 1 }}
-										>
-											<HiOutlineX className="f20 text-white" />
-										</IconButton>
-									</div>
-								</div>
-							</Box>
-							<div className="h50px"></div>
-							<Box sx={{ flexGrow: 1, p: 2, mt: 2 }}>
-								<AddProductsCell
-									idFromURL={idFromURL}
-									UOMMaster={UOMMaster}
-									callbackItemAdd={callbackItemAdd}
-									itemEditTempData={itemEditTempData}
-									tempDataForItemService={tempDataForItemService}
-									//handleUomList={handleUomList}
-									action={stagearray.includes(currentStage)}
-								/>
-							</Box>
-						</div>
-					</Box>
-				</Drawer>
-			</React.Fragment>
+			<CommonBottomDrawer
+				open={state["addProductDrawer"]}
+				onClose={toggleDrawer("addProductDrawer", false)}
+				title={itemEditTempData?.id > 0 ? "Edit Product / Service" : "Add Product / Service"}
+				bodyStyle={{ overflowY: "auto" }}
+				actions={
+					<>
+						<button type="button" className="pe-btn pe-btn--ghost" onClick={toggleDrawer("addProductDrawer", false)}>Cancel</button>
+						{stagearray.includes(currentStage) && (
+							<>
+								<button type="reset" form="add-product-form" className="pe-btn pe-btn--secondary">Reset</button>
+								<button type="submit" form="add-product-form" className="pe-btn pe-btn--primary">
+									{itemEditTempData?.id > 0 ? "Update" : "Add"}
+								</button>
+							</>
+						)}
+					</>
+				}
+			>
+				<AddProductsCell
+					idFromURL={idFromURL}
+					UOMMaster={UOMMaster}
+					callbackItemAdd={callbackItemAdd}
+					itemEditTempData={itemEditTempData}
+					tempDataForItemService={tempDataForItemService}
+					action={stagearray.includes(currentStage)}
+				/>
+			</CommonBottomDrawer>
 			<React.Fragment key="qusDrawertr">
 				<Drawer
 					anchor="right"
@@ -5338,16 +4001,13 @@ const Auctions = ({ claimType, breadcrumb }) => {
 															className="row d-flex align-items-center w-100 mb-3"
 														>
 															<div className="col-lg-12 col-12">
+																<label className="pe-field-label">Select Currency <span className="rfq-required-star">*</span></label>
 																<TextField
 																	id={"basecurrencymodal"}
-																	InputLabelProps={{
-																		shrink: true,
-																	}}
 																	name="baseCurrency"
 																	select
 																	className="w-100 f14"
 																	size="small"
-																	label="Select Currency *"
 																	variant="outlined"
 																	value={formik?.values?.baseCurrency}
 																	SelectProps={{
@@ -5455,35 +4115,24 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					</div>
 				</Modal.Body>
 			</Modal>
-			<Dialog open={open} onClose={handleClose}>
-				<DialogTitle className="pb-0 f14">Save As</DialogTitle>
-				<DialogContent className="pb-0">
-					<DialogContentText style={{ width: "320px" }}>
-						&nbsp;
-					</DialogContentText>
-					<TextFieldCell
-						id="password"
-						name="password"
-						label="Auction Template Title"
-						placeholder=""
+			<Dialog open={open} onClose={handleClose} PaperProps={{ sx: { borderRadius: '12px', minWidth: 380, p: 1 } }}>
+				<DialogTitle sx={{ fontWeight: 600, fontSize: '1rem', pb: 0.5 }}>Save As Template</DialogTitle>
+				<DialogContent>
+					<label className="pe-field-label">Auction Template Title <span className="rfq-required-star">*</span></label>
+					<TextField
+						autoFocus
+						variant="outlined"
+						size="small"
+						fullWidth
+						placeholder="Enter template title"
 						value={TemplateTitle}
-						onChange={(e) => {
-							setTemplateTitle(e.target.value)
-						}}
-						maxLength={100}
+						onChange={(e) => setTemplateTitle(e.target.value)}
+						inputProps={{ maxLength: 150 }}
 					/>
 				</DialogContent>
-				<DialogActions className="pt-0">
-					<Button
-						onClick={handleClose}
-						className="text-muted text-capitalize"
-						style={{ fontSize: "0.75rem" }}
-					>
-						Cancel
-					</Button>
-					<Button onClick={handleSaveTemplate} className="text-capitalize " style={{ fontSize: "0.75rem" }} disabled={!idFromURL}>
-						Save
-					</Button>
+				<DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+					<button type="button" className="pe-btn pe-btn--secondary" onClick={handleClose}>Cancel</button>
+					<button type="button" className="pe-btn pe-btn--primary" onClick={handleSaveTemplate} disabled={!idFromURL}>Save</button>
 				</DialogActions>
 			</Dialog>
 			<Dialog open={confirmClearAllItems} onClose={() => handleClearAllItems(false)}>
@@ -5500,62 +4149,60 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					</Button>
 				</DialogActions>
 			</Dialog>
-			<Dialog open={modalcancelOpen} onClose={() => handleCancelRFQModal(false)}>
-				<DialogTitle>{"Are you sure?"}</DialogTitle>
-				<DialogContent style={{ minWidth: "300px" }}>
-					<DialogContentText>
+			<Dialog open={modalcancelOpen} onClose={() => handleCancelRFQModal(false)} PaperProps={{ sx: { borderRadius: '12px', minWidth: 380, p: 1 } }}>
+				<DialogTitle sx={{ fontWeight: 600, fontSize: '1rem', pb: 0.5 }}>Are you sure?</DialogTitle>
+				<DialogContent>
+					<DialogContentText sx={{ fontSize: '0.875rem', mb: 2, color: 'text.secondary' }}>
 						Do you want to cancel this bid? Unsaved changes will be lost.
 					</DialogContentText>
+					<label className="pe-field-label">Enter Reason <span className="rfq-required-star">*</span></label>
 					<TextField
 						autoFocus
-						margin="dense"
-						label="Enter reason *"
+						variant="outlined"
+						size="small"
 						type="text"
 						fullWidth
+						placeholder="Enter reason for cancellation"
 						value={cancelReason}
 						onChange={handleCancelInputChange}
 						error={Boolean(biderror)}
 						helperText={biderror}
 					/>
 				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => handleCancelRFQModal(false)}>No</Button>
-					<Button onClick={() => handleCancelRFQModal(true)} autoFocus>
-						Yes
-					</Button>
+				<DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+					<button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleCancelRFQModal(false)}>No</button>
+					<button type="button" className="pe-btn pe-btn--primary" onClick={() => handleCancelRFQModal(true)} autoFocus>Yes</button>
 				</DialogActions>
 			</Dialog>
 			<Modal
-				size="lg"
+				size="md"
 				show={reOpenAuctionModal}
 				backdrop="static"
 				keyboard={false}
 				centered
-				className="rfq-create-modal"
-				contentClassName="border-0 rounded-default"
+				className="zindex1400"
+				backdropClassName="zindex1400"
+				contentClassName="border-0"
 				onHide={handleCloseReOpenModal}
 			>
-				<Modal.Header className="pt-2 pb-2">
-					<Modal.Title><span style={{ fontSize: 14 }}>Pull Data From RFQ</span></Modal.Title>
-					<button type="button" className="rfq-modal-close-btn" onClick={handleCloseReOpenModal}>
-						<HiOutlineX style={{ fontSize: 16 }} />
-					</button>
-				</Modal.Header>
-
-				<Modal.Body className="p-3">
-					<div className="row mb-2 align-items-center">
-						<div className="col-md-2 me-0 pe-0">
-							<div className="text-muted f15 fw500">Select RFQ : </div>
-						</div>
-						<div className="col-md-10 ms-0 ps-0">
-							<div className="input-container ">
-								<div className="tags-container ">
-									<input
-										type="text"
-										placeholder="Subject..."
-										className={`form-control ${inputError ? 'is-invalid' : ''}`}
-									/>
-								</div>
+				<Modal.Body className="p-0">
+					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Pull Data From RFQ</span>
+						<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={handleCloseReOpenModal}>
+							<HiOutlineX className="f20" />
+						</button>
+					</div>
+					<div className="p-3">
+						<div className="row mb-2 align-items-center">
+							<div className="col-md-3 me-0 pe-0">
+								<div className="text-muted f15 fw500">Select RFQ :</div>
+							</div>
+							<div className="col-md-9 ms-0 ps-0">
+								<input
+									type="text"
+									placeholder="Subject..."
+									className={`form-control ${inputError ? 'is-invalid' : ''}`}
+								/>
 							</div>
 						</div>
 					</div>
@@ -5567,81 +4214,67 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				backdrop="static"
 				keyboard={false}
 				centered
-				className="rfq-create-modal"
-				contentClassName="border-0 rounded-default"
+				className="zindex1400"
+				backdropClassName="zindex1400"
+				contentClassName="border-0"
 				onHide={handleClosePRModal}
 			>
-				<Modal.Header className="pt-2 pb-2">
-					<Modal.Title><span style={{ fontSize: 14 }}>Pull Data From PR</span></Modal.Title>
-					<button type="button" className="rfq-modal-close-btn" onClick={handleClosePRModal}>
-						<HiOutlineX style={{ fontSize: 16 }} />
-					</button>
-				</Modal.Header>
-				<Modal.Body className="p-3">
-					<div className="row mb-2 align-items-center">
-						<div className="col-md-2 me-0 pe-0">
-							<div className="text-muted f15 fw500">Select PR : </div>
-						</div>
-						<div className="col-md-6 ms-0 ps-0">
-							<div className="input-container d-flex">
-								<div className="flex-grow-1 me-2">
-									<input
-										type="text"
-										placeholder="Enter PR Number..."
-
-										className={`form-control ${inputError ? 'is-invalid' : ''}`}
-										value={inputValue}
-										onChange={(e) => {
-											setInputValue(e.target.value);
-											setInputError('');
-										}}
-									/>
-									{inputError && (
-										<div className="invalid-feedback f12 text-danger position-absolute">
-											{inputError}
-										</div>
-									)}
+				<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Pull Data From PR</span>
+						<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={handleClosePRModal}>
+							<HiOutlineX className="f20" />
+						</button>
+					</div>
+					<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'auto' }}>
+						<div className="row mb-2 align-items-center">
+							<div className="col-md-2 me-0 pe-0">
+								<div className="text-muted f15 fw500">Select PR :</div>
+							</div>
+							<div className="col-md-10 ms-0 ps-0">
+								<div className="d-flex">
+									<div className="flex-grow-1 me-4">
+										<input
+											type="text"
+											placeholder="Enter PR Number..."
+											className={`form-control ${inputError ? 'is-invalid' : ''}`}
+											value={inputValue}
+											onChange={(e) => {
+												setInputValue(e.target.value);
+												setInputError('');
+											}}
+										/>
+										{inputError && (
+											<div className="invalid-feedback f12 text-danger position-absolute">
+												{inputError}
+											</div>
+										)}
+									</div>
+									<button
+										className="btn btn-primary"
+										type="button"
+										onClick={handleFetchPRData}
+									>
+										Fetch Data
+									</button>
 								</div>
-								<button
-									className="btn btn-primary"
-									type="button"
-									onClick={handleFetchPRData}
-								>
-									Fetch Data
-								</button>
 							</div>
 						</div>
-					</div>
-					{selectedPRItemModal.length > 0 && (
-						<div style={{ height: 500 }} className="mt-4">
-							<DataGrid
+						<div style={{ height: 400 }} className="mt-3 flex-shrink-0">
+							<PETable
 								rows={selectedPRItemModal}
 								columns={prAuctioncolumn}
-								// pageSize={10}
 								checkboxSelection
 								onRowSelectionModelChange={(ids) => setSelectedItemsActive(ids)}
 								rowSelectionModel={selectedItemsActive}
 								rowHeight={40}
-								columnHeaderHeight={40}
-								className="f13 bg-white"
 								disableRowSelectionOnClick
 								isRowSelectable={(params) => !params.row.eventId}
-								sx={{
-									'& .MuiDataGrid-columnHeaders': {
-										backgroundColor: '#e8f0fe',
-										color: '#1a237e',
-										fontWeight: 'bold',
-										fontSize: '14px'
-									}
-								}}
-								pagination
 								pageSizeOptions={[10, 25, 50]}
-								initialState={{
-									pagination: { paginationModel: { pageSize: 10, page: 0 } },
-								}}
+								initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
 							/>
 						</div>
-					)}
+					</div>
 				</Modal.Body>
 			</Modal>
 			{isUploading && (

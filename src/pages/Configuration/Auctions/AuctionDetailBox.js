@@ -49,7 +49,7 @@ export default function AuctionDetailBox({
 	const hasEditPermission = permissionManager?.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.EDIT) ?? false;
 	const [subjectExpanded, setSubjectExpanded] = useState(false);
 	const [descExpanded, setDescExpanded] = useState(false);
-	const TRUNCATE_LEN = 170;
+	const TRUNCATE_LEN = 190;
 
 	const auctionTypeLabel = () => {
 		const t = auctionData?.bidTypeID;
@@ -168,7 +168,7 @@ export default function AuctionDetailBox({
 				</AccordionSummary>
 
 				<hr className='m-0 p-0 mx-2' />
-				<AccordionDetails className='p-2 pb-2'>
+				<AccordionDetails className='p-2 pb-2 mb-3'>
 					{/* Subject — full width with Read More */}
 					<div className='pb-1 mb-2'>
 						<div className='d-flex align-items-baseline'>
@@ -176,7 +176,7 @@ export default function AuctionDetailBox({
 							<span style={{ fontSize: '13px', fontWeight: 500, color: '#101828', wordBreak: 'break-word' }}>
 								{subjectExpanded || (auctionData?.subject?.length ?? 0) <= TRUNCATE_LEN
 									? auctionData?.subject
-									: auctionData?.subject?.slice(0, TRUNCATE_LEN) + '…'}
+									: auctionData?.subject?.slice(0, TRUNCATE_LEN + 5) + '…'}
 								{(auctionData?.subject?.length ?? 0) > TRUNCATE_LEN && (
 									<span
 										onClick={() => setSubjectExpanded(p => !p)}

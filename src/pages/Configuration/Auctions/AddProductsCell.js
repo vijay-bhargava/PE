@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { Autocomplete, Box, IconButton, InputAdornment, MenuItem, TextField, Tooltip, Typography } from '@mui/material'
-import { LoadingButton } from '@mui/lab'
+import {
+	Autocomplete, Box, IconButton, InputAdornment,
+	MenuItem, TextField, Tooltip, Typography
+} from '@mui/material'
 import { useStateValue } from '../../../store'
 import { Modal } from "react-bootstrap";
 import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { AuctionItemServiceAdd, AuctionItemServiceUpdate } from '../../../utils/common/utility';
-import AddUpdateUom from './AddUpdateUom';
+import AddUpdateUom from '../../../utils/common/AddUpdateUom';
 import { HiOutlineX } from 'react-icons/hi';
 import { sanitizeInput } from '../../../utils/common/santize';
 import { toast } from 'react-toastify';
@@ -21,16 +23,13 @@ import AddPrItemCategory from '../../../utils/common/AddPrItemCategory';
 import { UOMMasterList } from '../../../utils/commerciallibrary';
 import AddEditItemType from '../../../utils/common/AddEditITemType';
 
-const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleUomList, tempDataForItemService, action }) => {
+const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, tempDataForItemService, action }) => {
 	const [{ atoken, customerid, customersuffix }] = useStateValue();
 	const apiClient = new ApiClient(customersuffix);
-	console.log('itemEditTempData', itemEditTempData)
-	console.log('tempDataForItemService', tempDataForItemService)
 
 	const bidTypeIDs = tempDataForItemService[0]?.bidTypeID;
 	const bidSubTypeIds = tempDataForItemService[0]?.bidSubTypeId;
 	const hasBidClosingTypeS = Array.isArray(tempDataForItemService) && tempDataForItemService.some(item => item?.bidClosingType === 'S');
-	console.log('has a hasBidClosingTypeS', hasBidClosingTypeS)
 	const [loadingSubmit, setLoadingSubmit] = useState(false)
 	const [UomModal, setUomModal] = useState(false);
 	const [uom, setuom] = useState("");
@@ -67,12 +66,11 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 			targetPrice: itemEditTempData && itemEditTempData?.targetPrice ? itemEditTempData?.targetPrice : '',
 			quantity: itemEditTempData && itemEditTempData?.quantity ? itemEditTempData?.quantity : '',
 			uom: itemEditTempData && itemEditTempData?.uom ? itemEditTempData?.uom : '',
-			hidePrice: itemEditTempData && itemEditTempData?.hidePrice == true ? itemEditTempData?.hidePrice : false,
+			hidePrice: itemEditTempData && itemEditTempData?.hidePrice === true ? itemEditTempData?.hidePrice : false,
 			startPrice: itemEditTempData && itemEditTempData?.startPrice ? itemEditTempData?.startPrice : '',
-			showStartPrice: itemEditTempData && itemEditTempData?.showStartPrice == false ? itemEditTempData?.showStartPrice : true,
+			showStartPrice: itemEditTempData && itemEditTempData?.showStartPrice === false ? itemEditTempData?.showStartPrice : true,
 			ceilingPrice: itemEditTempData && itemEditTempData?.ceilingPrice ? itemEditTempData?.ceilingPrice : '',
 			decreamentOn: itemEditTempData && itemEditTempData?.decreamentOn ? itemEditTempData?.decreamentOn : 'A',
-			// maskL1Price: itemEditTempData && itemEditTempData?.maskL1Price ? itemEditTempData?.maskL1Price : false,
 			maskL1Price: itemEditTempData?.maskL1Price !== undefined
 				? itemEditTempData?.maskL1Price
 				: (tempDataForItemService[0]?.bidSubTypeId === 83 ? true : false),
@@ -100,18 +98,16 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 		},
 		validationSchema: validationSchema,
 		onSubmit: (values, { resetForm }) => {
-
-			console.log('values', values)
 			let finalItemBidDuration = values?.itemBidDuration !== '' && values?.itemBidDuration !== null ? values.itemBidDuration : 0;
 			let itemStDate = "0001-01-01T00:00:00";
 			let itemEndDate = "0001-01-01T00:00:00";
-			const isDecrementBid = (bidTypeIDs == 2 || bidTypeIDs == 3 || bidTypeIDs == 4 || bidTypeIDs == 6);
-			const isIncrementBid = (bidTypeIDs == 1 || bidTypeIDs == 5);
+			const isDecrementBid = (bidTypeIDs === 2 || bidTypeIDs === 3 || bidTypeIDs === 4 || bidTypeIDs === 6);
+			const isIncrementBid = (bidTypeIDs === 1 || bidTypeIDs === 5);
 			const minimumDelta = formik.values.minimumDelta;
-			const validatedDelta = isNaN(minimumDelta) || minimumDelta == "" ? 0 : parseFloat(minimumDelta);
+			const validatedDelta = isNaN(minimumDelta) || minimumDelta === "" ? 0 : parseFloat(minimumDelta);
 			if ((validatedDelta <= 0 || isNaN(validatedDelta)) && tempDataForItemService[0]?.bidSubTypeId !== 82) {
 				const bidTypeID = tempDataForItemService[0]?.bidTypeID;
-				const errorMessage = (bidTypeID == 1 || bidTypeID == 5)
+				const errorMessage = (bidTypeID === 1 || bidTypeID === 5)
 					? 'Minimum increment is required'
 					: 'Minimum decrement is required';
 
@@ -119,19 +115,17 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 				return;
 			}
 
-			if (formik.values.priceDecAmount <= 0 && tempDataForItemService[0]?.bidSubTypeId == 82) {
+			if (formik.values.priceDecAmount <= 0 && tempDataForItemService[0]?.bidSubTypeId === 82) {
 				formik.setFieldError('priceDecAmount', 'priceDecAmount cannot be less than 0');
 				return;
 			}
 
-			if ((formik.values.itemBidDuration < 1 || (isNaN(formik.values.itemBidDuration))) && tempDataForItemService[0]?.bidClosingType == 'S') {
+			if ((formik.values.itemBidDuration < 1 || (isNaN(formik.values.itemBidDuration))) && tempDataForItemService[0]?.bidClosingType === 'S') {
 				formik.setFieldError('itemBidDuration', 'item bid duration is required');
 				return;
 			}
 
 			if (bidSubTypeIds !== 82) {
-				// const isDecrementBid = (bidTypeIDs == 2 || bidTypeIDs == 3 || bidTypeIDs == 4 || bidTypeIDs == 6);
-				// const isIncrementBid = (bidTypeIDs == 1 || bidTypeIDs == 5);
 				const minDelta = parseFloat(values.minimumDelta);
 				const startPrice = parseFloat(values.startPrice);
 
@@ -144,15 +138,14 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 					return;
 				}
 
-				if (minDelta == startPrice && isDecrementBid) {
+				if (minDelta === startPrice && isDecrementBid) {
 					formik.setFieldError('minimumDelta', 'Minimum decrement should not equal to Start Unit Price');
 					return;
 				}
 
-				if (minDelta > 20 && values.decreamentOn == 'P') {
+				if (minDelta > 20 && values.decreamentOn === 'P') {
 					if (isDecrementBid) {
 						formik.setFieldError('minimumDelta', 'Minimum decrement should be less than 20%.');
-
 					} else if (isIncrementBid) {
 						formik.setFieldError('minimumDelta', 'Minimum increment should be less than 20%.');
 					}
@@ -160,8 +153,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 				}
 			}
 
-			if (bidSubTypeIds == 82) {
-
+			if (bidSubTypeIds === 82) {
 				const startPrice = parseFloat(values.startPrice);
 				const ceilingPrice = parseFloat(values.ceilingPrice);
 				const priceDecAmount = parseFloat(values.priceDecAmount);
@@ -175,26 +167,24 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 					}
 					return;
 				}
-				if (priceDecAmount > 20 && values.decreamentOn == 'P') {
+				if (priceDecAmount > 20 && values.decreamentOn === 'P') {
 					if (isDecrementBid) {
 						formik.setFieldError('minimumDelta', 'Minimum decrement should be less than 20%.');
-
 					} else if (isIncrementBid) {
 						formik.setFieldError('minimumDelta', 'Minimum increment should be less than 20%.');
 					}
 					return;
 				}
-				if (startPrice >= ceilingPrice && bidTypeIDs == 2) {
+				if (startPrice >= ceilingPrice && bidTypeIDs === 2) {
 					formik.setFieldError('startPrice', 'Start Price must be less than the Ceiling Price.');
 					return;
 				}
-				if (startPrice <= ceilingPrice && bidTypeIDs == 1) {
+				if (startPrice <= ceilingPrice && bidTypeIDs === 1) {
 					formik.setFieldError('startPrice', 'Start Price must be greater than the Floor Price.');
 					return;
 				}
 
-				if (bidTypeIDs == 2) {
-
+				if (bidTypeIDs === 2) {
 					const duration = Math.floor((ceilingPrice - startPrice) / priceDecAmount) + priceDecFrq;
 					if (duration < 1) {
 						toast.error(
@@ -206,8 +196,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 					}
 					finalItemBidDuration = duration > 0 ? duration : 0;
 				}
-				else if (bidTypeIDs == 1) {
-
+				else if (bidTypeIDs === 1) {
 					const duration = Math.floor((startPrice - ceilingPrice) / priceDecAmount) + priceDecFrq;
 					if (duration < 1) {
 						toast.error(
@@ -228,21 +217,21 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 				itemCode: sanitizeInput(values?.itemCode),
 				remarks: sanitizeInput(values?.remarks),
 				itemDesc: sanitizeInput(values?.itemDesc),
-				targetPrice: values?.targetPrice != '' ? values?.targetPrice : 0,
-				quantity: values?.quantity != '' ? values?.quantity : 0,
+				targetPrice: values?.targetPrice !== '' ? values?.targetPrice : 0,
+				quantity: values?.quantity !== '' ? values?.quantity : 0,
 				uom: values?.uom,
 				hidePrice: values?.hidePrice,
-				startPrice: values?.startPrice != '' ? values?.startPrice : 0,
+				startPrice: values?.startPrice !== '' ? values?.startPrice : 0,
 				showStartPrice: values?.showStartPrice,
-				ceilingPrice: values?.ceilingPrice != '' ? values?.ceilingPrice : 0,
+				ceilingPrice: values?.ceilingPrice !== '' ? values?.ceilingPrice : 0,
 				decreamentOn: values?.decreamentOn,
 				maskL1Price: values?.maskL1Price,
 				groupNo: values?.groupNo,
 				itemBidDuration: finalItemBidDuration,
 				itemStDate: itemStDate,
 				itemEndDate: itemEndDate,
-				minimumDelta: values?.minimumDelta != '' ? values?.minimumDelta : 0,
-				priceDecAmount: values?.priceDecAmount != '' ? values?.priceDecAmount : 0,
+				minimumDelta: values?.minimumDelta !== '' ? values?.minimumDelta : 0,
+				priceDecAmount: values?.priceDecAmount !== '' ? values?.priceDecAmount : 0,
 				priceDecFrq: values?.priceDecFrq,
 				hideVendor: values?.hideVendor,
 				itemStatus: values?.itemStatus,
@@ -258,23 +247,21 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 				itemFile: values?.itemFile,
 				poNumber: values?.poNumber,
 				poVendorName: sanitizeInput(values?.poVendorName),
-				poUnitRate: values?.poUnitRate != '' ? values?.poUnitRate : 0,
+				poUnitRate: values?.poUnitRate !== '' ? values?.poUnitRate : 0,
 				poDate: values?.poDate,
-				poValue: values?.poValue != '' ? values?.poValue : 0,
+				poValue: values?.poValue !== '' ? values?.poValue : 0,
 			};
 
-			console.log('data request', data)
 			setLoadingSubmit(true)
-			if (data && data?.id == 0) {
+			if (data && data?.id === 0) {
 				try {
 					AuctionItemServiceAdd(data, atoken).then((res) => {
 						setLoadingSubmit(false);
 						if (res && res > 0) {
-							callbackItemAdd(res, bidSubTypeIds == 82 ? finalItemBidDuration : null)
+							callbackItemAdd(res, bidSubTypeIds === 82 ? finalItemBidDuration : null)
 						}
 					});
 				} catch (error) {
-					console.error("Error during form submission:", error);
 					toast.error("An error occurred while saving the data. Please try again.", {
 						toastId: "itemdelete1_error"
 					});
@@ -284,7 +271,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 			else {
 				AuctionItemServiceUpdate(data, atoken).then((res) => {
 					if (res && res > 0) {
-						callbackItemAdd(res, bidSubTypeIds == 82 ? finalItemBidDuration : null)
+						callbackItemAdd(res, bidSubTypeIds === 82 ? finalItemBidDuration : null)
 					} else {
 						toast.error("An error occurred while updating the data. Please try again.", {
 							toastId: "itemdelete2_error"
@@ -298,12 +285,9 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 
 	const handleUomChange = (event, value) => {
 		if (value && value.id === "new") {
-			setUomModal(true); // Open modal to add a new UOM
+			setUomModal(true);
 		} else {
-			// Find the selected UOM in the UOMMaster list
 			const selectedOption = UOMMaster.find(option => option.uom === value?.uom);
-
-			// Set the selected UOM in both Formik and local state
 			formik.setFieldValue("uom", selectedOption?.uom || "");
 			setuom(selectedOption?.uom || "");
 		}
@@ -317,8 +301,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 		);
 
 		if (res) {
-
-			const lastElement = res.result[res.result.length - 1]; // Get the last element
+			const lastElement = res.result[res.result.length - 1];
 			if (lastElement) {
 				formik.setFieldValue("poNumber", lastElement?.poNumber);
 				formik.setFieldValue("poVendorName", lastElement?.vendorName);
@@ -328,7 +311,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 				formik.setFieldValue("poUnitRate", materialPONetPrice ? parseFloat(materialPONetPrice) : 0);
 			}
 		}
-
 	};
 
 	const [itemCatAllList, setItemCatAllList] = useState([]);
@@ -338,44 +320,36 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 	const [ItemTypeModal, setItemTypeModal] = useState(false);
 
 	const PullItemCateogory = () => {
-		var data = {
-			CustomerId: customerid,
-		};
+		var data = { CustomerId: customerid };
 		FindItemCategory(data, atoken).then((resp) => {
 			setItemCatAllList(resp);
 		});
 	};
 
 	const PullItemType = () => {
-
-		var data = {
-			CustomerId: customerid,
-			IsActive: true
-		};
+		var data = { CustomerId: customerid, IsActive: true };
 		FindItemType(data, atoken).then((resp) => {
-			// Ensure we only keep active item types
 			const list = Array.isArray(resp) ? resp.filter(r => r?.isActive) : [];
 			setItemTypeList(list);
 		});
 	};
 
-	const handleCategoryList = (array) => {
-		setItemCatAllList(array);
-	};
+	const handleCategoryList = (array) => setItemCatAllList(array);
 
 	const handleItemTypeList = (array) => {
-		// When receiving list updates (from modal), keep only active items
 		const list = Array.isArray(array) ? array.filter(a => a?.isActive) : [];
 		setItemTypeList(list);
 	};
 
 	const pullUOMMasterList = () => {
-		var data = {
-			CustomerId: customerid
-		};
+		var data = { CustomerId: customerid };
 		UOMMasterList(data, atoken).then((res) => {
 			setUOMMaster(res);
 		});
+	};
+
+	const handleUomList = (array) => {
+		setUOMMaster(Array.isArray(array) ? array : []);
 	};
 
 	const CloseCategoryModal = () => setCategoryModal(false);
@@ -387,7 +361,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 			setcategory("");
 		} else {
 			const selectedOption = itemCatAllList.find(option => option.categoryDescription === value?.categoryDescription);
-			// Set the Formik value and local state
 			formik.setFieldValue("itemCategory", selectedOption?.categoryDescription || "");
 			setcategory(selectedOption?.categoryDescription || "");
 		}
@@ -398,39 +371,29 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 			setItemTypeModal(true);
 			return;
 		}
-
-		// value may already be the selected option object from options
 		let selectedOption = null;
 		if (value && value.id !== undefined) {
 			selectedOption = value;
 		} else if (value && value?.itemType) {
 			selectedOption = itemTypeList?.find(option => option?.itemType === value?.itemType);
 		}
-
-		// Set the Formik value with both itemType and itemTypeId
 		formik.setFieldValue("itemType", selectedOption?.itemType || "");
 		formik.setFieldValue("itemTypeId", selectedOption?.id || "");
 	};
 
-	//file upload changes
 	const handleItemImageChange = (event) => {
 		const file = event.target.files[0];
 		UploadItemImage(file);
 	};
 
 	const UploadItemImage = async (file) => {
-		if (!file) {
-			return;
-		}
-		// Define the data object for upload
+		if (!file) return;
 		const data = {
 			RequestedBy: "customer",
 			EventType: "Auction",
 			CustomerId: customerid,
 			Description: "Itemimage",
 		};
-
-		// Upload the file to Azure and get the return path
 		try {
 			const url = await uploadFilesOnAzureURL(data, file, atoken);
 			formik.setFieldValue("itemImage", url)
@@ -438,62 +401,47 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 			formik.setFieldValue("itemImage", "")
 		}
 	}
+
 	const handleItemAttachmentChange = (event) => {
 		const file = event.target.files[0];
 		UploadItemAttachment(file);
 	};
 
 	const UploadItemAttachment = async (file) => {
-		if (!file) {
-			return;
-		}
+		if (!file) return;
 		const data = {
 			RequestedBy: "customer",
 			EventType: "Auction",
 			CustomerId: customerid,
 			Description: "Itemfile",
 		};
-
-		// Upload the file to Azure and get the return path
 		try {
 			const url = await uploadFilesOnAzure2(data, file, atoken);
 			formik.setFieldValue("itemFile", url.blobName)
 		} catch (error) {
-
 			formik.setFieldValue("itemFile", "")
 		}
 	}
 
+	const isDecrementBidType = bidTypeIDs === 1 || bidTypeIDs === 5;
 
 	return (
 		<div>
-			<form onSubmit={formik.handleSubmit} autoComplete="off">
+			<form id="add-product-form" onSubmit={formik.handleSubmit} autoComplete="off">
 				<div className='row mt-2'>
-					<input
-						id="itemimagefile"
-						className="d-none"
-						type="file"
-						accept="image/jpeg,image/gif,image/png"
-						onChange={handleItemImageChange}
-					/>
-					<input
-						id="itemattachmentfile"
-						className="d-none"
-						type="file"
-						onChange={handleItemAttachmentChange}
-					/>
+					<input id="itemimagefile" className="d-none" type="file" accept="image/jpeg,image/gif,image/png" onChange={handleItemImageChange} />
+					<input id="itemattachmentfile" className="d-none" type="file" onChange={handleItemAttachmentChange} />
+
 					<div className='col-12 col-md-6 mb-4'>
+						<label className="pe-field-label">Item/Service Name <span className="rfq-required-star">*</span></label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							id="itemName"
 							name="itemName"
-							label="Item/Service Name *"
+							placeholder="Enter item/service name"
 							onBlur={() => handleItemPOSearch(formik.values.itemName)}
 							inputProps={{ maxLength: 100 }}
 							value={formik.values.itemName}
@@ -511,18 +459,17 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 							}}
 						/>
 					</div>
+
 					<div className='col-12 col-md-6 mb-4'>
+						<label className="pe-field-label">Item Code</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							id="itemCode"
 							name="itemCode"
-							label="Item Code"
+							placeholder="Enter item code"
 							inputProps={{ maxLength: 50 }}
 							value={formik.values.itemCode}
 							onChange={formik.handleChange}
@@ -538,20 +485,18 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 						/>
 					</div>
 
-					<div className='col-12 col-md-12 mb-4'>
+					<div className='col-12 col-md-6 mb-4'>
+						<label className="pe-field-label">Description <span className="rfq-required-star">*</span></label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							multiline={true}
 							rows={3}
 							id="itemDesc"
 							name="itemDesc"
-							label="Description *"
+							placeholder="Enter description"
 							inputProps={{ maxLength: 2000 }}
 							value={formik.values.itemDesc}
 							onChange={formik.handleChange}
@@ -570,20 +515,18 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 						/>
 					</div>
 
-					<div className='col-12 col-md-12 mb-4'>
+					<div className='col-12 col-md-6 mb-4'>
+						<label className="pe-field-label">Remark</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							multiline={true}
 							rows={3}
 							id="remarks"
 							name="remarks"
-							label="Remark"
+							placeholder="Enter remark"
 							inputProps={{ maxLength: 2000 }}
 							value={formik.values.remarks}
 							onChange={formik.handleChange}
@@ -598,30 +541,24 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 							}}
 						/>
 					</div>
-					<div className={`col-12 ${tempDataForItemService[0]?.bidSubTypeId == 82 ? 'col-md-6' : 'col-md-4'} mb-4`}>
+
+					<div className={`col-12 ${tempDataForItemService[0]?.bidSubTypeId === 82 ? 'col-md-6' : 'col-md-4'} mb-4`}>
+						<label className="pe-field-label">Quantity <span className="rfq-required-star">*</span></label>
 						<TextField
-							InputLabelProps={{
-								shrink: true,
-							}}
 							fullWidth
 							variant="outlined"
 							size="small"
 							className='f14'
 							id="quantity"
 							name="quantity"
-							label="Quantity *"
+							placeholder="Enter quantity"
 							value={formik.values.quantity}
-							InputProps={{
-								step: 0.0001, // Set the step to 0.01 to allow for two decimal places
-								min: 0,
-								max: 100,
-							}}
+							InputProps={{ step: 0.0001, min: 0, max: 100 }}
 							type="number"
 							onChange={(e) => {
 								if (DecimalValueRegEx.test(e.target.value)) {
 									formik.setFieldValue("quantity", e.target.value);
-								}
-								else if (e.target.value === "") {
+								} else if (e.target.value === "") {
 									formik.setFieldValue("quantity", '');
 								}
 							}}
@@ -629,44 +566,22 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 							helperText={formik.touched.quantity && formik.errors.quantity}
 						/>
 					</div>
-					<div className={`col-12 ${tempDataForItemService[0]?.bidSubTypeId == 82 ? 'col-md-6' : 'col-md-4'} mb-4`}>
+
+					<div className={`col-12 ${tempDataForItemService[0]?.bidSubTypeId === 82 ? 'col-md-6' : 'col-md-4'} mb-4`}>
+						<label className="pe-field-label">UOM <span className="rfq-required-star">*</span></label>
 						<Autocomplete
 							id="uom"
 							name="uom"
 							size="small"
 							className="w-100 f14"
-							options={[
-								...UOMMaster,
-								{ uom: "ADD NEW", id: "new" },
-							]}
-							value={
-								UOMMaster.find(
-									(option) => option.uom === formik.values.uom
-								) || { uom: formik.values.uom }
-							}
+							options={[{ uom: "ADD NEW", id: "new" }, ...UOMMaster]}
+							value={UOMMaster.find((option) => option.uom === formik.values.uom) || { uom: formik.values.uom }}
 							getOptionLabel={(option) => option.uom ?? ""}
-							onOpen={() => {
-								if (UOMMaster.length === 0) {
-									pullUOMMasterList();
-								}
-							}}
+							onOpen={() => { if (UOMMaster.length === 0) pullUOMMasterList(); }}
 							onChange={handleUomChange}
-							disabled={!!itemEditTempData.itemRefId} // Disable if itemRefId exists
+							disabled={!!itemEditTempData.itemRefId}
 							renderOption={(props, option) => (
-								<Box
-									component="li"
-									{...props}
-									style={
-										option.id === "new"
-											? {
-												fontStyle: "italic",
-												color: "blue",
-												cursor: "pointer",
-												textDecoration: "underline",
-											}
-											: {}
-									}
-								>
+								<Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
 									{option.uom}
 								</Box>
 							)}
@@ -674,7 +589,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 								<TextField
 									variant="outlined"
 									{...params}
-									label="UOM *"
+									placeholder="Select UOM"
 									error={formik.touched.uom && Boolean(formik.errors.uom)}
 									helperText={formik.touched.uom && formik.errors.uom}
 								/>
@@ -684,13 +599,13 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 
 					{tempDataForItemService[0]?.bidSubTypeId !== 82 && (
 						<div className='col-12 col-md-4 mb-4'>
+							<label className="pe-field-label">{isDecrementBidType ? "Show H1 Price" : "Show L1 Price"} <span className="rfq-required-star">*</span></label>
 							<TextField
 								id='maskL1Price'
 								name="maskL1Price"
 								select
 								className="w-100 f14"
 								size="small"
-								label={tempDataForItemService[0]?.bidTypeID == 1 || tempDataForItemService[0]?.bidTypeID == 5 ? "Show H1 Price *" : "Show L1 Price *"}
 								variant="outlined"
 								value={formik?.values?.maskL1Price}
 								onChange={formik.handleChange}
@@ -701,314 +616,237 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 						</div>
 					)}
 
-					<div className='col-12 col-md-6 mb-4'>
+					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">Target Unit Price</label>
 						<TextField
 							id="targetPrice"
 							name="targetPrice"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							fullWidth
 							variant="outlined"
 							size="small"
 							className='f14'
-							label="Target Unit Price"
+							placeholder="Enter target price"
 							value={formik.values.targetPrice}
-							InputProps={{
-								step: 0.0001, // Set the step to 0.01 to allow for two decimal places
-								min: 0,
-								max: 100,
-							}}
+							InputProps={{ step: 0.0001, min: 0, max: 100 }}
 							type="number"
 							onChange={(e) => {
 								if (DecimalValueRegEx.test(e.target.value)) {
 									formik.setFieldValue("targetPrice", e.target.value);
-								}
-								else if (e.target.value === "") {
+								} else if (e.target.value === "") {
 									formik.setFieldValue("targetPrice", '');
 								}
 							}}
 						/>
 					</div>
 
-					<div className='col-12 col-md-6 mb-4'>
+					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">Show Target Price <span className="rfq-required-star">*</span></label>
 						<TextField
 							name="hidePrice"
 							id='hidePrice'
 							select
 							className="w-100 f14"
 							size="small"
-							label="Show Target Price *"
 							variant="outlined"
 							value={formik.values.hidePrice}
 							onChange={formik.handleChange}
 						>
-							<MenuItem value={true}>
-								Show
-							</MenuItem>
-							<MenuItem value={false}>
-								Hide
-							</MenuItem>
+							<MenuItem value={true}>Show</MenuItem>
+							<MenuItem value={false}>Hide</MenuItem>
 						</TextField>
 					</div>
 
-					<div className='col-12 col-md-6 mb-4'>
+					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">Start Unit Price <span className="rfq-required-star">*</span></label>
 						<TextField
 							id="startUnitPrice"
 							name="startUnitPrice"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							fullWidth
 							variant="outlined"
 							size="small"
 							className='f14'
-							label="Start Unit Price *"
+							placeholder="Enter start price"
 							value={formik?.values?.startPrice}
-							InputProps={{
-								step: 0.0001, // Set the step to 0.01 to allow for two decimal places
-								min: 0,
-								max: 100,
-							}}
+							InputProps={{ step: 0.0001, min: 0, max: 100 }}
 							type="number"
 							onChange={(e) => {
 								if (DecimalValueRegEx.test(e.target.value)) {
 									formik.setFieldValue("startPrice", e.target.value);
-								}
-								else if (e.target.value === "") {
+								} else if (e.target.value === "") {
 									formik.setFieldValue("startPrice", '');
 								}
 							}}
 							error={formik.touched.startPrice && Boolean(formik.errors.startPrice)}
 							helperText={formik.touched.startPrice && formik.errors.startPrice}
 						/>
-
 					</div>
 
-					<div className='col-12 col-md-6 mb-4'>
-						{tempDataForItemService[0]?.bidSubTypeId == 82 ? (
-							// Render ceilingPrice field if bidSubTypeId is 82
-							<TextField
-								id="ceilingPrice"
-								name="ceilingPrice"
-								InputLabelProps={{
-									shrink: true,
-								}}
-								fullWidth
-								variant="outlined"
-								size="small"
-								className='f14'
-								label={tempDataForItemService[0]?.bidTypeID == 1 || tempDataForItemService[0]?.bidTypeID == 5 ? "Floor Price *" : "Ceiling Price *"}
-								value={formik?.values?.ceilingPrice}
-								InputProps={{
-									step: 0.0001,
-									min: 0,
-									max: 100,
-								}}
-								type="number"
-								onChange={(e) => {
-									if (DecimalValueRegEx.test(e.target.value)) {
-										formik.setFieldValue("ceilingPrice", e.target.value);
-									}
-									else if (e.target.value === "") {
-										formik.setFieldValue("ceilingPrice", '');
-									}
-								}}
-							/>
-						) : (
-							<TextField
-								id='showStartPrice'
-								name="showStartPrice"
-								select
-								className="w-100 f14"
-								size="small"
-								label="Show Start Price *"
-								variant="outlined"
-								value={formik?.values?.showStartPrice}
-								onChange={formik.handleChange}
-							>
-								<MenuItem value={true}>
-									Show
-								</MenuItem>
-								<MenuItem value={false}>
-									Hide
-								</MenuItem>
-							</TextField>
-						)}
-					</div>
-					<div className='col-12 col-md-6 mb-4'>
+					<div className='col-12 col-md-4 mb-4'>
 						{tempDataForItemService[0]?.bidSubTypeId === 82 ? (
 							<>
+								<label className="pe-field-label">{isDecrementBidType ? "Floor Price" : "Ceiling Price"} <span className="rfq-required-star">*</span></label>
 								<TextField
-									id="priceDecAmount"
-									name="priceDecAmount"
-									InputLabelProps={{
-										shrink: true,
-									}}
+									id="ceilingPrice"
+									name="ceilingPrice"
 									fullWidth
 									variant="outlined"
 									size="small"
 									className='f14'
-									label={
-										tempDataForItemService[0]?.bidTypeID === 1 || tempDataForItemService[0]?.bidTypeID === 5
-											? "Price Decrement Amount *"
-											: "Price Increment Amount *"
-									}
-									value={formik?.values?.priceDecAmount}
-									InputProps={{
-										step: 0.0001, // Set the step to 0.01 to allow for two decimal places
-										min: 0,
-										//max: 100,
+									placeholder="Enter price"
+									value={formik?.values?.ceilingPrice}
+									InputProps={{ step: 0.0001, min: 0, max: 100 }}
+									type="number"
+									onChange={(e) => {
+										if (DecimalValueRegEx.test(e.target.value)) {
+											formik.setFieldValue("ceilingPrice", e.target.value);
+										} else if (e.target.value === "") {
+											formik.setFieldValue("ceilingPrice", '');
+										}
 									}}
+								/>
+							</>
+						) : (
+							<>
+								<label className="pe-field-label">Show Start Price <span className="rfq-required-star">*</span></label>
+								<TextField
+									id='showStartPrice'
+									name="showStartPrice"
+									select
+									className="w-100 f14"
+									size="small"
+									variant="outlined"
+									value={formik?.values?.showStartPrice}
+									onChange={formik.handleChange}
+								>
+									<MenuItem value={true}>Show</MenuItem>
+									<MenuItem value={false}>Hide</MenuItem>
+								</TextField>
+							</>
+						)}
+					</div>
+
+					<div className='col-12 col-md-4 mb-4'>
+						{tempDataForItemService[0]?.bidSubTypeId === 82 ? (
+							<>
+								<label className="pe-field-label">
+									{isDecrementBidType ? "Price Decrement Amount" : "Price Increment Amount"} <span className="rfq-required-star">*</span>
+								</label>
+								<TextField
+									id="priceDecAmount"
+									name="priceDecAmount"
+									fullWidth
+									variant="outlined"
+									size="small"
+									className='f14'
+									placeholder="Enter amount"
+									value={formik?.values?.priceDecAmount}
+									InputProps={{ step: 0.0001, min: 0 }}
 									type="number"
 									onChange={(e) => {
 										if (DecimalValueRegEx.test(e.target.value)) {
 											formik.setFieldValue("priceDecAmount", e.target.value);
-										}
-										else if (e.target.value === "") {
+										} else if (e.target.value === "") {
 											formik.setFieldValue("priceDecAmount", '');
 										}
 									}}
 								/>
 								{formik.errors.priceDecAmount && formik.touched.priceDecAmount && (
-									<div className="error error-red" style={{ fontSize: '12px' }}>
-										{formik.errors.priceDecAmount}
-									</div>
+									<div className="error error-red" style={{ fontSize: '12px' }}>{formik.errors.priceDecAmount}</div>
 								)}
 							</>
-
 						) : (
 							<>
+								<label className="pe-field-label">
+									{isDecrementBidType ? "Minimum Increment" : "Minimum Decrement"} <span className="rfq-required-star">*</span>
+								</label>
 								<TextField
 									id="minimumDelta"
 									name="minimumDelta"
-									InputLabelProps={{
-										shrink: true,
-									}}
 									fullWidth
 									variant="outlined"
 									size="small"
 									className='f14'
-									label={
-										tempDataForItemService[0]?.bidTypeID == 1 || tempDataForItemService[0]?.bidTypeID == 5
-											? "Minimum Increment *"
-											: "Minimum Decrement *"
-									}
+									placeholder="Enter value"
 									value={formik?.values?.minimumDelta}
-									InputProps={{
-										step: 0.0001, // Set the step to 0.01 to allow for two decimal places
-										min: 0,
-										//max: 100,
-									}}
+									InputProps={{ step: 0.0001, min: 0 }}
 									type="number"
 									onChange={(e) => {
 										if (DecimalValueRegEx.test(e.target.value)) {
 											formik.setFieldValue("minimumDelta", e.target.value);
-										}
-										else if (e.target.value === "") {
+										} else if (e.target.value === "") {
 											formik.setFieldValue("minimumDelta", '');
 										}
 									}}
 								/>
 								{formik.errors.minimumDelta && formik.touched.minimumDelta && (
-									<div className="error error-red" style={{ fontSize: '12px' }}>
-										{formik.errors.minimumDelta}
-									</div>
+									<div className="error error-red" style={{ fontSize: '12px' }}>{formik.errors.minimumDelta}</div>
 								)}
 							</>
 						)}
 					</div>
-					<div className='col-12 col-md-6 mb-4'>
-						{tempDataForItemService[0]?.bidSubTypeId == 82 ? (
-							<TextField
-								id="priceDecFrq"
-								name="priceDecFrq"
-								InputLabelProps={{
-									shrink: true,
-								}}
-								fullWidth
-								variant="outlined"
-								size="small"
-								className='f14'
-								label={tempDataForItemService[0]?.bidTypeID == 1 || tempDataForItemService[0]?.bidTypeID == 5 ? "Price Decrement Frequency (in mins)*" : "Price Increment Frequency (in mins)*"}
-								value={formik?.values?.priceDecFrq}
-								InputProps={{
-									min: 1,
-									max: 10,
-									step: 0,
-								}}
-								type="number"
-								onChange={(e) => {
-									const value = e.target.value;
-									//const regex = /^[1-9]$|^10$/;
-									if (DecimalValueRegEx.test(e.target.value)) {
-										formik.setFieldValue("priceDecFrq", value);
-									}
-									else if (e.target.value === "") {
-										formik.setFieldValue("priceDecFrq", 1);
-									}
-								}}
-							/>
+
+					<div className='col-12 col-md-4 mb-4'>
+						{tempDataForItemService[0]?.bidSubTypeId === 82 ? (
+							<>
+								<label className="pe-field-label">
+									{isDecrementBidType ? "Price Decrement Frequency (mins)" : "Price Increment Frequency (mins)"} <span className="rfq-required-star">*</span>
+								</label>
+								<TextField
+									id="priceDecFrq"
+									name="priceDecFrq"
+									fullWidth
+									variant="outlined"
+									size="small"
+									className='f14'
+									placeholder="Enter frequency"
+									value={formik?.values?.priceDecFrq}
+									InputProps={{ min: 1, max: 10, step: 0 }}
+									type="number"
+									onChange={(e) => {
+										const value = e.target.value;
+										if (DecimalValueRegEx.test(e.target.value)) {
+											formik.setFieldValue("priceDecFrq", value);
+										} else if (e.target.value === "") {
+											formik.setFieldValue("priceDecFrq", 1);
+										}
+									}}
+								/>
+							</>
 						) : (
-							<TextField
-								name="decreamentOn"
-								select
-								className="w-100 f14"
-								size="small"
-								label={tempDataForItemService[0]?.bidTypeID == 1 || tempDataForItemService[0]?.bidTypeID == 5 ? "Increment On *" : "Decrement On *"}
-								variant="outlined"
-								value={formik?.values?.decreamentOn}
-								onChange={formik.handleChange}
-							>
-								<MenuItem value='A'>
-									Amt
-								</MenuItem>
-								<MenuItem value='P'>
-									%age
-								</MenuItem>
-							</TextField>
+							<>
+								<label className="pe-field-label">{isDecrementBidType ? "Increment On" : "Decrement On"} <span className="rfq-required-star">*</span></label>
+								<TextField
+									name="decreamentOn"
+									select
+									className="w-100 f14"
+									size="small"
+									variant="outlined"
+									value={formik?.values?.decreamentOn}
+									onChange={formik.handleChange}
+								>
+									<MenuItem value='A'>Amt</MenuItem>
+									<MenuItem value='P'>%age</MenuItem>
+								</TextField>
+							</>
 						)}
 					</div>
+
 					<div className='col-12 col-md-6 col-lg-4 mb-3'>
+						<label className="pe-field-label">Item Category</label>
 						<Autocomplete
 							id="itemCategory"
 							name="itemCategory"
 							size="small"
-
 							className='w-100 f14'
 							sx={{ width: "100%" }}
-							options={[
-								...itemCatAllList,
-								{ categoryDescription: "ADD NEW", id: "new" },
-							]}
-							value={
-								itemCatAllList.find(
-									(option) => option.categoryDescription === formik.values.itemCategory
-								) || { categoryDescription: formik.values.itemCategory }
-							}
+							options={[{ categoryDescription: "ADD NEW", id: "new" }, ...itemCatAllList]}
+							value={itemCatAllList.find((option) => option.categoryDescription === formik.values.itemCategory) || { categoryDescription: formik.values.itemCategory }}
 							getOptionLabel={(option) => option.categoryDescription ?? ""}
-							onOpen={() => {
-								if (itemCatAllList.length === 0) {
-									PullItemCateogory();
-								}
-							}}
-							disabled={!!itemEditTempData.itemRefId} // Disable when itemRefId exists
+							onOpen={() => { if (itemCatAllList.length === 0) PullItemCateogory(); }}
+							disabled={!!itemEditTempData.itemRefId}
 							onChange={handleItemCategoryChange}
 							renderOption={(props, option) => (
-								<Box
-									component="li"
-									{...props}
-									style={
-										option.id === "new"
-											? {
-												fontStyle: "italic",
-												color: "blue",
-												cursor: "pointer",
-												textDecoration: "underline",
-											}
-											: {}
-									}
-								>
+								<Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
 									{option.categoryDescription}
 								</Box>
 							)}
@@ -1016,58 +854,32 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 								<TextField
 									variant="outlined"
 									{...params}
-									label="Item Category"
-									shrink={true}
+									placeholder="Select category"
 									error={formik.touched.itemCategory && Boolean(formik.errors.itemCategory)}
 									helperText={formik.touched.itemCategory && formik.errors.itemCategory}
 								/>
 							)}
 						/>
 					</div>
-					{/* added item type */}
+
 					<div className='col-12 col-md-6 col-lg-4 mb-3'>
+						<label className="pe-field-label">Item Type <span className="rfq-required-star">*</span></label>
 						<Autocomplete
 							id="itemType"
 							name="itemType"
 							size="small"
 							className='w-100 f14'
 							sx={{ width: "100%" }}
-							options={[
-								...itemTypeList,
-								{ itemType: "ADD NEW", id: "new" },
-							]}
-							value={
-								itemTypeList.find(
-									(option) => option.itemType === formik.values.itemType
-								) || (formik.values.itemType ? { itemType: formik.values.itemType } : null)
-							}
+							options={[{ itemType: "ADD NEW", id: "new" }, ...itemTypeList]}
+							value={itemTypeList.find((option) => option.itemType === formik.values.itemType) || (formik.values.itemType ? { itemType: formik.values.itemType } : null)}
 							isOptionEqualToValue={(option, value) =>
-								(option?.id !== undefined && value?.id !== undefined)
-									? option.id === value.id
-									: option.itemType === value?.itemType
+								(option?.id !== undefined && value?.id !== undefined) ? option.id === value.id : option.itemType === value?.itemType
 							}
 							getOptionLabel={(option) => option?.itemType ?? ""}
-							onOpen={() => {
-								if (itemTypeList.length === 0) {
-									PullItemType();
-								}
-							}}
+							onOpen={() => { if (itemTypeList.length === 0) PullItemType(); }}
 							onChange={handleItemTypeChange}
 							renderOption={(props, option) => (
-								<Box
-									component="li"
-									{...props}
-									style={
-										option.id === "new"
-											? {
-												fontStyle: "italic",
-												color: "blue",
-												cursor: "pointer",
-												textDecoration: "underline",
-											}
-											: {}
-									}
-								>
+								<Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
 									{option.itemType}
 								</Box>
 							)}
@@ -1075,31 +887,29 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 								<TextField
 									variant="outlined"
 									{...params}
-									label="Item Type *"
-									shrink={true}
+									placeholder="Select item type"
 									error={formik.touched.itemType && Boolean(formik.errors.itemType)}
 									helperText={formik.touched.itemType && formik.errors.itemType}
 								/>
 							)}
 						/>
 					</div>
+
 					<div className='col-6 col-md-6 col-lg-4 mb-3'>
+						<label className="pe-field-label">Delivery Location</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							multiline={true}
 							id="plant"
 							name="plant"
-							label="Delivery Location"
+							placeholder="Enter delivery location"
 							inputProps={{ maxLength: 100 }}
 							value={formik?.values?.plant}
 							onChange={formik.handleChange}
-							disabled={!!itemEditTempData.itemRefId} // Disable when itemRefId exists
+							disabled={!!itemEditTempData.itemRefId}
 							InputProps={{
 								endAdornment: formik?.values?.plant && (
 									<InputAdornment position="end">
@@ -1111,11 +921,12 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 							}}
 						/>
 					</div>
+
 					<div className='col-6 col-md-6 col-lg-4 mb-3'>
+						<label className="pe-field-label">Delivery Date</label>
 						<LocalizationProvider dateAdapter={AdapterDateFns}>
 							<MobileDatePicker
 								variant="outlined"
-								label="Delivery Date"
 								size="small"
 								name='deliveryDate'
 								id='deliveryDate'
@@ -1123,126 +934,105 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 								value={formik.values.deliveryDate}
 								className='w-100 f14'
 								slotProps={{
-									textField: {
-										variant: 'outlined', size: 'small',
-										InputLabelProps: { shrink: true },
-									}
+									textField: { variant: 'outlined', size: 'small', placeholder: 'Select date' }
 								}}
-								onChange={newValue => {
-									formik.setFieldValue('deliveryDate', newValue);
-								}}
+								onChange={newValue => { formik.setFieldValue('deliveryDate', newValue); }}
 							/>
 						</LocalizationProvider>
-
 					</div>
+
 					<div className='col-6 col-md-6 col-lg-4 mb-3'>
+						<label className="pe-field-label">Item Image</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14 pointer'
 							id="itemImage"
 							name="itemImage"
-							label="Item Image "
-							inputProps={{
-								maxLength: 50,
-								pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
-							}}
+							placeholder="Upload image"
+							inputProps={{ maxLength: 50, pattern: '[a-zA-Z0-9-/]*' }}
 							value={getFileName(formik?.values?.itemImage)}
 							disabled={true}
 							InputProps={{
 								endAdornment: (
 									<>
-										{!formik?.values?.itemImage ? <Tooltip title="Upload Image" className='pointer'>
-											<InputAdornment position="end" >
-												<IconButton onClick={() => document.getElementById('itemimagefile').click()
-												}>
-													<UploadOutlined />
-												</IconButton>
-											</InputAdornment>
-										</Tooltip> : <Tooltip title="remove Image" className='pointer'>
-											<InputAdornment position="end">
-												<IconButton onClick={() => formik.setFieldValue("itemImage", "")}>
-													<HiOutlineX />
-												</IconButton>
-											</InputAdornment>
-										</Tooltip>}
+										{!formik?.values?.itemImage ? (
+											<Tooltip title="Upload Image" className='pointer'>
+												<InputAdornment position="end">
+													<IconButton onClick={() => document.getElementById('itemimagefile').click()}>
+														<UploadOutlined />
+													</IconButton>
+												</InputAdornment>
+											</Tooltip>
+										) : (
+											<Tooltip title="Remove Image" className='pointer'>
+												<InputAdornment position="end">
+													<IconButton onClick={() => formik.setFieldValue("itemImage", "")}>
+														<HiOutlineX />
+													</IconButton>
+												</InputAdornment>
+											</Tooltip>
+										)}
 									</>
 								),
 							}}
 						/>
 					</div>
+
 					<div className='col-6 col-md-6 col-lg-4 mb-3'>
+						<label className="pe-field-label">Item Attachment</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							id="itemAttachment"
 							name="itemAttachment"
-							label="Item Attachment "
-							inputProps={{
-								maxLength: 50,
-								pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
-							}}
+							placeholder="Upload attachment"
+							inputProps={{ maxLength: 50, pattern: '[a-zA-Z0-9-/]*' }}
 							value={getFileName(formik.values.itemFile)}
-
-
 							disabled={true}
 							InputProps={{
 								endAdornment: (
 									<>
-										{!formik?.values?.itemFile ? <Tooltip title="Upload Attachment" className='pointer'>
-											<InputAdornment position="end"  >
-												<IconButton onClick={() => document.getElementById('itemattachmentfile').click()
-												}>
-													<UploadOutlined />
-												</IconButton>
-
-											</InputAdornment>
-										</Tooltip> : <Tooltip title="Remove Attachment" className='pointer'>
-											<InputAdornment position="end" >
-												<IconButton onClick={() => formik.setFieldValue("itemFile", "")}>
-													<HiOutlineX />
-												</IconButton>
-
-											</InputAdornment>
-										</Tooltip>}
+										{!formik?.values?.itemFile ? (
+											<Tooltip title="Upload Attachment" className='pointer'>
+												<InputAdornment position="end">
+													<IconButton onClick={() => document.getElementById('itemattachmentfile').click()}>
+														<UploadOutlined />
+													</IconButton>
+												</InputAdornment>
+											</Tooltip>
+										) : (
+											<Tooltip title="Remove Attachment" className='pointer'>
+												<InputAdornment position="end">
+													<IconButton onClick={() => formik.setFieldValue("itemFile", "")}>
+														<HiOutlineX />
+													</IconButton>
+												</InputAdornment>
+											</Tooltip>
+										)}
 									</>
 								),
 							}}
 						/>
 					</div>
+
 					{hasBidClosingTypeS && (
 						<div className="col-12 col-md-4 mb-4">
+							<label className="pe-field-label">Bid Duration (mins) <span className="rfq-required-star">*</span></label>
 							<TextField
 								name="itemBidDuration"
 								id="itemBidDuration"
 								className="w-100 f14"
 								size="small"
-								label="Bid Duration (in mins) *"
 								variant="outlined"
+								placeholder="Enter duration"
 								value={formik?.values?.itemBidDuration || ''}
-								//type='number'
-								inputProps={{
-									maxLength: 7,
-									inputMode: 'numeric',
-									pattern: "[0-9]*"
-								}}
+								inputProps={{ maxLength: 7, inputMode: 'numeric', pattern: "[0-9]*" }}
 								onKeyDown={(e) => {
-									if (
-										!/[0-9]/.test(e.key) &&
-										e.key !== 'Backspace' &&
-										e.key !== 'ArrowLeft' &&
-										e.key !== 'ArrowRight' &&
-										e.key !== 'Tab'
-									) {
+									if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Tab') {
 										e.preventDefault();
 									}
 								}}
@@ -1252,31 +1042,27 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 								}}
 							/>
 							{formik.errors.itemBidDuration && formik.touched.itemBidDuration && (
-								<div className="error error-red" style={{ fontSize: '12px' }}>
-									{formik.errors.itemBidDuration}
-								</div>
+								<div className="error error-red" style={{ fontSize: '12px' }}>{formik.errors.itemBidDuration}</div>
 							)}
 						</div>
 					)}
-
 				</div>
+
 				<hr className='mt-0' />
+
 				<div className='row mt-2'>
-					<div className='col-span-12 mt-4 mb-4'>
-						Last PO Details (Optional)
-					</div>
+					<div className='col-span-12 mt-4 mb-4'>Last PO Details (Optional)</div>
+
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">PO Number</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							id="poNumber"
 							name="poNumber"
-							label="PO Number"
+							placeholder="Enter PO number"
 							inputProps={{ maxLength: 20 }}
 							value={formik?.values?.poNumber}
 							onChange={formik.handleChange}
@@ -1291,35 +1077,33 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 							}}
 						/>
 					</div>
+
 					<div className='col-12 col-md-8 mb-4'>
+						<label className="pe-field-label">Vendor Name</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							id="poVendorName"
 							name="poVendorName"
-							label="Vendor Name"
+							placeholder="Enter vendor name"
 							inputProps={{ maxLength: 100 }}
 							value={formik.values.poVendorName}
 							onChange={formik.handleChange}
 						/>
 					</div>
+
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">Unit Rate</label>
 						<TextField
-							InputLabelProps={{
-								shrink: true,
-							}}
 							fullWidth
 							variant="outlined"
 							size="small"
 							className='f14'
 							id="poUnitRate"
 							name="poUnitRate"
-							label="Unit Rate "
+							placeholder="Enter unit rate"
 							value={formik.values.poUnitRate}
 							type="number"
 							onChange={(e) => {
@@ -1330,40 +1114,35 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 							}}
 						/>
 					</div>
+
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">PO Date</label>
 						<LocalizationProvider dateAdapter={AdapterDateFns}>
 							<MobileDatePicker
 								variant="outlined"
-								label="PO Date"
 								size="small"
 								name='poDate'
 								id='poDate'
 								value={formik.values.poDate}
 								className='w-100 f14'
 								slotProps={{
-									textField: {
-										variant: 'outlined', size: 'small',
-										InputLabelProps: { shrink: true },
-									}
+									textField: { variant: 'outlined', size: 'small', placeholder: 'Select date' }
 								}}
-								onChange={newValue => {
-									formik.setFieldValue('poDate', newValue);
-								}}
+								onChange={newValue => { formik.setFieldValue('poDate', newValue); }}
 							/>
 						</LocalizationProvider>
 					</div>
+
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">PO Value</label>
 						<TextField
-							InputLabelProps={{
-								shrink: true,
-							}}
 							fullWidth
 							variant="outlined"
 							size="small"
 							className='f14'
 							id="poValue"
 							name="poValue"
-							label="PO Value"
+							placeholder="Enter PO value"
 							value={formik.values.poValue}
 							type="number"
 							onChange={(e) => {
@@ -1375,96 +1154,45 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, handleU
 						/>
 					</div>
 				</div>
-				{action && <div className='text-end'>
-					<LoadingButton
-						variant='outlined'
-						onClick={() => formik.resetForm()}
-						color='primary'
-						className='me-3 text-capitalize'
-						size='small'
-					>
-						Reset
-					</LoadingButton>
-					<LoadingButton
-						loading={loadingSubmit}
-						variant='contained'
-						type="submit"
-						color='primary'
-						className='text-capitalize'
-						size='small'
-					>
-						{itemEditTempData && itemEditTempData?.id > 0 ? 'Update' : 'Add'}
-					</LoadingButton>
-				</div>}
-				<Modal
-					size="lg"
-					show={UomModal}
-					backdrop="static"
-					keyboard={false}
-					value={"Add NEW CATEGORY"}
-					className="rfq-create-modal zindex1280"
-					backdropClassName="zindex1280"
-					centered
-					contentClassName="border-0 rounded-default"
-					onHide={() => CloseUomModal()}
-				>
-					<Modal.Header className="pt-2 pb-2">
-						<Modal.Title><span style={{ fontSize: 14 }}>Manage UOM</span></Modal.Title>
-						<button type="button" className="rfq-modal-close-btn" onClick={() => CloseUomModal()}>
-							<HiOutlineX style={{ fontSize: 16 }} />
-						</button>
-					</Modal.Header>
-					<Modal.Body className="p-0">
-						<div className="p-3">
-							<AddUpdateUom handleUomList={handleUomList} />
+
+
+				<Modal size="lg" show={UomModal} backdrop="static" keyboard={false} className="zindex1400" backdropClassName="zindex1400" centered contentClassName="border-0" onHide={() => CloseUomModal()}>
+					<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+						<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+							<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage UOM</span>
+							<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseUomModal()}>
+								<HiOutlineX className="f20" />
+							</button>
+						</div>
+						<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+							<AddUpdateUom handleUomList={handleUomList} isModal={true} />
 						</div>
 					</Modal.Body>
 				</Modal>
-				<Modal
-					size="lg"
-					show={CategoryModal}
-					backdrop="static"
-					keyboard={false}
-					value={"Add NEW CATEGORY"}
-					className="rfq-create-modal zindex1280"
-					backdropClassName="zindex1280"
-					centered
-					contentClassName="border-0 rounded-default"
-					onHide={() => CloseCategoryModal()}
-				>
-					<Modal.Header className="pt-2 pb-2">
-						<Modal.Title><span style={{ fontSize: 14 }}>Manage Category</span></Modal.Title>
-						<button type="button" className="rfq-modal-close-btn" onClick={() => CloseCategoryModal()}>
-							<HiOutlineX style={{ fontSize: 16 }} />
-						</button>
-					</Modal.Header>
-					<Modal.Body className="p-0">
-						<div className="p-3">
+
+				<Modal size="lg" show={CategoryModal} backdrop="static" keyboard={false} className="zindex1400" backdropClassName="zindex1400" centered contentClassName="border-0" onHide={() => CloseCategoryModal()}>
+					<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+						<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+							<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Item Category</span>
+							<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseCategoryModal()}>
+								<HiOutlineX className="f20" />
+							</button>
+						</div>
+						<div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
 							<AddPrItemCategory handleCategoryList={handleCategoryList} isModal={true} />
 						</div>
 					</Modal.Body>
 				</Modal>
-				{/* modal for item type */}
-				<Modal
-					size="lg"
-					show={ItemTypeModal}
-					backdrop="static"
-					keyboard={false}
-					value={"Add NEW ITEM TYPE"}
-					className="rfq-create-modal zindex1280"
-					backdropClassName="zindex1280"
-					centered
-					contentClassName="border-0 rounded-default"
-					onHide={() => CloseItemTypeModal()}
-				>
-					<Modal.Header className="pt-2 pb-2">
-						<Modal.Title><span style={{ fontSize: 14 }}>Manage Item Type</span></Modal.Title>
-						<button type="button" className="rfq-modal-close-btn" onClick={() => CloseItemTypeModal()}>
-							<HiOutlineX style={{ fontSize: 16 }} />
-						</button>
-					</Modal.Header>
-					<Modal.Body className="p-0">
-						<div className="p-3">
+
+				<Modal size="lg" show={ItemTypeModal} backdrop="static" keyboard={false} className="zindex1400" backdropClassName="zindex1400" centered contentClassName="border-0" onHide={() => CloseItemTypeModal()}>
+					<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+						<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+							<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Item Type</span>
+							<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseItemTypeModal()}>
+								<HiOutlineX className="f20" />
+							</button>
+						</div>
+						<div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
 							<AddEditItemType handleItemTypeList={handleItemTypeList} isModal={true} />
 						</div>
 					</Modal.Body>

@@ -20,7 +20,7 @@ const AuctionsV2 = ({ claimType, bidtype }) => {
   const [{ eventCode }] = useStateValue();
 
   const isNew = !pageSlug || pageSlug === 'add';
-  const fallbackCrumbLabel = isNew ? 'Auction' : `Auction-${eventCode}`;
+  const fallbackCrumbLabel = isNew ? 'Auction' : (isDisplayableAuctionCode(eventCode) ? `Auction-${normalizeAuctionCode(eventCode)}` : 'Auction');
 
   const [stableEventCode, setStableEventCode] = useState(() =>
     isDisplayableAuctionCode(eventCode) ? normalizeAuctionCode(eventCode) : ''
