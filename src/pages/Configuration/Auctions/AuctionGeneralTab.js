@@ -590,8 +590,8 @@ const AuctionGeneralTab = ({
 																				id={"baseCurrency" + i}
 																				name="baseCurrency"
 																				options={[
+																					{ currencyNm: "ADD NEW", id: "new" },
 																					...(currencyList?.filter(cl => cl.currencyNm !== (userDetail?.defaultCurrency || "INR")) || []),
-																					{ currencyNm: "Add New", id: "new" }
 																				]}
 																				getOptionLabel={(option) => option.currencyNm ?? ''}
 																				disabled={!hasEditPermission}
@@ -630,16 +630,7 @@ const AuctionGeneralTab = ({
 																						component="li"
 																						{...props}
 																						key={option.id || option.currencyNm}
-																						style={
-																							option.id === "new"
-																								? {
-																									fontStyle: "italic",
-																									color: "blue",
-																									cursor: "pointer",
-																									textDecoration: "underline",
-																								}
-																								: {}
-																						}
+																						className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}
 																					>
 																						{option.currencyNm}
 																					</Box>

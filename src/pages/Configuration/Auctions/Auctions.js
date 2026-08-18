@@ -3864,110 +3864,75 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					</button>
 				</Modal.Header>
 				<Modal.Body className="p-0">
-					<div className="p-2">
-						<div className="row">
-							<div className="col-12 col-lg-12 mt-2 ">
-								<form>
-									<div className="row">
-										<div className="col-12">
-											<div className="row">
-												<div className="col-12 col-lg-12 mt-3">
-													{commcurrencyList?.map((x, i) => (
-														<div
-															className="row d-flex align-items-center w-100 mb-3"
-															key={i}
-														>
-															<div className="col-lg-4 col-12">
-																<TextField
-																	id={x.baseCurrency}
-																	InputLabelProps={{
-																		shrink: true,
-																	}}
-																	name="baseCurrency"
-																	select
-																	className="w-100 f14"
-																	size="small"
-																	label="Select Currency *"
-																	variant="outlined"
-																	value={x.baseCurrency}
-																	onChange={(e) => {
-																		if (e.target.value === "new") {
-																			setOpenCurrencyModal(true);
-																			return;
-																		}
-																		handleCurrencyInputChange(e, i);
-																	}}
-																>
-																	<MenuItem value="new" style={{ fontStyle: 'italic', color: 'blue', cursor: 'pointer', textDecoration: 'underline' }}>
-																		Add New
-																	</MenuItem>
-																	{currencyList &&
-																		currencyList.map((option) => (
-																			<MenuItem
-																				key={option.id}
-																				disabled={inputList?.some(
-																					(item) =>
-																						item.baseCurrency ===
-																						option.currencyNm
-																				)}
-																				value={option?.currencyNm}
-																			>
-																				{option?.currencyNm}
-																			</MenuItem>
-																		))}
-																</TextField>
-															</div>
-															<div className="col-lg-4 col-12">
-																<TextField
-																	variant="outlined"
-																	InputLabelProps={{
-																		shrink: true,
-																	}}
-																	className="w-100"
-																	required
-																	type="number"
-																	id={x.currencyConversion}
-																	label="Enter currency conversion factor"
-																	value={x.currencyConversion}
-																	size="small"
-																	name="currencyConversion"
-																	placeholder=""
-																	onChange={(e) =>
-																		handleCurrencyInputChange(e, i)
-																	}
-																/>
-															</div>
-															<div className="col-lg-4 d-flex justify-content-end">
-																<Button
-																	color="primary"
-																	variant="text"
-
-
-																	size="small"
-																	onClick={handlecurrencytermmodal}
-																>
-																	Submit
-																</Button>
-																<Button
-																	color="error"
-																	variant="text"
-																	onClick={() => handleCloseModal1()}
-
-																	size="small"
-																>
-																	Cancel
-																</Button>
-															</div>
-
-														</div>
-													))}
-												</div>
-											</div>
-										</div>
+					<div className="p-3">
+						<form onSubmit={(e) => e.preventDefault()}>
+							{commcurrencyList?.map((x, i) => (
+								<div className="row g-3 align-items-start mb-3" key={i}>
+									<div className="col-12 col-md-6">
+										<label className="pe-field-label">Select Currency <span className="rfq-required-star">*</span></label>
+										<TextField
+											id={x.baseCurrency}
+											name="baseCurrency"
+											select
+											className="w-100"
+											size="small"
+											variant="outlined"
+											value={x.baseCurrency}
+											onChange={(e) => {
+												if (e.target.value === "new") {
+													setOpenCurrencyModal(true);
+													return;
+												}
+												handleCurrencyInputChange(e, i);
+											}}
+										>
+											<MenuItem value="new" style={{ fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}>
+												ADD NEW
+											</MenuItem>
+											{currencyList &&
+												currencyList.map((option) => (
+													<MenuItem
+														key={option.id}
+														disabled={inputList?.some(
+															(item) =>
+																item.baseCurrency ===
+																option.currencyNm
+														)}
+														value={option?.currencyNm}
+													>
+														{option?.currencyNm}
+													</MenuItem>
+												))}
+										</TextField>
 									</div>
-								</form>
+									<div className="col-12 col-md-6">
+										<label className="pe-field-label">Currency Conversion Factor <span className="rfq-required-star">*</span></label>
+										<TextField
+											variant="outlined"
+											className="w-100"
+											required
+											type="number"
+											id={x.currencyConversion}
+											value={x.currencyConversion}
+											size="small"
+											name="currencyConversion"
+											placeholder="e.g. 1"
+											onChange={(e) =>
+												handleCurrencyInputChange(e, i)
+											}
+										/>
+									</div>
+								</div>
+							))}
+							<div className="d-flex justify-content-end gap-2 pt-2 mt-2 border-top">
+								<button type="button" className="pe-btn pe-btn--ghost" onClick={() => handleCloseModal1()}>
+									Cancel
+								</button>
+								<button type="button" className="pe-btn pe-btn--primary" onClick={handlecurrencytermmodal}>
+									Submit
+								</button>
 							</div>
-						</div>
+						</form>
 					</div>
 				</Modal.Body>
 			</Modal>
@@ -4517,20 +4482,20 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					show={OpenCurrencyModal}
 					backdrop="static"
 					keyboard={false}
-					className="rfq-create-modal zindex1280"
-					backdropClassName="zindex1280"
+					className="zindex1400"
+					backdropClassName="zindex1400"
 					centered
-					contentClassName="border-0 rounded-default"
+					contentClassName="border-0"
 					onHide={() => CloseCurrencyModal()}
 				>
-					<Modal.Header className="pt-2 pb-2">
-						<Modal.Title><span style={{ fontSize: 14 }}>Manage Currency</span></Modal.Title>
-						<button type="button" className="rfq-modal-close-btn" onClick={() => CloseCurrencyModal()}>
-							<HiOutlineX style={{ fontSize: 16 }} />
-						</button>
-					</Modal.Header>
-					<Modal.Body className="p-0">
-						<div className="p-3">
+					<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+						<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+							<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Currency</span>
+							<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseCurrencyModal()}>
+								<HiOutlineX className="f20" />
+							</button>
+						</div>
+						<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
 							<AddEditCurrency handleCurrencyList={handleCurrencyList} />
 						</div>
 					</Modal.Body>

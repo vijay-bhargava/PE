@@ -89,15 +89,6 @@ const BidGeneralPreview = ({ formik, inputList, bidtype, stagearray, currentStag
   return (
     <Box>
       <div className="rfq-dv2-overview">
-        {canEditOverview && (
-          <IconButton
-            className="rfq-dv2-overview-edit"
-            size="small"
-            onClick={() => handletabEdit(1)}
-          >
-            <HiPencilAlt className="f17 text-primary" />
-          </IconButton>
-        )}
 
         {rows.map(([label, detail]) => (
           <div className="rfq-dv2-detail-row" key={label}>
