@@ -1,22 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Autocomplete,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  Radio,
-  RadioGroup,
-  TextField,
-  Tooltip,
+  Autocomplete, FormControl, FormControlLabel,
+  Radio, RadioGroup, TextField, Tooltip,
 } from '@mui/material';
 import {
-  AddOutlined,
-  FileDownloadOutlined,
-  FilterListOutlined,
-  KeyboardArrowDownOutlined,
-  SearchOutlined,
-  TuneOutlined,
-  ViewColumnOutlined,
+  AddOutlined, FileDownloadOutlined, FilterListOutlined,
+  KeyboardArrowDownOutlined, SearchOutlined, TuneOutlined, ViewColumnOutlined,
 } from '@mui/icons-material';
 import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
 import { HiOutlineX, HiPencilAlt } from 'react-icons/hi';
@@ -468,16 +457,26 @@ const ManageBidV2 = () => {
           <div style={{ overflow: 'visible' }}>
             {!hideGavel && (
               <Tooltip title="Manage" arrow>
-                <IconButton color="primary" size="small" onClick={() => navigateToPage(params.row)}>
-                  <GavelOutlinedIcon style={{ fontSize: 18 }} />
-                </IconButton>
+                <button
+                  type="button"
+                  className="pe-icon-btn pe-icon-btn--edit"
+                  aria-label="Auction"
+                  onClick={() => navigateToPage(params.row)}
+                >
+                  <GavelOutlinedIcon />
+                </button>
               </Tooltip>
             )}
             {!hideEdit && hideGavel && (
               <Tooltip title={params?.row?.stage === 'Draft' ? 'Edit' : 'Manage'} arrow>
-                <IconButton color="primary" size="small" onClick={() => navigateToPage(params.row)}>
-                  <HiPencilAlt style={{ fontSize: 18 }} />
-                </IconButton>
+                <button
+                  type="button"
+                  className="pe-icon-btn pe-icon-btn--edit"
+                  aria-label="Edit Auction"
+                  onClick={() => navigateToPage(params.row)}
+                >
+                  <HiPencilAlt />
+                </button>
               </Tooltip>
             )}
           </div>

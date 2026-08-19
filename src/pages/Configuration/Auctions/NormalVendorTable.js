@@ -71,11 +71,11 @@ const NormalVendorTable = ({ auctionItem }) => {
 									{auctionItem?.prebidValues.find(i => i.createdById === sq.vendorId && i.bidParameterId === sq.bidParameterId)?.restrictRemarks
 										|| sq?.restrictRemarks
 										|| (sq?.initialPrice > 0 ? auctionItem?.thousands_separators(sq.initialPrice) : (sq.initialPrice === null && sq.id > 0 ? 'Quoted' : 'Not Participated'))}
-								</span>
+								</span>{" "}
 								{sq?.restrictRemarks && !((auctionItem?.auctionManageData[0]?.stage && auctionItem?.auctionManageData[0]?.stage !== "Open") || auctionItem?.bidStatus === "running") && (
 									<Tooltip title="Remove Restrict Remark">
 										<span>
-											<HiX size={16} className="text-danger" style={{ cursor: 'pointer', marginLeft: 4 }} onClick={() => auctionItem?.handleRemoveRestrictRemarks(sq?.id)} />
+											<button className="pe-icon-btn pe-icon-btn--close" onClick={() => auctionItem?.handleRemoveRestrictRemarks(sq?.id)}><HiX className="text-danger" style={{ cursor: 'pointer', marginLeft: 4 }} /></button>
 										</span>
 									</Tooltip>
 								)}
@@ -111,15 +111,15 @@ const NormalVendorTable = ({ auctionItem }) => {
 						</span>
 						{sq.rankValue !== null && auctionItem?.bidStatus !== null && !auctionItem?.auctionManageData[0]?.hideVendor && sq.quotedPrice !== null && sq.quotedPrice !== undefined && (
 							<Tooltip title="Remove Quote">
-								<span><HiX size={18} className="text-danger" style={{ cursor: 'pointer', marginLeft: 4 }} onClick={() => auctionItem?.handleOpenModalRemoveQuote(sq?.quotedPrice, sq?.id)} /></span>
+								<button className="pe-icon-btn pe-icon-btn--close" onClick={() => auctionItem?.handleOpenModalRemoveQuote(sq?.quotedPrice, sq?.id)}><HiX /></button>
 							</Tooltip>
 						)}
 						{canEdit && (
-							<HiPencilAlt
-								className="text-primary"
+							<button
+								className="pe-icon-btn pe-icon-btn--edit"
 								style={{ marginLeft: 4, cursor: hasRestrict ? 'not-allowed' : 'pointer', pointerEvents: hasRestrict ? 'none' : 'auto' }}
 								onClick={() => auctionItem?.handleEditPrice(sq.vendorId, sq.bidParameterId)}
-							/>
+							><HiPencilAlt /></button>
 						)}
 					</div>
 				);

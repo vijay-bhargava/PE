@@ -29,9 +29,12 @@ const bidSubTypeMap = { 81: 'English', 82: 'Dutch', 83: 'Japanese' };
  * layout as RFQGeneralPreview.js for visual parity with the RFQ V2
  * detail page.
  */
+const SUBJECT_LIMIT = 190;
+
 const BidGeneralPreview = ({ formik, inputList, bidtype, stagearray, currentStage, handletabEdit }) => {
   const [{ userDetail }] = useStateValue();
   const [showTable, setShowTable] = useState(true);
+  const [subjectExpanded, setSubjectExpanded] = useState(false);
 
   const plainDescription = useMemo(
     () => stripHtml(formik.values.description),
@@ -60,8 +63,12 @@ const BidGeneralPreview = ({ formik, inputList, bidtype, stagearray, currentStag
     rankDisplay = 'Traffic Light';
   }
 
+  const subject = formik.values.subject || '-';
+  const subjectLong = subject.length > SUBJECT_LIMIT;
+  const subjectDisplay = subjectLong && !subjectExpanded ? subject.slice(0, SUBJECT_LIMIT) + '…' : subject;
+
   const rows = [
-    ['Subject:', formik.values.subject || '-'],
+    ['Subject:', subject],
     ['Auction ID:', formik.values.id || '-'],
     ['Start Time:', formatDateViaLocale2(formik?.values?.bidStDate, userDetail) || '-'],
     ['End Time:', formatDateViaLocale2(formik?.values?.bidEndDate, userDetail) || '-'],
@@ -80,22 +87,28 @@ const BidGeneralPreview = ({ formik, inputList, bidtype, stagearray, currentStag
   }
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box>
       <div className="rfq-dv2-overview">
-        {canEditOverview && (
-          <IconButton
-            className="rfq-dv2-overview-edit"
-            size="small"
-            onClick={() => handletabEdit(1)}
-          >
-            <HiPencilAlt className="f17 text-primary" />
-          </IconButton>
-        )}
 
         {rows.map(([label, detail]) => (
           <div className="rfq-dv2-detail-row" key={label}>
             <div className="rfq-dv2-detail-label">{label}</div>
-            <div className="rfq-dv2-detail-value">{detail}</div>
+            {label === 'Subject:' ? (
+              <div className="rfq-dv2-detail-value">
+                {subjectDisplay}
+                {subjectLong && (
+                  <button
+                    type="button"
+                    onClick={() => setSubjectExpanded(v => !v)}
+                    style={{ background: 'none', border: 'none', color: 'var(--pe-primary, #1976d2)', cursor: 'pointer', fontSize: '12px', padding: '0 4px' }}
+                  >
+                    {subjectExpanded ? 'Show less' : 'Read more'}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="rfq-dv2-detail-value">{detail}</div>
+            )}
           </div>
         ))}
 

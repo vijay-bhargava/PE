@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from '@mui/material';
+import { Alert, Box } from '@mui/material';
 import { HiPlusSm, HiOutlineX } from 'react-icons/hi';
 import { KeyboardArrowDownOutlined } from '@mui/icons-material';
 import ProductitemCell from './ProductitemCell';
@@ -57,76 +57,74 @@ const RFQItemsTab = ({
   }
 
   return (
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      <div className="p-3 pt-0" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        <div className="rfq-items-toolbar" style={{ flexShrink: 0 }}>
-          <div className="rfq-items-toolbar-right">
-            {rfqItemsList?.length > 0 && canRemove && (
-              <>
-                <button
-                  type="button"
-                  className="pe-btn pe-btn--ghost"
-                  onClick={() => setConfirmClearAllItems(true)}
-                  disabled={!canAct}
-                >
-                  Clear
-                </button>
-                <span className="rfq-items-divider" />
-              </>
-            )}
-            <button
-              type="button"
-              className="pe-btn pe-btn--secondary"
-              disabled={!canAct || !canCreate}
-            >
-              Pull PR Data
-            </button>
-            <span className="rfq-items-divider" />
-            <button
-              type="button"
-              className="pe-btn pe-btn--secondary"
-              disabled={!canAct || !canCreate}
-              onClick={() => canCreate && document.getElementById('itemuploadid').click()}
-            >
-              <span>Excel Upload</span>
-              <span className="rfq-question-action-chevron">
-                <KeyboardArrowDownOutlined style={{ fontSize: 16 }} />
-              </span>
-            </button>
-            <button
-              type="button"
-              className="pe-btn pe-btn--secondary"
-              disabled={!canAct || !canRead}
-              onClick={downloadItemsExcel}
-            >
-              Export Line Items
-            </button>
-            <span className="rfq-items-divider" />
-            <button
-              type="button"
-              className="pe-btn pe-btn--primary"
-              onClick={toggleDrawer('addProductDrawer', true)}
-              disabled={!canAct || !canCreate}
-            >
-              <HiPlusSm /> Items/Services
-            </button>
-          </div>
-        </div>
-        <div className="rfq-v2-table-wrapper" style={{ flex: 1, minHeight: 0, height: 'auto' }}>
-          <ProductitemCell
-            action={canAct && canEdit}
-            itemsList={rfqItemsList}
-            handleEditItem={canEdit ? handleEditItem : () => { }}
-            handleDeleteItem={canRemove ? handleDeleteItem : () => { }}
-            eventType="RFQ"
-            CurrentVersion={rfqVersion}
-            readOnly={!canEdit}
-            showEditButton={canEdit}
-            showDeleteButton={canRemove}
-          />
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 220px)' }}>
+      <div className="rfq-items-toolbar" style={{ flexShrink: 0 }}>
+        <div className="rfq-items-toolbar-right">
+          {rfqItemsList?.length > 0 && canRemove && (
+            <>
+              <button
+                type="button"
+                className="pe-btn pe-btn--ghost"
+                onClick={() => setConfirmClearAllItems(true)}
+                disabled={!canAct}
+              >
+                Clear
+              </button>
+              <span className="rfq-items-divider" />
+            </>
+          )}
+          <button
+            type="button"
+            className="pe-btn pe-btn--secondary"
+            disabled={!canAct || !canCreate}
+          >
+            Pull PR Data
+          </button>
+          <span className="rfq-items-divider" />
+          <button
+            type="button"
+            className="pe-btn pe-btn--secondary"
+            disabled={!canAct || !canCreate}
+            onClick={() => canCreate && document.getElementById('itemuploadid').click()}
+          >
+            <span>Excel Upload</span>
+            <span className="rfq-question-action-chevron">
+              <KeyboardArrowDownOutlined style={{ fontSize: 16 }} />
+            </span>
+          </button>
+          <button
+            type="button"
+            className="pe-btn pe-btn--secondary"
+            disabled={!canAct || !canRead}
+            onClick={downloadItemsExcel}
+          >
+            Export Line Items
+          </button>
+          <span className="rfq-items-divider" />
+          <button
+            type="button"
+            className="pe-btn pe-btn--primary"
+            onClick={toggleDrawer('addProductDrawer', true)}
+            disabled={!canAct || !canCreate}
+          >
+            <HiPlusSm /> Items/Services
+          </button>
         </div>
       </div>
-    </div>
+      <div className="rfq-v2-table-wrapper" style={{ flex: 1, minHeight: 0, height: 'auto' }}>
+        <ProductitemCell
+          action={canAct && canEdit}
+          itemsList={rfqItemsList}
+          handleEditItem={canEdit ? handleEditItem : () => { }}
+          handleDeleteItem={canRemove ? handleDeleteItem : () => { }}
+          eventType="RFQ"
+          CurrentVersion={rfqVersion}
+          readOnly={!canEdit}
+          showEditButton={canEdit}
+          showDeleteButton={canRemove}
+        />
+      </div>
+    </Box>
   );
 };
 

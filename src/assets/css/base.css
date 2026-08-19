@@ -1108,7 +1108,7 @@ a {
 .auctionDetail-accordion {
   background: #1d6fc3 !important;
   color: #fff !important;
-  border-radius: 8px 8px 0 0 !important;
+  border-radius: 3px 3px 0 0 !important;
   min-height: 38px !important;
   max-height: 38px !important;
 }
@@ -2320,26 +2320,6 @@ a {
 .fizzyeffect:hover {
   background: hsl(190, 100%, 36%);
   /* Slightly darker on hover */
-}
-
-.invalid-input {
-  position: relative;
-  border-right: 1px solid red !important;
-  border-left: 1px solid red !important;
-  border-bottom: 1px solid red !important;
-  border-radius: 5px;
-}
-
-.invalid-input::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 45%;
-  /* Adjust this to control where the top border starts */
-  width: 55%;
-  /* Adjust this to control how long the top border is */
-  border-top: 1px solid red;
-  /* Set the thickness of the top border */
 }
 
 .capitalize {

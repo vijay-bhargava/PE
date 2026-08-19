@@ -46,8 +46,8 @@ const BidItemsTab = ({
   }
 
   const canAct = stagearray.includes(currentStage);
-  const isDutch = tempDataForItemService[0]?.bidSubTypeId == 82;
-  const isFrench = bidtype?.id == 5 || bidtype?.id == 6;
+  const isDutch = tempDataForItemService[0]?.bidSubTypeId === 82;
+  const isFrench = bidtype?.id === 5 || bidtype?.id === 6;
   const addDisabled =
     (isFrench && bidItemsList?.length > 0) ||
     (isDutch && bidItemsList?.length > 0) ||
@@ -55,7 +55,7 @@ const BidItemsTab = ({
     !hasCreatePermission;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 220px)', p: 2, px: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 220px)', p: 2 }}>
       {/* ── Toolbar ── */}
       <div className="rfq-items-toolbar" style={{ flexShrink: 0 }}>
         <div className="rfq-items-toolbar-right">
@@ -73,7 +73,7 @@ const BidItemsTab = ({
             </>
           )}
 
-          <button
+          {/* <button
             type="button"
             className="pe-btn pe-btn--secondary"
             disabled={!canAct || !hasCreatePermission}
@@ -91,7 +91,7 @@ const BidItemsTab = ({
             Pull PR Data
           </button>
 
-          <span className="rfq-items-divider" />
+          <span className="rfq-items-divider" /> */}
 
           <button
             type="button"

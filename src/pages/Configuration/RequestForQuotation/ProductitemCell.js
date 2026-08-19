@@ -1,4 +1,4 @@
-import { IconButton, Tooltip, Button } from '@mui/material';
+import { Tooltip, Button } from '@mui/material';
 import * as React from 'react';
 import { HiPencilAlt, HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi";
 import { RiDeleteBin6Line } from "react-icons/ri";
@@ -10,8 +10,7 @@ import CommonTooltip from '../../../components/commonTooltip';
 
 const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempDataForItemService, action, eventType, CurrentVersion }) => {
 
-	const [{ atoken, rtoken, customerid, roleClaims, userDetail }, dispatch, thousands_separators] =
-		useStateValue();
+	const [{ atoken, rtoken, customerid, roleClaims, userDetail }, dispatch, thousands_separators] = useStateValue();
 
 	const hasErpId = Array.isArray(itemsList) && itemsList.some(item => item?.erpSourceId);
 	const hasEventId = Array.isArray(itemsList) && itemsList.some(item => item?.eventId);
@@ -21,27 +20,18 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 	const [expandedRows, setExpandedRows] = React.useState({});
 
 	const handleRowExpand = (rowId) => {
-		console.log('Expanding row:', rowId);
-		console.log('Current expanded rows:', expandedRows);
 		setExpandedRows(prev => {
 			const newState = {
 				...prev,
 				[rowId]: !prev[rowId]
 			};
-			console.log('New expanded rows state:', newState);
 			return newState;
 		});
-	};
-
-	const getRowId = (row) => {
-		return row?.id || row?.itemId || Math.random();
 	};
 
 	// Create expanded rows by inserting detail rows after each main row
 	const createExpandedRows = () => {
 		const expandedRowsList = [];
-
-		console.log('Creating expanded rows. Current expandedRows state:', expandedRows);
 
 		itemsList?.forEach((item, index) => {
 			const serialNo = index + 1;
@@ -59,8 +49,6 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 
 			// Add separate detail rows for each section if expanded
 			if (expandedRows[rowId]) {
-				console.log(`Adding detail row for item ${rowId}`);
-
 				// Single detail row with all information
 				expandedRowsList.push({
 					id: `detail-${rowId}`,
@@ -78,7 +66,6 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 			}
 		});
 
-		console.log('Final expanded rows list:', expandedRowsList);
 		return expandedRowsList;
 	};
 
@@ -172,7 +159,7 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 			field: "itemCode",
 			headerName: "Item Code",
 			flex: 1,
-			minWidth: 150,
+			minWidth: 120,
 			renderCell: (params) => {
 				if (params.row.isDetailRow) return null;
 				const itemCodeValue = params?.formattedValue || '';
@@ -325,9 +312,9 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 		//     },
 		// }] : []),
 		...(eventType === 'Auction' ? [{
-			field: tempDataForItemService[0]?.bidSubTypeId == 82 ? "priceDecAmount" : "minimumDelta",
+			field: tempDataForItemService[0]?.bidSubTypeId === 82 ? "priceDecAmount" : "minimumDelta",
 			headerName:
-				tempDataForItemService[0]?.bidSubTypeId == 82
+				tempDataForItemService[0]?.bidSubTypeId === 82
 					? (
 						tempDataForItemService[0]?.bidTypeID === 1 || tempDataForItemService[0]?.bidTypeID === 5
 							? "Price Dec Amt"
@@ -350,7 +337,7 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 						style={{ cursor: "pointer" }}
 					>
 						{thousands_separators(params?.row[
-							tempDataForItemService[0]?.bidSubTypeId == 82 ? "priceDecAmount" : "minimumDelta"
+							tempDataForItemService[0]?.bidSubTypeId === 82 ? "priceDecAmount" : "minimumDelta"
 						])}
 					</div>
 				);
@@ -373,13 +360,13 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 						onClick={() => handleEditItem(params.row)}
 						style={{ cursor: 'pointer' }}
 					>
-						{params?.formattedValue == 'A' ? 'Amt' : '%age'}
+						{params?.formattedValue === 'A' ? 'Amt' : '%age'}
 					</div>
 				);
 			},
 		}] : []),
 		// ...(eventType === 'Auction' && tempDataForItemService[0]?.bidClosingType === 'S' ? [{
-		...(eventType === 'Auction' && (tempDataForItemService[0]?.bidClosingType === 'S' || tempDataForItemService[0]?.bidSubTypeId == 82) ? [{
+		...(eventType === 'Auction' && (tempDataForItemService[0]?.bidClosingType === 'S' || tempDataForItemService[0]?.bidSubTypeId === 82) ? [{
 			field: "itemBidDuration",
 			headerName: "Item Duration",
 			flex: 1,
@@ -556,9 +543,9 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 		// Actions column
 		{
 			field: "actions",
-			headerName: "",
+			headerName: "Actions",
 			flex: 1,
-			minWidth: 120,
+			minWidth: 130,
 			sortable: false,
 			renderCell: (params) => {
 				if (params.row.isDetailRow) return null;
@@ -567,40 +554,39 @@ const ProductitemCell = ({ itemsList, handleEditItem, handleDeleteItem, tempData
 					<div className="d-flex align-items-center gap-2">
 						{action && (
 							<Tooltip title="Edit Item">
-								<IconButton
-									size="small"
-									onClick={() => handleEditItem(params.row)}
-									className="text-primary"
-								>
+								<button
+									type="button"
+									className="pe-icon-btn pe-icon-btn--edit"
+									onClick={() => handleEditItem(params.row)}>
 									<HiPencilAlt />
-								</IconButton>
+								</button>
 							</Tooltip>
 						)}
 						{action && (
 							<Tooltip title="Delete Item">
-								<IconButton
-									size="small"
+								<button
+									type="button"
+									className="pe-icon-btn pe-icon-btn--delete text-danger"
 									onClick={() => handleDeleteItem(params.row.id || params.row.itemId)}
-									className="text-danger"
-									disabled={
-										itemsList[0]?.bidId && tempDataForItemService[0]?.stage !== 'Draft'
-									}
+									aria-label="Delete Item"
+									disabled={itemsList[0]?.bidId && tempDataForItemService[0]?.stage !== 'Draft'}
 								>
 									<RiDeleteBin6Line />
-								</IconButton>
+								</button>
 							</Tooltip>
 						)}
 						{/* Accordion button */}
 						<Tooltip title={expandedRows[params.row?.id || params.row?.itemId] ? "Collapse Details" : "Expand Details"}>
-							<IconButton
-								size="small"
+							<button
+								type="button"
+								className="pe-icon-btn pe-icon-btn--close"
 								onClick={() => handleRowExpand(params.row?.id || params.row?.itemId)}
-								className="text-secondary"
+								aria-label="Expande Item"
 							>
 								{expandedRows[params.row?.id || params.row?.itemId] ?
 									<HiOutlineChevronUp /> : <HiOutlineChevronDown />
 								}
-							</IconButton>
+							</button>
 						</Tooltip>
 					</div>
 				);
