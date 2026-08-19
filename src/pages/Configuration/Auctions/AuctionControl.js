@@ -13,6 +13,7 @@ import { Modal } from 'react-bootstrap';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import IconButton from "@mui/material/IconButton";
 import { ExpandLess, ExpandMore, UnfoldLess, UnfoldMore } from "@mui/icons-material";
+import SearchIcon from '@mui/icons-material/Search';
 import { ApiClient } from "../../../Apiclient";
 import { toast } from "react-toastify";
 import { HiDotsVertical, HiOutlineX, HiPencilAlt } from "react-icons/hi";
@@ -1447,7 +1448,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 		};
 
 		try {
-			const res = await apiClient.postres(`/api/AuctionManage/ BIDActions`, payloadReOpen, atoken);
+			const res = await apiClient.postres(`/api/AuctionManage/BIDActions`, payloadReOpen, atoken);
 			if (res) {
 				setReopenTrigger(prev => prev + 1);
 				setReOpenAuctionModal(false);
@@ -1460,6 +1461,8 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 				if (auctionManageData[0]?.bidClosingType === "S") {
 					fetchVendorParameterDetailsLineItems(pageNumber, rowsPerPage, true);
 				}
+			} else {
+				toast.error("Failed to reopen auction. Please try again.");
 			}
 
 		} catch (error) {
@@ -1780,7 +1783,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 				<>
 					<>
 						<div className="rfq-v2-page" style={{ padding: '0px' }}>
-							<div className="rfq-v2-card">
+							<div className="rfq-v2-card" style={{ borderRadius: 0 }}>
 								<AuctionDetailBox
 									auctionData={auctionManageData[0]}
 									bidStatus={bidStatus}
@@ -1910,9 +1913,9 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 												key: 'startPrice', label: 'Start Price',
 												renderCell: (v, row, index) => (
 													<>
-														{thousands_separators(row?.startPrice)}
+														{thousands_separators(row?.startPrice)} {" "}
 														{!['Close', 'Paused', 'Allocation', 'Awarded'].includes(auctionManageData[0]?.stage) && bidStatus != null && hasEditPerm && (
-															<HiPencilAlt onClick={() => handleOpen('startPrice', index, row?.bidParameterId)} className="text-primary" style={{ cursor: 'pointer', marginLeft: '5px' }} />
+															<button className="pe-icon-btn pe-icon-btn--edit" onClick={() => handleOpen('startPrice', index, row?.bidParameterId)}><HiPencilAlt /></button>
 														)}
 													</>
 												),
@@ -1921,9 +1924,9 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 												key: 'minimumDelta', label: isForwardType ? 'Min. Increment' : 'Min. Decrement',
 												renderCell: (v, row, index) => (
 													<>
-														{thousands_separators(row?.minimumDelta)}
+														{thousands_separators(row?.minimumDelta)} {" "}
 														{!['Close', 'Paused', 'Allocation', 'Awarded'].includes(auctionManageData[0]?.stage) && bidStatus != null && hasEditPerm && (
-															<HiPencilAlt onClick={() => handleOpen('minimumDelta', index, row?.bidParameterId)} className="text-primary" style={{ cursor: 'pointer', marginLeft: '5px' }} />
+															<button className="pe-icon-btn pe-icon-btn--edit" onClick={() => handleOpen('minimumDelta', index, row?.bidParameterId)}><HiPencilAlt /></button>
 														)}
 													</>
 												),
@@ -2092,42 +2095,48 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 								<div className="row align-items-center">
 									<div className="col-md-12 mb-2">
 										{fieldType === 'startPrice' && (
-											<TextField
-												label="Start Price"
-												value={startPrice}
-												type="number"
-												size="small"
-												InputLabelProps={{ shrink: true }}
-												onChange={(e) => {
-													if (DecimalValueRegEx.test(e.target.value)) {
-														setStartPrice(e.target.value)
-													}
-													else if (e.target.value === "") {
-														setStartPrice('')
-													}
-												}}
-												fullWidth
-											/>
+											<>
+												<label className="pe-field-label">Start Price</label>
+												<TextField
+													label=""
+													value={startPrice}
+													type="number"
+													size="small"
+													InputLabelProps={{ shrink: true }}
+													onChange={(e) => {
+														if (DecimalValueRegEx.test(e.target.value)) {
+															setStartPrice(e.target.value)
+														}
+														else if (e.target.value === "") {
+															setStartPrice('')
+														}
+													}}
+													fullWidth
+												/>
+											</>
 										)}
 									</div>
 									<div className="col-md-12 mb-2">
 										{fieldType === 'minimumDelta' && (
-											<TextField
-												label={auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5 ? 'Minimum Increment' : 'Minimum Decrement'}
-												value={minimumDelta}
-												type="number"
-												size="small"
-												InputLabelProps={{ shrink: true }}
-												onChange={(e) => {
-													if (DecimalValueRegEx.test(e.target.value)) {
-														setMinimumDelta(e.target.value)
-													}
-													else if (e.target.value === "") {
-														setMinimumDelta('')
-													}
-												}}
-												fullWidth
-											/>
+											<>
+												<label className="pe-field-label">{auctionManageData[0]?.bidTypeID === 1 || auctionManageData[0]?.bidTypeID === 5 ? 'Minimum Increment' : 'Minimum Decrement'}</label>
+												<TextField
+													label=""
+													value={minimumDelta}
+													type="number"
+													size="small"
+													InputLabelProps={{ shrink: true }}
+													onChange={(e) => {
+														if (DecimalValueRegEx.test(e.target.value)) {
+															setMinimumDelta(e.target.value)
+														}
+														else if (e.target.value === "") {
+															setMinimumDelta('')
+														}
+													}}
+													fullWidth
+												/>
+											</>
 										)}
 									</div>
 									<div className="col-md-12 d-flex justify-content-end mt-2">
@@ -2257,145 +2266,150 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 						backdrop="static"
 						keyboard={false}
 						centered
-						className="rfq-create-modal"
-						contentClassName="border-0 rounded-default"
+						className="zindex1400"
+						backdropClassName="zindex1400"
+						contentClassName="border-0"
 					>
-						<Modal.Header className="pt-2 pb-2">
-							<Modal.Title><span style={{ fontSize: 14 }}>Remove Quote</span></Modal.Title>
-							<button type="button" className="rfq-modal-close-btn" onClick={CloseRemoveQuoteModal}>
-								<HiOutlineX style={{ fontSize: 16 }} />
-							</button>
-						</Modal.Header>
-						<Modal.Body className="p-3">
-							<p className="f13 text-muted mb-3">
-								You are about to remove this quote. Please provide a reason for removal.
-							</p>
-							<TextField
-								label="Remarks"
-								value={removeRemark}
-								onChange={(e) => {
-									if (e.target.value.length <= 200) {
-										setRemoveRemark(e.target.value);
-										if (e.target.value.trim()) {
-											setRemarkError(false);
+						<Modal.Body className="p-0">
+							{/* PE-style header */}
+							<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white">
+								<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Remove Quote</span>
+								<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={CloseRemoveQuoteModal}>
+									<HiOutlineX className="f20" />
+								</button>
+							</div>
+
+							{/* Body */}
+							<div className="p-3">
+								<p className="f13 text-muted mb-3">
+									You are about to remove this quote. Please provide a reason for removal.
+								</p>
+								<label className="pe-field-label">Remarks <span className="rfq-required-star">*</span></label>
+								<TextField
+									value={removeRemark}
+									onChange={(e) => {
+										if (e.target.value.length <= 200) {
+											setRemoveRemark(e.target.value);
+											if (e.target.value.trim()) setRemarkError(false);
 										}
-									}
-								}}
-								fullWidth
-								multiline
-								rows={3}
-								size="small"
-								InputLabelProps={{ shrink: true }}
-								required
-								error={remarkError}
-								helperText={remarkError ? 'Remarks are required' : `${removeRemark.length}/200`}
-								autoFocus
-							/>
+									}}
+									fullWidth
+									multiline
+									rows={3}
+									size="small"
+									variant="outlined"
+									error={remarkError}
+									helperText={remarkError ? 'Remarks are required' : `${removeRemark.length}/200`}
+									autoFocus
+								/>
+							</div>
+
+							{/* Footer */}
+							<div className="d-flex justify-content-end px-3 py-3 border-top bg-white">
+								<button type="button" className="pe-btn pe-btn--ghost me-2" onClick={CloseRemoveQuoteModal}>
+									Cancel
+								</button>
+								<button
+									type="button"
+									className="pe-btn pe-btn--danger"
+									onClick={() => {
+										if (!removeRemark.trim()) { setRemarkError(true); return; }
+										handleRemoveQoutes(removeRemark);
+									}}
+								>
+									Remove
+								</button>
+							</div>
 						</Modal.Body>
-						<Modal.Footer className="border-top pt-2 pb-2">
-							<button type="button" className="pe-btn pe-btn--ghost" onClick={CloseRemoveQuoteModal}>
-								Cancel
-							</button>
-							<button
-								type="button"
-								className="pe-btn pe-btn--danger"
-								onClick={() => {
-									if (!removeRemark.trim()) {
-										setRemarkError(true);
-										return;
-									}
-									handleRemoveQoutes(removeRemark);
-								}}
-							>
-								Remove
-							</button>
-						</Modal.Footer>
 					</Modal>
 					<Modal
 						size="lg"
 						show={addVendorModal}
 						backdrop="static"
 						centered
-						className="rfq-create-modal rfq-modal-extralarge zindex1280"
-						contentClassName="border-0 rounded-default"
-						backdropClassName="zindex1280"
+						className="zindex1400"
+						backdropClassName="zindex1400"
+						contentClassName="border-0"
 						onHide={() => handleCloseAddVendorModal()}
 					>
-						<Modal.Header className="pt-2 pb-2">
-							<Modal.Title><span style={{ fontSize: 14 }}>Add Suppliers</span></Modal.Title>
-							<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseAddVendorModal()}>
-								<HiOutlineX style={{ fontSize: 16 }} />
-							</button>
-						</Modal.Header>
-						<Modal.Body className="p-0 inviteModal scrollable-container">
-							<div>
-								<div className="p-3">
+						<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+							{/* PE-style header */}
+							<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+								<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Add Suppliers</span>
+								<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => handleCloseAddVendorModal()}>
+									<HiOutlineX className="f20" />
+								</button>
+							</div>
 
-									<div className="reTable">
-										<div className="row">
-											<div className="col-md-12">
-												<TextField
-													id="standard-search"
-													label="Search Vendors"
-													type="search"
-													className="w-100 m"
-													size="small"
-													variant="standard"
-													value={searchQuery}
-													onChange={(e) => setSearchQuery(e.target.value)}
-												/>
-											</div>
-										</div>
-										<div className="row">
-											<div className="col-md-12 mt-2">
-												<div className="reMainTable">
-													<Table striped bordered hover>
-														<thead className="rethead">
-															<tr>
-																<th style={{ width: "4%" }}>
-																</th>
-																<th>Suppliers</th>
-															</tr>
-														</thead>
-														<tbody className="retr">
-															{filteredVendors.map((vendor) => {
-																const isAlreadyInvited = vendorListData.some(
-																	(checked) => checked.vendorID === vendor.vendorId
-																);
+							{/* Search bar */}
+							<div className="px-3 pt-3 pb-2 flex-shrink-0">
+								<TextField
+									placeholder="Search Suppliers"
+									size="small"
+									fullWidth
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									InputProps={{
+										endAdornment: searchQuery ? (
+											<IconButton size="small" onClick={() => setSearchQuery('')} style={{ padding: 2 }}>
+												<HiOutlineX style={{ fontSize: 16, color: '#9ca3af' }} />
+											</IconButton>
+										) : (
+											<SearchIcon style={{ fontSize: 18, color: '#9ca3af' }} />
+										),
+									}}
+								/>
+							</div>
 
-																return (
-																	<tr key={vendor.contactId}>
-																		<td width="4%">
-																			<Checkbox
-																				className="p-0"
-																				size="medium"
-																				checked={selectedVendors.some((selected) => selected.contactId === vendor.contactId)}
-																				disabled={isAlreadyInvited}
-																				onChange={(e) =>
-																					handleCheckboxChange(vendor.vendorId, vendor.contactId, e.target.checked, vendor)
-																				}
-																			/>
-																		</td>
-																		<td width="40%">
-																			{`${vendor.companyName} | ${vendor.contactPerson} | ${vendor.email}`}
-																		</td>
-																	</tr>
-																);
-															})}
-														</tbody>
-													</Table>
-												</div>
-											</div>
-										</div>
-										<div className="row mt-2">
-											<div className="col-md-12 mb-3 d-flex justify-content-end">
-												<button type="button" className="pe-btn pe-btn--primary" onClick={addVendors}>
-													Add
-												</button>
-											</div>
-										</div>
-									</div>
-								</div>
+							{/* Supplier list */}
+							<div className="px-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0 }}>
+								<PETableSimple
+									rows={filteredVendors}
+									getRowKey={(row) => row.contactId}
+									columns={[
+										{
+											key: '__check__',
+											label: '',
+											width: 60,
+											renderCell: (_, vendor) => {
+												const isAlreadyInvited = vendorListData.some((c) => c.vendorID === vendor.vendorId);
+												return (
+													<Checkbox
+														className="p-0"
+														size="small"
+														checked={selectedVendors.some((s) => s.contactId === vendor.contactId)}
+														disabled={isAlreadyInvited}
+														onChange={(e) => handleCheckboxChange(vendor.vendorId, vendor.contactId, e.target.checked, vendor)}
+													/>
+												);
+											},
+										},
+										{
+											key: 'companyName',
+											label: 'Suppliers',
+											renderCell: (_, vendor) => {
+												const isAlreadyInvited = vendorListData.some((c) => c.vendorID === vendor.vendorId);
+												return (
+													<span style={{ color: isAlreadyInvited ? '#9ca3af' : 'inherit' }}>
+														<span className="fw500">{vendor.companyName}</span>
+														{vendor.contactPerson && <span className="text-muted"> | {vendor.contactPerson}</span>}
+														{vendor.email && <span className="text-muted"> | {vendor.email}</span>}
+													</span>
+												);
+											},
+										},
+									]}
+								/>
+							</div>
+
+							{/* Footer */}
+							<div className="d-flex justify-content-end px-3 py-3 border-top bg-white flex-shrink-0">
+								<button type="button" className="pe-btn pe-btn--ghost me-2" onClick={() => handleCloseAddVendorModal()}>
+									Cancel
+								</button>
+								<button type="button" className="pe-btn pe-btn--primary" onClick={addVendors}>
+									Add
+								</button>
 							</div>
 						</Modal.Body>
 					</Modal>
@@ -2404,98 +2418,112 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 						show={sendReminderModal}
 						backdrop="static"
 						centered
-						className="rfq-create-modal rfq-modal-extralarge zindex1280"
-						contentClassName="border-0 rounded-default"
-						backdropClassName="zindex1280"
+						className="zindex1400"
+						backdropClassName="zindex1400"
+						contentClassName="border-0"
 						onHide={() => handleCloseSendReminderModal()}
 					>
-						<Modal.Header className="pt-2 pb-2">
-							<Modal.Title><span style={{ fontSize: 14 }}>Send Reminder</span></Modal.Title>
-							<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseSendReminderModal()}>
-								<HiOutlineX style={{ fontSize: 16 }} />
-							</button>
-						</Modal.Header>
-						<Modal.Body className="p-0 inviteModal scrollable-container">
-							{/* <form onSubmit={formik_Reinvite.handleSubmit} autoComplete="off"> */}
-							<div>
-								<div className="p-3">
+						<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+							{/* PE-style header */}
+							<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+								<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Send Reminder</span>
+								<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => handleCloseSendReminderModal()}>
+									<HiOutlineX className="f20" />
+								</button>
+							</div>
 
-									<div className="reTable">
-										<div className="row">
-											<div className="col-md-12">
-												<TextField
-													id="standard-search"
-													label="Search Vendors"
-													type="search"
-													className="w-100 m"
+							{/* Search bar */}
+							<div className="px-3 pt-3 pb-2 flex-shrink-0">
+								<TextField
+									placeholder="Search Suppliers"
+									size="small"
+									fullWidth
+									value={searchQueryReminder}
+									onChange={(e) => setSearchQueryReminder(e.target.value)}
+									InputProps={{
+										endAdornment: searchQueryReminder ? (
+											<IconButton size="small" onClick={() => setSearchQueryReminder('')} style={{ padding: 2 }}>
+												<HiOutlineX style={{ fontSize: 16, color: '#9ca3af' }} />
+											</IconButton>
+										) : (
+											<SearchIcon style={{ fontSize: 18, color: '#9ca3af' }} />
+										),
+									}}
+								/>
+							</div>
+
+							{/* Supplier list */}
+							<div className="px-3 flex-grow-1 d-flex flex-column pb-2" style={{ minHeight: 0 }}>
+								<PETableSimple
+									rows={filteredVendorsReminder}
+									getRowKey={(row) => row.id}
+									columns={[
+										{
+											key: '__check__',
+											label: '',
+											width: 60,
+											renderHeader: () => (
+												<Checkbox
+													className="p-0"
 													size="small"
-													variant="standard"
-													value={searchQueryReminder}
-													onChange={(e) => setSearchQueryReminder(e.target.value)}
+													checked={selectedSRVendors.length === filteredVendorsReminder.length && filteredVendorsReminder.length > 0}
+													indeterminate={selectedSRVendors.length > 0 && selectedSRVendors.length < filteredVendorsReminder.length}
+													onChange={(e) => handleSelectAll(e.target.checked)}
 												/>
-											</div>
-										</div>
-										<div className="row">
-											<div className="col-md-12 mt-2">
-												<div className="reMainTable">
-													<Table striped bordered hover>
-														<thead className="rethead">
-															<tr>
-																<th style={{ width: "4%" }}>
-																	<Checkbox
-																		className="p-0"
-																		size="medium"
-																		checked={selectedSRVendors.length === filteredVendorsReminder.length && filteredVendorsReminder.length > 0}
-																		indeterminate={
-																			selectedSRVendors.length > 0 &&
-																			selectedSRVendors.length < filteredVendorsReminder.length
-																		}
-																		onChange={(e) => handleSelectAll(e.target.checked)}
-																	/>
-																</th>
-																<th>Suppliers</th>
-																<th style={{ width: "40%" }}>Remarks</th>
-															</tr>
-														</thead>
-														<tbody className="retr">
-															{filteredVendorsReminder.map((vendor) => (
-																<tr key={vendor.id}>
-																	<td width="4%">
-																		<Checkbox
-																			className="p-0"
-																			size="medium"
-																			checked={selectedSRVendors.some((item) => item.vendorID === vendor.vendorID)}
-																			onChange={(e) => handleCheckboxSR(vendor, e.target.checked)}
-																		/>
-																	</td>
-																	<td width="45%">
-																		{`${vendor.vendorName} | ${vendor.contactPerson} | ${vendor.emailId}`}
-																	</td>
-																	<td width="50%">
-																		<textarea
-																			rows={2}
-																			className="formulaEditor w-100"
-																			placeholder="Remarks"
-																			value={vendorRemarks[vendor.vendorID] || ""}
-																			onChange={(e) => handleRemarkChange(vendor.vendorID, e.target.value)}
-																		/>
-																	</td>
-																</tr>
-															))}
-														</tbody>
-													</Table>
-												</div>
-											</div>
-										</div>
-										<div className="row mt-2">
-											<div className="col-md-12 mb-3 d-flex justify-content-end">
-												<button type="button" className="pe-btn pe-btn--primary" onClick={handleSend}>
-													Send
-												</button>
-											</div>
-										</div>
-									</div>
-								</div>
+											),
+											renderCell: (_, vendor) => (
+												<Checkbox
+													className="p-0"
+													size="small"
+													checked={selectedSRVendors.some((item) => item.vendorID === vendor.vendorID)}
+													onChange={(e) => handleCheckboxSR(vendor, e.target.checked)}
+												/>
+											),
+										},
+										{
+											key: 'vendorName',
+											label: 'Suppliers',
+											renderCell: (_, vendor) => (
+												<span>
+													<span className="fw500">{vendor.vendorName}</span>
+													{vendor.contactPerson && <span className="text-muted"> | {vendor.contactPerson}</span>}
+													{vendor.emailId && <span className="text-muted"> | {vendor.emailId}</span>}
+												</span>
+											),
+										},
+										{
+											key: 'remarks',
+											label: 'Remarks',
+											width: 250,
+											renderCell: (_, vendor) => (
+												<textarea
+													rows={2}
+													placeholder="Remarks"
+													value={vendorRemarks[vendor.vendorID] || ""}
+													onChange={(e) => handleRemarkChange(vendor.vendorID, e.target.value)}
+													style={{
+														width: "100%", resize: "none",
+														border: "1px solid #e5e7eb",
+														borderRadius: 6, padding: "6px 10px",
+														fontSize: 12, color: "#1f2937",
+														fontFamily: "inherit", background: "#fff",
+														outline: "none", lineHeight: 1.5
+													}}
+												/>
+											),
+										},
+									]}
+								/>
+							</div>
+
+							{/* Footer */}
+							<div className="d-flex justify-content-end px-3 py-3 border-top bg-white flex-shrink-0">
+								<button type="button" className="pe-btn pe-btn--ghost me-2" onClick={() => handleCloseSendReminderModal()}>
+									Cancel
+								</button>
+								<button type="button" className="pe-btn pe-btn--primary" onClick={handleSend}>
+									Send
+								</button>
 							</div>
 						</Modal.Body>
 					</Modal>
@@ -2505,126 +2533,108 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 						backdrop="static"
 						keyboard={false}
 						centered
-						className="rfq-create-modal rfq-modal-extralarge"
-						contentClassName="border-0 rounded-default"
+						className="zindex1300"
+						backdropClassName="zindex1300"
+						contentClassName="border-0"
 						onHide={handleCloseReOpenModal}
 					>
-						<Modal.Header className="pt-2 pb-2">
-							<Modal.Title><span style={{ fontSize: 14 }}>Reopen Auction</span></Modal.Title>
-							<button type="button" className="rfq-modal-close-btn" onClick={handleCloseReOpenModal}>
-								<HiOutlineX style={{ fontSize: 16 }} />
-							</button>
-						</Modal.Header>
-
-						<Modal.Body className="p-4">
-							<div className="mb-3">
-								<Typography className="f13 text-muted mb-3">
-									Configure the auction schedule to reopen bidding. Select the start date and duration for the auction.
-								</Typography>
+						<Modal.Body className="p-0 d-flex flex-column" style={{ overflow: 'hidden' }}>
+							{/* PE-style header */}
+							<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+								<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Reopen Auction</span>
+								<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={handleCloseReOpenModal}>
+									<HiOutlineX className="f20" />
+								</button>
 							</div>
 
-							<LocalizationProvider dateAdapter={AdapterDayjs}>
-								<div className="row g-3">
-									<div className="col-12 col-md-6 col-lg-4">
-										<MobileDateTimePicker
-											label="Reopen Date & Time"
-											timezone={userDetail?.timeZone}
-											minDateTime={dayjs().tz(userDetail?.timeZone)}
-											value={
-												reOpenDate
-													? dayjs(reOpenDate).tz(userDetail?.timeZone)
-													: null
-											}
-											onChange={(newDate) => {
-												const tzDate = newDate
-													? dayjs(newDate).tz(userDetail?.timeZone)
-													: null;
+							{/* Body */}
+							<div className="p-3">
+								<p className="f13 text-muted mb-3">
+									Configure the auction schedule to reopen bidding. Select the start date and duration for the auction.
+								</p>
 
-												setReOpenDate(tzDate);
-
-												if (bidDuration && auctionManageData[0]?.bidClosingType !== 'S') {
-													updateBidEndDate(tzDate, bidDuration);
-												}
-											}}
-											className="w-100"
-											format={getDateFormatPatteronLocale(userDetail)}
-											ampm={userampm(userDetail)}
-											slotProps={{
-												textField: {
-													variant: 'outlined',
-													size: 'small',
-													InputLabelProps: { shrink: true }
-												},
-												actionBar: { actions: ['clear', 'cancel', 'accept'] }
-											}}
-										/>
-									</div>
-
-									<div className="col-12 col-md-6 col-lg-4">
-										<TextField
-											label="Bid Duration (Minutes)"
-											value={bidDuration || ''}
-											onChange={(e) => {
-												const newDuration = e.target.value;
-												if (newDuration === "") {
-													setBidDuration("");
-												} else if (/^\d*$/.test(newDuration)) {
-													const numericValue = Number(newDuration);
-													if (numericValue > 0 && auctionManageData[0]?.bidClosingType !== 'S') {
-														setBidDuration(numericValue);
-														updateBidEndDate(reOpenDate, numericValue);
+								<LocalizationProvider dateAdapter={AdapterDayjs}>
+									<div className="row g-3">
+										<div className="col-12 col-md-4">
+											<label className="pe-field-label">Reopen Date & Time <span className="rfq-required-star">*</span></label>
+											<MobileDateTimePicker
+												timezone={userDetail?.timeZone}
+												minDateTime={dayjs().tz(userDetail?.timeZone)}
+												value={reOpenDate ? dayjs(reOpenDate).tz(userDetail?.timeZone) : null}
+												onChange={(newDate) => {
+													const tzDate = newDate ? dayjs(newDate).tz(userDetail?.timeZone) : null;
+													setReOpenDate(tzDate);
+													if (bidDuration && auctionManageData[0]?.bidClosingType !== 'S') {
+														updateBidEndDate(tzDate, bidDuration);
 													}
-												}
-											}}
-											className="w-100"
-											variant="outlined"
-											size="small"
-											InputLabelProps={{ shrink: true }}
-											inputProps={{ inputMode: 'numeric', pattern: "[0-9]*" }}
-											disabled={auctionManageData[0]?.bidClosingType === 'S'}
-											helperText={auctionManageData[0]?.bidClosingType === 'S' ? "Not applicable for staggered auctions" : ""}
-										/>
+												}}
+												className="w-100"
+												format={getDateFormatPatteronLocale(userDetail)}
+												ampm={userampm(userDetail)}
+												slotProps={{
+													textField: { variant: 'outlined', size: 'small', fullWidth: true },
+													actionBar: { actions: ['clear', 'cancel', 'accept'] }
+												}}
+											/>
+										</div>
+
+										<div className="col-12 col-md-4">
+											<label className="pe-field-label">Bid Duration (Minutes)</label>
+											<TextField
+												value={bidDuration || ''}
+												onChange={(e) => {
+													const newDuration = e.target.value;
+													if (newDuration === "") {
+														setBidDuration("");
+													} else if (/^\d*$/.test(newDuration)) {
+														const numericValue = Number(newDuration);
+														if (numericValue > 0 && auctionManageData[0]?.bidClosingType !== 'S') {
+															setBidDuration(numericValue);
+															updateBidEndDate(reOpenDate, numericValue);
+														}
+													}
+												}}
+												fullWidth
+												variant="outlined"
+												size="small"
+												inputProps={{ inputMode: 'numeric', pattern: "[0-9]*" }}
+												disabled={auctionManageData[0]?.bidClosingType === 'S'}
+												helperText={auctionManageData[0]?.bidClosingType === 'S' ? "Not applicable for staggered auctions" : ""}
+											/>
+										</div>
+
+										<div className="col-12 col-md-4">
+											<label className="pe-field-label">End Date & Time</label>
+											<MobileDateTimePicker
+												timezone={userDetail?.timeZone}
+												minDateTime={dayjs().tz(userDetail?.timeZone)}
+												value={bidDeadLine ? dayjs(bidDeadLine).tz(userDetail?.timeZone) : null}
+												onChange={(newDate) => {
+													const tzDate = newDate ? dayjs(newDate).tz(userDetail?.timeZone) : null;
+													if (reOpenDate && tzDate) updateBidDuration(reOpenDate, tzDate);
+												}}
+												className="w-100"
+												format={getDateFormatPatteronLocale(userDetail)}
+												ampm={userampm(userDetail)}
+												disabled
+												slotProps={{
+													textField: {
+														variant: 'outlined',
+														size: 'small',
+														fullWidth: true,
+														helperText: "Auto-calculated based on duration"
+													},
+													actionBar: { actions: ['clear', 'cancel', 'accept'] }
+												}}
+											/>
+										</div>
 									</div>
+								</LocalizationProvider>
+							</div>
 
-									<div className="col-12 col-md-6 col-lg-4">
-										<MobileDateTimePicker
-											label="End Date & Time"
-											timezone={userDetail?.timeZone}
-											minDateTime={dayjs().tz(userDetail?.timeZone)}
-											value={
-												bidDeadLine
-													? dayjs(bidDeadLine).tz(userDetail?.timeZone)
-													: null
-											}
-											onChange={(newDate) => {
-												const tzDate = newDate
-													? dayjs(newDate).tz(userDetail?.timeZone)
-													: null;
-
-												if (reOpenDate && tzDate) {
-													updateBidDuration(reOpenDate, tzDate);
-												}
-											}}
-											className="w-100"
-											format={getDateFormatPatteronLocale(userDetail)}
-											ampm={userampm(userDetail)}
-											disabled
-											slotProps={{
-												textField: {
-													variant: 'outlined',
-													size: 'small',
-													InputLabelProps: { shrink: true },
-													helperText: "Auto-calculated based on duration"
-												},
-												actionBar: { actions: ['clear', 'cancel', 'accept'] }
-											}}
-										/>
-									</div>
-								</div>
-							</LocalizationProvider>
-
-							<div className="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
-								<button type="button" className="pe-btn pe-btn--ghost" onClick={handleCloseReOpenModal}>
+							{/* Footer */}
+							<div className="d-flex justify-content-end px-3 py-3 border-top bg-white flex-shrink-0">
+								<button type="button" className="pe-btn pe-btn--ghost me-2" onClick={handleCloseReOpenModal}>
 									Cancel
 								</button>
 								<button type="button" className="pe-btn pe-btn--primary" onClick={handleReOpen} disabled={loading}>
@@ -2661,31 +2671,42 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 							</div>
 						</Modal.Body>
 					</Modal>
-					<Dialog open={actionmodal["surrogateSupplierModal"]} onClose={() => handleActionModel("surrogateSupplierModal", false)}>
-						<DialogTitle>{"Surrogate Supplier"}</DialogTitle>
-						<form onSubmit={formik_Surrogate.handleSubmit} autoComplete="off">
-							<DialogContent style={{ minWidth: "300px" }}>
+					<Modal
+						size="md"
+						show={actionmodal["surrogateSupplierModal"]}
+						backdrop="static"
+						centered
+						className="zindex1300"
+						backdropClassName="zindex1300"
+						contentClassName="border-0"
+						onHide={() => setActionModal({ ...actionmodal, surrogateSupplierModal: false })}
+					>
+						<Modal.Body className="p-0">
+							{/* PE-style header */}
+							<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+								<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Surrogate Supplier</span>
+								<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => setActionModal({ ...actionmodal, surrogateSupplierModal: false })}>
+									<HiOutlineX className="f20" />
+								</button>
+							</div>
 
-								<div className="row mt-2 ">
-									<div className="col-12 mb-4">
+							{/* Form body */}
+							<form onSubmit={formik_Surrogate.handleSubmit} autoComplete="off">
+								<div className="p-3">
+									<div className="mb-3">
+										<label className="pe-field-label">Supplier <span className="rfq-required-star">*</span></label>
 										<Autocomplete
 											id="supplierforsurrogate"
-											name="Supplier"
 											size="small"
-											className="w-100 f14"
+											fullWidth
+											disablePortal
 											options={vendorListData || []}
-											getOptionLabel={(option) =>
-												`${option.vendorName} - ${option.emailId}`
-											} // Adjust this if your options are objects
+											getOptionLabel={(option) => `${option.vendorName} - ${option.emailId}`}
 											value={formik_Surrogate.values.supplier ?? null}
-											onChange={(event, value) => {
-
-												formik_Surrogate.setFieldValue("supplier", value)
-											}}
+											onChange={(e, value) => formik_Surrogate.setFieldValue("supplier", value)}
 											renderInput={(params) => (
 												<TextField
 													{...params}
-													label="Supplier *"
 													variant="outlined"
 													error={formik_Surrogate.touched.supplier && Boolean(formik_Surrogate.errors.supplier)}
 													helperText={formik_Surrogate.touched.supplier && formik_Surrogate.errors.supplier}
@@ -2694,97 +2715,69 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 										/>
 									</div>
 
-									<div className="col-12 mb-4">
-
-										<TextFieldCell
+									<div className="mb-3">
+										<label className="pe-field-label">Surrogater Name <span className="rfq-required-star">*</span></label>
+										<TextField
 											id="surrogatename"
 											name="surrogatename"
-											label="Surrogater Name *"
-											placeholder=""
-											maxLength={200}
+											size="small"
+											fullWidth
+											variant="outlined"
+											inputProps={{ maxLength: 200 }}
 											value={formik_Surrogate.values.surrogatename}
 											onChange={formik_Surrogate.handleChange}
-											error={
-												formik_Surrogate.touched.surrogatename &&
-												Boolean(formik_Surrogate.errors.surrogatename)
-											}
-											helperText={
-												formik_Surrogate.touched.surrogatename &&
-												formik_Surrogate.errors.surrogatename
-											}
+											error={formik_Surrogate.touched.surrogatename && Boolean(formik_Surrogate.errors.surrogatename)}
+											helperText={formik_Surrogate.touched.surrogatename && formik_Surrogate.errors.surrogatename}
 											InputProps={{
 												endAdornment: formik_Surrogate.values.surrogatename && (
 													<InputAdornment position="end">
-														<Typography
-															variant="body2"
-															color="textSecondary"
-														>
-															{formik_Surrogate.values.surrogatename.length}/200
-														</Typography>
+														<Typography variant="caption" color="textSecondary">{formik_Surrogate.values.surrogatename.length}/200</Typography>
 													</InputAdornment>
 												),
 											}}
 										/>
 									</div>
-									<div className="col-12 mb-4">
 
-										<TextFieldCell
+									<div className="mb-3">
+										<label className="pe-field-label">Surrogater Email <span className="rfq-required-star">*</span></label>
+										<TextField
 											id="surrogateemail"
 											name="surrogateemail"
-											label="Surrogater Email *"
-											placeholder=""
-											maxLength={200}
+											size="small"
+											fullWidth
+											variant="outlined"
+											inputProps={{ maxLength: 200 }}
 											value={formik_Surrogate.values.surrogateemail}
 											onChange={formik_Surrogate.handleChange}
-											error={
-												formik_Surrogate.touched.surrogateemail &&
-												Boolean(formik_Surrogate.errors.surrogateemail)
-											}
-											helperText={
-												formik_Surrogate.touched.surrogateemail &&
-												formik_Surrogate.errors.surrogateemail
-											}
+											error={formik_Surrogate.touched.surrogateemail && Boolean(formik_Surrogate.errors.surrogateemail)}
+											helperText={formik_Surrogate.touched.surrogateemail && formik_Surrogate.errors.surrogateemail}
 											InputProps={{
 												endAdornment: formik_Surrogate.values.surrogateemail && (
 													<InputAdornment position="end">
-														<Typography
-															variant="body2"
-															color="textSecondary"
-														>
-															{formik_Surrogate.values.surrogateemail.length}/200
-														</Typography>
+														<Typography variant="caption" color="textSecondary">{formik_Surrogate.values.surrogateemail.length}/200</Typography>
 													</InputAdornment>
 												),
 											}}
 										/>
 									</div>
-									<div className="col-12 mb-4">
 
-										<TextFieldCell
+									<div className="mb-1">
+										<label className="pe-field-label">Remark</label>
+										<TextField
 											id="surrogateReason"
 											name="surrogateReason"
-											label="Remark"
-											placeholder=""
-											maxLength={200}
+											size="small"
+											fullWidth
+											variant="outlined"
+											inputProps={{ maxLength: 200 }}
 											value={formik_Surrogate.values.surrogateReason}
 											onChange={formik_Surrogate.handleChange}
-											error={
-												formik_Surrogate.touched.surrogateReason &&
-												Boolean(formik_Surrogate.errors.surrogateReason)
-											}
-											helperText={
-												formik_Surrogate.touched.surrogateReason &&
-												formik_Surrogate.errors.surrogateReason
-											}
+											error={formik_Surrogate.touched.surrogateReason && Boolean(formik_Surrogate.errors.surrogateReason)}
+											helperText={formik_Surrogate.touched.surrogateReason && formik_Surrogate.errors.surrogateReason}
 											InputProps={{
 												endAdornment: formik_Surrogate.values.surrogateReason && (
 													<InputAdornment position="end">
-														<Typography
-															variant="body2"
-															color="textSecondary"
-														>
-															{formik_Surrogate.values.surrogateReason.length}/200
-														</Typography>
+														<Typography variant="caption" color="textSecondary">{formik_Surrogate.values.surrogateReason.length}/200</Typography>
 													</InputAdornment>
 												),
 											}}
@@ -2792,71 +2785,70 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 									</div>
 								</div>
 
-							</DialogContent>
-							<DialogActions>
-								<Button
-									onClick={() => setActionModal({ ...actionmodal, ["surrogateSupplierModal"]: false })}
-								>Cancel</Button>
-								<Button type="submit" variant="contained" autoFocus>
-									Invite
-								</Button>
-							</DialogActions>
-						</form>
-					</Dialog>
-					<Dialog
-						open={modalcancelOpen}
-						onClose={() => handleCancelAuctionModal(false)}
-						maxWidth="sm"
-						fullWidth
+								{/* Footer */}
+								<div className="d-flex justify-content-end px-3 py-3 border-top bg-white">
+									<button type="button" className="pe-btn pe-btn--ghost me-2" onClick={() => setActionModal({ ...actionmodal, surrogateSupplierModal: false })}>
+										Cancel
+									</button>
+									<button type="submit" className="pe-btn pe-btn--primary">
+										Invite
+									</button>
+								</div>
+							</form>
+						</Modal.Body>
+					</Modal>
+					<Modal
+						size="md"
+						show={modalcancelOpen}
+						backdrop="static"
+						centered
+						className="zindex1400"
+						backdropClassName="zindex1400"
+						contentClassName="border-0"
+						onHide={() => handleCancelAuctionModal(false)}
 					>
-						<DialogTitle className="pt-2 pb-2 px-3 d-flex justify-content-between align-items-center" style={{ borderBottom: '1px solid #e5e7eb' }}>
-							<span style={{ fontSize: 14, fontWeight: 500 }}>Cancel Auction</span>
-							<button type="button" className="rfq-modal-close-btn" onClick={() => handleCancelAuctionModal(false)}>
-								<HiOutlineX style={{ fontSize: 16 }} />
-							</button>
-						</DialogTitle>
-						<DialogContent className="pt-3 px-3">
-							<Typography className="f14 text-muted mb-3">
-								You are about to cancel this auction. Please provide a reason for cancellation.
-							</Typography>
-							<TextField
-								autoFocus
-								label="Cancellation Reason"
-								type="text"
-								fullWidth
-								multiline
-								rows={3}
-								value={cancelReason}
-								onChange={handleCancelInputChange}
-								error={Boolean(biderror)}
-								helperText={biderror || `${cancelReason.length}/1000`}
-								placeholder="Enter the reason for cancelling this auction..."
-								variant="outlined"
-								size="small"
-								inputProps={{ maxLength: 1000 }}
-							/>
-						</DialogContent>
-						<DialogActions className="p-3 pt-2">
-							<Button
-								onClick={() => handleCancelAuctionModal(false)}
-								variant="outlined"
-								size="medium"
-								className="text-capitalize px-4"
-							>
-								Keep Auction
-							</Button>
-							<Button
-								onClick={() => handleCancelAuctionModal(true)}
-								variant="contained"
-								color="error"
-								size="medium"
-								className="text-capitalize px-4"
-								autoFocus
-							>
-								Cancel Auction
-							</Button>
-						</DialogActions>
-					</Dialog>
+						<Modal.Body className="p-0">
+							{/* PE-style header */}
+							<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white">
+								<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Cancel Auction</span>
+								<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => handleCancelAuctionModal(false)}>
+									<HiOutlineX className="f20" />
+								</button>
+							</div>
+
+							{/* Body */}
+							<div className="p-3">
+								<p className="f13 text-muted mb-3">
+									You are about to cancel this auction. Please provide a reason for cancellation.
+								</p>
+								<label className="pe-field-label">Cancellation Reason <span className="rfq-required-star">*</span></label>
+								<TextField
+									autoFocus
+									fullWidth
+									multiline
+									rows={3}
+									value={cancelReason}
+									onChange={handleCancelInputChange}
+									error={Boolean(biderror)}
+									helperText={biderror || `${cancelReason.length}/1000`}
+									placeholder="Enter the reason for cancelling this auction..."
+									variant="outlined"
+									size="small"
+									inputProps={{ maxLength: 1000 }}
+								/>
+							</div>
+
+							{/* Footer */}
+							<div className="d-flex justify-content-end px-3 py-3 border-top bg-white">
+								<button type="button" className="pe-btn pe-btn--ghost me-2" onClick={() => handleCancelAuctionModal(false)}>
+									Keep Auction
+								</button>
+								<button type="button" className="pe-btn pe-btn--danger" onClick={() => handleCancelAuctionModal(true)}>
+									Cancel Auction
+								</button>
+							</div>
+						</Modal.Body>
+					</Modal>
 					<div>
 						{isCircleLoading && (
 							<div

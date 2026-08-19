@@ -55,7 +55,7 @@ const BidItemsTab = ({
     !hasCreatePermission;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 220px)', p: 2, px: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 220px)', p: 2 }}>
       {/* ── Toolbar ── */}
       <div className="rfq-items-toolbar" style={{ flexShrink: 0 }}>
         <div className="rfq-items-toolbar-right">

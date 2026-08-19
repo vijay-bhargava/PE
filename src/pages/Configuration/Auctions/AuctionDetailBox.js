@@ -76,7 +76,8 @@ export default function AuctionDetailBox({
 			<Accordion
 				expanded={expanded}
 				onChange={onExpandChange}
-				disableGutters elevation={0} square
+				disableGutters elevation={0}
+				// style={{ borderRadius: 2 }}
 				sx={{ '&:before': { display: 'none' } }}
 			>
 				<AccordionSummary
@@ -187,7 +188,7 @@ export default function AuctionDetailBox({
 								)}
 							</span>
 							{bidStatus !== "running" && bidStatus !== null && hasEditPermission && (
-								<HiPencilAlt className="text-primary ms-1" size={14} style={{ cursor: 'pointer', flexShrink: 0 }} onClick={() => onEditField('subject')} />
+								<button className="pe-icon-btn pe-icon-btn--edit" onClick={() => onEditField('subject')}><HiPencilAlt /></button>
 							)}
 						</div>
 					</div>
@@ -216,14 +217,14 @@ export default function AuctionDetailBox({
 							<span style={labelStyle}>Display Vendors Rank:</span>
 							<span style={valueStyle}>{rankLabel()}</span>
 							{bidStatus !== null && hasEditPermission && (
-								<HiPencilAlt className="text-primary" size={13} style={{ cursor: 'pointer', marginLeft: '4px' }} onClick={() => onEditField('showRankToVendor')} />
+								<button className="pe-icon-btn pe-icon-btn--edit" onClick={() => onEditField('showRankToVendor')}><HiPencilAlt /></button>
 							)}
 						</div>
 						<div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
 							<span style={labelStyle}>Max No. of Extensions:</span>
 							<span style={valueStyle}>{auctionData?.maximumExtension === -1 ? 'Unlimited' : auctionData?.maximumExtension}</span>
 							{bidStatus !== null && hasEditPermission && (
-								<HiPencilAlt className="text-primary" size={13} style={{ cursor: 'pointer', marginLeft: '4px' }} onClick={() => onEditField('maximumExtension')} />
+								<button className="pe-icon-btn pe-icon-btn--edit" onClick={() => onEditField('maximumExtension')}><HiPencilAlt /></button>
 							)}
 						</div>
 						<InfoField label="No Of Extensions">{auctionData?.extensions ?? 0}</InfoField>
@@ -255,20 +256,20 @@ export default function AuctionDetailBox({
 
 					{/* Multi-currency expandable table */}
 					{auctionData?.isMultiCurrency && showCurrencyTable && auctionData?.multicurrencytList?.length > 0 && (
-						<div className="mt-1">
+						<div className="mt-1 mb-3" style={{ maxWidth: 320 }}>
 							<TableContainer>
 								<Table size="small" aria-label="currency table">
 									<TableHead>
-										<TableRow>
-											<TableCell sx={{ pl: 0, fontSize: '12px', fontWeight: 600, color: '#6b7280' }}>Currency</TableCell>
-											<TableCell align="right" sx={{ fontSize: '12px', fontWeight: 600, color: '#6b7280' }}>Conversion Factor</TableCell>
+										<TableRow sx={{ backgroundColor: '#F9FAFB' }}>
+											<TableCell sx={{ pl: 1, fontSize: '12px', fontWeight: 600, borderBottom: 'none' }}>Currency</TableCell>
+											<TableCell sx={{ pr: 1, fontSize: '12px', fontWeight: 600, borderBottom: 'none' }}>Conversion Factor</TableCell>
 										</TableRow>
 									</TableHead>
 									<TableBody>
 										{auctionData.multicurrencytList.map((row, index) => (
 											<TableRow key={index}>
-												<TableCell sx={{ pl: 0, width: '160px', fontSize: '13px' }}>{row?.baseCurrency}</TableCell>
-												<TableCell align="right" sx={{ fontSize: '13px' }}>{row?.currencyConversion}</TableCell>
+												<TableCell sx={{ pl: 1, fontSize: '13px', borderBottom: '1px solid #e5e7eb' }}>{row?.baseCurrency}</TableCell>
+												<TableCell sx={{ pr: 1, fontSize: '13px', borderBottom: '1px solid #e5e7eb' }}>{row?.currencyConversion}</TableCell>
 											</TableRow>
 										))}
 									</TableBody>
@@ -302,7 +303,7 @@ export default function AuctionDetailBox({
 								);
 							})()}
 							{bidStatus !== "running" && bidStatus !== null && hasEditPermission && (
-								<HiPencilAlt className="text-primary ms-1" size={13} style={{ cursor: 'pointer' }} onClick={() => onEditField('description')} />
+								<button className="pe-icon-btn pe-icon-btn--edit" onClick={() => onEditField('description')}><HiPencilAlt /></button>
 							)}
 						</div>
 					</div>

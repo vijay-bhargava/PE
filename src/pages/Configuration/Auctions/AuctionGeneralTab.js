@@ -921,15 +921,17 @@ const AuctionGeneralTab = ({
 			)}
 			{!stagearray.includes(currentStage) && !showGeneralAccessDenied && idFromURL && idFromURL !== 'add' && (
 				<>
-					<BidGeneralPreview
-						formik={formik}
-						inputList={inputList}
-						bidtype={bidtype}
-						stagearray={stagearray}
-						currentStage={currentStage}
-						handletabEdit={handletabEdit}
-					//purchaseAllList={purchaseAllList}
-					/>
+					<div className='p-3'>
+						<BidGeneralPreview
+							formik={formik}
+							inputList={inputList}
+							bidtype={bidtype}
+							stagearray={stagearray}
+							currentStage={currentStage}
+							handletabEdit={handletabEdit}
+						//purchaseAllList={purchaseAllList}
+						/>
+					</div>
 				</>
 			)}
 		</>

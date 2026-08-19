@@ -1108,7 +1108,7 @@ a {
 .auctionDetail-accordion {
   background: #1d6fc3 !important;
   color: #fff !important;
-  border-radius: 8px 8px 0 0 !important;
+  border-radius: 3px 3px 0 0 !important;
   min-height: 38px !important;
   max-height: 38px !important;
 }
