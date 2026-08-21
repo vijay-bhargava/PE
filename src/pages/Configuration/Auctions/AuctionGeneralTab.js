@@ -37,6 +37,7 @@ const AuctionGeneralTab = ({
 	setOpenCurrencyModal,
 	handleBaseCurrency,
 	attachmentdrawerref,
+	onOpenAttachmentPanel,
 	attachmentforevent,
 	updateBidEndDate,
 	updateBidDuration,
@@ -778,8 +779,10 @@ const AuctionGeneralTab = ({
 													size="small"
 													className="border-primary  bg-white"
 													onClick={() => {
-														if (attachmentdrawerref.current) {
-															attachmentdrawerref?.current?.handledrawer()
+														if (onOpenAttachmentPanel) {
+															onOpenAttachmentPanel();
+														} else if (attachmentdrawerref.current) {
+															attachmentdrawerref?.current?.handledrawer();
 														}
 													}}
 												>

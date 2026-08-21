@@ -188,7 +188,7 @@ const ManageBid = () => {
         setValue(event.target.value);
     };
     const [page, setPage] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize, setPageSize] = useState(25);
     const [totalCount, setTotalCount] = useState(0);
     const [searchMode, setSearchMode] = useState(false); // Track if we're in search mode
     const [quickFilterValue, setQuickFilterValue] = useState(''); // Track search query
@@ -413,7 +413,7 @@ const ManageBid = () => {
 
     const [gridloading, setGridloading] = useState(false);
 
-    const pullBidManageFind = (pageNumber = 1, pageSize = 10, isSearch = false) => {
+    const pullBidManageFind = (pageNumber = 1, pageSize = 25, isSearch = false) => {
         var data = {
             CustomerId: customerid,
             SortingColumn: "Id",
@@ -433,7 +433,6 @@ const ManageBid = () => {
             if (!isSearch) {
                 setGridloading(false);
             }
-            setTotalCount(res.pageMetadata?.totalCount || 0);
             if (isSearch) {
                 setSearchDataLoaded(true);
             }
@@ -441,10 +440,11 @@ const ManageBid = () => {
                 // Filter out items with stage "Cancel" by default
                 const filteredData = res?.result?.filter((item) => item.stage != 'Cancel');
                 setRecorddata(filteredData);
+                const serverTotal = res.pageMetadata?.totalCount;
+                setTotalCount(serverTotal > 0 ? serverTotal : filteredData.length);
             } else {
                 setRecorddata([]);
                 setTotalCount(0);
-
             }
         });
     };
