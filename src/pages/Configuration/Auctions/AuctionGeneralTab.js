@@ -371,9 +371,11 @@ const AuctionGeneralTab = ({
 											<MenuItem value={83}>
 												Japanese
 											</MenuItem>
-											<MenuItem value={82}>
-												Dutch
-											</MenuItem>
+											{!formik.values.groupAuction && (
+												<MenuItem value={82}>
+													Dutch
+												</MenuItem>
+											)}
 
 										</TextField>
 									</div>
@@ -520,6 +522,48 @@ const AuctionGeneralTab = ({
 											</MenuItem>
 										</TextField>
 									</div>
+									{formik.values.groupAuction && (
+										<div className="col-12 col-md-3 col-lg-3 mb-4">
+											<label className="pe-field-label">
+												{bidtype?.id === 1 ? 'Show H1 Package Price' : 'Show L1 Package Price'} <span className="rfq-required-star">*</span>
+											</label>
+											<TextField
+												id="showL1BidValue"
+												name="showL1BidValue"
+												select
+												className="w-100 f14"
+												size="small"
+												variant="outlined"
+												value={formik.values.showL1BidValue}
+												disabled={!hasEditPermission}
+												onChange={(e) => formik.setFieldValue('showL1BidValue', e.target.value === 'true')}
+											>
+												<MenuItem value='false'>No</MenuItem>
+												<MenuItem value='true'>Yes</MenuItem>
+											</TextField>
+										</div>
+									)}
+									{formik.values.groupAuction && formik.values.showL1BidValue === true && (
+										<div className="col-12 col-md-3 col-lg-3 mb-4">
+											<label className="pe-field-label">
+												{bidtype?.id === 1 ? 'Extension On H1 Package Breach' : 'Extension On L1 Package Breach'} <span className="rfq-required-star">*</span>
+											</label>
+											<TextField
+												id="PkgBreachExt"
+												name="PkgBreachExt"
+												select
+												className="w-100 f14"
+												size="small"
+												variant="outlined"
+												value={formik.values.PkgBreachExt}
+												disabled={!hasEditPermission}
+												onChange={(e) => formik.setFieldValue('PkgBreachExt', e.target.value === 'true')}
+											>
+												<MenuItem value='false'>No</MenuItem>
+												<MenuItem value='true'>Yes</MenuItem>
+											</TextField>
+										</div>
+									)}
 								</div>
 							</div>
 							<div className="col-12 mb-1">
@@ -804,65 +848,70 @@ const AuctionGeneralTab = ({
 
 							<LocalizationProvider dateAdapter={AdapterDayjs}>
 								<div className="col-12 mt-4">
-									<div
-										className="prebid-row"
-										style={{
-											display: "grid",
-											gridTemplateColumns: formik.values.prebid
-												? "1.4fr 1.8fr 1fr 1.5fr 1.5fr"
-												: "1.4fr 1.8fr 1fr",
-											gap: "16px",
-											alignItems: "start",
-										}}
-									>
-
-										{/* Quotes in Word */}
+									{/* Single 3-col grid for all checkbox rows — columns stay aligned across rows */}
+									<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px 16px', alignItems: 'center' }}>
+										{/* Row 1 — col 1: Group Auction (only for Forward/Reverse) */}
+										{[1, 2].includes(bidtype?.id) ? (
+											<FormControlLabel
+												control={<Checkbox checked={formik.values.groupAuction} />}
+												label={<span className="f12 muted">Group Auction</span>}
+												name="groupAuction"
+												value={formik.values.groupAuction}
+												disabled={!hasEditPermission}
+												onChange={(e) => {
+													formik.handleChange(e);
+													if (e.target.checked && formik.values.bidSubTypeId === 82) {
+														formik.setFieldValue('bidSubTypeId', 81);
+													}
+													if (!e.target.checked) {
+														formik.setFieldValue('showL1BidValue', false);
+														formik.setFieldValue('PkgBreachExt', false);
+													}
+												}}
+												sx={{ margin: 0 }}
+											/>
+										) : (
+											/* Not Forward/Reverse — skip col 1 by spanning Quotes in Word from col 1 */
+											null
+										)}
+										{/* Row 1 — col 2 (or col 1 if no Group Auction): Quotes in Word */}
 										<FormControlLabel
-											control={
-												<Checkbox checked={formik.values.quotesinWords} />
-											}
-											id="quotesinWords"
-											label={<span className="f12 muted">Quotes in Word</span>
-											}
+											control={<Checkbox checked={formik.values.quotesinWords} />}
+											label={<span className="f12 muted">Quotes in Word</span>}
 											name="quotesinWords"
 											value={formik.values.quotesinWords}
 											disabled={!hasEditPermission}
 											onChange={formik.handleChange}
-											sx={{ margin: 0 }}
+											sx={{ margin: 0, gridColumn: ![1, 2].includes(bidtype?.id) ? '1' : undefined }}
 										/>
-
-										{/* Rank Post Participation */}
+										{/* Row 1 — col 3 (or col 2 if no Group Auction): Rank Post Participation */}
 										<FormControlLabel
-											control={<Checkbox checked={formik.values.rankToVendorPost} />
-											}
-											id="rankToVendorPost"
-											label={<span className="f12 muted">Rank Post Participation</span>
-											}
+											control={<Checkbox checked={formik.values.rankToVendorPost} />}
+											label={<span className="f12 muted">Rank Post Participation</span>}
 											name="rankToVendorPost"
 											value={formik.values.rankToVendorPost}
 											disabled={!hasEditPermission}
 											onChange={formik.handleChange}
 											sx={{ margin: 0 }}
 										/>
+										{/* Row 1 — col 3 filler when no Group Auction (to push Pre Bid to next row col 1) */}
+										{![1, 2].includes(bidtype?.id) && <div />}
 
-										{/* Pre Bid */}
+										{/* Row 2 — col 1: Pre Bid */}
 										<FormControlLabel
 											control={<Checkbox checked={formik.values.prebid} />}
-											id="prebid"
-											label={<span className="f12 muted">Pre Bid	</span>}
+											label={<span className="f12 muted">Pre Bid</span>}
 											name="prebid"
 											value={formik.values.prebid}
 											disabled={!hasEditPermission}
 											onChange={formik.handleChange}
 											sx={{ margin: 0 }}
 										/>
-
-										{/* Start Date + End Date */}
-										{formik.values.prebid && (
+										{/* Row 2 — col 2 & 3: date pickers when prebid checked */}
+										{formik.values.prebid ? (
 											<>
-												{/* Start Date */}
 												<div>
-													<label className="pe-field-label"> Start Date{" "}	<span className="rfq-required-star">*</span></label>
+													<label className="pe-field-label">Pre Bid Start Date <span className="rfq-required-star">*</span></label>
 													<MobileDateTimePicker
 														variant="outlined"
 														size="small"
@@ -874,21 +923,16 @@ const AuctionGeneralTab = ({
 														value={formik.values.preBidStDate}
 														className="w-100 f14"
 														slotProps={{
-															textField: { variant: "outlined", size: "small", fullWidth: true, },
-															actionBar: { actions: ["clear", "cancel", "accept",], },
+															textField: { variant: "outlined", size: "small", fullWidth: true },
+															actionBar: { actions: ["clear", "cancel", "accept"] },
 														}}
-														onChange={(newValue) => {
-															formik.setFieldValue("preBidStDate", newValue);
-														}}
+														onChange={(newValue) => formik.setFieldValue("preBidStDate", newValue)}
 														format={getDateFormatPatteronLocale(userDetail)}
 														ampm={userampm(userDetail)}
 													/>
 												</div>
-
-												{/* End Date */}
 												<div>
-													<label className="pe-field-label"> End Date{" "}	<span className="rfq-required-star">*</span></label>
-
+													<label className="pe-field-label">Pre Bid End Date <span className="rfq-required-star">*</span></label>
 													<MobileDateTimePicker
 														variant="outlined"
 														size="small"
@@ -900,18 +944,16 @@ const AuctionGeneralTab = ({
 														value={formik.values.preBidEndDate}
 														className="w-100 f14"
 														slotProps={{
-															textField: { variant: "outlined", size: "small", fullWidth: true, },
-															actionBar: { actions: ["clear", "cancel", "accept",], },
+															textField: { variant: "outlined", size: "small", fullWidth: true },
+															actionBar: { actions: ["clear", "cancel", "accept"] },
 														}}
-														onChange={(newValue) => {
-															formik.setFieldValue("preBidEndDate", newValue);
-														}}
+														onChange={(newValue) => formik.setFieldValue("preBidEndDate", newValue)}
 														format={getDateFormatPatteronLocale(userDetail)}
 														ampm={userampm(userDetail)}
 													/>
 												</div>
 											</>
-										)}
+										) : <><div /><div /></>}
 									</div>
 								</div>
 							</LocalizationProvider>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
-	Button, Pagination, Switch, Tooltip,
+	Button, Switch, Tooltip,
 	IconButton, Menu, MenuItem, Divider
 } from '@mui/material';
+import { PEPagination } from '../../../components/RFQ/PEPagination';
 import { HiChevronLeft, HiChevronRight, HiDotsVertical, HiPencilAlt } from 'react-icons/hi';
 import { ExpandLess, ExpandMore, UnfoldLess, UnfoldMore } from '@mui/icons-material';
 import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutlineOutlined';
@@ -106,11 +107,11 @@ const RenderTable = ({ actions, actionsR }) => {
 				<span className="text-primary">
 					{actionsR?.thousands_separators(item?.startPrice)}
 					{!(actions?.auctionManageData[0]?.stage === 'Close' || actionsR?.slotStatus === 'Slot_Closed') && (
-						<HiPencilAlt
-							onClick={() => actions?.handleOpen('startPrice', index, item?.bidParameterId)}
-							className="text-primary"
+						<button
+							className="pe-icon-btn pe-icon-btn--edit"
 							style={{ cursor: 'pointer', marginLeft: 4 }}
-						/>
+							onClick={() => actions?.handleOpen('startPrice', index, item?.bidParameterId)}
+						><HiPencilAlt /></button>
 					)}
 				</span>
 			),
@@ -122,11 +123,11 @@ const RenderTable = ({ actions, actionsR }) => {
 				<span className="text-primary">
 					{actionsR?.thousands_separators(item?.minimumDelta)}
 					{!(actions?.auctionManageData[0]?.stage === 'Close' || actionsR?.slotStatus === 'Slot_Closed') && (
-						<HiPencilAlt
-							onClick={() => actions?.handleOpen('minimumDelta', index, item?.bidParameterId)}
-							className="text-primary"
+						<button
+							className="pe-icon-btn pe-icon-btn--edit"
 							style={{ cursor: 'pointer', marginLeft: 4 }}
-						/>
+							onClick={() => actions?.handleOpen('minimumDelta', index, item?.bidParameterId)}
+						><HiPencilAlt /></button>
 					)}
 				</span>
 			),
@@ -179,12 +180,12 @@ const RenderTable = ({ actions, actionsR }) => {
 	return (
 		<>
 			{/* Slot navigation */}
-			<div className='d-flex justify-content-between minh50px align-items-center p-2 border-bottom'>
+			<div className='d-flex justify-content-between minh50px align-items-center p-2 border rounded-3'>
 				<Button className='stagger-custom-button' onClick={actionsR?.handlePrevious} disabled={actionsR?.currentTableIndex === 0}>
 					<HiChevronLeft />
 				</Button>
 				<div className='f14 fw500 d-flex align-items-center'>
-					{`(Slot ${actionsR?.currentTableIndex + 1} of ${actions?.totalCount} )`}&nbsp;Remaining Time :
+					{`(Slot ${actionsR?.currentTableIndex + 1} of ${actions?.totalCount} )`}&nbsp;Remaining Time :&nbsp;
 					<div className='text-danger'>
 						{actionsR?.showRemainingTime ? actionsR?.timeRemainingForGrp : actionsR?.slotStatus}
 					</div>
@@ -235,19 +236,17 @@ const RenderTable = ({ actions, actionsR }) => {
 			</div>
 
 			{/* Pagination */}
-			<div className='row mb-3'>
-				<div className='col-md-12 text-end mt-3 d-flex justify-content-end'>
-					<Pagination
-						count={actions?.totalCount}
-						page={actionsR?.currentTableIndex + 1}
-						onChange={(event, page) => {
-							actionsR?.setCurrentTableIndex?.(page - 1);
-							actionsR?.callbackPagination(page, 10);
-						}}
-						variant='outlined'
-					/>
-				</div>
-			</div>
+			<PEPagination
+				page={actionsR?.currentTableIndex + 1}
+				pageSize={10}
+				totalRows={actions?.totalCount * 10}
+				pageSizeOptions={[10]}
+				onPageChange={(page) => {
+					actionsR?.setCurrentTableIndex?.(page - 1);
+					actionsR?.callbackPagination(page, 10);
+				}}
+				onPageSizeChange={() => { }}
+			/>
 
 			{/* Bid Control dropdown (portals to body, escapes sticky stacking context) */}
 			<Menu

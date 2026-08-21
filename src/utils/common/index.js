@@ -1,34 +1,20 @@
 import CryptoJS from "crypto-js";
 import Axios from "axios";
-import { Bounce, Zoom, toast } from "react-toastify";
-import { format } from "date-fns";
+import { Zoom, toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import React from "react";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-import { buildQueryParams, formatDateViaTimeZone, getObjIndexfromArr } from "./utility";
+import { buildQueryParams, getObjIndexfromArr } from "./utility";
 import { UOMMasterList } from "../commerciallibrary";
 import { getItemCategory, getPlantStorage } from "../purchaseRequest";
-import {
-	HiOutlineCog,
-	HiOutlineHome,
-	HiOutlineLibrary,
-	HiOutlineMail,
-	HiOutlineUser,
-	HiOutlineUserGroup,
-} from "react-icons/hi";
-import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import { HiOutlineCog, HiOutlineMail, HiOutlineUserGroup } from "react-icons/hi";
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
-import SummarizeIcon from '@mui/icons-material/Summarize';
-import ManageAccountsOutlineIcon from '@mui/icons-material/ManageAccounts';
 import { SiAwsorganizations } from "react-icons/si";
 import { TbReportSearch } from "react-icons/tb";
 import { ApiClient } from "../../Apiclient";
-import { CorporateFareOutlined, ManageAccounts, ManageAccountsOutlined } from "@mui/icons-material";
-import { actionTypes, useStateValue } from "../../store";
-import { LuFileType } from "react-icons/lu";
+import { CorporateFareOutlined, ManageAccountsOutlined } from "@mui/icons-material";
+import { actionTypes } from "../../store";
 const apiClient = new ApiClient();
 const domain = process.env.REACT_APP_API_CALL;
 export const fnencrypt = (message) => {
@@ -55,7 +41,7 @@ export const formatDateToDDMMYYYY = (date) => {
 			"en-IN",
 			options
 		);
-		if (returnedDate == "Invalid Date") {
+		if (returnedDate === "Invalid Date") {
 			returnedDate = new Date(date)?.toLocaleDateString("en-IN", options);
 		}
 		return returnedDate;
@@ -148,7 +134,7 @@ export const DownloadFile = async (commFolderName, FileName) => {
 	try {
 		var foldername = commFolderName; // Example folder name
 		var filename = FileName; // Assuming you have the selected file object in the state variable selectedFile
-		if (FileName != "undefined" && FileName != undefined) {
+		if (FileName !== "undefined" && FileName !== undefined) {
 			const url = `${domain}api/blobstorage/DownloadFile?filename=${filename}&filepath=${foldername}`;
 			Axios({
 				url: url,
@@ -182,39 +168,39 @@ export const DownloadFile = async (commFolderName, FileName) => {
 };
 // to verify gst of indian suppliers
 export const taxVerification = async (tax, cookies) => {
-  try {
-   
-    const ENDPOINT = `${domain}api/utility/${tax}`;
-    const token = CryptoJS.AES.decrypt(
-      cookies.patkn,
-      process.env.REACT_APP_TOKEN_INCRYPT_KEY
-    ).toString(CryptoJS.enc.Utf8);
- 
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    };
- 
-    const response = await Axios.get(ENDPOINT, { headers });
- 
-    // Check if response data is not empty
-    if (response.data && Object.keys(response.data).length > 0) {
-      toast.success("Tax is Verified successfully!", {
-        position: toast.POSITION.TOP_CENTER,
-      });
-    } else {
-      toast.error("GST verification failed. No data found for this GST.", {
-        position: toast.POSITION.TOP_CENTER,
-      });
-    }
- 
-    return response.data;
- 
-  } catch (e) {
-    toast.error("Not able to validate the GST number at the moment. Please enter the details manually.", {
-        position: toast.POSITION.TOP_CENTER,
-      });
-  }
+	try {
+
+		const ENDPOINT = `${domain}api/utility/${tax}`;
+		const token = CryptoJS.AES.decrypt(
+			cookies.patkn,
+			process.env.REACT_APP_TOKEN_INCRYPT_KEY
+		).toString(CryptoJS.enc.Utf8);
+
+		const headers = {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		};
+
+		const response = await Axios.get(ENDPOINT, { headers });
+
+		// Check if response data is not empty
+		if (response.data && Object.keys(response.data).length > 0) {
+			toast.success("Tax is Verified successfully!", {
+				position: toast.POSITION.TOP_CENTER,
+			});
+		} else {
+			toast.error("GST verification failed. No data found for this GST.", {
+				position: toast.POSITION.TOP_CENTER,
+			});
+		}
+
+		return response.data;
+
+	} catch (e) {
+		toast.error("Not able to validate the GST number at the moment. Please enter the details manually.", {
+			position: toast.POSITION.TOP_CENTER,
+		});
+	}
 };
 
 //to get jsondata from excel single sheet
@@ -223,7 +209,7 @@ export const handleFileUpload = (file, expectedHeaders) => {
 		const reader = new FileReader();
 
 		reader.onload = (e) => {
-			
+
 			const data = e.target.result;
 			const workbook = XLSX.read(data, { type: "binary", cellDates: true });
 			const sheetName = workbook.SheetNames[0];
@@ -386,48 +372,48 @@ export const createStageModal = (currenstage, nextstage, orgId, orgGroupId) => {
 };
 
 export const createAddConModal = (additionalContactDetails) => {
-	let arr = additionalContactDetails.filter((x) => x.id == undefined);
+	let arr = additionalContactDetails.filter((x) => x.id === undefined);
 
 	return arr;
 };
 export const downloadZip = async (folderPath) => {
-  try {
-	
-    const response = await axios.get(
-      `${domain}api/blobstorage/download-zip?folderPath=${encodeURIComponent(folderPath)}`,
-      {
-        responseType: "blob", // important!
-      }
-    );
+	try {
 
-    // Create a Blob from the response
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    
-    // Extract filename from response headers or fallback
-    const contentDisposition = response.headers["content-disposition"];
-    let fileName = "download.zip";
+		const response = await axios.get(
+			`${domain}api/blobstorage/download-zip?folderPath=${encodeURIComponent(folderPath)}`,
+			{
+				responseType: "blob", // important!
+			}
+		);
 
-    if (contentDisposition) {
-      const match = contentDisposition.match(/filename="?([^"]+)"?/);
-      if (match?.[1]) {
-        fileName = match[1];
-      }
-    }
+		// Create a Blob from the response
+		const url = window.URL.createObjectURL(new Blob([response.data]));
 
-    // Create a link and trigger download
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", fileName);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+		// Extract filename from response headers or fallback
+		const contentDisposition = response.headers["content-disposition"];
+		let fileName = "download.zip";
 
-    // Release memory
-    window.URL.revokeObjectURL(url);
+		if (contentDisposition) {
+			const match = contentDisposition.match(/filename="?([^"]+)"?/);
+			if (match?.[1]) {
+				fileName = match[1];
+			}
+		}
 
-  } catch (error) {
-    console.error("Error downloading zip:", error);
-  }
+		// Create a link and trigger download
+		const link = document.createElement("a");
+		link.href = url;
+		link.setAttribute("download", fileName);
+		document.body.appendChild(link);
+		link.click();
+		link.remove();
+
+		// Release memory
+		window.URL.revokeObjectURL(url);
+
+	} catch (error) {
+		console.error("Error downloading zip:", error);
+	}
 };
 // export const getPayloadWithStage = (field, value, stagelist, payload, field2) => {
 
@@ -541,17 +527,17 @@ export const getPayloadWithFilePath = (field, filepath, payload) => {
 	return payload;
 };
 export const getFileName = (filepath) => {
-    if (!filepath) {
-        return "";
-    }
- 
-    const cleanedPath = filepath.split("?")[0];
-    const filename = cleanedPath.split("/")?.pop() || "";
-    try {
-        return decodeURIComponent(filename);
-    } catch (error) {
-        return filename;
-    }
+	if (!filepath) {
+		return "";
+	}
+
+	const cleanedPath = filepath.split("?")[0];
+	const filename = cleanedPath.split("/")?.pop() || "";
+	try {
+		return decodeURIComponent(filename);
+	} catch (error) {
+		return filename;
+	}
 };
 
 export const downloadFilesOnAzure = async (filepath, filename, atoken) => {
@@ -773,59 +759,59 @@ export const validateEmail = (email) => {
 };
 
 export const fetchMasters = async (atoken, customerid, queryParams = {}) => {
-  const timeZoneurl = `${domain}api/TimeZone/Find`;
-  const countryurl = `${domain}api/Country/Find`;
-  const currencyurl = `${domain}api/Currency/Find`;
-  const categoryurl = `${domain}api/ItemCategory/Find`;
+	const timeZoneurl = `${domain}api/TimeZone/Find`;
+	const countryurl = `${domain}api/Country/Find`;
+	const currencyurl = `${domain}api/Currency/Find`;
+	const categoryurl = `${domain}api/ItemCategory/Find`;
 
-  const headers = {
-    accept: "application/json",
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${atoken}`,
-  };
+	const headers = {
+		accept: "application/json",
+		"Content-Type": "application/json",
+		Authorization: `Bearer ${atoken}`,
+	};
 
-  try {
-    const [
-      timeZoneResponse,
-      countryResponse,
-      currencyResponse,
-      categoryResponse,
-    ] = await Promise.all([
-      axios.get(timeZoneurl, { headers }),
-      axios.get(countryurl, { headers }),
-         // Currency API with IsActive=true
-      axios.get(currencyurl, {
-        headers,
-        params: {
-          IsActive: true,
-        },
-      }),
-      axios.get(categoryurl, {
-        headers,
-        params: {
-          CustomerId: customerid,
-          ...queryParams, // optional extra filters
-        },
-      }),
-    ]);
+	try {
+		const [
+			timeZoneResponse,
+			countryResponse,
+			currencyResponse,
+			categoryResponse,
+		] = await Promise.all([
+			axios.get(timeZoneurl, { headers }),
+			axios.get(countryurl, { headers }),
+			// Currency API with IsActive=true
+			axios.get(currencyurl, {
+				headers,
+				params: {
+					IsActive: true,
+				},
+			}),
+			axios.get(categoryurl, {
+				headers,
+				params: {
+					CustomerId: customerid,
+					...queryParams, // optional extra filters
+				},
+			}),
+		]);
 
-    return {
-      timezoneList: timeZoneResponse.data.result,
-      countryList: countryResponse.data.result,
-      currencyList: currencyResponse.data.result,
-      categoryList: categoryResponse.data.result,
-    };
-  } catch (error) {
-    console.error("Error in fetchMasters:", error);
-    if (error?.message) {
-      toast(error.message, {
-        hideProgressBar: true,
-        autoClose: 2000,
-        type: "error",
-      });
-    }
-    return "";
-  }
+		return {
+			timezoneList: timeZoneResponse.data.result,
+			countryList: countryResponse.data.result,
+			currencyList: currencyResponse.data.result,
+			categoryList: categoryResponse.data.result,
+		};
+	} catch (error) {
+		console.error("Error in fetchMasters:", error);
+		if (error?.message) {
+			toast(error.message, {
+				hideProgressBar: true,
+				autoClose: 2000,
+				type: "error",
+			});
+		}
+		return "";
+	}
 };
 
 
@@ -915,7 +901,7 @@ export const findObjListByValueFromArray = (
 
 	const listModal = {};
 	array.forEach((item) => {
-		if (valuelist?.includes(item[field]) && item.featureName == field2) {
+		if (valuelist?.includes(item[field]) && item.featureName === field2) {
 			listModal[item[field].trim().replace(/\s+/g, "").toLowerCase()] = item;
 		}
 	});
@@ -1067,33 +1053,33 @@ export const fetchSupplierByID = async (id, atoken) => {
 // };
 
 export const fetchCurrency = async (atoken) => {
-  const url = `${domain}api/Currency/Find`;
+	const url = `${domain}api/Currency/Find`;
 
-  const headers = {
-    accept: "application/json",
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${atoken}`,
-  };
+	const headers = {
+		accept: "application/json",
+		"Content-Type": "application/json",
+		Authorization: `Bearer ${atoken}`,
+	};
 
-  try {
-    const response = await axios.get(url, {
-      headers,
-      params: {
-        IsActive: true,
-      },
-    });
+	try {
+		const response = await axios.get(url, {
+			headers,
+			params: {
+				IsActive: true,
+			},
+		});
 
-    return response.data.result;
-  } catch (error) {
-    if (error?.message) {
-      toast(error?.message, {
-        hideProgressBar: true,
-        autoClose: 2000,
-        type: "error",
-      });
-    }
-    return "";
-  }
+		return response.data.result;
+	} catch (error) {
+		if (error?.message) {
+			toast(error?.message, {
+				hideProgressBar: true,
+				autoClose: 2000,
+				type: "error",
+			});
+		}
+		return "";
+	}
 };
 
 // export const checkArray=(jsonArray)=> {
@@ -1115,7 +1101,7 @@ export const fetchCurrency = async (atoken) => {
 // }
 
 export const checkArray = (jsonArray) => {
-	
+
 	let isNullUndefined = false;
 	const seenEmails = new Set();
 
@@ -1658,9 +1644,9 @@ export const handlesaveAttachment = async (AttachFiles, eventid, atoken) => {
 export const fetchAttachmentsFromPRItems = async (selectedItems, targetEventType, atoken, customerid) => {
 	try {
 		// Get unique Event IDs from selected items (supports PR, RFQ, etc.)
-		
+
 		const uniqueEventIds = [...new Set(selectedItems.map(item => item.prId || item.rfqId || item.eventId))];
-		
+
 		const allAttachments = [];
 
 		const payload = {
@@ -1690,22 +1676,22 @@ export const fetchAttachmentsFromPRItems = async (selectedItems, targetEventType
 				createdById: attachment.createdById,
 				createdByName: attachment.createdByName
 			}));
-			
+
 			allAttachments.push(...mappedAttachments);
 		}
-		
+
 		// Fetch attachments for each Event ID
 		for (const eventId of uniqueEventIds) {
 			if (!eventId) continue;
-			
+
 			// Determine source event type based on which field was present
-			const sourceItem = selectedItems.find(item => 
-				(item.prId && item.prId === eventId) || 
-				(item.rfqId && item.rfqId === eventId) || 
+			const sourceItem = selectedItems.find(item =>
+				(item.prId && item.prId === eventId) ||
+				(item.rfqId && item.rfqId === eventId) ||
 				(item.eventId && item.eventId === eventId)
 			);
 			const sourceEventType = sourceItem?.prId ? "PR" : sourceItem?.rfqId ? "RFQ" : "PR";
-			
+
 			const data = {
 				EventType: sourceEventType,
 				EventId: eventId,
@@ -1714,7 +1700,7 @@ export const fetchAttachmentsFromPRItems = async (selectedItems, targetEventType
 			const queryParams = buildQueryParams(data);
 			const res = await apiClient.getres(`/api/eventattachment/Find?${queryParams}`, atoken);
 			const resData = res?.data?.result || [];
-			
+
 			if (resData.length > 0) {
 				// Map attachments to the target event format
 				const mappedAttachments = resData.map(attachment => ({
@@ -1732,11 +1718,11 @@ export const fetchAttachmentsFromPRItems = async (selectedItems, targetEventType
 					sourceEventId: eventId, // Track source event for reference
 					sourceEventType: sourceEventType
 				}));
-				
+
 				allAttachments.push(...mappedAttachments);
 			}
 		}
-		
+
 		return allAttachments;
 	} catch (error) {
 		console.error("Error fetching PR attachments:", error);
@@ -1773,7 +1759,7 @@ export const fetchAttachmentsFromPRItems = async (selectedItems, targetEventType
 
 // Function to map questions to their respective subcategories or to "others" if subcategory is falsy
 export const mapQuestionsToSubcategories = (categories, questions) => {
-	if (questions.length == 0) {
+	if (questions.length === 0) {
 		return [];
 	}
 	// Iterate through categories
@@ -1885,14 +1871,14 @@ export const vendorPrimaryContactModal = (vendorPrimaryContact, vendorCategories
 	console.log("=== vendorPrimaryContactModal CALLED ===");
 	console.log("Input vendorPrimaryContact:", JSON.stringify(vendorPrimaryContact, null, 2));
 	console.log("Input vendorCategories:", vendorCategories);
-	
+
 	const result = vendorPrimaryContact.map((item, index) => {
-		
+
 		console.log(`Processing contact ${index}:`, item);
 		console.log(`TimeZone object:`, item.TimeZone);
 		console.log(`DialingCode object:`, item.DialingCode);
 		console.log(`Categories:`, item.categories);
-	
+
 		const transformedContact = {
 			id: item?.id || 0,
 			ContactPerson: item.ContactPerson ?? '',
@@ -1911,11 +1897,11 @@ export const vendorPrimaryContactModal = (vendorPrimaryContact, vendorCategories
 				customerId: 0
 			})) || []
 		};
-		
+
 		console.log(`Transformed contact ${index}:`, transformedContact);
 		return transformedContact;
 	});
-	
+
 	console.log("=== FINAL RESULT ===", JSON.stringify(result, null, 2));
 	return result;
 };
@@ -1954,10 +1940,10 @@ export const getvendorPrimaryContactModal = (data, timezone_list, country_list) 
 };
 
 // export const getvendorPrimaryContactModal = (data, timezone_list, country_list) => ({
-	
+
 // 	vendorPrimaryContact: data.map(({ id, email, contactPerson, timeZone, dialingCode, phoneNumber, isActive, isPrimary }) => ({
-		
-	
+
+
 // 		id: id || 0,
 // 		Email: email || "",
 // 		ContactPerson: contactPerson || "",
@@ -1968,7 +1954,7 @@ export const getvendorPrimaryContactModal = (data, timezone_list, country_list) 
 // 		isActive: isActive || false,
 // 		isPrimary: isPrimary || false
 // 	}))
-	
+
 // });
 
 
@@ -2021,16 +2007,16 @@ export const validateFileSize = (e) => {
 export const getExtension = (filname) => {
 	let fileextesion = filname.split(".").pop();
 	//console.log(fileextesion);
-	if (fileextesion.toLowerCase() == "rar") {
+	if (fileextesion.toLowerCase() === "rar") {
 		return false;
 	}
-	if (fileextesion.toLowerCase() == "zip") {
+	if (fileextesion.toLowerCase() === "zip") {
 		return false;
 	}
-	if (fileextesion.toLowerCase() == "exe") {
+	if (fileextesion.toLowerCase() === "exe") {
 		return false;
 	}
-	if (fileextesion.toLowerCase() == "txt") {
+	if (fileextesion.toLowerCase() === "txt") {
 		return false;
 	}
 	return true;
@@ -2139,33 +2125,33 @@ export const getFirstNCharacters = (str, n) => {
 
 
 export const getUserTimeZoneDate = (dateString, userDetail) => {
-  if (!dateString) return null;
+	if (!dateString) return null;
 
-  const timeZone = userDetail?.timeZone || 'Asia/Kolkata';
+	const timeZone = userDetail?.timeZone || 'Asia/Kolkata';
 
-  // Format in ISO parts in user's time zone
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  }).formatToParts(new Date(dateString.endsWith('Z') ? dateString : dateString + 'Z'));
+	// Format in ISO parts in user's time zone
+	const parts = new Intl.DateTimeFormat('en-CA', {
+		timeZone,
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		hour12: false,
+	}).formatToParts(new Date(dateString.endsWith('Z') ? dateString : dateString + 'Z'));
 
-  // Build ISO string manually
-  const get = (type) => parts.find(p => p.type === type)?.value.padStart(2, '0');
-  const year = get('year');
-  const month = get('month');
-  const day = get('day');
-  const hour = get('hour');
-  const minute = get('minute');
-  const second = get('second');
+	// Build ISO string manually
+	const get = (type) => parts.find(p => p.type === type)?.value.padStart(2, '0');
+	const year = get('year');
+	const month = get('month');
+	const day = get('day');
+	const hour = get('hour');
+	const minute = get('minute');
+	const second = get('second');
 
-  // Create a new Date from adjusted parts
-  return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}`);
+	// Create a new Date from adjusted parts
+	return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}`);
 };
 
 /**
@@ -2178,63 +2164,63 @@ export const getUserTimeZoneDate = (dateString, userDetail) => {
  * @returns {Promise<boolean>} - Success status
  */
 export const downloadExcelTemplate = async ({ customerId, templateId, fileName, eventType }) => {
-  try {
-    
-    const pythonApiUrl = process.env.REACT_APP_APIPYTHON_CALL;
-   
-    if (!pythonApiUrl) {
-      console.error("REACT_APP_APIPYTHON_CALL environment variable is not defined");
-      toast.error("API configuration error. Please contact support.", {
-        toastId: "api-config-error"
-      });
-      return false;
-    }
- 
-    const formData = new FormData();
-    formData.append("customerId", customerId);
-    formData.append("templateId", templateId);
-    const host = window.location.host;      // buyer.pe.com
-    const cleanHost = host.split(":")[0];   // remove port
-    const tenant = cleanHost.split(".")[0];
-    const response = await fetch(`${pythonApiUrl}bulk-template/generate-excel`, {
-      method: "POST",
-      headers: {
-            "X-Tenant": tenant,
-        },
-      body: formData
-    });
- 
-    if (!response.ok) {
-      throw new Error("Failed to download Excel file.");
-    }
- 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-   
-    // Generate file name
-    const defaultFileName = `${eventType || 'template'}_${new Date().getTime()}.xlsx`;
-    a.download = fileName || defaultFileName;
-   
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-   
-    return true;
-  } catch (error) {
-    console.error("Error downloading Excel template:", error);
-    toast.error("Error downloading the file.", {
-      toastId: "template-download-error"
-    });
-    return false;
-  }
+	try {
+
+		const pythonApiUrl = process.env.REACT_APP_APIPYTHON_CALL;
+
+		if (!pythonApiUrl) {
+			console.error("REACT_APP_APIPYTHON_CALL environment variable is not defined");
+			toast.error("API configuration error. Please contact support.", {
+				toastId: "api-config-error"
+			});
+			return false;
+		}
+
+		const formData = new FormData();
+		formData.append("customerId", customerId);
+		formData.append("templateId", templateId);
+		const host = window.location.host;      // buyer.pe.com
+		const cleanHost = host.split(":")[0];   // remove port
+		const tenant = cleanHost.split(".")[0];
+		const response = await fetch(`${pythonApiUrl}bulk-template/generate-excel`, {
+			method: "POST",
+			headers: {
+				"X-Tenant": tenant,
+			},
+			body: formData
+		});
+
+		if (!response.ok) {
+			throw new Error("Failed to download Excel file.");
+		}
+
+		const blob = await response.blob();
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+
+		// Generate file name
+		const defaultFileName = `${eventType || 'template'}_${new Date().getTime()}.xlsx`;
+		a.download = fileName || defaultFileName;
+
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		window.URL.revokeObjectURL(url);
+
+		return true;
+	} catch (error) {
+		console.error("Error downloading Excel template:", error);
+		toast.error("Error downloading the file.", {
+			toastId: "template-download-error"
+		});
+		return false;
+	}
 };
 // export const downloadExcelTemplate = async ({ customerId, templateId, fileName, eventType }) => {
 //   try {
 //     const pythonApiUrl = process.env.REACT_APP_APIPYTHON_CALL;
-    
+
 //     if (!pythonApiUrl) {
 //       console.error("REACT_APP_APIPYTHON_CALL environment variable is not defined");
 //       toast.error("API configuration error. Please contact support.", {
@@ -2260,16 +2246,16 @@ export const downloadExcelTemplate = async ({ customerId, templateId, fileName, 
 //     const url = window.URL.createObjectURL(blob);
 //     const a = document.createElement("a");
 //     a.href = url;
-    
+
 //     // Generate file name
 //     const defaultFileName = `${eventType || 'template'}_${new Date().getTime()}.xlsx`;
 //     a.download = fileName || defaultFileName;
-    
+
 //     document.body.appendChild(a);
 //     a.click();
 //     document.body.removeChild(a);
 //     window.URL.revokeObjectURL(url);
-    
+
 //     return true;
 //   } catch (error) {
 //     console.error("Error downloading Excel template:", error);
@@ -2279,3 +2265,63 @@ export const downloadExcelTemplate = async ({ customerId, templateId, fileName, 
 //     return false;
 //   }
 // };
+
+export const getApiErrorMessage = (errorOrResponse) => {
+	const data =
+		errorOrResponse?.response?.data ||
+		errorOrResponse?.data ||
+		errorOrResponse;
+
+	if (!data) return 'Something went wrong';
+	if (typeof data === 'string') return data;
+
+	const statusCode = data?.StatusCode ?? data?.statusCode;
+	const message = data?.Message ?? data?.message;
+
+	if (message) return message;
+	if (statusCode) return `Error ${statusCode}`;
+
+	return 'Something went wrong';
+};
+
+export const downloadEventExcelTemplate = async ({ eventType, eventId, customerId, templateId, fileName }) => {
+	try {
+		const pythonApiUrl = process.env.REACT_APP_APIPYTHON_CALL;
+
+		if (!pythonApiUrl) {
+			console.error("REACT_APP_APIPYTHON_CALL environment variable is not defined");
+			toast.error("API configuration error. Please contact support.", { toastId: "api-config-error" });
+			return false;
+		}
+
+		const host = window.location.host;
+		const cleanHost = host.split(":")[0];
+		const tenant = cleanHost.split(".")[0];
+		const queryParams = new URLSearchParams({ eventType, eventId, customerId, templateId }).toString();
+
+		const response = await fetch(`${pythonApiUrl}bulk-download/download-excel?${queryParams}`, {
+			method: "GET",
+			headers: { "X-Tenant": tenant },
+		});
+
+		if (!response.ok) {
+			throw new Error("Failed to download Excel file.");
+		}
+
+		const blob = await response.blob();
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = fileName || `${eventType || 'template'}_${new Date().getTime()}.xlsx`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		window.URL.revokeObjectURL(url);
+
+		return true;
+	} catch (error) {
+		console.error("Error downloading Excel template:", error);
+		toast.error("Error downloading the file.", { toastId: "template-download-error" });
+		return false;
+	}
+};
