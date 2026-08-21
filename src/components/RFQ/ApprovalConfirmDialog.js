@@ -3,7 +3,7 @@ import { Dialog, TextField, Typography, InputAdornment } from '@mui/material';
 import { HiOutlineX } from 'react-icons/hi';
 
 /**
- * Common approval/rejection/forward confirmation dialog for RFQ workflows.
+ * Common approval/rejection/forward confirmation dialog for RFQ/Auction workflows.
  *
  * Props:
  *   open          {boolean}   — controls visibility
@@ -13,6 +13,7 @@ import { HiOutlineX } from 'react-icons/hi';
  *   stageName     {string}    — e.g. "Technical Approval"
  *   comment       {string}    — controlled comment value
  *   onCommentChange {function} — (value: string) => void
+ *   entityLabel   {string}    — optional; label used in message body (default: "RFQ")
  *   zIndex        {number}    — optional; use 1500 when inside a fullscreen Dialog
  */
 const ApprovalConfirmDialog = ({
@@ -23,6 +24,7 @@ const ApprovalConfirmDialog = ({
   stageName,
   comment,
   onCommentChange,
+  entityLabel = 'RFQ',
   zIndex,
 }) => {
   const isReject = status === 'Rejected';
@@ -31,22 +33,22 @@ const ApprovalConfirmDialog = ({
   const title = isReject
     ? 'Reject this stage?'
     : isForward
-    ? 'Forward for Approval'
-    : 'Approve this stage?';
+      ? 'Forward for Approval'
+      : 'Approve this stage?';
 
   const message = isReject ? (
-    <>You're rejecting <strong>{stageName}</strong>. The RFQ will remain in this stage until the rejection is handled.</>
+    <>You're rejecting <strong>{stageName}</strong>. The {entityLabel} will remain in this stage until the rejection is handled.</>
   ) : isForward ? (
     <>You're forwarding <strong>{stageName}</strong> for approval. The assigned approver will be notified.</>
   ) : (
-    <>You're approving <strong>{stageName}</strong>. The RFQ will move to the next stage once all approvers in this stage approve.</>
+    <>You're approving <strong>{stageName}</strong>. The {entityLabel} will move to the next stage once all approvers in this stage approve.</>
   );
 
   const placeholder = isReject
     ? 'Add the reason for rejection.'
     : isForward
-    ? 'Add a note for the forwarding.'
-    : 'Add a note for the approval.';
+      ? 'Add a note for the forwarding.'
+      : 'Add a note for the approval.';
 
   const submitLabel = isReject ? 'Submit rejection' : isForward ? 'Forward' : 'Submit approval';
 

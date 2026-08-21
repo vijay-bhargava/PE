@@ -42,6 +42,8 @@ const BidInviteSupplierTab = ({
   clearSelectedSupplier,
   handleLoadingFactorClick,
   getCategorylist,
+  onSurrogateBid,
+  onSendReminder,
 }) => {
   const [supplierRowMenuAnchor, setSupplierRowMenuAnchor] = useState(null);
   const [supplierSearchQuery, setSupplierSearchQuery] = useState('');
@@ -233,6 +235,20 @@ const BidInviteSupplierTab = ({
                         Loading Factor
                       </MenuItem>
                     )}
+                    <MenuItem
+                      className="f12 fw500"
+                      disabled={!canEditSuppliers}
+                      onClick={() => { setSupplierRowMenuAnchor(null); onSurrogateBid?.(x); }}
+                    >
+                      Surrogate BID
+                    </MenuItem>
+                    <MenuItem
+                      className="f12 fw500"
+                      disabled={!canEditSuppliers}
+                      onClick={() => { setSupplierRowMenuAnchor(null); onSendReminder?.(x); }}
+                    >
+                      Send Reminder
+                    </MenuItem>
                   </Menu>
                   <button
                     type="button"

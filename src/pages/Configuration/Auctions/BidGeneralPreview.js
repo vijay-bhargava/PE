@@ -125,35 +125,42 @@ const BidGeneralPreview = ({ formik, inputList, bidtype, stagearray, currentStag
         ))}
 
         {formik.values.isMultiCurrency && (
-          <div className="rfq-dv2-detail-row">
-            <div className="rfq-dv2-detail-label">Currency Mode:</div>
-            <div className="rfq-dv2-detail-value">
-              Multi Currency
-              <IconButton onClick={() => setShowTable(!showTable)} size="small">
-                {showTable ? <ExpandLess /> : <ExpandMore />}
-              </IconButton>
-              {showTable && (
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Currency</TableCell>
-                        <TableCell align="right">Conversion Factor</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {inputList.map((row, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{row.baseCurrency}</TableCell>
-                          <TableCell align="right">{row.currencyConversion}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
+          <>
+            <div className="rfq-dv2-detail-row">
+              <div className="rfq-dv2-detail-label">Currency Mode:</div>
+              <div className="rfq-dv2-detail-value" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Multi Currency
+                <IconButton onClick={() => setShowTable(!showTable)} size="small" className="p-0">
+                  {showTable ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
+                </IconButton>
+              </div>
             </div>
-          </div>
+            {showTable && inputList?.length > 0 && (
+              <div className="rfq-dv2-detail-row">
+                <div className="rfq-dv2-detail-label" />
+                <div className="rfq-dv2-detail-value" style={{ padding: 0 }}>
+                  <TableContainer style={{ maxWidth: 320 }}>
+                    <Table size="small" aria-label="currency table">
+                      <TableHead>
+                        <TableRow sx={{ backgroundColor: '#F9FAFB' }}>
+                          <TableCell sx={{ pl: 1, fontSize: '12px', fontWeight: 600, borderBottom: 'none' }}>Currency</TableCell>
+                          <TableCell sx={{ pr: 1, fontSize: '12px', fontWeight: 600, borderBottom: 'none' }}>Conversion Factor</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {inputList.map((row, index) => (
+                          <TableRow key={index}>
+                            <TableCell sx={{ pl: 1, fontSize: '13px', borderBottom: '1px solid #e5e7eb' }}>{row.baseCurrency}</TableCell>
+                            <TableCell sx={{ pr: 1, fontSize: '13px', borderBottom: '1px solid #e5e7eb' }}>{row.currencyConversion}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         <div className="rfq-dv2-detail-row rfq-dv2-detail-row-text">

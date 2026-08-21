@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import IconButton from "@mui/material/IconButton";
@@ -9,13 +9,11 @@ import {
 	TextField, Tooltip, Typography, createFilterOptions
 } from "@mui/material";
 import { Modal } from "react-bootstrap";
-import Drawer from "@mui/material/Drawer";
 import Tabs from "@mui/material/Tabs";
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import TextFieldCell from "../../BaseCells/TextFieldCell";
-import LoadingButton from "@mui/lab/LoadingButton";
 import HistoryCell from "../../BaseCells/HistoryCell";
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
 import "react-quill/dist/quill.snow.css";
@@ -25,8 +23,10 @@ import { useLocation, useNavigate, useParams, useSearchParams } from "react-rout
 import {
 	AuctionCTAddModal, IntegerRegex, InvitedSupplierForBidModal,
 	findObjListByValueFromArray, getPayloadWithStage, getStageInfo,
-	handlesaveAttachment, pullMessageCount, getApiErrorMessage, downloadEventExcelTemplate
+	handlesaveAttachment, pullMessageCount, getApiErrorMessage, downloadEventExcelTemplate,
+	attachmentmodalforevent, filequeryparam, getPayloadWithFilePath,
 } from "../../../utils/common";
+import { uploadFilesOnAzure } from "../../../utils/documentlibrary";
 import { actionTypes, useStateValue } from "../../../store";
 import {
 	checkUTC, cleanAndConvertToArray, extractTextFromHTML,
@@ -38,7 +38,6 @@ import AddEditCurrency from "../../../utils/common/AddEditCurrency";
 import { ApiClient, api } from "../../../Apiclient";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
 import AttachmentWorkFlow from "../../BaseCells/attachmentworkflow";
-import EventApprovalBox from "../../BaseCells/eventapprovalbox";
 import AddQuestionFormCell from "../RequestForQuotation/AddQuestionFormCell";
 import AddProductsCell from "./AddProductsCell";
 import CommonBottomDrawer from "../../../components/CommonBottomDrawer";
@@ -47,6 +46,7 @@ import GridSkeleton from "../../../components/Skeleton/gridSkeleton";
 import { FastApiClient } from "../../../FastApiClient";
 import AuctionPreviewTab from "./AuctionPreviewTab";
 import AuctionCommercialTab from "./AuctionCommercialTab";
+import AuctionWorkflowPanel from "./AuctionWorkflowPanel";
 import AuctionGeneralTab from './AuctionGeneralTab';
 import BidItemsTab from "./BidItemsTab";
 import BidInviteSupplierTab from "./BidInviteSupplierTab";
@@ -57,6 +57,7 @@ import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { PETable } from "../../../components/RFQ/PETable";
+import ApprovalConfirmDialog from "../../../components/RFQ/ApprovalConfirmDialog";
 import EventAllocationScreen from "../../../components/Event/EventAllocationScreen";
 import EventCommercialDrawer from "../../../components/Event/EventCommercialDrawer";
 dayjs.extend(utc);
@@ -96,7 +97,10 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	const [stagelist, setStageList] = useState(null);
 	const [stagearray, setStagearray] = useState([`Draft`]);
 	const [currentStage, setCurrentStage] = useState(`Draft`);
+	const normalizedCurrentStage = (currentStage || "Draft").trim();
 	const [tempDataEditData, setTempDataEditData] = useState([]);
+	// When bidtype is null (direct URL navigation), fall back to the id from loaded data
+	const effectiveBidtype = bidtype ?? (tempDataEditData[0]?.bidTypeID ? { id: tempDataEditData[0].bidTypeID } : null);
 	const [tempDataForItemService, setTempDataForItemService] = useState([]);
 	const [bidpreview, setBidPreview] = useState(true);
 	const [modalcancelOpen, setModalCancelOpen] = useState(false);
@@ -180,6 +184,8 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		}
 		if (idFromURL === null) {
 			setApproverShow(false);
+		} else {
+			setApproverShow(true);
 		}
 	}, [value, idFromURL]);
 
@@ -298,6 +304,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		qusDrawer: false,
 		surrogateDrawer: false,
 		openInvoiceApproved: false,
+		openVendorSelect: false,
 	});
 
 	const toggleDrawer = (anchor, open) => (event) => {
@@ -1254,7 +1261,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	const callbackQuesAddCustom = useCallback(
 		(quesData) => {
 			setSelectedQuesionArray((prev) => [...prev, quesData]);
-			setState({ ...state, qusDrawer: false });
+			setState((prev) => ({ ...prev, qusDrawer: false }));
 		},
 		[selectedQuesionArray]
 	);
@@ -2323,7 +2330,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				eventId: parseInt(idFromURL),
 				eventType: "Auction",
 				stageId: stageInfo?.currentStageId,
-				IsApproved: values?.IsApproved,
+				IsApproved: values?.status ? values.status !== 'Rejected' : values?.IsApproved,
 				activityId: parseInt(activityId),
 				remarks: values?.remarks,
 				vendorId: values?.vendorId,
@@ -2616,6 +2623,117 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	// rendering untouched.
 	const isClosedView = currentStage === 'Close' || currentStage === 'Awarded';
 	const [workflowPanelTab, setWorkflowPanelTab] = useState('workflow');
+
+	// ── Right panel: History tab ──────────────────────────────────────────────
+	const [historyGraph, setHistoryGraph] = useState([]);
+	const [historyLoading, setHistoryLoading] = useState(false);
+
+	const fetchPanelHistory = async () => {
+		if (!idFromURL) return;
+		setHistoryLoading(true);
+		try {
+			const params = new URLSearchParams({ CustomerId: customerid, EventType: 'Auction', EventId: idFromURL }).toString();
+			const res = await apiClient.getres(`api/ReportConfig/AuditReport?${params}`, atoken);
+			if (res?.data) {
+				setHistoryGraph(res.data?.stategraph || []);
+			}
+		} catch (e) {
+			console.error('fetchPanelHistory error:', e);
+		}
+		setHistoryLoading(false);
+	};
+
+	// ── Right panel: Attachments tab ──────────────────────────────────────────
+	const [panelSavedAttach, setPanelSavedAttach] = useState([]);
+	const [panelAttachLoading, setPanelAttachLoading] = useState(false);
+	const [panelAttachDesc, setPanelAttachDesc] = useState('');
+	const [panelAttachFile, setPanelAttachFile] = useState(null);
+	const [panelAttachError, setPanelAttachError] = useState('');
+	const [panelAttachAdding, setPanelAttachAdding] = useState(false);
+	const [panelHasCheckboxChanged, setPanelHasCheckboxChanged] = useState(false);
+	const [panelIsUpdating, setPanelIsUpdating] = useState(false);
+	const panelFileInputRef = useRef(null);
+
+	const fetchPanelAttachments = async () => {
+		setPanelAttachLoading(true);
+		setPanelHasCheckboxChanged(false);
+		try {
+			if (idFromURL) {
+				const params = buildQueryParams({ EventType: 'Auction', EventId: idFromURL, VendorId: 0 });
+				const res = await apiClient.getres(`/api/eventattachment/Find?${params}`, atoken);
+				const resData = res?.data?.result || [];
+				if (resData.length > 0) {
+					const mapped = attachmentmodalforevent(resData, idFromURL, 'Auction');
+					setPanelSavedAttach(mapped);
+					handleattachmentforevent(mapped);
+					handleAttachmentCount(mapped.length);
+				} else {
+					setPanelSavedAttach([]);
+					handleattachmentforevent([]);
+					handleAttachmentCount(0);
+				}
+			}
+		} catch (e) {
+			console.error('fetchPanelAttachments error:', e);
+		}
+		setPanelAttachLoading(false);
+	};
+
+	const addPanelAttachment = async () => {
+		const descToUse = panelAttachDesc.trim();
+		if (!descToUse) { setPanelAttachError('Please enter a description for the attachment.'); return; }
+		if (!panelAttachFile?.file) { setPanelAttachError('Please choose a file to upload.'); return; }
+		setPanelAttachError('');
+		setPanelAttachAdding(true);
+		try {
+			const filedata = filequeryparam({ EventType: 'Auction', EventId: idFromURL, Description: 'General', CustomerId: customerid });
+			const path = await uploadFilesOnAzure(filedata, panelAttachFile.file, atoken);
+			if (!path) return;
+			const payload = getPayloadWithFilePath('fileNamePath', path, {
+				eventId: idFromURL, eventType: 'Auction',
+				attachmentDescription: descToUse,
+				attachment: panelAttachFile.file.name,
+				docRefId: 0, createdById: userDetail?.id, createdByName: userDetail?.name,
+			});
+			const res = await apiClient.postres(`/api/eventattachment/${idFromURL}/AddMultiple`, { attachments: [payload] }, atoken);
+			if (res) {
+				setPanelAttachDesc('');
+				setPanelAttachFile(null);
+				if (panelFileInputRef.current) panelFileInputRef.current.value = '';
+				fetchPanelAttachments();
+			}
+		} catch (e) {
+			setPanelAttachError('Upload failed. Please try again.');
+		} finally {
+			setPanelAttachAdding(false);
+		}
+	};
+
+	const updatePanelAttachments = async () => {
+		if (!panelSavedAttach.length) return;
+		setPanelIsUpdating(true);
+		try {
+			const files = panelSavedAttach.map(x => ({ ...x, eventId: idFromURL, createdById: userDetail?.id, createdByName: userDetail?.name }));
+			const res = await apiClient.postres(`/api/eventattachment/UpdateAttachments`, files, atoken);
+			if (res) {
+				toast.success('Attachments updated successfully.', { toastId: 'panel_attach_update' });
+				setPanelHasCheckboxChanged(false);
+			}
+		} catch (e) {
+			toast.error('Failed to update attachments.');
+		} finally {
+			setPanelIsUpdating(false);
+		}
+	};
+
+	const deletePanelAttachment = async (index, id) => {
+		const res = await apiClient.postres(`/api/eventattachment/${id}/Delete`, null, atoken);
+		if (res) {
+			const updated = panelSavedAttach.filter((_, i) => i !== index);
+			setPanelSavedAttach(updated);
+			handleattachmentforevent(updated);
+		}
+	};
 
 	const [open, setOpen] = React.useState(false);
 	const [selectedMenuItem, setSelectedMenuItem] = useState("Save & Continue");
@@ -3124,34 +3242,28 @@ const Auctions = ({ claimType, breadcrumb }) => {
 												</button>
 											)}
 											{/* Primary actions */}
-											{actionType && activityId ? (
-												<button type="button" className="pe-btn pe-btn--primary" onClick={() => setState({ ...state, openInvoiceApproved: true })}>
-													Action
-												</button>
-											) : (
-												<>
-													{value === "5" && (
-														<button type="button" className="pe-btn pe-btn--primary" onClick={() => handleMenuClick('Submit')}>
-															Submit
-														</button>
-													)}
-													{currentStage === 'Draft' && value !== "5" && (
-														<button
-															type="button"
-															className="pe-btn pe-btn--primary"
-															onClick={handleButtonGroup}
-															disabled={!stagearray.includes(currentStage)}
-														>
-															{value === 4 ? "Save Suppliers" : "Save & Continue"}
-														</button>
-													)}
-													{currentStage === 'Allocation' && value === "8" && (
-														<button type="button" className="pe-btn pe-btn--primary" onClick={() => handleMenuClick('Save')}>
-															Save
-														</button>
-													)}
-												</>
-											)}
+											<>
+												{value === "5" && (
+													<button type="button" className="pe-btn pe-btn--primary" onClick={() => handleMenuClick('Submit')}>
+														Submit
+													</button>
+												)}
+												{currentStage === 'Draft' && value !== "5" && (
+													<button
+														type="button"
+														className="pe-btn pe-btn--primary"
+														onClick={handleButtonGroup}
+														disabled={!stagearray.includes(currentStage)}
+													>
+														{value === 4 ? "Save Suppliers" : "Save & Continue"}
+													</button>
+												)}
+												{currentStage === 'Allocation' && value === "8" && (
+													<button type="button" className="pe-btn pe-btn--primary" onClick={() => handleMenuClick('Save')}>
+														Save
+													</button>
+												)}
+											</>
 										</>
 									) : (
 										<button type="button" className="pe-btn pe-btn--primary" disabled>
@@ -3270,7 +3382,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									stagearray={stagearray}
 									currentStage={currentStage}
 									formik={formik}
-									bidtype={bidtype}
+									bidtype={effectiveBidtype}
 									idFromURL={idFromURL}
 									userDetail={userDetail}
 									inputList={inputList}
@@ -3283,6 +3395,11 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									setOpenCurrencyModal={setOpenCurrencyModal}
 									handleBaseCurrency={handleBaseCurrency}
 									attachmentdrawerref={attachmentdrawerref}
+									onOpenAttachmentPanel={() => {
+										setApproverShow(true);
+										setWorkflowPanelTab("attachments");
+										fetchPanelAttachments();
+									}}
 									attachmentforevent={attachmentforevent}
 									updateBidEndDate={updateBidEndDate}
 									updateBidDuration={updateBidDuration}
@@ -3299,7 +3416,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									hasRemovePermission={permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.REMOVE) ?? false}
 									bidItemsList={bidItemsList}
 									tempDataForItemService={tempDataForItemService}
-									bidtype={bidtype}
+									bidtype={effectiveBidtype}
 									stagearray={stagearray}
 									currentStage={currentStage}
 									toggleDrawer={toggleDrawer}
@@ -3361,6 +3478,18 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									clearSelectedSupplier={clearSelectedSupplier}
 									handleLoadingFactorClick={handleLoadingFactorClick}
 									getCategorylist={getCategorylist}
+									onSurrogateBid={(supplier) => {
+										setSelectedAction("Surrogate BID");
+										formik_Action.resetForm();
+										formik_Action.setFieldValue("supplier", supplier);
+										setState((prev) => ({ ...prev, surrogateDrawer: true }));
+									}}
+									onSendReminder={(supplier) => {
+										setSelectedAction("Send Reminder");
+										formik_Action.resetForm();
+										formik_Action.setFieldValue("supplier", supplier);
+										setState((prev) => ({ ...prev, surrogateDrawer: true }));
+									}}
 								/>
 							)}
 							{value === 5 && bidpreview && (
@@ -3368,7 +3497,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									formik={formik}
 									inputList={inputList}
 									purchaseAllList={purchaseAllList}
-									bidtype={bidtype}
+									bidtype={effectiveBidtype}
 									stagearray={stagearray}
 									currentStage={currentStage}
 									handletabEdit={handletabEdit}
@@ -3422,78 +3551,50 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				</div>
 
 				{/* Right content - Approval Section */}
-				<div className={`rightContent ${approvershow ? "col-3" : "d-none"}`}>
-					<div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column approver-panel" style={{ overflow: 'hidden' }}>
-
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2 rfq-dv2-workflow-head">
-							<div className="rfq-dv2-workflow-tabs">
-								<button
-									type="button"
-									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "workflow" ? "active" : ""}`}
-									onClick={() => setWorkflowPanelTab("workflow")}
-								>
-									Approval Workflow
-								</button>
-								<button
-									type="button"
-									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "history" ? "active" : ""}`}
-									onClick={() => setWorkflowPanelTab("history")}
-								>
-									View History
-								</button>
-								<button
-									type="button"
-									className={`rfq-dv2-workflow-tab ${workflowPanelTab === "attachments" ? "active" : ""}`}
-									onClick={() => setWorkflowPanelTab("attachments")}
-								>
-									Attachments
-								</button>
-							</div>
-							<IconButton
-								onClick={() => handleApprover(false)}
-								size="small"
-								className="text-muted"
-							>
-								<HiOutlineX className="f16" />
-							</IconButton>
-						</div>
-						<div className="flex-grow-1">
-							{workflowPanelTab === "workflow" && (
-								<EventApprovalBox
-									requestCell={requestCell}
-									handleEventAppList={handleEventAppList}
-									wfupdate={wfupdate}
-									action={stagearray.includes(currentStage)}
-									stagelist={stagelist}
-									permissionManager={permissionManager}
-									eventCode={tempDataEditData?.[0]?.eventCode}
-									eventSubject={tempDataEditData?.[0]?.subject}
-									startDate={tempDataEditData?.[0]?.bidStDate}
-									endDate={tempDataEditData?.[0]?.bidEndDate}
-									currentStage={currentStage}
-								/>
-							)}
-							{workflowPanelTab === "history" && (
-								<div className="p-2">
-									<HistoryCell eventtype="Auction" eventId={idFromURL} permissionManager={permissionManager} />
-								</div>
-							)}
-							{workflowPanelTab === "attachments" && (
-								<div className="p-2">
-									<AttachmentWorkFlow
-										eventtype="Auction"
-										eventid={idFromURL}
-										action={stagearray.includes(currentStage)}
-										handleattachmentforevent={handleattachmentforevent}
-										permissionManager={permissionManager}
-										onCountChange={handleAttachmentCount}
-										ref={attachmentdrawerref}
-									/>
-								</div>
-							)}
-						</div>
-					</div>
-				</div>
+				<AuctionWorkflowPanel
+					approvershow={approvershow}
+					handleApprover={handleApprover}
+					workflowPanelTab={workflowPanelTab}
+					setWorkflowPanelTab={setWorkflowPanelTab}
+					actionType={actionType}
+					currentStage={currentStage}
+					normalizedCurrentStage={normalizedCurrentStage}
+					stagearray={stagearray}
+					formik_ApproveReject={formik_ApproveReject}
+					toggleDrawer={toggleDrawer}
+					requestCell={requestCell}
+					handleEventAppList={handleEventAppList}
+					wfupdate={wfupdate}
+					stagelist={stagelist}
+					accessLevel={accessLevel}
+					permissionManager={permissionManager}
+					effectivePermissionManager={effectivePermissionManager}
+					tempDataEditData={tempDataEditData}
+					userDetail={userDetail}
+					atoken={atoken}
+					fetchPanelHistory={fetchPanelHistory}
+					fetchPanelAttachments={fetchPanelAttachments}
+					historyLoading={historyLoading}
+					historyGraph={historyGraph}
+					panelAttachLoading={panelAttachLoading}
+					panelAttachDesc={panelAttachDesc}
+					setPanelAttachDesc={setPanelAttachDesc}
+					panelAttachError={panelAttachError}
+					setPanelAttachError={setPanelAttachError}
+					panelAttachFile={panelAttachFile}
+					setPanelAttachFile={setPanelAttachFile}
+					panelSavedAttach={panelSavedAttach}
+					setPanelSavedAttach={setPanelSavedAttach}
+					panelHasCheckboxChanged={panelHasCheckboxChanged}
+					setPanelHasCheckboxChanged={setPanelHasCheckboxChanged}
+					panelIsUpdating={panelIsUpdating}
+					panelAttachAdding={panelAttachAdding}
+					panelFileInputRef={panelFileInputRef}
+					addPanelAttachment={addPanelAttachment}
+					deletePanelAttachment={deletePanelAttachment}
+					updatePanelAttachments={updatePanelAttachments}
+					handleattachmentforevent={handleattachmentforevent}
+				/>
 			</div>
 
 			<CommonBottomDrawer
@@ -3524,353 +3625,215 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					action={stagearray.includes(currentStage)}
 				/>
 			</CommonBottomDrawer>
-			<React.Fragment key="qusDrawertr">
-				<Drawer
-					anchor="right"
-					open={state["qusDrawer"]}
-				>
-					<Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-						<div className="flex flex-col">
-							<Box className="bgheaderCards">
-								<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-									<div className="ms-3 text-white">Add Question</div>
-									<div>
-										<IconButton
-											onClick={toggleDrawer("qusDrawer", false)}
-											size="small"
-											edge="start"
-											sx={{ mr: 1 }}
-										>
-											<HiOutlineX className="f20 text-white" />
-										</IconButton>
-									</div>
-								</div>
-							</Box>
-							<div className="h50px"></div>
-							<Box sx={{ flexGrow: 1, p: 2, mt: 2 }}>
-								<AddQuestionFormCell
-									idFromURL={idFromURL}
-									callbackQuesAddCustom={callbackQuesAddCustom}
-								/>
-							</Box>
+			<CommonBottomDrawer
+				open={state["qusDrawer"]}
+				onClose={toggleDrawer("qusDrawer", false)}
+				title="Add Question"
+				bodyStyle={{ overflowY: "auto" }}
+				actions={
+					<>
+						<button type="button" className="pe-btn pe-btn--ghost" form="add-question-form" onClick={(e) => { e.preventDefault(); document.getElementById('add-question-form')?.dispatchEvent(new Event('reset', { bubbles: true })); }}>Reset</button>
+						<button type="submit" form="add-question-form" className="pe-btn pe-btn--primary">Add</button>
+					</>
+				}
+			>
+				<AddQuestionFormCell
+					idFromURL={idFromURL}
+					callbackQuesAddCustom={callbackQuesAddCustom}
+				/>
+			</CommonBottomDrawer>
+			<CommonBottomDrawer
+				open={state["surrogateDrawer"]}
+				onClose={toggleDrawer("surrogateDrawer", false)}
+				title={selectedAction || "Surrogate BID"}
+				bodyStyle={{ overflowY: "auto" }}
+				actions={
+					<>
+						<button
+							type="button"
+							className="pe-btn pe-btn--ghost"
+							onClick={() => { formik_Action.resetForm(); toggleDrawer("surrogateDrawer", false)(); }}
+						>
+							Reset
+						</button>
+						<button
+							type="submit"
+							form="surrogate-action-form"
+							className="pe-btn pe-btn--primary"
+						>
+							Submit
+						</button>
+					</>
+				}
+			>
+				<form id="surrogate-action-form" onSubmit={formik_Action.handleSubmit} autoComplete="off">
+					<div className="row mt-2">
+						<div className="col-12 mb-4">
+							<label className="pe-field-label">Supplier <span className="rfq-required-star">*</span></label>
+							<TextFieldCell
+								id="supplierselected"
+								name="supplierselected"
+								label=""
+								placeholder=""
+								maxLength={100}
+								value={`${formik_Action.values.supplier?.contactPerson} | ${formik_Action.values.supplier?.email} | ${formik_Action.values.supplier?.companyName}`}
+								disabled
+							/>
 						</div>
-					</Box>
-				</Drawer>
-			</React.Fragment>
-			<React.Fragment key="setSurrogate">
-				<Drawer
-					anchor="right"
-					open={state["surrogateDrawer"]}
-				>
-					<Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-						<div className="flex flex-col">
-							<Box className="bgheaderCards">
-								<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-									<div className="ms-3 text-white">{selectedAction}</div>
-									<div>
-										<IconButton
-											onClick={toggleDrawer("surrogateDrawer", false)}
-											size="small"
-											edge="start"
-											sx={{ mr: 1 }}
-										>
-											<HiOutlineX className="f20 text-white" />
-										</IconButton>
-									</div>
+						{selectedAction === "Surrogate BID" && (
+							<>
+								<div className="col-12 col-md-6 mb-4">
+									<label className="pe-field-label">Surrogator Name</label>
+									<TextFieldCell
+										id="name"
+										name="name"
+										label=""
+										placeholder=""
+										maxLength={100}
+										value={formik_Action.values.name}
+										onChange={(e) => formik_Action.setFieldValue("name", e.target?.value)}
+										error={formik_Action.touched.name && Boolean(formik_Action.errors.name)}
+										helperText={formik_Action.touched.name && formik_Action.errors.name}
+										InputProps={{
+											endAdornment: formik_Action.values.name && (
+												<InputAdornment position="end">
+													<Typography variant="body2" color="textSecondary">
+														{formik_Action.values?.name?.length}/200
+													</Typography>
+												</InputAdornment>
+											),
+										}}
+									/>
 								</div>
-							</Box>
-							<div className="h50px"></div>
-
-							<Box sx={{ flexGrow: 1, p: 2, mt: 2 }}>
-								<form onSubmit={formik_Action.handleSubmit} autoComplete="off">
-									<div className="row mt-2">
-										<div className="col-12 col-md-12 mb-4">
-											<TextFieldCell
-												id="supplierselected"
-												name="supplierselected"
-												label="Supplier *"
-												placeholder=""
-												maxLength={100}
-												value={`${formik_Action.values.supplier?.contactPerson} | ${formik_Action.values.supplier?.email} | ${formik_Action.values.supplier?.companyName}`}
-
-												disabled
-											/>
-										</div>
-										{selectedAction === "Surrogate BID" &&
-											<>
-												<div className="col-12 col-md-6 mb-4">
-													<TextFieldCell
-														id="name"
-														name="name"
-														label="Surrogator Name"
-														placeholder=""
-														maxLength={100}
-														value={formik_Action.values.name}
-														onChange={(e) => {
-
-															formik_Action.setFieldValue("name", e.target?.value)
-														}}
-														error={
-															formik_Action.touched.name &&
-															Boolean(formik_Action.errors.name)
-														}
-														helperText={
-															formik_Action.touched.name &&
-															formik_Action.errors.name
-														}
-														InputProps={{
-															endAdornment: formik_Action.values.name && (
-																<InputAdornment position="end">
-																	<Typography
-																		variant="body2"
-																		color="textSecondary"
-																	>
-																		{formik_Action.values?.name?.length}/200
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-
-													/>
-												</div>
-												<div className="col-12 col-md-6 mb-4">
-													<TextFieldCell
-														id="email"
-														name="email"
-														label="Surrogator Email *"
-														placeholder=""
-														maxLength={100}
-														value={formik_Action.values.email}
-														onChange={(e) => {
-
-															formik_Action.setFieldValue("email", e.target?.value)
-														}}
-														error={
-															formik_Action.touched.email &&
-															Boolean(formik_Action.errors.email)
-														}
-														helperText={
-															formik_Action.touched.email &&
-															formik_Action.errors.email
-														}
-														InputProps={{
-															endAdornment: formik_Action.values.email && (
-																<InputAdornment position="end">
-																	<Typography
-																		variant="body2"
-																		color="textSecondary"
-																	>
-																		{formik_Action.values?.email?.length}/200
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-
-													/>
-												</div>
-											</>
-										}
-										<div className="col-12 col-md-12 mb-4">
-											<TextFieldCell
-												multiline
-												rows={3}
-												id="Reason"
-												name="Reason"
-												label="Remark"
-												placeholder=""
-												maxLength={200}
-												value={formik_Action.values.Reason}
-												onChange={(e) => {
-
-													formik_Action.setFieldValue("Reason", e.target?.value)
-												}}
-												error={
-													formik_Action.touched.Reason &&
-													Boolean(formik_Action.errors.Reason)
-												}
-												helperText={
-													formik_Action.touched.Reason &&
-													formik_Action.errors.Reason
-												}
-												InputProps={{
-													endAdornment: formik_Action.values.Reason && (
-														<InputAdornment position="end">
-															<Typography
-																variant="body2"
-																color="textSecondary"
-															>
-																{formik_Action.values?.Reason?.length}/200
-															</Typography>
-														</InputAdornment>
-													),
-												}}
-											/>
-										</div>
-									</div>
-									<hr className="mt-0" />
-
-									<div className="text-end">
-										<LoadingButton
-
-											variant="outlined"
-
-											color="primary"
-											className="me-3 text-capitalize"
-											size="small"
-										>
-											Reset
-										</LoadingButton>
-										<LoadingButton
-
-											variant="contained"
-											type="Submit"
-											color="primary"
-											className="text-capitalize"
-											size="small"
-										>
-											Submit
-										</LoadingButton>
-									</div>
-								</form>
-							</Box>
-
+								<div className="col-12 col-md-6 mb-4">
+									<label className="pe-field-label">Surrogator Email <span className="rfq-required-star">*</span></label>
+									<TextFieldCell
+										id="email"
+										name="email"
+										label=""
+										placeholder=""
+										maxLength={100}
+										value={formik_Action.values.email}
+										onChange={(e) => formik_Action.setFieldValue("email", e.target?.value)}
+										error={formik_Action.touched.email && Boolean(formik_Action.errors.email)}
+										helperText={formik_Action.touched.email && formik_Action.errors.email}
+										InputProps={{
+											endAdornment: formik_Action.values.email && (
+												<InputAdornment position="end">
+													<Typography variant="body2" color="textSecondary">
+														{formik_Action.values?.email?.length}/200
+													</Typography>
+												</InputAdornment>
+											),
+										}}
+									/>
+								</div>
+							</>
+						)}
+						<div className="col-12 mb-4">
+							<label className="pe-field-label">Remark</label>
+							<TextFieldCell
+								multiline
+								rows={3}
+								id="Reason"
+								name="Reason"
+								label=""
+								placeholder=""
+								maxLength={200}
+								value={formik_Action.values.Reason}
+								onChange={(e) => formik_Action.setFieldValue("Reason", e.target?.value)}
+								error={formik_Action.touched.Reason && Boolean(formik_Action.errors.Reason)}
+								helperText={formik_Action.touched.Reason && formik_Action.errors.Reason}
+								InputProps={{
+									endAdornment: formik_Action.values.Reason && (
+										<InputAdornment position="end">
+											<Typography variant="body2" color="textSecondary">
+												{formik_Action.values?.Reason?.length}/200
+											</Typography>
+										</InputAdornment>
+									),
+								}}
+							/>
 						</div>
-					</Box>
-				</Drawer>
-			</React.Fragment>
-			<React.Fragment key="key4">
-				<Drawer anchor="right" open={state["openInvoiceApproved"]}>
-					<form onSubmit={formik_ApproveReject.handleSubmit} autoComplete="off">
-						<Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-							<div className="flex flex-col">
-								<Box className="bgheaderCards">
-									<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-										<div className="ms-3 text-white">{tempDataEditData[0]?.stage !== 'Close' ? 'Approval Action' : 'Final Approval Action'}</div>
-										<div>
-											<IconButton
-												onClick={toggleDrawer("openInvoiceApproved", false, [])}
-												size="small"
-												edge="start"
-												sx={{ mr: 1 }}
-											>
-												<HiOutlineX className="f20 text-white" />
-											</IconButton>
-										</div>
-									</div>
-								</Box>
-								<div className="h50px"></div>
-								<div className="p-3">
-									<div className="row ">
-										<div className="col-12 col-md-12 col-lg-12">
-											<div className="mb-4 textblue f14"></div>
-											<div className="row">
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													{tempDataEditData[0]?.approverCount === 1 ? (
-														<TextField
-															id="vendorId"
-															InputLabelProps={{
-																shrink: true,
-															}}
-															name="vendorId"
-															select
-															className="mb-2"
-															fullWidth
-															size="small"
-															label="Select supplier"
-															variant="outlined"
-															value={formik_ApproveReject.values?.vendorId || ""}
-															onChange={(e) =>
-																formik_ApproveReject.setFieldValue("vendorId", e.target.value)
-															}
-														>
-															<MenuItem value="">Only for auto PO confirmation</MenuItem>
-															{tempDataEditData[0]?.bidVendorInvited.map((vendor) => (
-																<MenuItem key={vendor.id} value={vendor.vendorID}>
-																	{vendor.vendorName}
-																</MenuItem>
-															))}
-														</TextField>
-													) : (
-														<TextField
-															id="IsApproved"
-															InputLabelProps={{
-																shrink: true,
-															}}
-															name="IsApproved"
-															select
-															className="mb-2"
-															fullWidth
-															size="small"
-															label="Status"
-															variant="outlined"
-															value={formik_ApproveReject.values?.IsApproved}
-															onChange={(e) =>
-																formik_ApproveReject.setFieldValue("IsApproved", e.target.value)
-															}
-														>
-															<MenuItem value={true}>Approve</MenuItem>
-															<MenuItem value={false}>Reject</MenuItem>
-														</TextField>
-													)}
-												</div>
-
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="remarks"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														multiline
-														rows={3}
-														name="remarks"
-														className="w-100 f14"
-														size="small"
-														label="Comment "
-														variant="outlined"
-														inputProps={{ maxLength: 200 }}
-														value={formik_ApproveReject?.values?.remarks}
-														error={formik_ApproveReject.touched.remarks && Boolean(formik_ApproveReject.errors.remarks)}
-														helperText={formik_ApproveReject.touched.remarks && formik_ApproveReject.errors.remarks}
-														onChange={(e) =>
-															formik_ApproveReject.setFieldValue(
-																"remarks",
-																e.target.value
-															)
-														}
-														InputProps={{
-															endAdornment: formik_ApproveReject?.values?.remarks && (
-																<InputAdornment position="end">
-																	<Typography variant="body2" color="textSecondary">
-																		{formik_ApproveReject?.values?.remarks?.length}/200
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-													/>
-												</div>
-											</div>
-										</div>
-									</div>
-									<div className="row">
-										<div className="col-12 text-end">
-											<LoadingButton
-												color="primary"
-												loading={loading}
-												size="medium"
-												className="text-white text-capitalize mb-3 mr-3"
-												variant="contained"
-												type="Submit"
-											>
-												<span>Save</span>
-											</LoadingButton>
-										</div>
-									</div>
-								</div>
-							</div>
-						</Box>
-					</form>
-				</Drawer>
-			</React.Fragment>
+					</div>
+				</form>
+			</CommonBottomDrawer>
+			<ApprovalConfirmDialog
+				open={state["openInvoiceApproved"]}
+				onClose={toggleDrawer("openInvoiceApproved", false, [])}
+				onSubmit={formik_ApproveReject.handleSubmit}
+				status={formik_ApproveReject.values?.status}
+				stageName={normalizedCurrentStage}
+				comment={formik_ApproveReject.values?.remarks ?? ''}
+				onCommentChange={(v) => formik_ApproveReject.setFieldValue("remarks", v)}
+				entityLabel="Auction"
+			/>
+			{/* Vendor select dialog — approverCount === 1 (Final Approval / auto PO) */}
+			<Dialog
+				open={state["openVendorSelect"]}
+				onClose={() => setState((prev) => ({ ...prev, openVendorSelect: false }))}
+				maxWidth={false}
+				PaperProps={{ className: 'rfq-dv2-approval-modal' }}
+				BackdropProps={{ className: 'rfq-dv2-approval-backdrop' }}
+			>
+				<form onSubmit={formik_ApproveReject.handleSubmit} autoComplete="off">
+					<div className="rfq-dv2-approval-modal-head">
+						<h3>Final Approval Action</h3>
+						<button
+							type="button"
+							className="pe-icon-btn pe-icon-btn--close"
+							aria-label="Close"
+							onClick={() => setState((prev) => ({ ...prev, openVendorSelect: false }))}
+						>
+							<HiOutlineX />
+						</button>
+					</div>
+					<div className="rfq-dv2-approval-modal-body">
+						<div className="rfq-dv2-approval-field">
+							<label htmlFor="vendorId">Select Supplier (optional — for auto PO confirmation)</label>
+							<TextField
+								id="vendorId"
+								name="vendorId"
+								select
+								fullWidth
+								size="small"
+								variant="outlined"
+								value={formik_ApproveReject.values?.vendorId || ""}
+								onChange={(e) => formik_ApproveReject.setFieldValue("vendorId", e.target.value)}
+							>
+								<MenuItem value="">Only for auto PO confirmation</MenuItem>
+								{tempDataEditData[0]?.bidVendorInvited?.map((vendor) => (
+									<MenuItem key={vendor.id} value={vendor.vendorID}>{vendor.vendorName}</MenuItem>
+								))}
+							</TextField>
+						</div>
+						<div className="rfq-dv2-approval-field">
+							<label htmlFor="remarksVendor">Comment (optional)</label>
+							<TextField
+								id="remarksVendor"
+								name="remarks"
+								multiline
+								rows={1}
+								fullWidth
+								size="small"
+								variant="outlined"
+								placeholder="Add a note."
+								inputProps={{ maxLength: 200 }}
+								value={formik_ApproveReject.values?.remarks ?? ''}
+								onChange={(e) => formik_ApproveReject.setFieldValue("remarks", e.target.value)}
+							/>
+						</div>
+					</div>
+					<div className="rfq-dv2-approval-modal-actions">
+						<button type="button" className="pe-btn pe-btn--ghost" onClick={() => setState((prev) => ({ ...prev, openVendorSelect: false }))}>
+							Cancel
+						</button>
+						<button type="submit" className="pe-btn pe-btn--primary">
+							Submit
+						</button>
+					</div>
+				</form>
+			</Dialog>
 			<Modal
 				size="md"
 				show={modal1}
