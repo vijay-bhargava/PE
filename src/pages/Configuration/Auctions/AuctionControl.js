@@ -4,7 +4,7 @@ import * as yup from "yup";
 import { actionTypes, useStateValue } from "../../../store";
 import {
 	MenuItem, Menu, Tooltip, Switch, TextField,
-	Button, Table, Typography, Checkbox,
+	Button, Typography, Checkbox,
 	DialogActions, InputAdornment, Autocomplete,
 	DialogContent, DialogTitle, Dialog, DialogContentText,
 	CircularProgress, Box, Alert, Divider
@@ -24,9 +24,8 @@ import StaggerAuction from "./StaggerAuction";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from "../../../utils/permissionManager";
 import GridSkeleton from '../../../components/Skeleton/gridSkeleton';
-import TextFieldCell from "../../BaseCells/TextFieldCell";
 import BidGraphs from "./BidGraphs";
-import { DecimalValueRegEx } from "../../../utils/common";
+import { DecimalValueRegEx, getApiErrorMessage } from "../../../utils/common";
 import { LocalizationProvider, MobileDateTimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from "dayjs";
@@ -41,16 +40,13 @@ import '../../../assets/css/manage-rfq-v2.css';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-
 const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { }, auctionId }) => {
 
 	const navigate = useNavigate();
 	const [{ atoken, customerid, userDetail, customersuffix }, dispatch, thousands_separators] = useStateValue();
 	const apiClient = new ApiClient(customersuffix);
 	const [allVendorParticipationDetails, SetAllVendorParticipationDetails] = useState([])
-	//console.log("allVendorParticipationDetails:", allVendorParticipationDetails)
 	const [auctionManageData, SetAuctionManageData] = useState([])
-	//console.log("auctionManageData:", auctionManageData)
 	const [vendorListData, setVendorListData] = useState([])
 	const [permissionManager, setPermissionManager] = useState(null);
 	const [loadingPermissions, setLoadingPermissions] = useState(true);
@@ -72,6 +68,30 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 	const connectionTimeoutRef = useRef(null);
 	const reconnectingTimeoutRef = useRef(null);
 	const hasShownDialogRef = useRef(false);
+
+	// Server time sync — poll every 5s to keep countdown accurate regardless of client clock skew
+	const serverTimeRef = useRef(null);
+	const performanceStartRef = useRef(null);
+
+	useEffect(() => {
+		const fetchServerTime = async () => {
+			try {
+				const response = await apiClient.postres('/api/AuctionParticipation/GetServerTime', null, atoken);
+				serverTimeRef.current = new Date(response.data).getTime();
+				performanceStartRef.current = performance.now();
+			} catch (e) {
+				console.error('fetchServerTime error:', e);
+			}
+		};
+		fetchServerTime();
+		const interval = setInterval(fetchServerTime, 5000);
+		return () => clearInterval(interval);
+	}, []);
+
+	const getCurrentServerTime = () => {
+		if (serverTimeRef.current == null || performanceStartRef.current == null) return null;
+		return serverTimeRef.current + (performance.now() - performanceStartRef.current);
+	};
 	const [isFullScreen, setIsFullScreen] = useState(isDifferentPage);
 
 	//signalR
@@ -321,6 +341,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 						updatedTimeDetail[0].bidStDate = timeUpdate?.bidStDate;
 						updatedTimeDetail[0].bidEndDate = timeUpdate?.bidEndDate;
 						updatedTimeDetail[0].bidDuration = timeUpdate?.bidDuration;
+						updatedTimeDetail[0].actualDuration = timeUpdate?.actualDuration;
 						updatedTimeDetail[0].extensions = timeUpdate?.extensions;
 						updatedTimeDetail[0].extensionDuration = timeUpdate?.extensionDuration;
 					}
@@ -472,7 +493,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 
 	useEffect(() => {
 		if (auctionManageData)
-			setAdjustValue(auctionManageData[0]?.bidDuration)
+			setAdjustValue(auctionManageData[0]?.actualDuration ?? auctionManageData[0]?.bidDuration)
 	}, [auctionManageData])
 
 	// Handle increase
@@ -572,32 +593,29 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 
 	useEffect(() => {
 		const calculateTimeRemaining = () => {
+			const currentTime = getCurrentServerTime() ?? new Date().getTime();
 			const bidStartDate = new Date(checkUTC(bidStDateTime)).getTime();
-			const currentTime = new Date().getTime();
 			const timeDiff = bidStartDate - currentTime;
 			if (timeDiff > 0) {
-				const formattedTime = formatbidtime(timeDiff)
-				setTimeRemaining(formattedTime);
-				setBidstatus("not_started")
+				setTimeRemaining(formatbidtime(timeDiff));
+				setBidstatus("not_started");
 			} else {
 				const bidEndDate = new Date(checkUTC(bidEndDateTime)).getTime();
-				const currentTime = new Date().getTime();
-				const timeDiff = bidEndDate - currentTime;
-				if (timeDiff > 0) {
-					const formattedTime = formatbidtime(timeDiff)
-					setTimeRemaining(formattedTime);
-					setBidstatus("running")
-				}
-				else {
+				const endDiff = bidEndDate - currentTime;
+				if (endDiff > 0) {
+					setTimeRemaining(formatbidtime(endDiff));
+					setBidstatus("running");
+				} else {
 					setTimeRemaining("00:00:00");
 					clearInterval(timer);
-					setBidstatus(null)
+					setBidstatus(null);
 					refreshData();
 				}
 			}
 		};
 		let timer;
-		let flag = new Date(checkUTC(bidEndDateTime)).getTime() > new Date().getTime()
+		const currentTime = getCurrentServerTime() ?? new Date().getTime();
+		const flag = new Date(checkUTC(bidEndDateTime)).getTime() > currentTime;
 		if (flag && bidStDateTime && bidEndDateTime) {
 			timer = setInterval(calculateTimeRemaining, 1000);
 			return () => clearInterval(timer);
@@ -924,7 +942,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 				}
 			} catch (err) {
 				console.error("Error submitting bid: ", err);
-				toast.error("An error occurred while submitting the bid.");
+				toast.error(getApiErrorMessage(err));
 			}
 		} else {
 			toast.error(`Enter atleast one prebid.`, {
@@ -1210,7 +1228,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 				return '';
 			}
 		} catch (error) {
-			toast.error(`Error inviting suppliers: ${error.message}`);
+			toast.error(getApiErrorMessage(error));
 		}
 	};
 
@@ -1354,7 +1372,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 				})
 			}
 		} catch (error) {
-			toast.error(`Error sending reminder to suppliers: ${error.message}`);
+			toast.error(getApiErrorMessage(error));
 			setSendReminderModal(false)
 			setSelectedSRVendors([]);
 			setVendorRemarks({});
@@ -1640,7 +1658,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 				return;
 			}
 
-			const currentTime = new Date().getTime();
+			const currentTime = getCurrentServerTime() ?? new Date().getTime();
 
 			// Get unique group numbers from auctionManageData[0].bidParamater
 			const uniqueGroups = [...new Set(auctionManageData[0].bidParamater.map(item => item.groupNo))];
@@ -1840,7 +1858,8 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 													fetchVendorParameterDetailsLineItems: fetchVendorParameterDetailsLineItems,
 													fetchVendorParameterDetails: fetchVendorParameterDetails,
 													reopenTrigger: reopenTrigger,
-													hasLoadingFactor: hasLoadingFactor
+													hasLoadingFactor: hasLoadingFactor,
+													getCurrentServerTime: getCurrentServerTime
 												}}
 											/>
 										</div>

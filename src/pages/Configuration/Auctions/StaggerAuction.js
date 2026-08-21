@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Button, TextField, Typography } from '@mui/material';
+import { TextField, Typography } from '@mui/material';
 import { HiOutlineX } from 'react-icons/hi';
 import { formatbidtime, getDateFormatPatteronLocale, userampm } from '../../../utils/common/utility';
+import { getApiErrorMessage } from '../../../utils/common';
 import { ApiClient } from "../../../Apiclient";
 import { useStateValue } from '../../../store';
 import { useParams } from 'react-router-dom';
@@ -55,7 +56,7 @@ const StaggerAuction = ({ actions }) => {
         const firstItem = currentGroupItems[0];
         const bidStartDate = new Date(firstItem.itemStDate + 'Z').getTime();
         const bidEndDate = new Date(firstItem.itemEndDate + 'Z').getTime();
-        const currentTime = Date.now();
+        const currentTime = actions?.getCurrentServerTime?.() ?? Date.now();
 
         if (currentTime < bidStartDate) {
           setTimeRemainingForGrp("");
@@ -153,7 +154,7 @@ const StaggerAuction = ({ actions }) => {
         console.log('Successfully updated the slots status.');
       }
     } catch (error) {
-      toast.error('An error occurred while updating the status.');
+      toast.error(getApiErrorMessage(error));
     }
   };
 
@@ -168,8 +169,7 @@ const StaggerAuction = ({ actions }) => {
         setOpen(false);
       }
     } catch (error) {
-      // Handle any error that occurs during the API call
-      toast.error('An error occurred while pausing the slots.');
+      toast.error(getApiErrorMessage(error));
     }
   };
 
@@ -203,8 +203,7 @@ const StaggerAuction = ({ actions }) => {
         setReopenSlot(false);
       }
     } catch (error) {
-      // Handle any error that occurs during the API call
-      toast.error('An error occurred while reopen the slots.');
+      toast.error(getApiErrorMessage(error));
     }
   };
 
@@ -231,7 +230,7 @@ const StaggerAuction = ({ actions }) => {
       }
     } catch (err) {
       console.error('Error removing restrict remark: ', err);
-      toast.error('An error occurred while removing the restrict remark.');
+      toast.error(getApiErrorMessage(err));
     }
   };
 
@@ -267,7 +266,44 @@ const StaggerAuction = ({ actions }) => {
   const [editingParameterId, setEditingParameterId] = useState(null);
   const [prebidloading, setPreBidLoading] = useState(false);
   const [prebidValues, setPrebidValues] = useState([]);
-  //console.log("prebidValues:", prebidValues)
+  const [duplicateQuoteModalOpen, setDuplicateQuoteModalOpen] = useState(false);
+  const [duplicateQuoteGroups, setDuplicateQuoteGroups] = useState([]);
+
+  const getDuplicateQuoteGroups = () => {
+    if (actions?.auctionManageData?.[0]?.groupAuction) return [];
+
+    const quotesByLineItem = new Map();
+    actions?.allVendorParticipationDetails?.forEach(v => {
+      if (v.bidParameterId === 0 || v.quotedPrice === null || v.quotedPrice === undefined || v.quotedPrice === '' || Number(v.quotedPrice) === 0) return;
+      if (!quotesByLineItem.has(v.bidParameterId)) quotesByLineItem.set(v.bidParameterId, new Map());
+      quotesByLineItem.get(v.bidParameterId).set(v.vendorId, Number(v.quotedPrice));
+    });
+    prebidValues.forEach(p => {
+      if (p.bidParameterId === 0 || p.quotedPrice === '' || p.quotedPrice === null || p.quotedPrice === undefined || Number(p.quotedPrice) === 0) return;
+      if (!quotesByLineItem.has(p.bidParameterId)) quotesByLineItem.set(p.bidParameterId, new Map());
+      quotesByLineItem.get(p.bidParameterId).set(p.createdById, Number(p.quotedPrice));
+    });
+
+    const duplicates = [];
+    quotesByLineItem.forEach((vendorMap, bidParameterId) => {
+      const priceGroups = new Map();
+      vendorMap.forEach((price, vendorId) => {
+        if (!priceGroups.has(price)) priceGroups.set(price, []);
+        priceGroups.get(price).push(vendorId);
+      });
+      priceGroups.forEach((vendorIds, price) => {
+        if (vendorIds.length > 1) {
+          const itemName = actions?.lineItemsPerPage?.find(li => li.bidParameterId === bidParameterId)?.itemName || `Line Item ${bidParameterId}`;
+          const vendorNames = vendorIds.map(vId =>
+            actions?.allVendorParticipationDetails?.find(v => v.vendorId === vId && v.bidParameterId === bidParameterId)?.companyName || `Vendor ${vId}`
+          );
+          duplicates.push({ itemName, price, vendorNames });
+        }
+      });
+    });
+    return duplicates;
+  };
+
   const handleBlur = () => {
     setEditingVendorId(null);
     setEditingParameterId(null);
@@ -357,46 +393,42 @@ const StaggerAuction = ({ actions }) => {
   };
 
   const submitPrebid = async () => {
+    if (prebidValues.length === 0) {
+      toast.error(`Enter atleast one prebid.`, { toastId: "prebid_added", autoClose: 2000 });
+      return;
+    }
+    setPreBidLoading(true);
 
-    console.log("hii there", prebidValues)
-    if (prebidValues.length > 0) {
-      setPreBidLoading(true);
-      for (let prebid of prebidValues) {
-        // const bidParameter = actions?.auctionManageData[0]?.bidParamater.find((param) => param.id === prebid.bidParameterId);
-        const bidParameter = actions?.lineItemsPerPage?.find((param) => param.bidParameterId === prebid.bidParameterId);
-        if (bidParameter && (actions?.auctionManageData[0]?.bidTypeID === 1 || actions?.auctionManageData[0]?.bidTypeID === 5)) {
-          const newPrice = prebid.quotedPrice;
-          if (bidParameter.startPrice && Number(newPrice) < bidParameter.startPrice) {
-            toast.error(`Amount should not be less than Start Price (${bidParameter.startPrice}) for this bid.`);
-            setPreBidLoading(false);
-            return;
-          }
+    const duplicates = getDuplicateQuoteGroups();
+    if (duplicates.length > 0) {
+      setDuplicateQuoteGroups(duplicates);
+      setDuplicateQuoteModalOpen(true);
+      setPreBidLoading(false);
+      return;
+    }
+
+    for (let prebid of prebidValues) {
+      const bidParameter = actions?.lineItemsPerPage?.find((param) => param.bidParameterId === prebid.bidParameterId);
+      if (bidParameter && (actions?.auctionManageData[0]?.bidTypeID === 1 || actions?.auctionManageData[0]?.bidTypeID === 5)) {
+        const newPrice = prebid.quotedPrice;
+        if (bidParameter.startPrice && Number(newPrice) < bidParameter.startPrice) {
+          toast.error(`Amount should not be less than Start Price (${bidParameter.startPrice}) for this bid.`);
+          setPreBidLoading(false);
+          return;
         }
       }
-      try {
-        const res = await apiClient.postres(
-          `/api/AuctionParticipation/SubmitPreBid`,
-          prebidValues,
-          atoken
-        );
-        if (res) {
-          toast.success(`PreBid added successfully.`, {
-            toastId: "prebid_added"
-          });
-          callbackPaginationForVendors(actions?.pageNumber, 10);
-        }
-        else {
-          toast.error("Error fetching response");
-        }
-      } catch (err) {
-        console.error("Error submitting bid: ", err);
-        toast.error("An error occurred while submitting the bid.");
+    }
+    try {
+      const res = await apiClient.postres(`/api/AuctionParticipation/SubmitPreBid`, prebidValues, atoken);
+      if (res) {
+        toast.success(`PreBid added successfully.`, { toastId: "prebid_added" });
+        callbackPaginationForVendors(actions?.pageNumber, 10);
+      } else {
+        toast.error("Error fetching response");
       }
-    } else {
-      toast.error(`Enter atleast one prebid.`, {
-        toastId: "prebid_added",
-        autoClose: 2000,
-      });
+    } catch (err) {
+      console.error("Error submitting bid: ", err);
+      toast.error(getApiErrorMessage(err));
     }
     setPreBidLoading(false);
   }
@@ -446,8 +478,8 @@ const StaggerAuction = ({ actions }) => {
       <div>
         <div className='row'>
           <div className='col-md-12'>
-            <div className="bg-white rounded  p-2 pt-0 ">
-              <div className="p-2">
+            <div className="bg-white rounded pt-0">
+              <div>
                 {<RenderTable
                   actions={actions}
                   actionsR={{
@@ -500,12 +532,8 @@ const StaggerAuction = ({ actions }) => {
           <Typography>Do you want to pause the slots? If yes, click "OK". If no, click "Cancel".</Typography>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={CloseLoadingModal}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleConfirmPause}>
-            OK
-          </Button>
+          <button className="pe-btn pe-btn--secondary" onClick={CloseLoadingModal}>Cancel</button>
+          <button className="pe-btn pe-btn--primary" onClick={handleConfirmPause}>OK</button>
         </Modal.Footer>
       </Modal>
       <Modal
@@ -549,12 +577,8 @@ const StaggerAuction = ({ actions }) => {
           </LocalizationProvider>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={CloseReOpenLoadingModal}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleConfirmReOpen}>
-            OK
-          </Button>
+          <button className="pe-btn pe-btn--secondary" onClick={CloseReOpenLoadingModal}>Cancel</button>
+          <button className="pe-btn pe-btn--primary" onClick={handleConfirmReOpen}>OK</button>
         </Modal.Footer>
       </Modal>
       <Modal
@@ -596,21 +620,38 @@ const StaggerAuction = ({ actions }) => {
 
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={CloseRemoveQuoteModalStagger}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              if (!removeRemark.trim()) {
-                setRemarkError(true);
-                return;
-              }
-              handleRemoveQoutes(removeRemark);
-            }}
-          >
-            OK
-          </Button>
+          <button className="pe-btn pe-btn--secondary" onClick={CloseRemoveQuoteModalStagger}>Cancel</button>
+          <button className="pe-btn pe-btn--primary" onClick={() => {
+            if (!removeRemark.trim()) { setRemarkError(true); return; }
+            handleRemoveQoutes(removeRemark);
+          }}>OK</button>
+        </Modal.Footer>
+      </Modal>
+      <Modal
+        show={duplicateQuoteModalOpen}
+        onHide={() => setDuplicateQuoteModalOpen(false)}
+        backdrop="static"
+        keyboard={false}
+        centered
+        contentClassName="border-0 rounded"
+      >
+        <Modal.Header className="pt-2 pb-2 bgheaderCards" closeButton closeVariant="white">
+          <Modal.Title className="f14 text-white" style={{ fontFamily: 'inherit' }}>Duplicate Quotes Found</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ fontFamily: 'inherit' }}>
+          <Typography className="mb-2" style={{ fontFamily: 'inherit' }}>
+            Duplicate quotes are not allowed for the same line item. Please correct the following before submitting:
+          </Typography>
+          <ul className="mb-0 ps-3">
+            {duplicateQuoteGroups.map((d, idx) => (
+              <li key={idx} className="mb-1">
+                <strong>{d.itemName}</strong>: {d.vendorNames.join(' & ')} have same value (<span className="fw-bold" style={{ color: 'var(--vz-primary-color)' }}>{d.price}</span>).
+              </li>
+            ))}
+          </ul>
+        </Modal.Body>
+        <Modal.Footer>
+          <button className="pe-btn pe-btn--primary px-4" onClick={() => setDuplicateQuoteModalOpen(false)}>OK</button>
         </Modal.Footer>
       </Modal>
       <Modal

@@ -36,7 +36,7 @@ const VendortTable = ({ actions, auctionItem, actionsR, hasLoadingFactor }) => {
 					(actions?.auctionManageData[0]?.stage !== "Open" || actions?.auctionManageData[0]?.stage === "Running" || actions?.bidStatus === 'running')
 				);
 				return (
-					<div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+					<div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
 						{canShowCheckbox && (
 							<Tooltip title="Restrict Supplier to Quote">
 								<span>
@@ -102,7 +102,7 @@ const VendortTable = ({ actions, auctionItem, actionsR, hasLoadingFactor }) => {
 						type="number" size="small" autoFocus
 					/>
 				) : (
-					<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+					<div style={{ display: 'flex', alignItems: 'center' }}>
 						<span>
 							{actionsR?.prebidValues.find(i => i.createdById === sq.vendorId && i.bidParameterId === sq.bidParameterId)?.quotedPrice
 								|| (sq.quotedPrice && sq.quotedPrice !== 0 ? actionsR?.thousands_separators(sq.quotedPrice) : (sq.quotedPrice === null && sq.id > 0 ? 'Quoted' : 'Not Participated'))}

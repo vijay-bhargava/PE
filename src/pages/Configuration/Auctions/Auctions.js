@@ -25,7 +25,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from "react-rout
 import {
 	AuctionCTAddModal, IntegerRegex, InvitedSupplierForBidModal,
 	findObjListByValueFromArray, getPayloadWithStage, getStageInfo,
-	handlesaveAttachment, pullMessageCount, downloadExcelTemplate
+	handlesaveAttachment, pullMessageCount, getApiErrorMessage, downloadEventExcelTemplate
 } from "../../../utils/common";
 import { actionTypes, useStateValue } from "../../../store";
 import {
@@ -135,6 +135,10 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	const stageInfo = getStageInfo(currentStage, stagelist);
 
 	const handleChange = (event, newValue) => {
+		if (newValue === 6 && (currentStage === "Running" || currentStage === "Open")) {
+			navigate(`/configuration/auction-control/${idFromURL}`);
+			return;
+		}
 		setIsUserInitiatedTabChange(true);
 		setValue(newValue);
 		if (newValue === "5") {
@@ -179,11 +183,23 @@ const Auctions = ({ claimType, breadcrumb }) => {
 		}
 	}, [value, idFromURL]);
 
+	// Redirect to standalone AuctionControl when data loads and stage is Open/Running (req 1)
 	useEffect(() => {
-		if (currentStage !== "Draft" && ["Open", "Running"].includes(tempDataEditData[0]?.stage) && value === 1 && !isUserInitiatedTabChange) {
-			setValue(6)
+		const requestedTab = new URLSearchParams(location.search).get("tab");
+		const keepManageAuctionTabs = requestedTab === "6";
+		if (["Open", "Running"].includes(tempDataEditData[0]?.stage) && idFromURL && !keepManageAuctionTabs) {
+			navigate(`/configuration/auction-control/${idFromURL}`);
 		}
-	}, [tempDataEditData, currentStage, value, isUserInitiatedTabChange]);
+	}, [tempDataEditData, idFromURL, location.search, navigate]);
+
+	// Redirect when already on tab 6 and stage transitions to Open/Running e.g. after reopen (req 2)
+	useEffect(() => {
+		const requestedTab = new URLSearchParams(location.search).get("tab");
+		const keepManageAuctionTabs = requestedTab === "6";
+		if ((currentStage === "Running" || currentStage === "Open") && value === 6 && idFromURL && !keepManageAuctionTabs) {
+			navigate(`/configuration/auction-control/${idFromURL}`);
+		}
+	}, [currentStage, value, idFromURL, location.search, navigate]);
 
 	useEffect(() => {
 		const urlparams = {
@@ -449,6 +465,9 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			multicurrencytList: [],
 			isMultiCurrency: false,
 			hideQuote: false,
+			groupAuction: false,
+			showL1BidValue: false,
+			PkgBreachExt: false,
 		},
 		validationSchema: validationSchema,
 		onSubmit: async (values) => {
@@ -528,7 +547,10 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					configureDate: maxNow,
 					isMultiCurrency: values.isMultiCurrency,
 					createdById: tempDataEditData[0]?.createdById ?? 0,
-					hideQuote: values.hideQuote
+					hideQuote: values.hideQuote,
+					groupAuction: values.groupAuction,
+					showL1BidValue: values.showL1BidValue,
+					PkgBreachExt: values.PkgBreachExt,
 				};
 				setLoading(true)
 				const orgId = formik.values.purchOrgId?.id || 0;
@@ -695,6 +717,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					version: 1,
 					customerId: customerId,
 					vendorId: vendor.vendorID,
+					factorPerc: matchedFactor.factorPerc,
 					factorDesc: matchedFactor.factorDesc,
 					factorType: matchedFactor.factorType,
 					loadingAmount: matchedFactor.loadingAmount,
@@ -711,28 +734,16 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	};
 
 	const callLoadingFactorAPI = async (hasData) => {
-
-		const payload = prepareLoadingFactorPayload(tempDataEditData, hasData);
-
-		if (payload.length === 0) {
-			console.warn("No matching vendor factors found");
-			return;
-		}
-
 		try {
-
-			const res = await apiClient.postres(
-				`/api/AuctionManage/AuctionLoadingFactor`,
-				payload,
-				atoken
-			);
-
-			if (res) {
-
-				console.log("Loading Factor added successfully");
+			const payload = prepareLoadingFactorPayload(tempDataEditData, hasData);
+			if (payload.length === 0) {
+				toast.error("No matching vendor factors found.", { autoClose: 2000 });
+				return;
 			}
+			await apiClient.postres(`/api/AuctionManage/AuctionLoadingFactorFromRFQ`, payload, atoken);
 		} catch (err) {
 			console.error("Loading Factor API error:", err);
+			toast.error("Failed to apply loading factors.", { toastId: "loading_factor_api_error" });
 		}
 	};
 
@@ -953,6 +964,15 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				if (res?.result?.[0]?.hideQuote) {
 					formik.setFieldValue("hideQuote", (res?.result?.[0]?.hideQuote));
 				}
+				if (res?.result?.[0]?.groupAuction) {
+					formik.setFieldValue("groupAuction", res?.result?.[0]?.groupAuction);
+				}
+				if (res?.result?.[0]?.showL1BidValue) {
+					formik.setFieldValue("showL1BidValue", res?.result?.[0]?.showL1BidValue);
+				}
+				if (res?.result?.[0]?.PkgBreachExt) {
+					formik.setFieldValue("PkgBreachExt", res?.result?.[0]?.PkgBreachExt);
+				}
 			}
 		});
 	};
@@ -1062,7 +1082,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				return;
 			}
 		} catch (error) {
-			toast.error("Something went wrong please contact administrator.", {
+			toast.error(getApiErrorMessage(error), {
 				position: toast.POSITION.TOP_CENTER,
 				autoClose: 2000,
 			});
@@ -2570,11 +2590,12 @@ const Auctions = ({ claimType, breadcrumb }) => {
 			templateId = 4;
 		}
 
-		await downloadExcelTemplate({
+		await downloadEventExcelTemplate({
+			eventType: "Auction",
+			eventId: idFromURL,
 			customerId: customerid,
 			templateId: templateId,
-			fileName: `Auction_template_${new Date().getTime()}.xlsx`,
-			eventType: "Auction"
+			fileName: `Auction_Event_template_${new Date().getTime()}.xlsx`
 		});
 	}
 
@@ -2977,7 +2998,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				return;
 			}
 		} catch (error) {
-			toast.error("Something went wrong please contact administrator.", {
+			toast.error(getApiErrorMessage(error), {
 				position: toast.POSITION.TOP_CENTER,
 				autoClose: 2000,
 			});
@@ -3298,6 +3319,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									setSelectedCommercalDll={setSelectedCommercalDll}
 									getLibraryTermsList={getLibraryTermsList}
 									setSelectedCommercialLibrary={setSelectedCommercialLibrary}
+									SelectedCommercialLibrary={SelectedCommercialLibrary}
 									stagearray={stagearray}
 									currentStage={currentStage}
 									commercialLibFind={commercialLibFind}
@@ -3306,6 +3328,8 @@ const Auctions = ({ claimType, breadcrumb }) => {
 									handleComItemCheck={handleComItemCheck}
 									handleChangeCom={handleChangeCom}
 									formik={formik}
+									toggleOpenDrawer={toggleOpenDrawer}
+									permissionManager={permissionManager}
 								/>
 							)}
 							{value === 4 && (
@@ -4276,231 +4300,204 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					</Button>
 				</DialogActions>
 			</Dialog>
-			<React.Fragment key="top">
-				<Drawer
-					anchor="right"
-					open={openDrawer.AddNewTerm}
-					onClose={() => toggleOpenDrawer("AddNewTerm", false)}
-				>
-					<Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-						<div className="flex flex-col">
-							<Box className="bgheaderCards">
-								<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-									<div className="ms-3 text-white">Manage Terms</div>
-									<div>
-										<IconButton
-											onClick={() => toggleOpenDrawer("AddNewTerm", false)}
-											size="small"
-											edge="start"
-											sx={{ mr: 1 }}
-										>
-											<HiOutlineX className="f20 text-white" />
-										</IconButton>
-									</div>
-								</div>
-							</Box>
-							<div className="h50px"></div>
-							<Box sx={{ flexGrow: 1, p: 2 }}>
-								<EventCommercialDrawer
-									callbackstep={(data) => {
+			<CommonBottomDrawer
+				open={openDrawer.AddNewTerm}
+				onClose={() => toggleOpenDrawer("AddNewTerm", false)}
+				title="Manage Terms"
+				bodyStyle={{ overflowY: 'auto' }}
+				actions={<>
+					<button type="button" className="pe-btn pe-btn--ghost" onClick={() => toggleOpenDrawer("AddNewTerm", false)}>Cancel</button>
+					<button type="reset" form="manage-terms-form" className="pe-btn pe-btn--secondary">Reset</button>
+					<button type="submit" form="manage-terms-form" className="pe-btn pe-btn--primary">{editRecordData ? "Update" : "Submit"}</button>
+				</>}
+			>
+				<EventCommercialDrawer
+					callbackstep={(data) => {
+						if (!editRecordData) {
+							let libraryterm = CommercialTermModal(data)
+							setLibraryTermsList((prev) => [...prev, libraryterm]);
+							setCommercialLibFind((prev) => [...prev, libraryterm]);
+							toggleOpenDrawer("AddNewTerm", false);
+							setEditRecordData(null);
+						} else {
+							let libraryterm = DefaultCommercialTermModal(editRecordData, data)
+							setLibraryTermsList((prev) => {
+								const updatedList = [...prev];
+								const index = updatedList.findIndex(item => item.fieldName === editRecordData.fieldName);
+								if (index !== -1) updatedList[index] = { ...libraryterm };
+								return updatedList;
+							});
+							setCommercialLibFind((prev) => {
+								const updatedList = [...prev];
+								const index = updatedList.findIndex(item => item.fieldName === editRecordData.fieldName);
+								if (index !== -1) updatedList[index] = { ...libraryterm };
+								return updatedList;
+							});
+							toggleOpenDrawer("AddNewTerm", false);
+							setEditRecordData(null);
+						}
+					}}
+					editRecordData={tempDataEditData[0]}
+					LibraryTermsList={LibraryTermsList}
+				/>
+			</CommonBottomDrawer>
 
-										if (!editRecordData) {
-											let libraryterm = CommercialTermModal(data)
-											setLibraryTermsList((prev) => [...prev, libraryterm]);
-											setCommercialLibFind((prev) => [...prev, libraryterm]);
+			<Modal
+				size="md"
+				show={modal01}
+				backdrop="static"
+				keyboard={false}
+				centered
+				className="rfq-create-modal"
+				contentClassName="border-0 rounded-default"
+				onHide={() => handleCloseModal01()}
+			>
+				<Modal.Header className="pt-2 pb-2">
+					<Modal.Title><span style={{ fontSize: 14 }}>Select Currency Mode</span></Modal.Title>
+					<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseModal01()}>
+						<HiOutlineX style={{ fontSize: 16 }} />
+					</button>
+				</Modal.Header>
+				<Modal.Body className="p-0">
+					<div className="p-2">
+						<div className="row">
+							<div className="col-12 col-lg-12 mt-2 ">
+								<form>
+									<div className="row">
+										<div className="col-12">
+											<div className="row">
+												<div className="col-12 col-lg-12 mt-3">
+													{
+														<div className="row d-flex align-items-center w-100 mb-3">
+															<div className="col-lg-4 col-12">
+																<TextField
+																	id={"basecurrencymodal"}
+																	InputLabelProps={{
+																		shrink: true,
+																	}}
+																	name="baseCurrency"
+																	select
+																	className="w-100 f14"
+																	size="small"
+																	label="Select Currency *"
+																	variant="outlined"
+																	value={modalCurrency.baseCurrency}
+																	onChange={(e) => {
+																		const newValue = e.target?.value;
+																		setModalCurrency((prev) => {
+																			const updated = {
+																				...prev,
+																				baseCurrency: newValue
+																			};
 
-											toggleOpenDrawer("AddNewTerm", false);
-											setEditRecordData(null);
-										}
-										else {
-											let libraryterm = DefaultCommercialTermModal(editRecordData, data)
-											setLibraryTermsList((prev) => {
-
-												const updatedList = [...prev];
-												const index = updatedList.findIndex(item => item.fieldName === editRecordData.fieldName);
-												if (index !== -1) {
-													updatedList[index] = { ...libraryterm };
-												}
-												return updatedList;
-											});
-
-											setCommercialLibFind((prev) => {
-												const updatedList = [...prev];
-												const index = updatedList.findIndex(item => item.fieldName === editRecordData.fieldName);
-												if (index !== -1) {
-													updatedList[index] = { ...libraryterm };
-												}
-												return updatedList;
-											});
-											toggleOpenDrawer("AddNewTerm", false);
-											setEditRecordData(null);
-										}
-									}}
-									editRecordData={tempDataEditData[0]}
-									LibraryTermsList={LibraryTermsList}
-								/>
-							</Box>
-						</div>
-					</Box>
-				</Drawer>
-
-				<Modal
-					size="md"
-					show={modal01}
-					backdrop="static"
-					keyboard={false}
-					centered
-					className="rfq-create-modal"
-					contentClassName="border-0 rounded-default"
-					onHide={() => handleCloseModal01()}
-				>
-					<Modal.Header className="pt-2 pb-2">
-						<Modal.Title><span style={{ fontSize: 14 }}>Select Currency Mode</span></Modal.Title>
-						<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseModal01()}>
-							<HiOutlineX style={{ fontSize: 16 }} />
-						</button>
-					</Modal.Header>
-					<Modal.Body className="p-0">
-						<div className="p-2">
-							<div className="row">
-								<div className="col-12 col-lg-12 mt-2 ">
-									<form>
-										<div className="row">
-											<div className="col-12">
-												<div className="row">
-													<div className="col-12 col-lg-12 mt-3">
-														{
-															<div className="row d-flex align-items-center w-100 mb-3">
-																<div className="col-lg-4 col-12">
-																	<TextField
-																		id={"basecurrencymodal"}
-																		InputLabelProps={{
-																			shrink: true,
-																		}}
-																		name="baseCurrency"
-																		select
-																		className="w-100 f14"
-																		size="small"
-																		label="Select Currency *"
-																		variant="outlined"
-																		value={modalCurrency.baseCurrency}
-																		onChange={(e) => {
-																			const newValue = e.target?.value;
-																			setModalCurrency((prev) => {
-																				const updated = {
-																					...prev,
-																					baseCurrency: newValue
-																				};
-
-																				// Set conversion to 1 if base currency matches event base currency
-																				if (newValue === formik?.values?.baseCurrency) {
-																					updated.currencyConversion = "1";
-																				}
-
-																				return updated;
-																			});
-																		}}
-																	>
-																		{currencyList &&
-																			currencyList.map((option) => (
-																				<MenuItem
-																					key={option.id}
-																					value={option?.currencyNm}
-																				>
-																					{option?.currencyNm}
-																				</MenuItem>
-																			))}
-																	</TextField>
-
-																</div>
-																<div className="col-lg-4 col-12">
-																	<TextField
-																		variant="outlined"
-																		InputLabelProps={{
-																			shrink: true,
-																		}}
-																		className="w-100"
-																		required
-																		type="number"
-																		id={"modalcurrencyConversion"}
-																		label="Enter currency conversion factor"
-																		value={modalCurrency.currencyConversion}
-																		size="small"
-																		name="currencyConversion"
-																		placeholder=""
-																		onChange={(e) => {
-																			const newValue = e.target.value;
-
-																			// Allow only up to 4 decimal places
-																			const regex = /^\d*\.?\d{0,4}$/;
-
-																			if (newValue === '' || regex.test(newValue)) {
-																				setModalCurrency((prev) => ({
-																					...prev,
-																					currencyConversion: newValue,
-																				}));
+																			// Set conversion to 1 if base currency matches event base currency
+																			if (newValue === formik?.values?.baseCurrency) {
+																				updated.currencyConversion = "1";
 																			}
-																		}}
-																		disabled={modalCurrency.baseCurrency === formik?.values?.baseCurrency}
-																	/>
-																</div>
 
-																<div className="col-lg-4 d-flex justify-content-end">
-																	<Button
-																		color="primary"
-																		variant="text"
-																		size="small"
-																		onClick={handleCommercialCurrencyCheck}
-																	>
-																		Submit
-																	</Button>
-																	<Button
-																		color="error"
-																		variant="text"
-																		onClick={() => handleCloseModal01()}
-																		size="small"
-																	>
-																		Cancel
-																	</Button>
-																</div>
+																			return updated;
+																		});
+																	}}
+																>
+																	{currencyList &&
+																		currencyList.map((option) => (
+																			<MenuItem
+																				key={option.id}
+																				value={option?.currencyNm}
+																			>
+																				{option?.currencyNm}
+																			</MenuItem>
+																		))}
+																</TextField>
+
 															</div>
-														}
-													</div>
+															<div className="col-lg-4 col-12">
+																<TextField
+																	variant="outlined"
+																	InputLabelProps={{
+																		shrink: true,
+																	}}
+																	className="w-100"
+																	required
+																	type="number"
+																	id={"modalcurrencyConversion"}
+																	label="Enter currency conversion factor"
+																	value={modalCurrency.currencyConversion}
+																	size="small"
+																	name="currencyConversion"
+																	placeholder=""
+																	onChange={(e) => {
+																		const newValue = e.target.value;
+
+																		// Allow only up to 4 decimal places
+																		const regex = /^\d*\.?\d{0,4}$/;
+
+																		if (newValue === '' || regex.test(newValue)) {
+																			setModalCurrency((prev) => ({
+																				...prev,
+																				currencyConversion: newValue,
+																			}));
+																		}
+																	}}
+																	disabled={modalCurrency.baseCurrency === formik?.values?.baseCurrency}
+																/>
+															</div>
+
+															<div className="col-lg-4 d-flex justify-content-end">
+																<Button
+																	color="primary"
+																	variant="text"
+																	size="small"
+																	onClick={handleCommercialCurrencyCheck}
+																>
+																	Submit
+																</Button>
+																<Button
+																	color="error"
+																	variant="text"
+																	onClick={() => handleCloseModal01()}
+																	size="small"
+																>
+																	Cancel
+																</Button>
+															</div>
+														</div>
+													}
 												</div>
 											</div>
 										</div>
-									</form>
-								</div>
+									</div>
+								</form>
 							</div>
 						</div>
-					</Modal.Body>
-				</Modal>
+					</div>
+				</Modal.Body>
+			</Modal>
 
-				{/* Currency Modal */}
-				<Modal
-					size="lg"
-					show={OpenCurrencyModal}
-					backdrop="static"
-					keyboard={false}
-					className="zindex1400"
-					backdropClassName="zindex1400"
-					centered
-					contentClassName="border-0"
-					onHide={() => CloseCurrencyModal()}
-				>
-					<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
-						<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-							<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Currency</span>
-							<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseCurrencyModal()}>
-								<HiOutlineX className="f20" />
-							</button>
-						</div>
-						<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
-							<AddEditCurrency handleCurrencyList={handleCurrencyList} />
-						</div>
-					</Modal.Body>
-				</Modal>
-			</React.Fragment>
+			{/* Currency Modal */}
+			<Modal
+				size="lg"
+				show={OpenCurrencyModal}
+				backdrop="static"
+				keyboard={false}
+				className="zindex1400"
+				backdropClassName="zindex1400"
+				centered
+				contentClassName="border-0"
+				onHide={() => CloseCurrencyModal()}
+			>
+				<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
+					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
+						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Currency</span>
+						<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseCurrencyModal()}>
+							<HiOutlineX className="f20" />
+						</button>
+					</div>
+					<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+						<AddEditCurrency handleCurrencyList={handleCurrencyList} />
+					</div>
+				</Modal.Body>
+			</Modal>
 		</>
 	)
 }

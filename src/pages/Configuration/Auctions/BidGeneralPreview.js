@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import IconButton from '@mui/material/IconButton';
-import { HiPencilAlt } from 'react-icons/hi';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import { formatDateViaLocale2 } from '../../../utils/common/utility';
@@ -79,6 +78,19 @@ const BidGeneralPreview = ({ formik, inputList, bidtype, stagearray, currentStag
     ['Mask Quote:', formik.values.hideQuote ? 'Yes' : 'No'],
   ];
 
+  if (formik.values.groupAuction) {
+    rows.push(['Group Auction:', 'Yes']);
+    rows.push([
+      bidtype?.id === 1 ? 'Show H1 Package Price:' : 'Show L1 Package Price:',
+      formik.values.showL1BidValue ? 'Yes' : 'No',
+    ]);
+    if (formik.values.showL1BidValue === true) {
+      rows.push([
+        bidtype?.id === 1 ? 'Extension On H1 Package Breach:' : 'Extension On L1 Package Breach:',
+        formik.values.PkgBreachExt ? 'Yes' : 'No',
+      ]);
+    }
+  }
   if (formik.values.prebid && formik.values.preBidStDate) {
     rows.push(['Pre Bid Start Date:', formatDateViaLocale2(formik?.values?.preBidStDate, userDetail) || '-']);
   }

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Autocomplete, Checkbox, TextField } from '@mui/material';
+import { HiPlusSm } from 'react-icons/hi';
 import { PETableSimple } from '../../../components/RFQ/PETable';
+import { ACTIONS, CLAIM_TYPES } from '../../../utils/permissionManager';
 import '../../../assets/css/rfq-detail-v2.css';
 
 const AuctionCommercialTab = ({
@@ -9,6 +11,7 @@ const AuctionCommercialTab = ({
 	setSelectedCommercalDll,
 	getLibraryTermsList,
 	setSelectedCommercialLibrary,
+	SelectedCommercialLibrary,
 	stagearray,
 	currentStage,
 	commercialLibFind,
@@ -17,6 +20,8 @@ const AuctionCommercialTab = ({
 	handleComItemCheck,
 	handleChangeCom,
 	formik,
+	toggleOpenDrawer,
+	permissionManager,
 }) => {
 	const canEdit = stagearray.includes(currentStage);
 
@@ -95,58 +100,57 @@ const AuctionCommercialTab = ({
 
 	return (
 		<div className="p-3 pt-2 pb-0">
-			<div className="d-flex justify-content-between align-items-center">
-				<div className="flex-grow-1">
-					<div className="row mt-2">
-						<div className="col-12 col-md-10 col-lg-6">
-							<label className="pe-field-label">Select Commercial Terms</label>
-							<Autocomplete
-								disablePortal
-								id="combo-box-demo"
-								size="small"
-								options={
-									!generaltermsDDl
-										? [{ label: "Loading...", id: 0 }]
-										: generaltermsDDl
-								}
-								getOptionLabel={(option) => option?.libraryEntity ?? ""}
-								className="w-100"
-								fullWidth
-								value={selectedCommercalDll}
-								renderOption={(props, option) => (
-									<div {...props} className="d-block">
-										<div className="p-1">
-											<div className="ms-2">
-												{option?.libraryEntity ? option.libraryEntity : "No selection"}
-											</div>
-										</div>
+			<div className="d-flex align-items-flex-end gap-3 mt-2">
+				<div style={{ maxWidth: 420, flex: '0 0 auto' }}>
+					<label className="pe-field-label">Select Commercial Terms</label>
+					<Autocomplete
+						disablePortal
+						id="combo-box-demo"
+						size="small"
+						options={
+							!generaltermsDDl
+								? [{ label: "Loading...", id: 0 }]
+								: generaltermsDDl
+						}
+						getOptionLabel={(option) => option?.libraryEntity ?? ""}
+						style={{ width: 420 }}
+						value={selectedCommercalDll}
+						renderOption={(props, option) => (
+							<div {...props} className="d-block">
+								<div className="p-1">
+									<div className="ms-2">
+										{option?.libraryEntity ? option.libraryEntity : "No selection"}
 									</div>
-								)}
-								onChange={(e, values) => {
-									setSelectedCommercalDll(values);
-									getLibraryTermsList(values);
-									setSelectedCommercialLibrary(values);
-								}}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										InputLabelProps={{ shrink: true }}
-										label=""
-									/>
-								)}
-								disabled={!canEdit}
+								</div>
+							</div>
+						)}
+						onChange={(e, values) => {
+							setSelectedCommercalDll(values);
+							getLibraryTermsList(values);
+							setSelectedCommercialLibrary(values);
+						}}
+						renderInput={(params) => (
+							<TextField
+								{...params}
+								InputLabelProps={{ shrink: true }}
+								label=""
 							/>
-						</div>
-						{/* <button
+						)}
+						disabled={!canEdit}
+					/>
+				</div>
+				{canEdit && (
+					<div style={{ paddingTop: 20, marginLeft: 'auto' }}>
+						<button
 							type="button"
 							className="pe-btn pe-btn--primary"
 							onClick={() => toggleOpenDrawer("AddNewTerm", true)}
 							disabled={!SelectedCommercialLibrary || !(permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.CREATE) ?? false)}
 						>
 							<HiPlusSm /> Add More
-						</button> */}
+						</button>
 					</div>
-				</div>
+				)}
 			</div>
 			<div
 				className="row mt-2"

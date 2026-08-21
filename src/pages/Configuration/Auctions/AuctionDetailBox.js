@@ -187,6 +187,7 @@ export default function AuctionDetailBox({
 									</span>
 								)}
 							</span>
+							&nbsp;&nbsp;
 							{bidStatus !== "running" && bidStatus !== null && hasEditPermission && (
 								<button className="pe-icon-btn pe-icon-btn--edit" onClick={() => onEditField('subject')}><HiPencilAlt /></button>
 							)}
