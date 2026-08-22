@@ -1,14 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+﻿import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import IconButton from "@mui/material/IconButton";
-import { HiOutlineX } from "react-icons/hi";
 import {
-	Button, Dialog, DialogActions, DialogContent,
-	DialogContentText, DialogTitle, InputAdornment, MenuItem,
+	Button, InputAdornment, MenuItem,
 	TextField, Tooltip, Typography, createFilterOptions
 } from "@mui/material";
-import { Modal } from "react-bootstrap";
+import PEModal from "../../../components/PEModal";
 import Tabs from "@mui/material/Tabs";
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import Tab from "@mui/material/Tab";
@@ -3321,13 +3319,16 @@ const Auctions = ({ claimType, breadcrumb }) => {
 											disabled={!bidpreview}
 										/>
 									)}
-									{bidtype && idFromURL && ["close", "running", "awarded", "paused", "open", "allocation"].includes(tempDataEditData[0]?.stage?.trim().toLowerCase()) && (
+									{idFromURL && (
+										["close", "running", "awarded", "paused", "open", "allocation"].includes(tempDataEditData[0]?.stage?.trim().toLowerCase()) ||
+										Number(value) === 6
+									) && (
 										<Tab
 											value={6}
 											label={<span className="section-heading" style={{ color: '#1a2742' }}>Manage Auction</span>}
 										/>
 									)}
-									{bidtype && idFromURL && ["close", "awarded", "paused", "open", "allocation"].includes(tempDataEditData[0]?.stage?.trim().toLowerCase()) && (
+									{bidtype && idFromURL && ["under pre approval", "close", "awarded", "paused", "open", "allocation"].includes(tempDataEditData[0]?.stage?.trim().toLowerCase()) && (
 										<Tab
 											value={7}
 											label={<span className="section-heading" style={{ color: '#1a2742' }}>Recent Queries</span>}
@@ -3769,248 +3770,200 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				entityLabel="Auction"
 			/>
 			{/* Vendor select dialog — approverCount === 1 (Final Approval / auto PO) */}
-			<Dialog
+			<PEModal
 				open={state["openVendorSelect"]}
 				onClose={() => setState((prev) => ({ ...prev, openVendorSelect: false }))}
-				maxWidth={false}
-				PaperProps={{ className: 'rfq-dv2-approval-modal' }}
-				BackdropProps={{ className: 'rfq-dv2-approval-backdrop' }}
-			>
-				<form onSubmit={formik_ApproveReject.handleSubmit} autoComplete="off">
-					<div className="rfq-dv2-approval-modal-head">
-						<h3>Final Approval Action</h3>
-						<button
-							type="button"
-							className="pe-icon-btn pe-icon-btn--close"
-							aria-label="Close"
-							onClick={() => setState((prev) => ({ ...prev, openVendorSelect: false }))}
-						>
-							<HiOutlineX />
-						</button>
-					</div>
-					<div className="rfq-dv2-approval-modal-body">
-						<div className="rfq-dv2-approval-field">
-							<label htmlFor="vendorId">Select Supplier (optional — for auto PO confirmation)</label>
-							<TextField
-								id="vendorId"
-								name="vendorId"
-								select
-								fullWidth
-								size="small"
-								variant="outlined"
-								value={formik_ApproveReject.values?.vendorId || ""}
-								onChange={(e) => formik_ApproveReject.setFieldValue("vendorId", e.target.value)}
-							>
-								<MenuItem value="">Only for auto PO confirmation</MenuItem>
-								{tempDataEditData[0]?.bidVendorInvited?.map((vendor) => (
-									<MenuItem key={vendor.id} value={vendor.vendorID}>{vendor.vendorName}</MenuItem>
-								))}
-							</TextField>
-						</div>
-						<div className="rfq-dv2-approval-field">
-							<label htmlFor="remarksVendor">Comment (optional)</label>
-							<TextField
-								id="remarksVendor"
-								name="remarks"
-								multiline
-								rows={1}
-								fullWidth
-								size="small"
-								variant="outlined"
-								placeholder="Add a note."
-								inputProps={{ maxLength: 200 }}
-								value={formik_ApproveReject.values?.remarks ?? ''}
-								onChange={(e) => formik_ApproveReject.setFieldValue("remarks", e.target.value)}
-							/>
-						</div>
-					</div>
-					<div className="rfq-dv2-approval-modal-actions">
+				size="sm"
+				title="Final Approval Action"
+				footer={
+					<>
 						<button type="button" className="pe-btn pe-btn--ghost" onClick={() => setState((prev) => ({ ...prev, openVendorSelect: false }))}>
 							Cancel
 						</button>
-						<button type="submit" className="pe-btn pe-btn--primary">
+						<button type="submit" form="vendor-select-form" className="pe-btn pe-btn--primary">
 							Submit
 						</button>
+					</>
+				}
+			>
+				<form id="vendor-select-form" onSubmit={formik_ApproveReject.handleSubmit} autoComplete="off">
+					<div className="rfq-dv2-approval-field mb-3">
+						<label htmlFor="vendorId">Select Supplier (optional — for auto PO confirmation)</label>
+						<TextField
+							id="vendorId"
+							name="vendorId"
+							select
+							fullWidth
+							size="small"
+							variant="outlined"
+							value={formik_ApproveReject.values?.vendorId || ""}
+							onChange={(e) => formik_ApproveReject.setFieldValue("vendorId", e.target.value)}
+						>
+							<MenuItem value="">Only for auto PO confirmation</MenuItem>
+							{tempDataEditData[0]?.bidVendorInvited?.map((vendor) => (
+								<MenuItem key={vendor.id} value={vendor.vendorID}>{vendor.vendorName}</MenuItem>
+							))}
+						</TextField>
+					</div>
+					<div className="rfq-dv2-approval-field">
+						<label htmlFor="remarksVendor">Comment (optional)</label>
+						<TextField
+							id="remarksVendor"
+							name="remarks"
+							multiline
+							rows={1}
+							fullWidth
+							size="small"
+							variant="outlined"
+							placeholder="Add a note."
+							inputProps={{ maxLength: 200 }}
+							value={formik_ApproveReject.values?.remarks ?? ''}
+							onChange={(e) => formik_ApproveReject.setFieldValue("remarks", e.target.value)}
+						/>
 					</div>
 				</form>
-			</Dialog>
-			<Modal
-				size="md"
-				show={modal1}
-				backdrop="static"
-				keyboard={false}
-				centered
-				className="rfq-create-modal"
-				contentClassName="border-0 rounded-default"
-				onHide={() => handleCloseModal1()}
-			>
-				<Modal.Header className="pt-2 pb-2">
-					<Modal.Title><span style={{ fontSize: 14 }}>Select Currency Mode</span></Modal.Title>
-					<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseModal1()}>
-						<HiOutlineX style={{ fontSize: 16 }} />
-					</button>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<form onSubmit={(e) => e.preventDefault()}>
-							{commcurrencyList?.map((x, i) => (
-								<div className="row g-3 align-items-start mb-3" key={i}>
-									<div className="col-12 col-md-6">
-										<label className="pe-field-label">Select Currency <span className="rfq-required-star">*</span></label>
-										<TextField
-											id={x.baseCurrency}
-											name="baseCurrency"
-											select
-											className="w-100"
-											size="small"
-											variant="outlined"
-											value={x.baseCurrency}
-											onChange={(e) => {
-												if (e.target.value === "new") {
-													setOpenCurrencyModal(true);
-													return;
-												}
-												handleCurrencyInputChange(e, i);
-											}}
-										>
-											<MenuItem value="new" style={{ fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}>
-												ADD NEW
-											</MenuItem>
-											{currencyList &&
-												currencyList.map((option) => (
-													<MenuItem
-														key={option.id}
-														disabled={inputList?.some(
-															(item) =>
-																item.baseCurrency ===
-																option.currencyNm
-														)}
-														value={option?.currencyNm}
-													>
-														{option?.currencyNm}
-													</MenuItem>
-												))}
-										</TextField>
-									</div>
-									<div className="col-12 col-md-6">
-										<label className="pe-field-label">Currency Conversion Factor <span className="rfq-required-star">*</span></label>
-										<TextField
-											variant="outlined"
-											className="w-100"
-											required
-											type="number"
-											id={x.currencyConversion}
-											value={x.currencyConversion}
-											size="small"
-											name="currencyConversion"
-											placeholder="e.g. 1"
-											onChange={(e) =>
-												handleCurrencyInputChange(e, i)
+			</PEModal>
+			<PEModal open={modal1} onClose={() => handleCloseModal1()} size="sm" title="Select Currency Mode">
+				<div className="p-3">
+					<form onSubmit={(e) => e.preventDefault()}>
+						{commcurrencyList?.map((x, i) => (
+							<div className="row g-3 align-items-start mb-3" key={i}>
+								<div className="col-12 col-md-6">
+									<label className="pe-field-label">Select Currency <span className="rfq-required-star">*</span></label>
+									<TextField
+										id={x.baseCurrency}
+										name="baseCurrency"
+										select
+										className="w-100"
+										size="small"
+										variant="outlined"
+										value={x.baseCurrency}
+										onChange={(e) => {
+											if (e.target.value === "new") {
+												setOpenCurrencyModal(true);
+												return;
 											}
-										/>
+											handleCurrencyInputChange(e, i);
+										}}
+									>
+										<MenuItem value="new" style={{ fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}>
+											ADD NEW
+										</MenuItem>
+										{currencyList &&
+											currencyList.map((option) => (
+												<MenuItem
+													key={option.id}
+													disabled={inputList?.some(
+														(item) =>
+															item.baseCurrency ===
+															option.currencyNm
+													)}
+													value={option?.currencyNm}
+												>
+													{option?.currencyNm}
+												</MenuItem>
+											))}
+									</TextField>
+								</div>
+								<div className="col-12 col-md-6">
+									<label className="pe-field-label">Currency Conversion Factor <span className="rfq-required-star">*</span></label>
+									<TextField
+										variant="outlined"
+										className="w-100"
+										required
+										type="number"
+										id={x.currencyConversion}
+										value={x.currencyConversion}
+										size="small"
+										name="currencyConversion"
+										placeholder="e.g. 1"
+										onChange={(e) =>
+											handleCurrencyInputChange(e, i)
+										}
+									/>
+								</div>
+							</div>
+						))}
+						<div className="d-flex justify-content-end gap-2 pt-2 mt-2 border-top">
+							<button type="button" className="pe-btn pe-btn--ghost" onClick={() => handleCloseModal1()}>
+								Cancel
+							</button>
+							<button type="button" className="pe-btn pe-btn--primary" onClick={handlecurrencytermmodal}>
+								Submit
+							</button>
+						</div>
+					</form>
+				</div>
+			</PEModal>
+			<PEModal open={modalBaseCurr} onClose={() => handleCloseBaseCurr()} size="sm" title="Select Base Currency">
+				<div className="row">
+					<div className="col-12 col-lg-12 col-md-12">
+						<form>
+							<div className="row">
+								<div className="col-12 col-lg-12 col-md-12">
+									<div className="row">
+										<div className="col-12 col-lg-12 mt-3">
+											{
+												<div
+													className="row d-flex align-items-center w-100 mb-3"
+												>
+													<div className="col-lg-12 col-12">
+														<label className="pe-field-label">Select Currency <span className="rfq-required-star">*</span></label>
+														<TextField
+															id={"basecurrencymodal"}
+															name="baseCurrency"
+															select
+															className="w-100 f14"
+															size="small"
+															variant="outlined"
+															value={formik?.values?.baseCurrency}
+															SelectProps={{
+																onOpen: () => {
+																	console.log("Select opened, currencyList length:", currencyList.length);
+																	if (currencyList.length === 0) {
+																		pullgetCurrency();
+																	}
+																}
+															}}
+															onChange={(e) => {
+																const newValue = e.target?.value;
+																console.log("Base Currency onChange triggered, newValue:", newValue);
+																if (newValue === "new") {
+																	console.log("Opening currency modal and closing base currency modal...");
+																	handleCloseBaseCurr();
+																	setTimeout(() => {
+																		setOpenCurrencyModal(true);
+																	}, 100);
+																	return;
+																}
+																console.log("Setting base currency to:", newValue);
+																formik.setFieldValue("baseCurrency", newValue);
+																handleCloseBaseCurr();
+															}}
+														>
+															<MenuItem value="new" style={{ fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}>
+																ADD NEW
+															</MenuItem>
+															{(currencyList || []).map((option) => (
+																<MenuItem
+																	key={option.id}
+																	value={option?.currencyNm}
+																>
+																	{option?.currencyNm}
+																</MenuItem>
+															))}
+														</TextField>
+													</div>
+												</div>
+											}
+										</div>
 									</div>
 								</div>
-							))}
-							<div className="d-flex justify-content-end gap-2 pt-2 mt-2 border-top">
-								<button type="button" className="pe-btn pe-btn--ghost" onClick={() => handleCloseModal1()}>
-									Cancel
-								</button>
-								<button type="button" className="pe-btn pe-btn--primary" onClick={handlecurrencytermmodal}>
-									Submit
-								</button>
 							</div>
 						</form>
 					</div>
-				</Modal.Body>
-			</Modal>
-			<Modal
-				size="sm"
-				show={modalBaseCurr}
-				backdrop="static"
-				keyboard={false}
-				centered
-				className="rfq-create-modal"
-				contentClassName="border-0 rounded-default"
-				onHide={() => handleCloseBaseCurr()}
-			>
-				<Modal.Header className="pt-2 pb-2">
-					<Modal.Title><span style={{ fontSize: 14 }}>Select Base Currency</span></Modal.Title>
-					<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseBaseCurr()}>
-						<HiOutlineX style={{ fontSize: 16 }} />
-					</button>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-2">
-						<div className="row">
-							<div className="col-12 col-lg-12 col-md-12 mt-2 ">
-								<form>
-									<div className="row">
-										<div className="col-12 col-lg-12 col-md-12">
-											<div className="row">
-												<div className="col-12 col-lg-12 mt-3">
-													{
-														<div
-															className="row d-flex align-items-center w-100 mb-3"
-														>
-															<div className="col-lg-12 col-12">
-																<label className="pe-field-label">Select Currency <span className="rfq-required-star">*</span></label>
-																<TextField
-																	id={"basecurrencymodal"}
-																	name="baseCurrency"
-																	select
-																	className="w-100 f14"
-																	size="small"
-																	variant="outlined"
-																	value={formik?.values?.baseCurrency}
-																	SelectProps={{
-																		onOpen: () => {
-																			console.log("Select opened, currencyList length:", currencyList.length);
-																			if (currencyList.length === 0) {
-																				pullgetCurrency();
-																			}
-																		}
-																	}}
-																	onChange={(e) => {
-																		const newValue = e.target?.value;
-																		console.log("Base Currency onChange triggered, newValue:", newValue);
-																		if (newValue === "new") {
-																			console.log("Opening currency modal and closing base currency modal...");
-																			handleCloseBaseCurr();
-																			setTimeout(() => {
-																				setOpenCurrencyModal(true);
-																			}, 100);
-																			return;
-																		}
-																		console.log("Setting base currency to:", newValue);
-																		formik.setFieldValue("baseCurrency", newValue);
-																		handleCloseBaseCurr();
-																	}}
-																>
-																	{(currencyList || []).map((option) => (
-																		<MenuItem
-																			key={option.id}
-																			value={option?.currencyNm}
-																		>
-																			{option?.currencyNm}
-																		</MenuItem>
-																	))}
-																	<MenuItem value="new" style={{ fontStyle: 'italic', color: 'blue', cursor: 'pointer', textDecoration: 'underline' }}>
-																		Add New
-																	</MenuItem>
-																</TextField>
-															</div>
-														</div>
-													}
-												</div>
-											</div>
-										</div>
-									</div>
-								</form>
-							</div>
-						</div>
-					</div>
-				</Modal.Body>
-			</Modal>
+				</div>
+			</PEModal>
 			<>
 				<input
 					className="d-none"
@@ -4020,215 +3973,124 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					ref={fileInputRef}
 				/>
 			</>
-			<Dialog open={confirmDelete} onClose={handleCloseDelete}>
-				<DialogTitle id="">{"Are you sure?"}</DialogTitle>
-				<DialogContent style={{ minWidth: "300px" }}>
-					<DialogContentText id="">You want to delete.</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={handleCloseDelete}>No</Button>
-					<Button onClick={() => removeItemData(removeItem)} autoFocus>
-						Yes
-					</Button>
-				</DialogActions>
-			</Dialog>
-			<Modal
-				show={loadingModal}
-				dialogClassName="modal-custom-mdlg"
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				backdrop="static"
-				keyboard={false}
-				centered
-				contentClassName="border-0"
-				onHide={CloseLoadingModal}
-			>
-				<Modal.Body className="p-0 d-flex flex-column">
-					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Loading Factor</span>
-						<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={CloseLoadingModal}>
-							<HiOutlineX />
-						</button>
-					</div>
-					<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
-						<BidLoadingFactor
-							isModal={true}
-							bidId={idFromURL}
-							vendorId={storeVId}
-							initialFactors={filteredLoadingFactors}
-							baseCurrency={formik.values.baseCurrency}
-							onUpdate={(factors) => {
-								setFilteredLoadingFactors(factors);
-								setSelectedSupplier(prev =>
-									prev.map(s => s.id === storeVId ? { ...s, bidLoadingFactor: factors } : s)
-								);
-							}}
-						/>
-					</div>
-				</Modal.Body>
-			</Modal>
-			<Dialog open={open} onClose={handleClose} PaperProps={{ sx: { borderRadius: '12px', minWidth: 380, p: 1 } }}>
-				<DialogTitle sx={{ fontWeight: 600, fontSize: '1rem', pb: 0.5 }}>Save As Template</DialogTitle>
-				<DialogContent>
-					<label className="pe-field-label">Auction Template Title <span className="rfq-required-star">*</span></label>
-					<TextField
-						autoFocus
-						variant="outlined"
-						size="small"
-						fullWidth
-						placeholder="Enter template title"
-						value={TemplateTitle}
-						onChange={(e) => setTemplateTitle(e.target.value)}
-						inputProps={{ maxLength: 150 }}
+			<PEModal open={confirmDelete} onClose={handleCloseDelete} size="xs" title="Are you sure?" footer={<><Button onClick={handleCloseDelete}>No</Button><Button onClick={() => removeItemData(removeItem)} autoFocus>Yes</Button></>}>
+				<p>You want to delete.</p>
+			</PEModal>
+			<PEModal open={loadingModal} onClose={CloseLoadingModal} size="lg" title="Loading Factor">
+				<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+					<BidLoadingFactor
+						isModal={true}
+						bidId={idFromURL}
+						vendorId={storeVId}
+						initialFactors={filteredLoadingFactors}
+						baseCurrency={formik.values.baseCurrency}
+						onUpdate={(factors) => {
+							setFilteredLoadingFactors(factors);
+							setSelectedSupplier(prev =>
+								prev.map(s => s.id === storeVId ? { ...s, bidLoadingFactor: factors } : s)
+							);
+						}}
 					/>
-				</DialogContent>
-				<DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-					<button type="button" className="pe-btn pe-btn--secondary" onClick={handleClose}>Cancel</button>
-					<button type="button" className="pe-btn pe-btn--primary" onClick={handleSaveTemplate} disabled={!idFromURL}>Save</button>
-				</DialogActions>
-			</Dialog>
-			<Dialog open={confirmClearAllItems} onClose={() => handleClearAllItems(false)}>
-				<DialogTitle>{"Are you sure?"}</DialogTitle>
-				<DialogContent style={{ minWidth: "300px" }}>
-					<DialogContentText>
-						Are you sure you want to delete all Items ?
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => handleClearAllItems(false)}>No</Button>
-					<Button onClick={() => handleClearAllItems(true)} autoFocus>
-						Yes
-					</Button>
-				</DialogActions>
-			</Dialog>
-			<Dialog open={modalcancelOpen} onClose={() => handleCancelRFQModal(false)} PaperProps={{ sx: { borderRadius: '12px', minWidth: 380, p: 1 } }}>
-				<DialogTitle sx={{ fontWeight: 600, fontSize: '1rem', pb: 0.5 }}>Are you sure?</DialogTitle>
-				<DialogContent>
-					<DialogContentText sx={{ fontSize: '0.875rem', mb: 2, color: 'text.secondary' }}>
-						Do you want to cancel this bid? Unsaved changes will be lost.
-					</DialogContentText>
-					<label className="pe-field-label">Enter Reason <span className="rfq-required-star">*</span></label>
-					<TextField
-						autoFocus
-						variant="outlined"
-						size="small"
-						type="text"
-						fullWidth
-						placeholder="Enter reason for cancellation"
-						value={cancelReason}
-						onChange={handleCancelInputChange}
-						error={Boolean(biderror)}
-						helperText={biderror}
-					/>
-				</DialogContent>
-				<DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-					<button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleCancelRFQModal(false)}>No</button>
-					<button type="button" className="pe-btn pe-btn--primary" onClick={() => handleCancelRFQModal(true)} autoFocus>Yes</button>
-				</DialogActions>
-			</Dialog>
-			<Modal
-				size="md"
-				show={reOpenAuctionModal}
-				backdrop="static"
-				keyboard={false}
-				centered
-				className="zindex1400"
-				backdropClassName="zindex1400"
-				contentClassName="border-0"
-				onHide={handleCloseReOpenModal}
-			>
-				<Modal.Body className="p-0">
-					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Pull Data From RFQ</span>
-						<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={handleCloseReOpenModal}>
-							<HiOutlineX className="f20" />
-						</button>
-					</div>
-					<div className="p-3">
-						<div className="row mb-2 align-items-center">
-							<div className="col-md-3 me-0 pe-0">
-								<div className="text-muted f15 fw500">Select RFQ :</div>
-							</div>
-							<div className="col-md-9 ms-0 ps-0">
-								<input
-									type="text"
-									placeholder="Subject..."
-									className={`form-control ${inputError ? 'is-invalid' : ''}`}
-								/>
-							</div>
+				</div>
+			</PEModal>
+			<PEModal open={open} onClose={handleClose} size="xs" title="Save as Template" footer={<><button type="button" className="pe-btn pe-btn--secondary" onClick={handleClose}>Cancel</button><button type="button" className="pe-btn pe-btn--primary" onClick={handleSaveTemplate} disabled={!idFromURL}>Save</button></>}>
+				<label className="pe-field-label">Auction Template Title <span className="rfq-required-star">*</span></label>
+				<TextField
+					autoFocus
+					variant="outlined"
+					size="small"
+					fullWidth
+					placeholder="Enter template title"
+					value={TemplateTitle}
+					onChange={(e) => setTemplateTitle(e.target.value)}
+					inputProps={{ maxLength: 150 }}
+				/>
+			</PEModal>
+			<PEModal open={confirmClearAllItems} onClose={() => handleClearAllItems(false)} size="xs" title="Are you sure?" footer={<><Button onClick={() => handleClearAllItems(false)}>No</Button><Button onClick={() => handleClearAllItems(true)} autoFocus>Yes</Button></>}>
+				<p>Are you sure you want to delete all Items ?</p>
+			</PEModal>
+			<PEModal open={modalcancelOpen} onClose={() => handleCancelRFQModal(false)} size="sm" title="Are you sure?" footer={<><button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleCancelRFQModal(false)}>No</button><button type="button" className="pe-btn pe-btn--primary" onClick={() => handleCancelRFQModal(true)} autoFocus>Yes</button></>}>
+				<label className="pe-field-label">Enter Reason <span className="rfq-required-star">*</span></label>
+				<TextField
+					autoFocus
+					variant="outlined"
+					size="small"
+					type="text"
+					fullWidth
+					placeholder="Enter reason for cancellation"
+					value={cancelReason}
+					onChange={handleCancelInputChange}
+					error={Boolean(biderror)}
+					helperText={biderror}
+				/>
+			</PEModal>
+			<PEModal open={reOpenAuctionModal} onClose={handleCloseReOpenModal} size="md" title="Pull Data From RFQ">
+				<div className="p-3">
+					<div className="row mb-2 align-items-center">
+						<div className="col-md-3 me-0 pe-0">
+							<div className="text-muted f15 fw500">Select RFQ :</div>
 						</div>
-					</div>
-				</Modal.Body>
-			</Modal>
-			<Modal
-				size="lg"
-				show={prAuctionModal}
-				backdrop="static"
-				keyboard={false}
-				centered
-				className="zindex1400"
-				backdropClassName="zindex1400"
-				contentClassName="border-0"
-				onHide={handleClosePRModal}
-			>
-				<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
-					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Pull Data From PR</span>
-						<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={handleClosePRModal}>
-							<HiOutlineX className="f20" />
-						</button>
-					</div>
-					<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'auto' }}>
-						<div className="row mb-2 align-items-center">
-							<div className="col-md-2 me-0 pe-0">
-								<div className="text-muted f15 fw500">Select PR :</div>
-							</div>
-							<div className="col-md-10 ms-0 ps-0">
-								<div className="d-flex">
-									<div className="flex-grow-1 me-4">
-										<input
-											type="text"
-											placeholder="Enter PR Number..."
-											className={`form-control ${inputError ? 'is-invalid' : ''}`}
-											value={inputValue}
-											onChange={(e) => {
-												setInputValue(e.target.value);
-												setInputError('');
-											}}
-										/>
-										{inputError && (
-											<div className="invalid-feedback f12 text-danger position-absolute">
-												{inputError}
-											</div>
-										)}
-									</div>
-									<button
-										className="btn btn-primary"
-										type="button"
-										onClick={handleFetchPRData}
-									>
-										Fetch Data
-									</button>
-								</div>
-							</div>
-						</div>
-						<div style={{ height: 400 }} className="mt-3 flex-shrink-0">
-							<PETable
-								rows={selectedPRItemModal}
-								columns={prAuctioncolumn}
-								checkboxSelection
-								onRowSelectionModelChange={(ids) => setSelectedItemsActive(ids)}
-								rowSelectionModel={selectedItemsActive}
-								rowHeight={40}
-								disableRowSelectionOnClick
-								isRowSelectable={(params) => !params.row.eventId}
-								pageSizeOptions={[10, 25, 50]}
-								initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
+						<div className="col-md-9 ms-0 ps-0">
+							<input
+								type="text"
+								placeholder="Subject..."
+								className={`form-control ${inputError ? 'is-invalid' : ''}`}
 							/>
 						</div>
 					</div>
-				</Modal.Body>
-			</Modal>
+				</div>
+			</PEModal>
+			<PEModal open={prAuctionModal} onClose={handleClosePRModal} size="lg" title="Pull Data From PR">
+				<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'auto' }}>
+					<div className="row mb-2 align-items-center">
+						<div className="col-md-2 me-0 pe-0">
+							<div className="text-muted f15 fw500">Select PR :</div>
+						</div>
+						<div className="col-md-10 ms-0 ps-0">
+							<div className="d-flex">
+								<div className="flex-grow-1 me-4">
+									<input
+										type="text"
+										placeholder="Enter PR Number..."
+										className={`form-control ${inputError ? 'is-invalid' : ''}`}
+										value={inputValue}
+										onChange={(e) => {
+											setInputValue(e.target.value);
+											setInputError('');
+										}}
+									/>
+									{inputError && (
+										<div className="invalid-feedback f12 text-danger position-absolute">
+											{inputError}
+										</div>
+									)}
+								</div>
+								<button
+									className="btn btn-primary"
+									type="button"
+									onClick={handleFetchPRData}
+								>
+									Fetch Data
+								</button>
+							</div>
+						</div>
+					</div>
+					<div style={{ height: 400 }} className="mt-3 flex-shrink-0">
+						<PETable
+							rows={selectedPRItemModal}
+							columns={prAuctioncolumn}
+							checkboxSelection
+							onRowSelectionModelChange={(ids) => setSelectedItemsActive(ids)}
+							rowSelectionModel={selectedItemsActive}
+							rowHeight={40}
+							disableRowSelectionOnClick
+							isRowSelectable={(params) => !params.row.eventId}
+							pageSizeOptions={[10, 25, 50]}
+							initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
+						/>
+					</div>
+				</div>
+			</PEModal>
 			{isUploading && (
 				<div style={{
 					position: 'fixed',
@@ -4249,20 +4111,9 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					</div>
 				</div>
 			)}
-			<Dialog open={modalAllocationOpen} onClose={() => handleAllocationModal(false)}>
-				<DialogTitle>{"Are you sure?"}</DialogTitle>
-				<DialogContent style={{ minWidth: "300px" }}>
-					<DialogContentText>
-						Do you want to allocate this bid? Unsaved changes will be lost.
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => handleAllocationModal(false)}>No</Button>
-					<Button onClick={() => handleAllocationModal(true)} autoFocus>
-						Yes
-					</Button>
-				</DialogActions>
-			</Dialog>
+			<PEModal open={modalAllocationOpen} onClose={() => handleAllocationModal(false)} size="xs" title="Are you sure?" footer={<><Button onClick={() => handleAllocationModal(false)}>No</Button><Button onClick={() => handleAllocationModal(true)} autoFocus>Yes</Button></>}>
+				<p>Do you want to allocate this bid? Unsaved changes will be lost.</p>
+			</PEModal>
 			<CommonBottomDrawer
 				open={openDrawer.AddNewTerm}
 				onClose={() => toggleOpenDrawer("AddNewTerm", false)}
@@ -4305,162 +4156,127 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				/>
 			</CommonBottomDrawer>
 
-			<Modal
-				size="md"
-				show={modal01}
-				backdrop="static"
-				keyboard={false}
-				centered
-				className="rfq-create-modal"
-				contentClassName="border-0 rounded-default"
-				onHide={() => handleCloseModal01()}
-			>
-				<Modal.Header className="pt-2 pb-2">
-					<Modal.Title><span style={{ fontSize: 14 }}>Select Currency Mode</span></Modal.Title>
-					<button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseModal01()}>
-						<HiOutlineX style={{ fontSize: 16 }} />
-					</button>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-2">
-						<div className="row">
-							<div className="col-12 col-lg-12 mt-2 ">
-								<form>
-									<div className="row">
-										<div className="col-12">
-											<div className="row">
-												<div className="col-12 col-lg-12 mt-3">
-													{
-														<div className="row d-flex align-items-center w-100 mb-3">
-															<div className="col-lg-4 col-12">
-																<TextField
-																	id={"basecurrencymodal"}
-																	InputLabelProps={{
-																		shrink: true,
-																	}}
-																	name="baseCurrency"
-																	select
-																	className="w-100 f14"
-																	size="small"
-																	label="Select Currency *"
-																	variant="outlined"
-																	value={modalCurrency.baseCurrency}
-																	onChange={(e) => {
-																		const newValue = e.target?.value;
-																		setModalCurrency((prev) => {
-																			const updated = {
-																				...prev,
-																				baseCurrency: newValue
-																			};
+			<PEModal open={modal01} onClose={() => handleCloseModal01()} size="sm" title="Select Currency Mode">
+				<div className="p-2">
+					<div className="row">
+						<div className="col-12 col-lg-12 mt-2 ">
+							<form>
+								<div className="row">
+									<div className="col-12">
+										<div className="row">
+											<div className="col-12 col-lg-12 mt-3">
+												{
+													<div className="row d-flex align-items-center w-100 mb-3">
+														<div className="col-lg-4 col-12">
+															<TextField
+																id={"basecurrencymodal"}
+																InputLabelProps={{
+																	shrink: true,
+																}}
+																name="baseCurrency"
+																select
+																className="w-100 f14"
+																size="small"
+																label="Select Currency *"
+																variant="outlined"
+																value={modalCurrency.baseCurrency}
+																onChange={(e) => {
+																	const newValue = e.target?.value;
+																	setModalCurrency((prev) => {
+																		const updated = {
+																			...prev,
+																			baseCurrency: newValue
+																		};
 
-																			// Set conversion to 1 if base currency matches event base currency
-																			if (newValue === formik?.values?.baseCurrency) {
-																				updated.currencyConversion = "1";
-																			}
-
-																			return updated;
-																		});
-																	}}
-																>
-																	{currencyList &&
-																		currencyList.map((option) => (
-																			<MenuItem
-																				key={option.id}
-																				value={option?.currencyNm}
-																			>
-																				{option?.currencyNm}
-																			</MenuItem>
-																		))}
-																</TextField>
-
-															</div>
-															<div className="col-lg-4 col-12">
-																<TextField
-																	variant="outlined"
-																	InputLabelProps={{
-																		shrink: true,
-																	}}
-																	className="w-100"
-																	required
-																	type="number"
-																	id={"modalcurrencyConversion"}
-																	label="Enter currency conversion factor"
-																	value={modalCurrency.currencyConversion}
-																	size="small"
-																	name="currencyConversion"
-																	placeholder=""
-																	onChange={(e) => {
-																		const newValue = e.target.value;
-
-																		// Allow only up to 4 decimal places
-																		const regex = /^\d*\.?\d{0,4}$/;
-
-																		if (newValue === '' || regex.test(newValue)) {
-																			setModalCurrency((prev) => ({
-																				...prev,
-																				currencyConversion: newValue,
-																			}));
+																		// Set conversion to 1 if base currency matches event base currency
+																		if (newValue === formik?.values?.baseCurrency) {
+																			updated.currencyConversion = "1";
 																		}
-																	}}
-																	disabled={modalCurrency.baseCurrency === formik?.values?.baseCurrency}
-																/>
-															</div>
 
-															<div className="col-lg-4 d-flex justify-content-end">
-																<Button
-																	color="primary"
-																	variant="text"
-																	size="small"
-																	onClick={handleCommercialCurrencyCheck}
-																>
-																	Submit
-																</Button>
-																<Button
-																	color="error"
-																	variant="text"
-																	onClick={() => handleCloseModal01()}
-																	size="small"
-																>
-																	Cancel
-																</Button>
-															</div>
+																		return updated;
+																	});
+																}}
+															>
+																{currencyList &&
+																	currencyList.map((option) => (
+																		<MenuItem
+																			key={option.id}
+																			value={option?.currencyNm}
+																		>
+																			{option?.currencyNm}
+																		</MenuItem>
+																	))}
+															</TextField>
+
 														</div>
-													}
-												</div>
+														<div className="col-lg-4 col-12">
+															<TextField
+																variant="outlined"
+																InputLabelProps={{
+																	shrink: true,
+																}}
+																className="w-100"
+																required
+																type="number"
+																id={"modalcurrencyConversion"}
+																label="Enter currency conversion factor"
+																value={modalCurrency.currencyConversion}
+																size="small"
+																name="currencyConversion"
+																placeholder=""
+																onChange={(e) => {
+																	const newValue = e.target.value;
+
+																	// Allow only up to 4 decimal places
+																	const regex = /^\d*\.?\d{0,4}$/;
+
+																	if (newValue === '' || regex.test(newValue)) {
+																		setModalCurrency((prev) => ({
+																			...prev,
+																			currencyConversion: newValue,
+																		}));
+																	}
+																}}
+																disabled={modalCurrency.baseCurrency === formik?.values?.baseCurrency}
+															/>
+														</div>
+
+														<div className="col-lg-4 d-flex justify-content-end">
+															<Button
+																color="primary"
+																variant="text"
+																size="small"
+																onClick={handleCommercialCurrencyCheck}
+															>
+																Submit
+															</Button>
+															<Button
+																color="error"
+																variant="text"
+																onClick={() => handleCloseModal01()}
+																size="small"
+															>
+																Cancel
+															</Button>
+														</div>
+													</div>
+												}
 											</div>
 										</div>
 									</div>
-								</form>
-							</div>
+								</div>
+							</form>
 						</div>
 					</div>
-				</Modal.Body>
-			</Modal>
+				</div>
+			</PEModal>
 
 			{/* Currency Modal */}
-			<Modal
-				size="lg"
-				show={OpenCurrencyModal}
-				backdrop="static"
-				keyboard={false}
-				className="zindex1400"
-				backdropClassName="zindex1400"
-				centered
-				contentClassName="border-0"
-				onHide={() => CloseCurrencyModal()}
-			>
-				<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
-					<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-						<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Currency</span>
-						<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseCurrencyModal()}>
-							<HiOutlineX className="f20" />
-						</button>
-					</div>
-					<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
-						<AddEditCurrency handleCurrencyList={handleCurrencyList} />
-					</div>
-				</Modal.Body>
-			</Modal>
+			<PEModal open={OpenCurrencyModal} onClose={() => CloseCurrencyModal()} size="md" title="Manage Currency">
+				<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+					<AddEditCurrency handleCurrencyList={handleCurrencyList} />
+				</div>
+			</PEModal>
 		</>
 	)
 }

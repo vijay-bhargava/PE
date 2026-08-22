@@ -1,20 +1,9 @@
 import React from 'react';
 import {
-	Alert,
-	Autocomplete,
-	Badge,
-	Box,
-	Button,
-	Checkbox,
-	FormControl,
-	FormControlLabel,
-	FormGroup,
-	FormLabel,
-	IconButton,
-	Radio,
-	RadioGroup,
-	TextField,
-	Tooltip,
+	Alert, Autocomplete, Badge, Box,
+	Checkbox, FormControl, FormControlLabel,
+	FormGroup, FormLabel, IconButton, Radio,
+	RadioGroup, TextField, Tooltip,
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -206,9 +195,7 @@ const RFQGeneralTab = ({
 										error: formik.touched.endDate && Boolean(formik.errors.endDate),
 										helperText: formik.touched.endDate && formik.errors.endDate,
 									},
-									actionBar: {
-										actions: ["clear", "cancel", "accept"],
-									},
+									actionBar: { actions: ["clear", "cancel", "accept"] },
 								}}
 							/>
 						</div>
@@ -254,12 +241,7 @@ const RFQGeneralTab = ({
 										{option.orgName}
 									</Box>
 								)}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										variant="outlined"
-									/>
-								)}
+								renderInput={(params) => (<TextField	{...params} variant="outlined" />)}
 							/>
 						</div>
 					)}
@@ -303,15 +285,11 @@ const RFQGeneralTab = ({
 						</div>
 					)}
 					{/* Show Price to Technical Approver */}
-					{stagelist?.some(item => item.currentStage == "Technical Approval") &&
+					{stagelist?.some(item => item.currentStage === "Technical Approval") &&
 						(<div className="col-12 col-md-4 col-lg-4 mb-2 mt-3">
 							<FormGroup>
 								<FormControlLabel
-									control={
-										<Checkbox
-											checked={formik?.values?.showPriceTech == true}
-										/>
-									}
+									control={<Checkbox checked={formik?.values?.showPriceTech === true} />}
 									id="sealedBid"
 									label={<span className="f13 muted">Show Price to Technical Approver</span>}
 									labelPlacement={"end"}
@@ -330,9 +308,7 @@ const RFQGeneralTab = ({
 				<div className="col-12 mb-1 rfq-dv2-terms-field">
 					<FormControl className="w-100">
 						<FormLabel id="baseCurrency">
-							<span className="f13">
-								Select Currency Mode
-							</span>
+							<span className="f13">	Select Currency Mode	</span>
 						</FormLabel>
 						<RadioGroup
 							row
@@ -342,7 +318,7 @@ const RFQGeneralTab = ({
 							onChange={(e) => {
 								formik.setFieldValue(
 									"IsMultiCurrency",
-									e.target.value == "true" ? true : false
+									e.target.value === "true" ? true : false
 								);
 								formik.setFieldValue(
 									"baseCurrency",
@@ -381,10 +357,7 @@ const RFQGeneralTab = ({
 										<div className="col-12 col-lg-12 mt-3">
 											{inputList?.map((x, i) => {
 												return (
-													<div
-														className="row  d-flex align-items-center w-100 mb-3"
-														key={i}
-													>
+													<div className="row  d-flex align-items-center w-100 mb-3" key={i}>
 														<div className="col-lg-4 col-12">
 															<label className="pe-field-label">Select Currency <span className="rfq-required-star">*</span></label>
 															<Autocomplete
@@ -413,13 +386,7 @@ const RFQGeneralTab = ({
 																	) || { currencyNm: x.baseCurrency }
 																}
 																renderInput={(params) => (
-																	<TextField
-																		{...params}
-																		name="baseCurrency"
-																		variant="outlined"
-																		size="small"
-																		className="w-100 f14"
-																	/>
+																	<TextField {...params} name="baseCurrency" variant="outlined" size="small" className="w-100 f14" />
 																)}
 																renderOption={(props, option) => (
 																	<Box
@@ -429,8 +396,7 @@ const RFQGeneralTab = ({
 																		style={
 																			option.id === "new"
 																				? {
-																					fontStyle: "italic",
-																					color: "blue",
+																					fontWeight: 500,
 																					cursor: "pointer",
 																					textDecoration: "underline",
 																				}
@@ -458,11 +424,11 @@ const RFQGeneralTab = ({
 														</div>
 														{x.id > 0 ? (
 															<>
-																<div className="col-lg-1 col-6 ms-0 ps-0 ">
+																<div className="col-lg-1 col-6 ms-0 ps-0 ps-3 pt-4">
 																	<button
 																		type="button"
 																		className="pe-icon-btn pe-icon-btn--delete"
-																		disabled={inputList?.length == 1}
+																		disabled={inputList?.length === 1}
 																		onClick={() => handleRemoveClick(i)}
 																	>
 																		<HiOutlineX />
@@ -472,7 +438,7 @@ const RFQGeneralTab = ({
 														) : (
 															<>
 																{inputList.length !== 1 && (
-																	<div className="col-lg-1 col-6 ms-0 ps-0 ">
+																	<div className="col-lg-1 col-6 ms-0 ps-0 ps-3 pt-4">
 																		<button
 																			type="button"
 																			className="pe-icon-btn pe-icon-btn--delete"
@@ -487,20 +453,18 @@ const RFQGeneralTab = ({
 														{inputList?.length ? (
 															<>
 																{inputList.length - 1 === i && (
-																	<div className="col-lg-2 col-6 pe-0 ms-0 ps-0 currencyButton">
-																		<Button
-																			variant="outlined"
+																	<div className="col-lg-2 col-6 pe-0 ms-0 ps-3 pt-4 currencyButton">
+																		<button
+																			type="button"
 																			disabled={
-																				(x.currencyConversion == "") ||
-																				(x.baseCurrency == "")
+																				(x.currencyConversion === "") ||
+																				(x.baseCurrency === "")
 																			}
-																			size="small"
-																			color="primary"
-																			className="f11"
+																			className="pe-btn pe-btn--secondary"
 																			onClick={handleAddClick}
 																		>
 																			+ Add More
-																		</Button>
+																		</button>
 																	</div>
 																)}
 															</>
@@ -565,14 +529,8 @@ const RFQGeneralTab = ({
 							}
 						}}
 					/>
-					{formik.values.termandcondition != "0" && extractTextFromHTML(formik.values.termandcondition)?.length != "0" && (
-						<div
-							style={{
-								fontSize: "0.8em",
-								color: "grey",
-								textAlign: "end",
-							}}
-						>
+					{formik.values.termandcondition !== "0" && extractTextFromHTML(formik.values.termandcondition)?.length !== "0" && (
+						<div style={{ fontSize: "0.8em", color: "grey", textAlign: "end" }}>
 							{`${extractTextFromHTML(formik.values.termandcondition)?.length || ""}/2000`}{" "}
 						</div>
 					)}
@@ -584,11 +542,7 @@ const RFQGeneralTab = ({
 					<div className="col-12 col-md-2 col-lg-2 mt-3">
 						<FormGroup>
 							<FormControlLabel
-								control={
-									<Checkbox
-										checked={formik?.values?.RFQType == "closed"}
-									/>
-								}
+								control={<Checkbox checked={formik?.values?.RFQType === "closed"} />}
 								id="sealedBid"
 								label={<span className="f14 muted">Sealed Bid</span>}
 								labelPlacement={"end"}
@@ -627,11 +581,7 @@ const RFQGeneralTab = ({
 					<div className="col-12 col-md-2 col-lg-2 ms-3 mt-3">
 						<FormGroup>
 							<FormControlLabel
-								control={
-									<Checkbox
-										checked={formik.values.boqReq === true}
-									/>
-								}
+								control={<Checkbox checked={formik.values.boqReq === true} />}
 								id="boqReq"
 								label={<span className="f14 muted">BOQ</span>}
 								labelPlacement={"end"}
@@ -640,7 +590,7 @@ const RFQGeneralTab = ({
 							/>
 						</FormGroup>
 					</div>
-					{formik.values.RFQType == "closed" && (
+					{formik.values.RFQType === "closed" && (
 						<>
 							<div className="col-12 col-md-6 col-lg-4 ms-0 ps-0 me-2">
 								<LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -662,9 +612,7 @@ const RFQGeneralTab = ({
 												error: formik.touched.bidOpeningDate && Boolean(formik.errors.bidOpeningDate),
 												helperText: formik.touched.bidOpeningDate && formik.errors.bidOpeningDate,
 											},
-											actionBar: {
-												actions: ["clear", "cancel", "accept"],
-											},
+											actionBar: { actions: ["clear", "cancel", "accept"] },
 										}}
 										onChange={(newValue) => {
 											formik.setFieldValue("bidOpeningDate", newValue);
@@ -673,7 +621,7 @@ const RFQGeneralTab = ({
 											const updatedHistory = [...(formik.values.RFQVersionHistory || [])];
 
 											const index = updatedHistory?.findIndex(
-												(entry) => entry.version == currentVersion
+												(entry) => entry.version === currentVersion
 											);
 
 											if (index !== -1) {

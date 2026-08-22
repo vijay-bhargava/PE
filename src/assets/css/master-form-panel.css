@@ -73,7 +73,7 @@
 /* ── Table section ───────────────────────────────────────────────── */
 .mfp-table-section {
   flex: 1 1 0;
-  min-height: 0;
+  min-height: 160px;
   border: 1px solid var(--pe-border, #dfe3e8);
   border-radius: 12px;
   overflow: hidden;

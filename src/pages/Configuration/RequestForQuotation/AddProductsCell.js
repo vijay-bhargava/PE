@@ -1,23 +1,26 @@
-﻿import React, { useState, useRef, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { Autocomplete, Box, IconButton, InputAdornment, MenuItem, TextField, Tooltip, Typography } from '@mui/material'
+import {
+  Autocomplete, Box, IconButton, InputAdornment,
+  TextField, Tooltip, Typography
+} from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useStateValue } from '../../../store'
-import { Modal } from "react-bootstrap";
+import PEModal from "../../../components/PEModal";
 import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { RFQItemServiceAdd, RFQItemServiceUpdate } from '../../../utils/common/utility';
 
-import { HiOutlineX, HiXCircle, HiOutlineSearch, HiPlusSm, HiPencilAlt } from 'react-icons/hi';
+import { HiOutlineX, HiOutlineSearch } from 'react-icons/hi';
 import AddUpdateUom from '../../../utils/common/AddUpdateUom';
 import { sanitizeInput } from '../../../utils/common/santize';
 import { toast } from 'react-toastify';
-import { api, ApiClient } from "../../../Apiclient";
+import { ApiClient } from "../../../Apiclient";
 import { FindItemCategory, FindItemType, FindPlantStorage } from '../../../utils/purchaseRequest';
 import AddPrItemCategory from '../../../utils/common/AddPrItemCategory';
 import { UploadOutlined } from '@mui/icons-material';
-import { getFileName, uploadFilesOnAzure, uploadFilesOnAzure2, validateFileSize } from '../../../utils/common';
+import { getFileName, uploadFilesOnAzure2, validateFileSize } from '../../../utils/common';
 import { uploadFilesOnAzureURL } from '../../../utils/manageParticipants';
 import { UOMMasterList } from '../../../utils/commerciallibrary';
 import AddEditItemType from '../../../utils/common/AddEditITemType';
@@ -34,9 +37,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
   const CloseDeliveryLocationModal = () => setDeliveryLocationModal(false);
   const [uom, setuom] = useState("");
   const [plantAllList, setPlantAllList] = useState([]);
-  const [itemFile, setitemFile] = useState("");
-  const [attachedFileName, setAttachedFileName] = useState('');
-  const [itemImage, setitemImage] = useState("");
 
   const [UOMMaster, setUOMMaster] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
@@ -51,8 +51,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
   const [quickFilterValue, setQuickFilterValue] = useState('');
   const [debouncedQuickFilterValue, setDebouncedQuickFilterValue] = useState('');
   const [searchDataLoaded, setSearchDataLoaded] = useState(false);
-
-  const fileInputRef = useRef(null);
 
   const fetchSuppliers = async () => {
     try {
@@ -197,16 +195,16 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
         itemCode: sanitizeInput(values?.itemCode),
         remarks: sanitizeInput(values?.remarks),
         itemDesc: sanitizeInput(values?.itemDesc),
-        targetPrice: values?.targetPrice != '' ? values?.targetPrice : 0,
-        quantity: values?.quantity != '' ? values?.quantity : 0,
+        targetPrice: values?.targetPrice !== '' ? values?.targetPrice : 0,
+        quantity: values?.quantity !== '' ? values?.quantity : 0,
         uom: values?.uom,
         plant: sanitizeInput(values?.plant),
         deliveryDate: values?.deliveryDate,
         poNumber: values?.poNumber,
         poVendorName: sanitizeInput(values?.poVendorName),
-        poUnitRate: values?.poUnitRate != '' ? values?.poUnitRate : 0,
+        poUnitRate: values?.poUnitRate !== '' ? values?.poUnitRate : 0,
         poDate: values?.poDate,
-        poValue: values?.poValue != '' ? values?.poValue : 0,
+        poValue: values?.poValue !== '' ? values?.poValue : 0,
         itemRefId: itemEditTempData && itemEditTempData?.itemRefId > 0 ? itemEditTempData?.itemRefId : 0,
         itemCategory: values?.itemCategory,
         itemType: values?.itemType,
@@ -219,7 +217,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
 
 
       setLoadingSubmit(true)
-      if (data && data?.id == 0) {
+      if (data && data?.id === 0) {
         try {
           RFQItemServiceAdd(data, atoken, accesslevel).then((res) => {
             setLoadingSubmit(false);
@@ -260,34 +258,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
     }
   };
 
-
-  // const handleUomChange = (e) => {
-  //   const selectedValue = e.target.value;
-  //   if (selectedValue === "new") {
-  //     setUomModal(true);
-  //   } else {
-  //     const selectedOption = UOMMaster.find(option => option.uom === selectedValue);
-  //     setuom(selectedOption?.uom);
-  //     formik.setFieldValue("uom", selectedOption?.uom)
-  //   }
-  //   formik.setFieldValue(selectedValue);
-  //   setuom(selectedValue);
-  // };
-  const handleDeliveryChange = (e) => {
-    const value = e.target.value;
-    if (/^\d*$/.test(value)) {
-      formik.setFieldValue(e.target.name, value);
-    }
-  };
-
-  const handleSupplierSelection = (event, value) => {
-    if (value) {
-      formik.setFieldValue("poVendorName", value.companyName);
-    } else {
-      formik.setFieldValue("poVendorName", "");
-    }
-  };
-
   const handleItemPOSearch = async (value) => {
     const selectedValue = value
 
@@ -296,19 +266,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
       atoken
     );
 
-
-    //   if(res) {
-    //     console.log("poconfirm",res?.result);
-
-
-    //     formik.setFieldValue("poNumber", res?.result[0].poNumber);
-    //     formik.setFieldValue("poVendorName", res?.result[0]?.vendorName);      
-    //     //formik.setFieldValue("poUnitRate", res?.result?[0]?.poCreationDetails[0].materialPONetPrice);
-    //    // formik.setFieldValue("poDate", res?.result[0]?.pO_Date);      
-    //     formik.setFieldValue("poValue", res?.result[0]?.poAmount);
-    //  }
     if (res) {
-
       const lastElement = res.result[res.result.length - 1]; // Get the last element
       if (lastElement) {
         formik.setFieldValue("poNumber", lastElement?.poNumber);
@@ -319,7 +277,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
         formik.setFieldValue("poUnitRate", materialPONetPrice ? parseFloat(materialPONetPrice) : 0);
       }
     }
-
   };
 
   const [itemCatAllList, setItemCatAllList] = useState([]);
@@ -396,7 +353,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
   const CloseItemTypeModal = () => setItemTypeModal(false);
   const [category, setcategory] = useState("");
 
-
   const handleItemCategoryChange = (event, value) => {
     // API call is now handled in onOpen event of Autocomplete
     if (value && value.id === "new") {
@@ -410,7 +366,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
       setcategory(selectedOption?.categoryDescription || "");
     }
   };
-
 
   const handleItemTypeChange = (event, value) => {
     if (value && value.id === "new") {
@@ -430,19 +385,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
     formik.setFieldValue("itemType", selectedOption?.itemType || "");
     formik.setFieldValue("itemTypeId", selectedOption?.id || "");
   };
-
-  //   const handleItemCategoryChange = (event, value) => {
-  //     if (value && value.id === "new") {
-  //         setCategoryModal(true); 
-  //         setcategory(""); 
-  //     } else {
-  //         const selectedOption = itemCatAllList.find(option => option.categoryDescription === value?.categoryDescription);
-
-  //         // Set the Formik value and local state
-  //         formik.setFieldValue("itemCategory", selectedOption?.categoryDescription || "");
-  //         setcategory(selectedOption?.categoryDescription || "");
-  //     }
-  // };
 
   //file upload changes
   const handleItemImageChange = (event) => {
@@ -470,15 +412,13 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
 
     // Upload the file to Azure and get the return path
     try {
-
       const url = await uploadFilesOnAzureURL(data, file, atoken);
       formik.setFieldValue("itemImage", url)
     } catch (error) {
-
       formik.setFieldValue("itemImage", "")
     }
-
   }
+
   const handleItemAttachmentChange = (event) => {
     if (!validateFileSize(event)) {
       return;
@@ -488,7 +428,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
   };
 
   const UploadItemAttachment = async (file) => {
-
     if (!file) {
       return;
     }
@@ -502,14 +441,11 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
 
     // Upload the file to Azure and get the return path
     try {
-
       const url = await uploadFilesOnAzure2(data, file, atoken);
       formik.setFieldValue("itemFile", url.blobName)
     } catch (error) {
-
       formik.setFieldValue("itemFile", "")
     }
-
   }
 
   const pullItemMaster = async (pageNumber = 1, pageSizeVal = 10, isSearch = false) => {
@@ -687,47 +623,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 ),
               }}
             />
-            {/* <div
-																	style={{
-																		fontSize: "0.8em",
-																		color: "blue",
-																		textAlign: "end",
-																	}}
-																>
-																	{`${formik.values.shortName?.length}/100`}{" "}
-																	
-																</div> */}
           </div>
 
-          {/* <div className='col-12 col-md-4 mb-4'>
-                        <TextField
-                            fullWidth
-                            variant="outlined"
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                            size="small"
-                            className='f14'
-                            id="remark"
-                            name="remark"
-                            label="Remarks"
-                            inputProps={{ maxLength: 200 }}
-                            value={formik.values.remark}
-                            onChange={formik.handleChange}
-                            error={formik.touched.remark && Boolean(formik.errors.remark)}
-                            helperText={formik.touched.remark && formik.errors.remark}
-                            InputProps={{
-                                endAdornment: formik.values.remark && (
-                                  <InputAdornment position="end">
-                                    <Typography variant="body2" color="textSecondary">
-                                      {formik.values.remark.length}/200
-                                    </Typography>
-                                  </InputAdornment>
-                                ),
-                              }}
-                        />
-                     
-                    </div> */}
           <div className='col-12 col-md-6 mb-4'>
             <label className="pe-field-label">Description <span className="rfq-required-star">*</span></label>
             <TextField
@@ -1136,98 +1033,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               }}
             />
           </div>
-
-
-          {/* <div className="col-6 col-md-6 mb-4">
-					<div className="f13 mb-1">Item Image</div>
-					<Form.Group controlId="formFile" className="">
-						<Form.Control
-							type="file"
-							size="sm"
-							accept=".docx,.doc,image/jpeg,image/gif,image/png,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-							onChange={(e) => handleFileInputChange(e, setimgBG1, setErrorBG1)}
-						/>
-						{errorBG1 && <div className="text-danger" style={{ fontSize: "15px" }}>{errorBG1}</div>}
-						{imgBG1 && (
-							<div style={{ position: 'relative', top: "5px" }}>
-								<Stack>
-									<Avatar
-										alt="BG1"
-										//src={imgBG1}
-										sx={{
-											width: 35,
-											height: 35,
-										}}
-										imgProps={{
-											style: {
-												width: "100%",
-												height: "100%",
-												objectFit: "fill",
-											},
-										}}
-									/>
-								</Stack>
-								<IconButton
-									
-									style={{
-										position: 'absolute',
-										top: '0px',
-										left: '20px',
-										padding: '0px 10px',
-										zIndex: '1',
-										color: "rgba(220, 53, 69)"
-									}}
-									size="small"
-								
-									sx={{ mr: 1 }}
-								>
-									<HiOutlineX className="f20" />
-								</IconButton>
-							</div>
-						)}
-					</Form.Group>
-				</div> */}
-          {/* <div className=" col-6 col-md-6 mb-4">
-        <div className="f13 mb-1">Item Attachment</div>
-
-              <Form.Group controlId="formFile" className="">
-            <Form.Control
-              type="file"
-              size="sm"
-              accept=".docx,.doc,image/jpeg,image/gif,image/png,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            
-              onChange={(e) => handleFileUpload(e)}
-              ref={fileInputRef}
-            />
-          </Form.Group>
-          <div
-            className="col-12 col-md-6 "
-            style={{ color: "blue", fontStyle: "italic" }}
-          >
-            <div id="attachedFileName">
-            {itemFile && (
-            <div className="d-flex align-items-center justify-content-start mt-2">
-              <Button
-                variant="text"
-                size="small"
-                className="attached-file-name"
-              >
-                {attachedFileName}
-              </Button>
-              <IconButton
-                size="medium"
-                className="bg-white ml-2"
-             
-                onClick={Handleremove}// Clear filename on click
-              >
-                <HiOutlineX className="f16 text-danger" />
-              </IconButton>
-            </div>
-          )}
-            </div>
-          </div>
-              </div> */}
         </div>
+
         <hr className='mt-0' />
         <div className='row mt-2'>
           <div className='col-12 mt-4 mb-4 font-bold'>
@@ -1423,219 +1230,156 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
           </div>
         </div>
 
-        <Modal
+        <PEModal
           size="xl"
-          show={searchItemModal}
-          backdrop="static"
-          keyboard={false}
-          className="zindex1400"
-          backdropClassName="zindex1400"
-          centered
-          contentClassName="border-0"
-          onHide={() => { setSearchItemModal(false); setSelectedRows([]); setQuickFilterValue(''); setSearchMode(false); setSearchDataLoaded(false); setPage(0); }}
+          open={searchItemModal}
+          onClose={() => { setSearchItemModal(false); setSelectedRows([]); setQuickFilterValue(''); setSearchMode(false); setSearchDataLoaded(false); setPage(0); }}
+          title="Search Item"
         >
-          <Modal.Header className="pt-2 pb-2 bgheaderCards">
-            <Modal.Title id="modal-heading">
-              <div className="d-flex align-items-center f14 text-white">Search Item</div>
-            </Modal.Title>
-            <IconButton onClick={() => { setSearchItemModal(false); setSelectedRows([]); setQuickFilterValue(''); setSearchMode(false); setSearchDataLoaded(false); setPage(0); }} size="small" edge="start">
-              <HiOutlineX className="f20 text-white" />
-            </IconButton>
-          </Modal.Header>
-          <Modal.Body className="p-0">
-            <div className="p-3">
-              <div className="row">
-                <div className="col-12 mb-3">
-                  <TextField
-                    fullWidth
-                    placeholder="Search by Item Code, Name, or Category..."
-                    size="small"
-                    value={quickFilterValue}
-                    onChange={(e) => {
-                      setQuickFilterValue(e.target.value);
+          <div className="p-3">
+            <div className="row">
+              <div className="col-12 mb-3">
+                <TextField
+                  fullWidth
+                  placeholder="Search by Item Code, Name, or Category..."
+                  size="small"
+                  value={quickFilterValue}
+                  onChange={(e) => {
+                    setQuickFilterValue(e.target.value);
+                    setPage(0);
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <HiOutlineSearch className="f14 text-muted" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </div>
+              <div className="data-grid-wrapper flex-grow-1" style={{ height: '400px', overflow: 'hidden' }}>
+                <PETable
+                  getRowId={getRowId}
+                  rows={itemList}
+                  loading={gridloading && !searchMode}
+                  columns={itemColumns}
+                  pagination
+                  paginationMode={searchMode ? "client" : "server"}
+                  pageSizeOptions={[10, 25, 50, 100]}
+                  rowCount={searchMode ? itemList.length : totalCount}
+                  paginationModel={{ page: page, pageSize: pageSize }}
+                  onPaginationModelChange={(model) => {
+                    if (model.page !== page) {
+                      setPage(model.page);
+                    }
+                    if (model.pageSize !== pageSize) {
+                      setPageSize(model.pageSize);
                       setPage(0);
-                    }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <HiOutlineSearch className="f14 text-muted" />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </div>
-                <div className="data-grid-wrapper flex-grow-1" style={{ height: '400px', overflow: 'hidden' }}>
-                  <PETable
-                    getRowId={getRowId}
-                    rows={itemList}
-                    loading={gridloading && !searchMode}
-                    columns={itemColumns}
-                    pagination
-                    paginationMode={searchMode ? "client" : "server"}
-                    pageSizeOptions={[10, 25, 50, 100]}
-                    rowCount={searchMode ? itemList.length : totalCount}
-                    paginationModel={{ page: page, pageSize: pageSize }}
-                    onPaginationModelChange={(model) => {
-                      if (model.page !== page) {
-                        setPage(model.page);
-                      }
-                      if (model.pageSize !== pageSize) {
-                        setPageSize(model.pageSize);
-                        setPage(0);
-                      }
-                      if (!searchMode) {
-                        const nextPageNumber = model.pageSize !== pageSize ? 1 : model.page + 1;
-                        pullItemMaster(nextPageNumber, model.pageSize, false);
-                      }
-                    }}
-                    filterModel={{
-                      items: [],
-                      quickFilterValues: quickFilterValue ? [quickFilterValue] : []
-                    }}
-                    rowHeight={35}
-                    columnHeaderHeight={35}
-                    className="f13 border-0 consistent-datagrid"
-                    disableDensitySelector
-                    checkboxSelection
-                    disableRowSelectionOnClick={false}
-                    rowSelectionModel={selectedRows}
-                    onRowSelectionModelChange={(newSelection) => {
-                      try {
-                        if (Array.isArray(newSelection)) {
-                          if (newSelection.length > 0) {
-                            const last = newSelection[newSelection.length - 1];
-                            setSelectedRows([last]);
-                          } else {
-                            setSelectedRows([]);
-                          }
-                        } else if (newSelection) {
-                          setSelectedRows([newSelection]);
+                    }
+                    if (!searchMode) {
+                      const nextPageNumber = model.pageSize !== pageSize ? 1 : model.page + 1;
+                      pullItemMaster(nextPageNumber, model.pageSize, false);
+                    }
+                  }}
+                  filterModel={{
+                    items: [],
+                    quickFilterValues: quickFilterValue ? [quickFilterValue] : []
+                  }}
+                  rowHeight={35}
+                  columnHeaderHeight={35}
+                  className="f13 border-0 consistent-datagrid"
+                  disableDensitySelector
+                  checkboxSelection
+                  disableRowSelectionOnClick={false}
+                  rowSelectionModel={selectedRows}
+                  onRowSelectionModelChange={(newSelection) => {
+                    try {
+                      if (Array.isArray(newSelection)) {
+                        if (newSelection.length > 0) {
+                          const last = newSelection[newSelection.length - 1];
+                          setSelectedRows([last]);
                         } else {
                           setSelectedRows([]);
                         }
-                      } catch (e) {
+                      } else if (newSelection) {
+                        setSelectedRows([newSelection]);
+                      } else {
                         setSelectedRows([]);
                       }
-                    }}
-                    slots={{ toolbar: GridToolbar }}
-                    slotProps={{ toolbar: { showQuickFilter: false } }}
-                  />
-                </div>
-                <div className="col-12 d-flex justify-content-end mt-3">
-                  {selectedRows.length > 0 && (
-                    <LoadingButton
-                      variant="contained"
-                      onClick={handleSelectItemFromGrid}
-                      color="primary"
-                      className="text-capitalize"
-                      size="medium"
-                    >
-                      Select Item
-                    </LoadingButton>
-                  )}
-                </div>
+                    } catch (e) {
+                      setSelectedRows([]);
+                    }
+                  }}
+                  slots={{ toolbar: GridToolbar }}
+                  slotProps={{ toolbar: { showQuickFilter: false } }}
+                />
+              </div>
+              <div className="col-12 d-flex justify-content-end mt-3">
+                {selectedRows.length > 0 && (
+                  <LoadingButton
+                    variant="contained"
+                    onClick={handleSelectItemFromGrid}
+                    color="primary"
+                    className="text-capitalize"
+                    size="medium"
+                  >
+                    Select Item
+                  </LoadingButton>
+                )}
               </div>
             </div>
-          </Modal.Body>
-        </Modal>
-        <Modal
+          </div>
+        </PEModal>
+        <PEModal
           size="lg"
-          dialogClassName="modal-custom-mdlg"
-          show={UomModal}
-          backdrop="static"
-          keyboard={false}
-          value={"Add NEW CATEGORY"}
-          className="zindex1400"
-          backdropClassName="zindex1400"
-          centered
-          contentClassName="border-0"
-          onHide={() => CloseUomModal()}
+          open={UomModal}
+          onClose={() => CloseUomModal()}
+          title="Manage UOM"
+          bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+          bodyClassName="d-flex flex-column"
         >
-          <Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
-            <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-              <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage UOM</span>
-              <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseUomModal()}>
-                <HiOutlineX className="f20" />
-              </button>
-            </div>
-            <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
-              <AddUpdateUom handleUomList={handleUomList} isModal={true} />
-            </div>
-          </Modal.Body>
-        </Modal>
-        <Modal
+          <div className="flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+            <AddUpdateUom handleUomList={handleUomList} isModal={true} />
+          </div>
+        </PEModal>
+        <PEModal
           size="lg"
-          show={CategoryModal}
-          backdrop="static"
-          keyboard={false}
-          value={"Add NEW CATEGORY"}
-          className="zindex1400"
-          backdropClassName="zindex1400"
-          centered
-          contentClassName="border-0"
-          onHide={() => CloseCategoryModal()}
+          open={CategoryModal}
+          onClose={() => CloseCategoryModal()}
+          title="Manage Item Category"
+          bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+          bodyClassName="d-flex flex-column"
         >
-          <Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
-            <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-              <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Item Category</span>
-              <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseCategoryModal()}>
-                <HiOutlineX className="f20" />
-              </button>
-            </div>
-            <div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
-              <AddPrItemCategory handleCategoryList={handleCategoryList} isModal={true} />
-            </div>
-          </Modal.Body>
-        </Modal>
+          <div className="flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
+            <AddPrItemCategory handleCategoryList={handleCategoryList} isModal={true} />
+          </div>
+        </PEModal>
         {/* modal for item type */}
-        <Modal
+        <PEModal
           size="lg"
-          show={ItemTypeModal}
-          backdrop="static"
-          keyboard={false}
-          value={"Add NEW ITEM TYPE"}
-          className="zindex1400"
-          backdropClassName="zindex1400"
-          centered
-          contentClassName="border-0"
-          onHide={() => CloseItemTypeModal()}
+          open={ItemTypeModal}
+          onClose={() => CloseItemTypeModal()}
+          title="Manage Item Type"
+          bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+          bodyClassName="d-flex flex-column"
         >
-          <Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
-            <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-              <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}> Manage Item Type</span>
-              <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseItemTypeModal()}>
-                <HiOutlineX className="f20" />
-              </button>
-            </div>
-            <div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
-              <AddEditItemType handleItemTypeList={handleItemTypeList} isModal={true} />
-            </div>
-          </Modal.Body>
-        </Modal>
+          <div className="flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
+            <AddEditItemType handleItemTypeList={handleItemTypeList} isModal={true} />
+          </div>
+        </PEModal>
 
         {/* Delivery Location Modal */}
-        <Modal
-          show={DeliveryLocationModal}
-          backdrop="static"
-          keyboard={false}
-          className="zindex1400"
-          backdropClassName="zindex1400"
-          centered
-          onHide={CloseDeliveryLocationModal}
-          dialogClassName="modal-custom-mdlg"
+        <PEModal
+          open={DeliveryLocationModal}
+          onClose={CloseDeliveryLocationModal}
+          title="Manage Delivery Location"
+          bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+          bodyClassName="d-flex flex-column"
         >
-          <Modal.Body className="p-0 d-flex flex-column">
-            <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-              <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Delivery Location</span>
-              <IconButton onClick={CloseDeliveryLocationModal} size="small" className="modal-close-btn">
-                <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
-              </IconButton>
-            </div>
-            <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
-              <AddPrPlant handleLocationList={handleLocationList} isModal={true} />
-            </div>
-          </Modal.Body>
-        </Modal>
+          <div className="flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+            <AddPrPlant handleLocationList={handleLocationList} isModal={true} />
+          </div>
+        </PEModal>
       </form>
     </div>
   )

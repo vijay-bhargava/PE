@@ -10,7 +10,7 @@ import {
 import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
 import { HiOutlineX, HiPencilAlt } from 'react-icons/hi';
 import { Link, useNavigate } from 'react-router-dom';
-import { Modal } from 'react-bootstrap';
+import PEModal from '../../../components/PEModal';
 import { actionTypes, useStateValue } from '../../../store';
 import { bidlist, checkUTC, formatDateViaLocale, getAuctionManageFind } from '../../../utils/common/utility';
 import CryptoJS from 'crypto-js';
@@ -75,6 +75,7 @@ const EXPORT_COLUMNS = [
   { field: 'stage', label: 'Status', getValue: (row) => row?.stage || '' },
   { field: 'bidStDate', label: 'Start Date', getValue: (row, userDetail) => row?.bidStDate ? formatDateViaLocale(row.bidStDate, userDetail) : '' },
   { field: 'bidEndDate', label: 'End Date', getValue: (row, userDetail) => row?.bidEndDate ? formatDateViaLocale(row.bidEndDate, userDetail) : '' },
+  { field: 'createdByName', label: 'Created by', getValue: (row) => row?.createdByName || '' },
 ];
 
 const escapeCsvValue = (value) => {
@@ -227,6 +228,7 @@ const ManageBidV2 = () => {
     { field: 'bidTypeID', label: 'Type' },
     { field: 'bidStDate', label: 'Start Date' },
     { field: 'bidEndDate', label: 'End Date' },
+    { field: 'createdByName', label: 'Created By' },
   ];
   const FILTER_OPERATORS = ['contains', 'equals', 'startsWith', 'endsWith', 'isEmpty', 'isNotEmpty'];
 
@@ -333,7 +335,7 @@ const ManageBidV2 = () => {
   /* ── Column visibility ── */
   const [columnVisibility, setColumnVisibility] = useState({
     bidsubject: true, bidTypeID: true, stage: true,
-    bidStDate: true, bidEndDate: true, action: true,
+    bidStDate: true, bidEndDate: true, action: true, createdBy: true
   });
   const [colMenuAnchor, setColMenuAnchor] = useState(null);
   const colPopoverRef = React.useRef(null);
@@ -441,6 +443,19 @@ const ManageBidV2 = () => {
       renderCell: (params) => (
         <span className="rfq-v2-text-cell" onClick={() => navigateToPage(params.row)} style={{ cursor: 'pointer' }}>
           {params.row.bidEndDate ? formatDateViaLocale(params.row.bidEndDate, userDetail) : '—'}
+        </span>
+      ),
+    },
+    columnVisibility.createdBy && {
+      field: 'createdByName',
+      headerName: 'Created By',
+      flex: 1,
+      minWidth: 120,
+      sortable: true,
+      valueGetter: (params) => params?.row?.createdByName || '',
+      renderCell: (params) => (
+        <span className="rfq-v2-cell-subject" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+          {params.row.createdByName || '—'}
         </span>
       ),
     },
@@ -791,91 +806,76 @@ const ManageBidV2 = () => {
       )}
 
       {/* ── Create Auction modal ── */}
-      <Modal
-        size="lg"
-        show={modal}
-        backdrop="static"
-        keyboard={false}
-        className="zindex10002 rfq-create-modal"
-        backdropClassName="zindex10002"
-        centered
-        contentClassName="border-0 rounded-default"
-        onHide={() => setModal(false)}
+      <PEModal
+        size="sm"
+        open={modal}
+        onClose={() => setModal(false)}
+        disableBackdropClose={true}
+        title={<span style={{ fontSize: 14 }}>What would you like to do?</span>}
+        footer={
+          <>
+            <button type="button" className="pe-btn pe-btn--ghost" onClick={() => setModal(false)}>Cancel</button>
+            <button
+              type="button"
+              className="pe-btn pe-btn--primary"
+              onClick={radioValue !== 'template' ? handleAuction : handleTemplateNavigation}
+            >
+              Continue
+            </button>
+          </>
+        }
       >
-        <Modal.Header className="pt-2 pb-2">
-          <Modal.Title>
-            <span style={{ fontSize: 14 }}>What would you like to do?</span>
-          </Modal.Title>
-          <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => setModal(false)}>
-            <HiOutlineX style={{ fontSize: 16 }} />
-          </button>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <div className="p-3">
-            <FormControl>
-              <RadioGroup
-                defaultValue="new"
-                name="new-auction"
-                value={radioValue}
-                onChange={(e) => setRadioValue(e.target.value)}
-              >
-                <FormControlLabel value="new" control={<Radio size="small" />} label="Create a New Auction" />
-                <FormControlLabel value="template" control={<Radio size="small" />} label="Select From Template" />
-              </RadioGroup>
-            </FormControl>
+        <div>
+          <FormControl>
+            <RadioGroup
+              defaultValue="new"
+              name="new-auction"
+              value={radioValue}
+              onChange={(e) => setRadioValue(e.target.value)}
+            >
+              <FormControlLabel value="new" control={<Radio size="small" />} label="Create a New Auction" />
+              <FormControlLabel value="template" control={<Radio size="small" />} label="Select From Template" />
+            </RadioGroup>
+          </FormControl>
 
-            {radioValue === 'new' && (
-              <div className="mt-3">
-                <label className="pe-field-label">Auction Type *</label>
-                <Autocomplete
-                  disablePortal
-                  id="bidtype"
-                  size="small"
-                  fullWidth
-                  options={BidTypeList}
-                  getOptionLabel={(option) => option?.bidTypeName || ''}
-                  value={BidTypeList.find((o) => o?.bidTypeName === BidType) || null}
-                  onChange={(_, newValue) => setBidType(newValue?.bidTypeName || '')}
-                  onOpen={() => { if (!BidTypeList.length) pullBidTypeList(); }}
-                  renderInput={(params) => (
-                    <TextField {...params} InputLabelProps={{ shrink: true }} placeholder="Select auction type" />
-                  )}
-                />
-              </div>
-            )}
-
-            {radioValue === 'template' && (
-              <div className="mt-3">
-                <label className="pe-field-label">Select Template</label>
-                <Autocomplete
-                  disablePortal
-                  size="small"
-                  fullWidth
-                  options={templatelist ?? []}
-                  getOptionLabel={(option) => {
-                    const aType = bidTypeMap[option?.eventTypeId] || 'Unknown Type';
-                    return `${option.templateTitle ?? ''} (${aType})`;
-                  }}
-                  renderInput={(params) => <TextField {...params} InputLabelProps={{ shrink: true }} />}
-                  onChange={(_, v) => { setSelectedTemplate(v); setSelectedBidTypeId(v?.eventTypeId); }}
-                  onOpen={() => { if (!templatelist.length) getTemplateList(); }}
-                />
-              </div>
-            )}
-
-            <div className="col-12 mt-4 d-flex justify-content-end gap-2">
-              <button type="button" className="pe-btn pe-btn--ghost" onClick={() => setModal(false)}>Cancel</button>
-              <button
-                type="button"
-                className="pe-btn pe-btn--primary"
-                onClick={radioValue !== 'template' ? handleAuction : handleTemplateNavigation}
-              >
-                Continue
-              </button>
+          {radioValue === 'new' && (
+            <div className="mt-3">
+              <label className="pe-field-label">Auction Type *</label>
+              <Autocomplete
+                id="bidtype"
+                size="small"
+                fullWidth
+                options={BidTypeList}
+                getOptionLabel={(option) => option?.bidTypeName || ''}
+                value={BidTypeList.find((o) => o?.bidTypeName === BidType) || null}
+                onChange={(_, newValue) => setBidType(newValue?.bidTypeName || '')}
+                onOpen={() => { if (!BidTypeList.length) pullBidTypeList(); }}
+                renderInput={(params) => (
+                  <TextField {...params} InputLabelProps={{ shrink: true }} placeholder="Select auction type" />
+                )}
+              />
             </div>
-          </div>
-        </Modal.Body>
-      </Modal>
+          )}
+
+          {radioValue === 'template' && (
+            <div className="mt-3">
+              <label className="pe-field-label">Select Template</label>
+              <Autocomplete
+                size="small"
+                fullWidth
+                options={templatelist ?? []}
+                getOptionLabel={(option) => {
+                  const aType = bidTypeMap[option?.eventTypeId] || 'Unknown Type';
+                  return `${option.templateTitle ?? ''} (${aType})`;
+                }}
+                renderInput={(params) => <TextField {...params} InputLabelProps={{ shrink: true }} />}
+                onChange={(_, v) => { setSelectedTemplate(v); setSelectedBidTypeId(v?.eventTypeId); }}
+                onOpen={() => { if (!templatelist.length) getTemplateList(); }}
+              />
+            </div>
+          )}
+        </div>
+      </PEModal>
     </>
   );
 };

@@ -1,43 +1,20 @@
 ﻿import React, { useState, useEffect, useCallback } from "react";
 import IconButton from "@mui/material/IconButton";
-import { HiOutlineTrash, HiOutlineUserAdd, HiPlusSm, HiX } from "react-icons/hi";
-import { FaRegFloppyDisk, FaPaperclip } from "react-icons/fa6";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
+import { HiOutlineUserAdd, HiPlusSm } from "react-icons/hi";
+import PEModal from "../../components/PEModal";
 import TextFieldCell from "./TextFieldCell";
 import {
-	Accordion,
-	AccordionDetails,
-	AccordionSummary,
-	Autocomplete,
-	Button,
-	Icon,
-	InputAdornment,
-	TextField,
-	Tooltip,
-	Alert,
+	Accordion, AccordionDetails, AccordionSummary,
+	Autocomplete, TextField, Tooltip, Alert,
 } from "@mui/material";
 import { useCookies } from "react-cookie";
-import {
-	AddEventApprovers,
-	DeleteEventApprover,
-	getEventApprovers,
-	getEventApproverslist,
-	getEventApproversFind,
-	getuserlist,
-} from "../../utils/common/utility";
-import { actionTypes, useStateValue } from "../../store";
-import { MdCheck, MdPending } from "react-icons/md";
-import { buildQueryParams } from "../../utils/purchaseRequest";
-import { ApiClient, api } from "../../Apiclient";
-import { Expand, ExpandMore, PersonOutlined } from "@mui/icons-material";
+import { getEventApproversFind, getuserlist, } from "../../utils/common/utility";
+import { useStateValue } from "../../store";
+import { ApiClient } from "../../Apiclient";
+import { ExpandMore } from "@mui/icons-material";
 import { IntegerRegex, segregatedEventapprover } from "../../utils/common";
 import EventApprovalWorkFlow from "../../components/approvalflow";
 import { toast } from "react-toastify";
-import { LoadingButton } from "@mui/lab";
 import { Card } from "react-bootstrap";
 import { CLAIM_TYPES, ACTIONS } from "../../utils/permissionManager";
 
@@ -49,8 +26,6 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 
 	const [isAddVisible, setIsAddVisible] = useState();
 	const toggleAdd = (i) => {
-
-
 		const newIsAddVisible = [...isAddVisible];
 		newIsAddVisible[i] = !newIsAddVisible[i];
 		setIsAddVisible(newIsAddVisible);
@@ -58,10 +33,6 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 
 	const [open, setOpen] = React.useState(false);
 	const [removeOpen, setRemoveOpen] = React.useState(false);
-
-	const handleClickOpen = () => {
-		setOpen(true);
-	};
 
 	const handleClose = () => {
 		setOpen(false);
@@ -115,16 +86,12 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 					return isActive;
 				});
 				setExpandedStages(expanded);
-
 				handleEventAppList(res, updatedvalue)
 			}
-
 		});
 	};
 
-
 	const [userOptions, setUserOptions] = useState([]);
-	const [userarray, setuserarray] = useState([]);
 
 	const fetchUserList = (customerid, reqApprover) => {
 
@@ -154,17 +121,13 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 				});
 
 				setUserOptions(arrayNew);
-				//console.log("users ", userOptions);
 			}
 		});
 	};
 
 	//for handling add of approver in different list
 	const onChangeApprover = (approverseq, newValue, x, wfstage) => {
-
-
 		if (newValue != null) {
-
 			newValue.wfStage = x.stage;
 			newValue.wfId = wfstage?.wfId;
 			newValue.stageId = wfstage?.stageId;
@@ -177,9 +140,7 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 	};
 
 	const pushEventApprovers = async (data, atoken) => {
-
 		const res = await apiClient.postres(`/api/eventapprover/Add`, data, atoken)
-
 		if (res) {
 			fetchEventApprovers(requestCell);
 			setAddingApprovers(null)
@@ -188,20 +149,9 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 	};
 
 	const [deletedId, setDeletedId] = useState(0);
-	const handleClickRemove = (selectedItem) => {
 
-		if (selectedItem?.approverType == "Pending") {
-			setRemoveOpen(true);
-			setDeletedId(selectedItem.id);
-		} else {
-			setRemoveOpen(false);
-			setDeletedId(0);
-		}
-	};
 	const pushDeleteEventApprover = useCallback((objtoremove) => {
-
 		deleteApproverformEvent(objtoremove)
-
 	}, [requestCell, approverList]);
 
 	const deleteApproverformEvent = async (objtoremove) => {
@@ -216,7 +166,6 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 			}
 			const flatApprovers = [].concat(...approverList.map(item => item.approvers))
 				.filter(x => x.id !== objtoremove.id);
-			console.log(`flatApprovers`, flatApprovers)
 
 			const otherStageApprovers = flatApprovers.filter(x => x.wfStage !== objtoremove.wfStage);
 			const sameStageApprovers = flatApprovers.filter(x => x.wfStage === objtoremove.wfStage);
@@ -254,57 +203,6 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 		}
 	};
 
-	const dragUpdateApprover = useCallback((payload) => {
-		console.log(`deleteApproverformEvent`);
-		updateApproverformEvent(payload)
-
-	}, [requestCell, approverList]);
-
-	const updateApproverformEvent = async (data) => {
-
-		const flatApprovers = [].concat(...data.map(item => item.approvers));
-		const otherStageApprovers = flatApprovers.filter(x => x.wfStage !== data[0]?.wfStage);
-		const payload = [...otherStageApprovers, ...data];
-
-		const res = await apiClient.postres(`/api/eventapprover/UpdateRange`, payload, atoken)
-		if (res) {
-			fetchEventApprovers(requestCell)
-		}
-	}
-
-	const handleClickToRemoved = (Id) => {
-
-		var data = {
-			Id: deletedId,
-		};
-		pushDeleteEventApprover(data, atoken);
-	};
-
-	const defaultSApprovqn = (newValue) => {
-		return newValue;
-	};
-
-
-
-
-	const onChangeApproveSeqn = (event, newValue) => {
-
-		console.log(newValue);
-		newValue.approverSeq = event.target.value;
-		updateApproveSeqn(newValue);
-	};
-
-	const updateApproveSeqn = async (datapayload) => {
-
-		const res = await apiClient.postres(
-			`/api/eventapprover/Update`,
-			datapayload,
-			atoken
-		);
-
-	}
-
-
 	const handleIconClick = (e, stage) => {
 
 		e.stopPropagation();  // Prevent event bubbling
@@ -314,25 +212,17 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 			const selectedApprover = stageDetails.approvers[0];
 			const stageId = selectedApprover?.stageId;
 			const wfId = selectedApprover?.wfId || stageDetails?.wfId;
-
 			setSelectedStageId(stageId);
 			setSelectedWfId(wfId);
-
-			console.log(`Selected Stage ID: ${stageId}, Workflow ID: ${wfId}`);
 		} else {
 			console.warn(`No approvers found for stage: ${stage}`);
 		}
 	};
 
-
-
 	const [addingApprover, setAddingApprovers] = useState(null)
 	const [addingApproverSequence, setAddingApproversSequence] = useState(null)
-
-
 	const [SelectedWfId, setSelectedWfId] = useState(null);
 	const [selectedStageId, setSelectedStageId] = useState(null);
-
 	const [workFlowName, setworkFlowName] = useState('');
 
 	const handleSave = async () => {
@@ -345,30 +235,22 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 		};
 
 		try {
-
 			const res = await apiClient.postres("/api/WorkFlow/WorkFlowSaveTemplate", data, atoken);
-
-
 			if (res && res.status === 200) {
-
 				console.log('Workflow saved successfully:', res.data);
-
 			} else {
-
 				console.error('Error saving workflow:', res?.message || 'Unknown error');
 			}
 		} catch (error) {
-
 			console.error('API request failed:', error);
 		}
 	};
+
 	const handleSaveClick = () => {
-
-
 		handleSave();
 		handleClose();
 	};
-	//##
+
 	return (
 		<>
 			{/* Permission Status Display */}
@@ -411,15 +293,15 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 				return (
 					<>
 						{approverList && approverList.length > 0 && approverList.map((x, i) => {
-							const wfstage = stagelist.find(s => s.wfname == x.stage);
-							const stagename = stagelist.find(s => s.wfname == x.stage)?.currentStage ?? "";
+							const wfstage = stagelist.find(s => s.wfname === x.stage);
+							const stagename = stagelist.find(s => s.wfname === x.stage)?.currentStage ?? "";
 							const normalizedStage = `${x.stage || ""}`.trim().toLowerCase();
 							const normalizedCurrentStage = `${currentStage || ""}`.trim().toLowerCase();
 							const normalizedStageName = `${stagename || ""}`.trim().toLowerCase();
 							const hasMatchingStage = approverList.some((stageItem) => {
 								const stageName = `${stageItem?.stage || ""}`.trim().toLowerCase();
 								const currentStageName =
-									`${stagelist.find(s => s.wfname == stageItem?.stage)?.currentStage || ""}`
+									`${stagelist.find(s => s.wfname === stageItem?.stage)?.currentStage || ""}`
 										.trim()
 										.toLowerCase();
 								return (
@@ -462,7 +344,7 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 																	width: "28px", height: "28px",
 																	backgroundColor: "transparent",
 																	padding: 0,
-																	marginRight:"5px",
+																	marginRight: "5px",
 																	flexShrink: 0,
 																	borderRadius: "8px",
 																	border: "1px solid #c2d4f9",
@@ -588,36 +470,28 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 													</div>
 												</AccordionDetails>
 											</Accordion>
-											<Dialog open={open} onClose={handleClose}>
-												<DialogTitle className="pb-0">Save As</DialogTitle>
-												<DialogContent>
-													<DialogContentText style={{ width: "320px" }}>
-														&nbsp;
-													</DialogContentText>
-													<TextFieldCell
-														id="workFlowName"
-														name="workFlowName"
-														label="Workflow Title"
-														value={workFlowName}
-														onChange={(e) => {
-															setworkFlowName(e?.target?.value);
-														}}
-														placeholder=""
-														maxLength={100}
-													/>
-												</DialogContent>
-												<DialogActions>
-													<Button
-														onClick={handleClose}
-														className="text-muted text-capitalize f16"
-													>
-														Cancel
-													</Button>
-													<Button onClick={handleSaveClick} className="text-capitalize f16">
-														Save
-													</Button>
-												</DialogActions>
-											</Dialog>
+											<PEModal
+												open={open}
+												onClose={handleClose}
+												size="sm"
+												title="Save As"
+												footer={<>
+													<button className="pe-btn pe-btn--ghost" onClick={handleClose}>Cancel</button>
+													<button className="pe-btn pe-btn--primary" onClick={handleSaveClick}>Save</button>
+												</>}
+											>
+												<TextFieldCell
+													id="workFlowName"
+													name="workFlowName"
+													label="Workflow Title"
+													value={workFlowName}
+													onChange={(e) => {
+														setworkFlowName(e?.target?.value);
+													}}
+													placeholder=""
+													maxLength={100}
+												/>
+											</PEModal>
 										</React.Fragment>
 									</div>
 								</Card.Body>
@@ -629,8 +503,6 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 			})()}
 		</>
 	)
-
-
 };
 
 export default EventApprovalBox;

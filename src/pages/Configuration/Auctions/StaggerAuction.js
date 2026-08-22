@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { TextField, Typography } from '@mui/material';
-import { HiOutlineX } from 'react-icons/hi';
 import { formatbidtime, getDateFormatPatteronLocale, userampm } from '../../../utils/common/utility';
 import { getApiErrorMessage } from '../../../utils/common';
 import { ApiClient } from "../../../Apiclient";
 import { useStateValue } from '../../../store';
 import { useParams } from 'react-router-dom';
-import { Modal } from 'react-bootstrap';
+import PEModal from '../../../components/PEModal';
 import { toast } from 'react-toastify';
 import { buildQueryParams } from '../../../utils/purchaseRequest';
 import BidGraphs from './BidGraphs';
@@ -518,35 +517,34 @@ const StaggerAuction = ({ actions }) => {
           </div>
         </div>
       </div>
-      <Modal
-        show={open}
-        onHide={CloseLoadingModal}
-        backdrop="static"
-        keyboard={false}
-        centered
+      <PEModal
+        open={open}
+        onClose={CloseLoadingModal}
+        disableBackdropClose={true}
+        title={<span className='f14'>Pause Slots</span>}
+        footer={
+          <>
+            <button className="pe-btn pe-btn--secondary" onClick={CloseLoadingModal}>Cancel</button>
+            <button className="pe-btn pe-btn--primary" onClick={handleConfirmPause}>OK</button>
+          </>
+        }
       >
-        <Modal.Header>
-          <Modal.Title className='f14'>Bid will be paused from the selected slots .</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Typography>Do you want to pause the slots? If yes, click "OK". If no, click "Cancel".</Typography>
-        </Modal.Body>
-        <Modal.Footer>
-          <button className="pe-btn pe-btn--secondary" onClick={CloseLoadingModal}>Cancel</button>
-          <button className="pe-btn pe-btn--primary" onClick={handleConfirmPause}>OK</button>
-        </Modal.Footer>
-      </Modal>
-      <Modal
-        show={reOpenSlot}
-        onHide={CloseReOpenLoadingModal}
-        backdrop="static"
-        keyboard={false}
-        centered
+        <Typography>Do you want to pause the slots? If yes, click "OK". If no, click "Cancel".</Typography>
+      </PEModal>
+      <PEModal
+        open={reOpenSlot}
+        onClose={CloseReOpenLoadingModal}
+        disableBackdropClose={true}
+        title={<span className='f14'>Reopen Slots</span>}
+        footer={
+          <>
+            <button className="pe-btn pe-btn--secondary" onClick={CloseReOpenLoadingModal}>Cancel</button>
+            <button className="pe-btn pe-btn--primary" onClick={handleConfirmReOpen}>OK</button>
+          </>
+        }
       >
-        <Modal.Header>
-          <Modal.Title className='f14'>Do you want to reOpen the slots? If yes, then please select date/time and then click "OK". If no, click "Cancel".</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
+        <div>
+          <Typography className="mb-3">Do you want to reOpen the slots? If yes, then please select date/time and then click "OK". If no, click "Cancel".</Typography>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <div className="col-12 col-md-6 pe-2">
               <MobileDateTimePicker
@@ -556,7 +554,6 @@ const StaggerAuction = ({ actions }) => {
                 name="bidStDate"
                 id="bidStDate"
                 minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-                //value={bidStDate ? new Date(bidStDate) : null} // Convert back to Date object
                 value={bidStDate ? dayjs(bidStDate) : null}
                 onChange={handleDateChange}
                 className="w-100 f14"
@@ -572,28 +569,27 @@ const StaggerAuction = ({ actions }) => {
                 format={getDateFormatPatteronLocale(userDetail)}
                 ampm={userampm(userDetail)}
               />
-
             </div>
           </LocalizationProvider>
-        </Modal.Body>
-        <Modal.Footer>
-          <button className="pe-btn pe-btn--secondary" onClick={CloseReOpenLoadingModal}>Cancel</button>
-          <button className="pe-btn pe-btn--primary" onClick={handleConfirmReOpen}>OK</button>
-        </Modal.Footer>
-      </Modal>
-      <Modal
-        show={openRemoveQuoteStagger}
-        onHide={CloseRemoveQuoteModalStagger}
-        backdrop="static"
-        keyboard={false}
-        centered
+        </div>
+      </PEModal>
+      <PEModal
+        open={openRemoveQuoteStagger}
+        onClose={CloseRemoveQuoteModalStagger}
+        disableBackdropClose={true}
+        title="Remove Quotes"
+        footer={
+          <>
+            <button className="pe-btn pe-btn--secondary" onClick={CloseRemoveQuoteModalStagger}>Cancel</button>
+            <button className="pe-btn pe-btn--primary" onClick={() => {
+              if (!removeRemark.trim()) { setRemarkError(true); return; }
+              handleRemoveQoutes(removeRemark);
+            }}>OK</button>
+          </>
+        }
       >
-        <Modal.Header>
-          <Modal.Title className='f14'>Remove Quotes</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Typography>Do you want to remove this quote? If yes, click "OK". If no, click "Cancel".</Typography>
-
+        <div>
+          <Typography className="mb-3">Do you want to remove this quote? If yes, click "OK". If no, click "Cancel".</Typography>
           <TextField
             label="Remarks"
             value={removeRemark}
@@ -610,35 +606,21 @@ const StaggerAuction = ({ actions }) => {
             rows={3}
             required
             error={remarkError}
-            helperText={
-              remarkError
-                ? 'Remarks are required'
-                : `${removeRemark.length}/200`
-            }
+            helperText={remarkError ? 'Remarks are required' : `${removeRemark.length}/200`}
             autoFocus
           />
-
-        </Modal.Body>
-        <Modal.Footer>
-          <button className="pe-btn pe-btn--secondary" onClick={CloseRemoveQuoteModalStagger}>Cancel</button>
-          <button className="pe-btn pe-btn--primary" onClick={() => {
-            if (!removeRemark.trim()) { setRemarkError(true); return; }
-            handleRemoveQoutes(removeRemark);
-          }}>OK</button>
-        </Modal.Footer>
-      </Modal>
-      <Modal
-        show={duplicateQuoteModalOpen}
-        onHide={() => setDuplicateQuoteModalOpen(false)}
-        backdrop="static"
-        keyboard={false}
-        centered
-        contentClassName="border-0 rounded"
+        </div>
+      </PEModal>
+      <PEModal
+        open={duplicateQuoteModalOpen}
+        onClose={() => setDuplicateQuoteModalOpen(false)}
+        disableBackdropClose={true}
+        title="Duplicate Quotes Found"
+        footer={
+          <button className="pe-btn pe-btn--primary px-4" onClick={() => setDuplicateQuoteModalOpen(false)}>OK</button>
+        }
       >
-        <Modal.Header className="pt-2 pb-2 bgheaderCards" closeButton closeVariant="white">
-          <Modal.Title className="f14 text-white" style={{ fontFamily: 'inherit' }}>Duplicate Quotes Found</Modal.Title>
-        </Modal.Header>
-        <Modal.Body style={{ fontFamily: 'inherit' }}>
+        <div style={{ fontFamily: 'inherit' }}>
           <Typography className="mb-2" style={{ fontFamily: 'inherit' }}>
             Duplicate quotes are not allowed for the same line item. Please correct the following before submitting:
           </Typography>
@@ -649,36 +631,22 @@ const StaggerAuction = ({ actions }) => {
               </li>
             ))}
           </ul>
-        </Modal.Body>
-        <Modal.Footer>
-          <button className="pe-btn pe-btn--primary px-4" onClick={() => setDuplicateQuoteModalOpen(false)}>OK</button>
-        </Modal.Footer>
-      </Modal>
-      <Modal
+        </div>
+      </PEModal>
+      <PEModal
         size="lg"
-        show={modal}
-        backdrop="static"
-        keyboard={false}
-        centered
-        className="rfq-create-modal"
-        contentClassName="border-0 rounded-default"
-        onHide={() => CloseModal()}
+        open={modal}
+        onClose={() => CloseModal()}
+        disableBackdropClose={true}
+        title={<span style={{ fontSize: 14 }}>Bidding Trend</span>}
       >
-        <Modal.Header className="pt-2 pb-2">
-          <Modal.Title><span style={{ fontSize: 14 }}>Bidding Trend</span></Modal.Title>
-          <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseModal()}>
-            <HiOutlineX style={{ fontSize: 16 }} />
-          </button>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <div className="p-3">
-            <BidGraphs
-              selectedParameterData={selectedParameterData}
-              auctionManageData={actions?.auctionManageData}
-            />
-          </div>
-        </Modal.Body>
-      </Modal>
+        <div className="p-1">
+          <BidGraphs
+            selectedParameterData={selectedParameterData}
+            auctionManageData={actions?.auctionManageData}
+          />
+        </div>
+      </PEModal>
     </>
   );
 }

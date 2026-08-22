@@ -460,3 +460,64 @@
   margin-bottom: 4px;
   line-height: 1.4;
 }
+
+/* ── Shared modal/popup chrome — every dialog in the app renders through
+   <PEModal> (MUI Dialog under the hood; `size` prop = MUI `maxWidth`:
+   xs/sm/md/lg/xl). One set of classes here instead of every page
+   reinventing header/body/footer styling + z-index/scroll handling. ── */
+/* `.MuiDialog-paper` (MUI's own theme class on the same element) sets its
+   own border-radius and otherwise ties with `.pe-modal-paper` on
+   specificity — whichever stylesheet happens to be injected later wins,
+   which was losing here. Chain both classes + !important so this always
+   wins regardless of MUI's emotion injection order. */
+.MuiDialog-paper.pe-modal-paper {
+  border-radius: 8px !important;
+  max-height: calc(100vh - 64px);
+  margin: 32px auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.pe-modal-header {
+  background: #fafcff !important;
+  padding: 10px 20px !important;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.pe-modal-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  margin: 0;
+  color: #101828;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.pe-modal-subtitle {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.pe-modal-body {
+  padding: 16px 20px !important;
+  background: #fff;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.pe-modal-footer {
+  padding: 10px 20px !important;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}

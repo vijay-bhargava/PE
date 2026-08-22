@@ -1,41 +1,27 @@
 ﻿import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import CommonBottomDrawer from "../CommonBottomDrawer";
-import IconButton from "@mui/material/IconButton";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { HiPlusSm, HiOutlineDotsHorizontal, HiOutlineX } from "react-icons/hi";
-import {
-  Autocomplete,
-  Alert,
-  Button,
-  Divider,
-  Menu,
-  MenuItem,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Box,
-} from "@mui/material";
+import { HiPlusSm } from "react-icons/hi";
+import { Autocomplete, Divider, MenuItem, TextField, } from "@mui/material";
+import PEModal from "../PEModal";
 import { KeyboardArrowDownOutlined } from "@mui/icons-material";
 import "react-quill/dist/quill.snow.css";
 import "../../assets/css/manage-rfq-v2.css";
 import Dropdown from "react-bootstrap/Dropdown";
 import { useStateValue } from "../../store";
-import { api, ApiClient } from "../../Apiclient";
+import { ApiClient } from "../../Apiclient";
 import { buildQueryParams } from "../../utils/purchaseRequest";
 import { toast } from "react-toastify";
-import { RFQQuestionsModal, RFQQuestionsModalOBJ, RFQSupplierQuestionsModal, SQEQuestionsModal, SQEQuestionsModalOBJ } from "../../utils/modal";
-import { findObjByValueFromArray, SQEAddModal, downloadExcelTemplate } from "../../utils/common";
+import {
+  RFQQuestionsModal, RFQQuestionsModalOBJ, RFQSupplierQuestionsModal,
+  SQEQuestionsModal, SQEQuestionsModalOBJ
+} from "../../utils/modal";
+import { findObjByValueFromArray, downloadExcelTemplate } from "../../utils/common";
 import EventQuestionScreenList from "./EventQuestionScreenList";
 import EventAddQuestionScreen from "./EventAddQuestionScreen";
-import AddUpdateQuestion from "../../pages/Settings/QuestionMaster/AddUpdateQuestion";
-import { CategoryFindAll } from "../../utils/questionlibrary";
 import { FastApiClient } from "../../FastApiClient";
 import { CLAIM_TYPES, ACTIONS } from '../../utils/permissionManager';
 import { getEventApproversFind } from '../../utils/common/utility';
-import { set } from "date-fns";
+
 const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
 
   const [{ atoken, rtoken, customerid, customersuffix, usertimezone, userdialingcode, roleClaims, userDetail }, dispatch] = useStateValue();
@@ -49,7 +35,6 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
     confirmDialog: false,
     addQuestionDrawer: false
   });
-  const [anchorEl, setAnchorEl] = useState(null);
   const [tempSelectedLibrary, setTempSelectedLibrary] = useState(null); // Temporary state for new selection
 
   useEffect(() => {
@@ -71,14 +56,14 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
     const queryParams = buildQueryParams(params);
     const res = await apiclient.getres(`/api/LibraryOrgEntity/Find?${queryParams}`, atoken);
     if (res) {
-      const result = res?.data?.result?.filter(x => x.libraryType == props.librarytype);
+      const result = res?.data?.result?.filter(x => x.libraryType === props.librarytype);
       setLibrarylist(result);
     }
   };
 
   const getQuestionList = async () => {
 
-    if (props.eventtype == "RFQ") {
+    if (props.eventtype === "RFQ") {
       const params = {
         // CustomerId: customerid,
         RFQId: props.eventid,
@@ -98,7 +83,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
       }
     }
 
-    if (props.eventtype == "VQ") {
+    if (props.eventtype === "VQ") {
       // For VQ, use the correct API format: /api/SQE/{VendorId}/Find
       if (!props.vendorId) {
         setQuestionList([]);
@@ -169,7 +154,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
     const res = await apiclient.getres(`/api/QuestionsLib/Find?${queryParams}`, atoken);
     if (res) {
       const questionlibresult = Array.isArray(res?.data?.result) ? res.data.result : []; //pe.questionmaster table
-      if (questionlibresult.length == 0) {
+      if (questionlibresult.length === 0) {
         toast.info(`No Questions Found. Please Select Another Library `, {
           toastid: "noquestionerror"
         })
@@ -179,17 +164,17 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
       }
       let data = [];
 
-      if (props.eventtype == "RFQ") {
+      if (props.eventtype === "RFQ") {
         data = RFQQuestionsModal(questionlibresult, props.eventid)
       }
-      else if (props.eventtype == "VQ") {
+      else if (props.eventtype === "VQ") {
         data = SQEQuestionsModal(questionlibresult, props.eventid) //to map question master modal with SQ Modal.
       }
 
       const eventquestion = (questionlist ?? [])?.filter(x => !x.libraryId)
       setQuestionList([...eventquestion, ...data])
 
-      if (props.eventtype == "VQ") {
+      if (props.eventtype === "VQ") {
         props.CallbackSelectedQuestionList([...eventquestion, ...data])
       }
     }
@@ -203,7 +188,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
         return;
       }
       setIsQuestionListLoading(true);
-      if (props.eventtype == "RFQ") {
+      if (props.eventtype === "RFQ") {
         questionlist?.forEach(x => {
           x.id = 0
           x.questionOption?.forEach(v => {
@@ -247,29 +232,18 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
             })
             return true
           }
-          // else {
-          //   return false
-          // }
         }
       }
       setIsQuestionListLoading(false);
     }
   }));
 
-  const handleClickAnchor = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleCloseAnchor = () => {
-    setAnchorEl(null);
-  };
-
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     handleExcelUpload(file);
   };
   const handleExcelUpload = async (file) => {
-    if (props?.eventtype == "RFQ") {
+    if (props?.eventtype === "RFQ") {
 
       const data = {
         templateId: 9,
@@ -301,15 +275,12 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
-
       }
-
     }
-
   }
 
   const handleDownloadExcelTemplate = async () => {
-    if (props?.eventtype == "RFQ") {
+    if (props?.eventtype === "RFQ") {
       await downloadExcelTemplate({
         customerId: customerid,
         templateId: 9,
@@ -357,7 +328,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
       });
     });
 
-    if (props.eventtype == "VQ") {
+    if (props.eventtype === "VQ") {
       props.CallbackSelectedQuestionList((questionlist) => {
         // Filter out the question based on category, subcategory, and description
         return questionlist.filter((item) => {
@@ -376,24 +347,20 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
 
   const handleAddQuestion = (values) => {
 
-    if (props?.eventtype == "RFQ") {
+    if (props?.eventtype === "RFQ") {
       const newQ = RFQQuestionsModalOBJ(values, props?.eventid);
-
       setQuestionList([...questionlist, newQ])
       return true;
     }
 
-    if (props?.eventtype == "VQ") {
-
+    if (props?.eventtype === "VQ") {
       const newQ = SQEQuestionsModalOBJ(values, props.eventid);
-
       setQuestionList([...questionlist, newQ])
       props.CallbackSelectedQuestionList([...questionlist, newQ])
       //#Anurag_Dev handle close the drawer after the question mapping
       setOpenComponents(prev => ({ ...prev, confirmDialog: false, addQuestionDrawer: false }));
       return true;
     }
-
   }
 
   return (
@@ -421,7 +388,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
           </div>
         </div>
         <div className="rfq-question-toolbar-right">
-          {props.action && (props.eventtype == "RFQ") && (
+          {props.action && (props.eventtype === "RFQ") && (
             <Dropdown align="end" className="d-inline-block">
               <Dropdown.Toggle as="div" id="gt" className="round-edit remove-tringle" role="button">
                 <button type="button" className="pe-btn pe-btn--secondary">
@@ -459,7 +426,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
         eventSubject={props.eventSubject}
         callbackEditQuesFromList={async (updatedvalue) => {
 
-          if (props?.eventtype == "RFQ") {
+          if (props?.eventtype === "RFQ") {
             const data = RFQSupplierQuestionsModal(updatedvalue, props?.eventid)
             if (data) {
               const res = await apiclient.postres(
@@ -475,10 +442,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
               }
             }
           }
-          else if (props?.eventtype == "VQ") {
-
-
-
+          else if (props?.eventtype === "VQ") {
             if (updatedvalue) {
               const res = await apiclient.postres(
                 `/api/SQE/UpdateSQEHeaderDetail`,
@@ -491,12 +455,9 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
                 });
                 props.callback()
               }
-
             }
-
           }
           else {
-
           }
         }
         }
@@ -506,29 +467,18 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
       />
 
       {/* overlay component */}
-      <Dialog
+      <PEModal
         open={openComponents.confirmDialog}
         onClose={() => handleCancelChange("confirmDialog")}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
+        size="sm"
+        title="Confirm Library Change"
+        footer={<>
+          <button className="pe-btn pe-btn--ghost" onClick={() => handleCancelChange("confirmDialog")}>No</button>
+          <button className="pe-btn pe-btn--primary" onClick={handleConfirmChange}>Yes</button>
+        </>}
       >
-        <DialogTitle id="alert-dialog-title">
-          {"Confirm Library Change"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to change the library? Doing so will delete all the questions from given library .
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleCancelChange("confirmDialog")} color="primary">
-            No
-          </Button>
-          <Button onClick={handleConfirmChange} color="primary" autoFocus>
-            Yes
-          </Button>
-        </DialogActions>
-      </Dialog>
+        Are you sure you want to change the library? Doing so will delete all the questions from given library.
+      </PEModal>
       <CommonBottomDrawer
         open={openComponents.addQuestionDrawer}
         onClose={() => handleCancelChange("addQuestionDrawer")}
@@ -547,7 +497,6 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
           callback={handleAddQuestion}
         />
       </CommonBottomDrawer>
-
     </div>
   );
 });
