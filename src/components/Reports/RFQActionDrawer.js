@@ -1,22 +1,20 @@
 ﻿import React, { useEffect, useState } from "react";
 import CommonBottomDrawer from "../CommonBottomDrawer";
 import { PEPagination } from '../RFQ/PEPagination';
-import { Autocomplete, Avatar, Box, Checkbox, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, InputAdornment, Menu, MenuItem, Pagination, Stack, TextField, Tooltip, Typography } from "@mui/material";
+import {
+	Autocomplete, Avatar, Box, Checkbox, InputAdornment,
+	Menu, MenuItem, TextField, Tooltip, Typography
+} from "@mui/material";
 import { CalendarToday as CalendarIcon, SearchOutlined } from "@mui/icons-material";
 import { HiOutlineChevronDown, HiOutlineUserAdd, HiOutlineX } from "react-icons/hi";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import {
-	buildQueryParams,
-	formatDateViaLocale,
-	formattimeoption, getDateFormatPatteronLocale, userampm, VendorfilterOptions
+	buildQueryParams, formatDateViaLocale,
+	formattimeoption, getDateFormatPatteronLocale, userampm
 } from "../../utils/common/utility";
 import { downloadZip } from "../../utils/common/index"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import { useLocation, useNavigate } from "react-router-dom";
-import { api, ApiClient } from "../../Apiclient";
+import { ApiClient } from "../../Apiclient";
 import { useStateValue } from "../../store";
-import { Badge } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { InvitedSupplierModal } from "../../utils/common";
 import { LoadingButton } from "@mui/lab";
@@ -24,7 +22,6 @@ import * as yup from "yup";
 import { useFormik } from "formik";
 import { PETableSimple } from "../RFQ/PETable";
 import { LocalizationProvider, MobileDateTimePicker } from "@mui/x-date-pickers";
-import { FastApiClient } from "../../FastApiClient";
 import TextFieldCell from "../../pages/BaseCells/TextFieldCell";
 import { styled } from '@mui/material/styles';
 import MuiAccordion from '@mui/material/Accordion';
@@ -42,9 +39,6 @@ const RFQActionDrawer = ({
 	rfqid,
 	enddate,
 	activityId, handleDraftEvent, rfqtype, EventHeaderDetails, Version, currentStage, downloadExcel }) => {
-	const fastApiClient = new FastApiClient()
-	const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-	const checkedIcon = <CheckBoxIcon fontSize="small" />;
 	const [locked, setLocked] = useState(false);
 	const [actiontext, setActionText] = useState('')
 	const [actionlocktype, setActionLockType] = useState(null)
@@ -69,7 +63,6 @@ const RFQActionDrawer = ({
 
 		setOpenDrawer({ ...openDrawer, [anchor]: open });
 	};
-	const location = useLocation()
 
 	const handleReinitiateUpdate = async () => {
 		setLoading(true)
@@ -118,10 +111,8 @@ const RFQActionDrawer = ({
 			return updatedState;  // Return the updated state
 		});
 		setLoading(false)
-
 	}
 
-	const navigate = useNavigate();
 	const [{ atoken, rtoken, customerid, customersuffix, roleClaims, userDetail }, dispatch] = useStateValue();
 	const apiClient = new ApiClient(customersuffix);
 
@@ -196,7 +187,7 @@ const RFQActionDrawer = ({
 			`/api/RFQVendorInvite/Find?${queryParams}`,
 			atoken
 		);
-		if (res.status == 200) {
+		if (res.status === 200) {
 
 			let vendorItemAnalysisdata = res.data;
 			setSelectedSupplier(vendorItemAnalysisdata ?? []);
@@ -324,7 +315,6 @@ const RFQActionDrawer = ({
 
 	const [loading, setLoading] = useState(false)
 
-	const [loading2, setLoading2] = useState(false)
 	const handleSaveNewSupplier = async () => {
 		const normalizedSuppliers = newSupplier.map(s => ({
 			...s,
@@ -392,138 +382,6 @@ const RFQActionDrawer = ({
 			.required(" Date/Time is required")
 			.typeError(" Date/Time is required"),
 	});
-	// const formik_Reinvite = useFormik({
-	// 	enableReinitialize: true,
-	// 	initialValues: {
-
-	// 		reopenDate: null,
-	// 		deadlineDate: null,
-	// 		bidOpeningDate: null
-	// 	},
-	// 	validationSchema: (openDrawer.reInviteSupplier || openDrawer.openDate || openDrawer.extendEvent) ? validationSchemaReinvite : null,
-	// 	onSubmit: async (values) => {
-	// 		setLoading(true)
-
-	// 		let rfqVendorDetails;
-
-
-	// 		rfqVendorDetails = supplierlist?.filter(v => v.reinvitechecked).map((v) => {
-
-	// 			return {
-	// 				"RFQId": rfqid,
-	// 				"emailId": v?.emailId,
-	// 				"remarks": v?.reinviteremark,
-	// 				"vendorId": v?.vendorId,
-	// 				"contactId": v?.contactId,
-	// 				"customerId": customerid,
-	// 				"version": v?.version
-	// 			}
-
-	// 		})
-	// 		let payload;
-
-	// 		if (openDrawer.reInviteSupplier) {
-	// 			if (values?.reopenDate?.toISOString() > values?.deadlineDate?.toISOString()) {
-	// 				formik_Reinvite.setFieldError("reopenDate", "Reopen Date should be less than End Date")
-	// 				setLoading(false)
-	// 				return
-	// 			}
-
-	// 			if (values?.bidOpeningDate && (values?.deadlineDate?.toISOString() > values?.bidOpeningDate?.toISOString())) {
-	// 				formik_Reinvite.setFieldError("bidOpeningDate", "Bid Opening Date should be greater than  End date Date")
-	// 				setLoading(false)
-	// 				return
-	// 			}
-
-	// 			const supplierActionType = "ReInvite";
-	// 			payload = {
-	// 				"rfqVendorDetails": rfqVendorDetails,
-	// 				"supplierActionType": supplierActionType,
-	// 				"ReOpenDate": values?.reopenDate,
-	// 				"RFQDeadLine": values?.deadlineDate?.toISOString(),
-	// 				"BidOpeningDate": values?.bidOpeningDate?.toISOString()
-	// 			}
-
-	// 		}
-	// 		else if (openDrawer.NotifySupplier) {
-	// 			const supplierActionType = "Reminder";
-	// 			payload = {
-	// 				"rfqVendorDetails": rfqVendorDetails,
-	// 				"supplierActionType": supplierActionType,
-
-	// 			}
-	// 		}
-	// 		else if (openDrawer.extendEvent) {
-
-	// 			const supplierActionType = "Extend Date";
-	// 			payload = {
-	// 				"rfqDeadLine": values?.deadlineDate?.toISOString(),
-	// 				"supplierActionType": supplierActionType,
-
-	// 			}
-
-	// 		}
-
-	// 		else if (openDrawer.openDate) {
-
-	// 			const supplierActionType = "OpenDate";
-	// 			payload = {
-	// 				"rfqDeadLine": values?.deadlineDate?.toISOString(),
-	// 				"supplierActionType": supplierActionType,
-
-	// 			}
-
-	// 		}
-
-	// 		else if (openDrawer.reOpenSupplier) {
-	// 			const supplierActionType = "ReOpen";
-	// 			payload = {
-	// 				"rfqVendorDetails": rfqVendorDetails,
-	// 				"supplierActionType": supplierActionType,
-
-	// 			}
-
-	// 		}
-
-
-
-	// 		else {
-	// 			setLoading(false)
-	// 			return
-	// 		}
-
-
-	// 		const res = await apiClient.postres(`/api/RFQManage/${rfqid}/RFQInvitationVersion`, payload, atoken)
-	// 		if (res) {
-	// 			clearReinviteAll();
-	// 			setOpenDrawer(prevState => {
-	// 				// Create a new object where all values are set to false
-	// 				const updatedState = Object.keys(prevState).reduce((acc, key) => {
-	// 					acc[key] = false;  // Set each value to false
-	// 					return acc;
-	// 				}, {});
-
-	// 				return updatedState;  // Return the updated state
-	// 			});
-
-
-
-	// 			if (openDrawer.extendEvent) {
-	// 				setActionLockType("updateenddate")
-	// 				setActionText(`✅ RFQ End Date updated successfully`)
-	// 				setLocked(true)
-	// 			}
-	// 			else {
-	// 				toast.success(`Action Taken Successfully`, {
-	// 					toastId: "reinvitetoast"
-	// 				})
-	// 			}
-
-	// 		}
-
-	// 		setLoading(false)
-	// 	},
-	// });
 
 	const formik_Reinvite = useFormik({
 		enableReinitialize: true,
@@ -697,7 +555,7 @@ const RFQActionDrawer = ({
 	const handleReminderAll = (value) => {
 		setSupplierList(prev =>
 			prev.map(supplier =>
-				supplier.status != "Closed" && supplier.status != "Regretted"
+				supplier.status !== "Closed" && supplier.status !== "Regretted"
 					? { ...supplier, reinvitechecked: value } // update only filtered
 					: supplier // keep others same
 			)
@@ -707,7 +565,7 @@ const RFQActionDrawer = ({
 	const handleReOpenAll = (value) => {
 		setSupplierList(prev =>
 			prev.map(supplier =>
-				supplier.status != "Open" && supplier.status != "Regretted"
+				supplier.status !== "Open" && supplier.status !== "Regretted"
 					? { ...supplier, reinvitechecked: value } // update only filtered
 					: supplier // keep others same
 			)
@@ -722,142 +580,6 @@ const RFQActionDrawer = ({
 		setSupplierList(list);
 	};
 
-
-	//handle export
-	// const handleExcelExport = async () => {
-	// 	setLoading2(true)
-
-	// 	var data = {
-	// 		Id: rfqid
-	// 	};
-
-	// 	const queryParams = buildQueryParams(data);
-	// 	const res_rfqheaderdetails = await apiClient.getres(
-	// 		`/api/RFQManage/FindById?${queryParams}`,
-	// 		atoken
-	// 	);
-	// 	if (!res_rfqheaderdetails) {
-	// 		setLoading2(false)
-	// 		return
-	// 	}
-	// 	const rfqheaderdetails = res_rfqheaderdetails?.data?.result
-	// 	const reqdata = {
-	// 		rfqId: parseInt(rfqid),
-	// 		Version: 0,
-	// 	};
-	// 	const queryParamsvendorItemAnalysis = buildQueryParams(reqdata);
-	// 	const resqueryParamsvendorItemAnalysis = await apiClient.getres(
-	// 		`/api/RFQManage/RFQcomparativeReport?${queryParamsvendorItemAnalysis}`,
-	// 		atoken
-	// 	);
-	// 	let vendorItemAnalysis;
-	// 	if (resqueryParamsvendorItemAnalysis.status === 200) {
-	// 		vendorItemAnalysis = resqueryParamsvendorItemAnalysis.data;
-	// 	}
-	// 	else {
-	// 		setLoading2(false)
-	// 		return
-	// 	}
-
-	// 	const datavendorItemAnalysis = {
-	// 		vendor_details: vendorItemAnalysis,
-	// 		rfq_details: rfqheaderdetails
-	// 	}
-
-	// 	const response = await fastApiClient.postresblob(`/rfq-comparative/generate-excel`, datavendorItemAnalysis)
-	// 	if (response) {
-	// 		// Create a blob URL for the response data
-	// 		const blobUrl = URL.createObjectURL(new Blob([response.data]));
-
-	// 		// Create a link element to download the file
-	// 		const link = document.createElement("a");
-	// 		link.href = blobUrl;
-	// 		link.setAttribute("download", `RFQ_Report_${new Date()}.xlsx`); // Specify the file name
-
-	// 		// Append the link to the body, click it and remove it
-	// 		document.body.appendChild(link);
-	// 		link.click();
-	// 		document.body.removeChild(link);
-	// 	}
-	// 	setLoading2(false)
-
-	// }
-	// const handleExcelExportSummary = async () => {
-
-	// 	setLoading(true)
-	// 	var data_header = {
-	// 		Id: rfqid
-	// 	};
-
-	// 	const queryParamsheaderdetails = buildQueryParams(data_header);
-	// 	const res_rfqheaderdetails = await apiClient.getres(
-	// 		`/api/RFQManage/FindById?${queryParamsheaderdetails}`,
-	// 		atoken
-	// 	);
-	// 	if (!res_rfqheaderdetails) {
-	// 		setLoading(false)
-	// 		return
-	// 	}
-	// 	const rfqheaderdetails = res_rfqheaderdetails?.data?.result
-	// 	const reqdata = {
-	// 		rfqId: parseInt(rfqid),
-	// 		Version: 0,
-	// 	};
-	// 	const queryParamsvendorItemAnalysis = buildQueryParams(reqdata);
-	// 	const resqueryParamsvendorItemAnalysis = await apiClient.getres(
-	// 		`/api/RFQManage/RFQcomparativeReport?${queryParamsvendorItemAnalysis}`,
-	// 		atoken
-	// 	);
-	// 	let vendorItemAnalysis;
-	// 	if (resqueryParamsvendorItemAnalysis.status === 200) {
-	// 		vendorItemAnalysis = resqueryParamsvendorItemAnalysis.data;
-	// 	}
-	// 	else {
-	// 		setLoading(false)
-	// 		return
-	// 	}
-
-	// 	const payload = {
-	// 		rfqId: rfqid,
-	// 		Version: 0
-	// 	}
-	// 	const queryParams = buildQueryParams(payload)
-	// 	const finalversionres = await apiClient.getres(`/api/RFQManage/RFQVendorComparativeReport?${queryParams}`, atoken)
-
-	// 	if (!finalversionres) {
-	// 		toast.error("some error occured")
-	// 		setLoading(false)
-	// 		return
-	// 	}
-	// 	const version_summary = finalversionres?.data;
-	// 	const data = {
-	// 		vendor_details: vendorItemAnalysis,
-	// 		rfq_details: rfqheaderdetails,
-	// 		version_summary: version_summary
-	// 	}
-	// 	const response = await fastApiClient.postresblob(`/summary-comparative/generate-excel`, data)
-	// 	if (response) {
-	// 		// Create a blob URL for the response data
-	// 		const blobUrl = URL.createObjectURL(new Blob([response.data]));
-
-	// 		// Create a link element to download the file
-	// 		const link = document.createElement("a");
-	// 		link.href = blobUrl;
-	// 		link.setAttribute("download", `RFQ_Report_${new Date()}.xlsm`); // Specify the file name
-
-	// 		// Append the link to the body, click it and remove it
-	// 		document.body.appendChild(link);
-	// 		link.click();
-	// 		document.body.removeChild(link);
-	// 	}
-	// 	else {
-	// 		setLoading(false)
-	// 	}
-
-
-	// }
-
-	//formik surrogate 
 	const validationSchemaSurrogate = yup.object().shape({
 
 		surrogateemail: yup
@@ -919,7 +641,6 @@ const RFQActionDrawer = ({
 
 			}
 			setLoading(false)
-
 		},
 	});
 
@@ -989,9 +710,8 @@ const RFQActionDrawer = ({
 		borderTop: '1px solid rgba(0, 0, 0, .125)',
 	}));
 	const [Auditdata, setAuditdata] = useState([]);
+
 	const pullAuditList = async () => {
-
-
 		var data = {
 			EventType: "RFQ",
 			EntityId: rfqid,
@@ -1000,7 +720,6 @@ const RFQActionDrawer = ({
 		const queryParams = buildQueryParams(data)
 		const res = await apiClient.getres(`api/ReportConfig/AuditReport?${queryParams}`, atoken)
 		if (res) {
-
 			const data = res?.data?.result
 			setAuditdata(data);
 		}
@@ -1035,6 +754,7 @@ const RFQActionDrawer = ({
 		let folderPath = `${customerid}/RFQ/${rfqid}`;
 		downloadZip(folderPath);
 	}
+
 	return (
 		<>
 			<div>
@@ -1056,30 +776,30 @@ const RFQActionDrawer = ({
 					onClose={() => setActionsAnchorEl(null)}
 					sx={{ maxWidth: 800, padding: "30px" }}
 				>
-					{currentStage != "Awarded" && Version == Math.floor(Version) && (
+					{currentStage !== "Awarded" && Version === Math.floor(Version) && (
 						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("addsupplier", true); }} sx={{ fontSize: "14px" }}>Add New Supplier</MenuItem>
 					)}
 					{currentStage && !['Draft', 'Under Pre Approval', 'Awarded'].includes(currentStage) && (
 						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("reInviteSupplier", true); }} sx={{ fontSize: "14px" }}>Reinvite Supplier</MenuItem>
 					)}
-					{currentStage != "Awarded" && (
+					{currentStage !== "Awarded" && (
 						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("reOpenSupplier", true); }} sx={{ fontSize: "14px" }}>Reopen Supplier</MenuItem>
 					)}
-					{currentStage != "Awarded" && (
+					{currentStage !== "Awarded" && (
 						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("surrogateSupplier", true); }} sx={{ fontSize: "14px" }}>Surrogate Supplier</MenuItem>
 					)}
-					{currentStage != "Awarded" && (
+					{currentStage !== "Awarded" && (
 						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("NotifySupplier", true); }} sx={{ fontSize: "14px" }}>Send Reminder</MenuItem>
 					)}
 					<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("ReinitiateEvent", true); }} sx={{ fontSize: "14px" }}>Reinitiate RFQ</MenuItem>
-					{currentStage != "Awarded" && (
+					{currentStage !== "Awarded" && (
 						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("extendEvent", true); }} sx={{ fontSize: "14px" }}>Extend End Date</MenuItem>
 					)}
 					<MenuItem onClick={() => { setActionsAnchorEl(null); handleZipDownload(); }} sx={{ fontSize: "14px" }}>Download Zip</MenuItem>
-					{currentStage != "Awarded" && rfqtype == "closed" && (
+					{currentStage !== "Awarded" && rfqtype === "closed" && (
 						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("openDate", true); }} sx={{ fontSize: "14px" }}>Update Open Date</MenuItem>
 					)}
-					{currentStage != "Awarded" && rfqtype == "closed" && (
+					{currentStage !== "Awarded" && rfqtype === "closed" && (
 						<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("OpenSealedBid", true); }} sx={{ fontSize: "14px" }}>Open Sealed Bid</MenuItem>
 					)}
 					{downloadExcel && (
@@ -1145,12 +865,8 @@ const RFQActionDrawer = ({
 								(x?.companyName ?? '').toLowerCase().includes(q)
 							);
 						});
-						const totalTSPages = Math.ceil(filteredRemaining.length / pageCount) || 1;
 						const pagedRemaining = filteredRemaining.slice((pageTS - 1) * pageCount, pageTS * pageCount);
-						const totalSSPages = Math.ceil((newSupplier?.length ?? 0) / pageCount) || 1;
 						const pagedNew = (newSupplier ?? []).slice((pageSS - 1) * pageCount, pageSS * pageCount);
-						const pageSizeOptions = [10, 25, 50];
-
 
 						return (
 							<div style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0 }}>
@@ -1302,7 +1018,7 @@ const RFQActionDrawer = ({
 													ampm={userampm(userDetail)}
 												/>
 											</div>
-											{rfqtype == "closed" && (
+											{rfqtype === "closed" && (
 												<div className="rfq-v2-drawer-field">
 													<span className="rfq-v2-drawer-label rfq-v2-drawer-label--required">Bid Open Date/Time</span>
 													<MobileDateTimePicker
@@ -1380,7 +1096,7 @@ const RFQActionDrawer = ({
 											renderCell: (_, row) => <TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Enter remarks here" defaultValue={row.reinviteremark || ''} onBlur={(e) => { row.reinviteremark = e.target.value; }} size="small" />,
 										},
 									]}
-									rows={supplierlist?.filter(x => x.status == "Closed")
+									rows={supplierlist?.filter(x => x.status === "Closed")
 										?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase())) ?? []}
 									getRowKey={(row, i) => `${row.vendorId ?? i}`}
 								/>
@@ -1489,11 +1205,11 @@ const RFQActionDrawer = ({
 									<span className="rfq-v2-drawer-label">Search Vendor</span>
 									<TextField
 										id="standard-search"
-										label="Search Vendors"
+										label=""
 										type="search"
 										className="w-100 m"
 										size="small"
-										variant="standard"
+										variant="outlined"
 										value={searchQuery}
 										onChange={(e) => setSearchQuery(e.target.value)}
 									/>
@@ -1516,9 +1232,9 @@ const RFQActionDrawer = ({
 										},
 										{
 											key: 'status', label: 'Status', width: '10%', whiteSpace: 'nowrap',
-											renderCell: (_, row) => row?.status != "Open"
+											renderCell: (_, row) => row?.status !== "Open"
 												? <Tooltip title={row?.submissionDate ? formatDateViaLocale(row?.submissionDate, "en-GB", formattimeoption) : ""}><div className="restatus">Quoted</div></Tooltip>
-												: row?.status == "Revert" ? <div className="restatus">Reverted</div>
+												: row?.status === "Revert" ? <div className="restatus">Reverted</div>
 													: <div className="restatus">Not Quoted</div>,
 										},
 										{ key: 'version', label: 'Version', width: '10%', whiteSpace: 'nowrap' },
@@ -1527,7 +1243,7 @@ const RFQActionDrawer = ({
 											renderCell: (_, row) => <TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Remarks" onBlur={(e) => { row.reinviteremark = e.target.value; }} size="small" />,
 										},
 									]}
-									rows={supplierlist?.filter(x => x.status != "Open" && x.status != "Regretted")
+									rows={supplierlist?.filter(x => x.status !== "Open" && x.status !== "Regretted")
 										?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase())) ?? []}
 									getRowKey={(row, i) => `${row.vendorId ?? i}`}
 								/>
@@ -1581,9 +1297,9 @@ const RFQActionDrawer = ({
 								},
 								{
 									key: 'status', label: 'Status', width: '10%', whiteSpace: 'nowrap',
-									renderCell: (_, row) => row?.status == "Closed"
+									renderCell: (_, row) => row?.status === "Closed"
 										? <Tooltip title={row?.submissionDate ? formatDateViaLocale(row?.submissionDate, "en-GB", formattimeoption) : ""}><div className="restatus">Quoted</div></Tooltip>
-										: row?.status == "Revert" ? <div className="restatus">Reverted</div>
+										: row?.status === "Revert" ? <div className="restatus">Reverted</div>
 											: <div className="restatus">Not Quoted</div>,
 								},
 								{ key: 'version', label: 'Version', width: '10%', whiteSpace: 'nowrap' },
@@ -1592,7 +1308,7 @@ const RFQActionDrawer = ({
 									renderCell: (_, row) => <TextField variant="outlined" multiline minRows={1} maxRows={3} fullWidth placeholder="Remarks" onBlur={(e) => { row.reinviteremark = e.target.value; }} size="small" />,
 								},
 							]}
-							rows={supplierlist?.filter(x => x.status != "Closed" && x.status != "Regretted")
+							rows={supplierlist?.filter(x => x.status !== "Closed" && x.status !== "Regretted")
 								?.filter(v => !searchQuery || v?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.contactPerson?.toLowerCase()?.includes(searchQuery.toLowerCase()) || v?.emailId?.toLowerCase()?.includes(searchQuery.toLowerCase())) ?? []}
 							getRowKey={(row, i) => `${row.vendorId ?? i}`}
 						/>
@@ -1621,7 +1337,7 @@ const RFQActionDrawer = ({
 										size="small"
 										className="w-100 f12"
 										options={supplierlist
-											?.filter((x) => x.status != "Closed" && x.status != "Regretted") || []}
+											?.filter((x) => x.status !== "Closed" && x.status !== "Regretted") || []}
 										getOptionLabel={(option) =>
 
 											`${option.contactPerson} - ${option.emailId} | ${option.companyName}`

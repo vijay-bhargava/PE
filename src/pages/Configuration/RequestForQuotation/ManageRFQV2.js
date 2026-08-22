@@ -1,15 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import CommonBottomDrawer from "../../../components/CommonBottomDrawer";
-import { LoadingButton } from '@mui/lab';
 import {
-  Autocomplete,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  Radio,
-  RadioGroup,
-  TextField,
-  Tooltip,
+  Autocomplete, FormControl, FormControlLabel,
+  Radio, RadioGroup, TextField, Tooltip,
 } from '@mui/material';
 import {
   AddOutlined,
@@ -22,27 +15,19 @@ import {
 } from '@mui/icons-material';
 import { HiOutlineX, HiTrash } from 'react-icons/hi';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Dropdown, Modal } from 'react-bootstrap';
+import PEModal from '../../../components/PEModal';
 import { PETable } from '../../../components/RFQ/PETable';
 import { toast } from 'react-toastify';
 import CryptoJS from 'crypto-js';
 import { useCookies } from 'react-cookie';
 import CommonTooltip from '../../../components/commonTooltip';
 import { actionTypes, useStateValue } from '../../../store';
+import { bidlist, formatDateViaLocale, getRFQManageFind, } from '../../../utils/common/utility';
 import {
-  bidlist,
-  formatDateViaLocale,
-  getRFQManageFind,
-} from '../../../utils/common/utility';
-import {
-  AuctionModalFromRFQ,
-  eventMultiCurrencyList,
-  findObjListByValueFromArray,
-  getPayloadWithStage,
-  invitedSupplierForAuction,
-  pullMessageCount,
-  fetchAttachmentsFromPRItems,
-  handlesaveAttachment,
+  AuctionModalFromRFQ, eventMultiCurrencyList,
+  findObjListByValueFromArray, getPayloadWithStage,
+  invitedSupplierForAuction, pullMessageCount,
+  fetchAttachmentsFromPRItems, handlesaveAttachment,
 } from '../../../utils/common';
 import FilterRFQCell from './FilterRFQCell';
 import GridSkeleton from '../../../components/Skeleton/gridSkeleton';
@@ -141,7 +126,6 @@ const normalizeRFQDetailResult = (result) => {
 const ManageRFQV2 = ({ claimType }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const broadcastChannel = new BroadcastChannel('auth_logout');
 
   const [
     { atoken, customerid, userDetail, customersuffix, eventType, roleClaims },
@@ -323,7 +307,6 @@ const ManageRFQV2 = ({ claimType }) => {
   const [selectedPRITemModal, setSelectedPRItemModal] = useState([]);
   const [selectedItemsActive, setSelectedItemsActive] = useState([]);
   const [firstRfq, setFirstRFQ] = useState(null);
-  const [showAuctionDropdown, setShowAuctionDropdown] = useState(false);
   const [selectedBidType, setSelectedBidType] = useState(null);
   const [rfqprcartmodal, setRFQPRcartmodal] = useState(false);
   const [noQuotesMessage, setNoQuotesMessage] = useState('');
@@ -334,7 +317,6 @@ const ManageRFQV2 = ({ claimType }) => {
   const [action, setAction] = useState(false);
   const [itemmodal, setItemModal] = useState(false);
 
-  const rfqPrCartOpenModal = () => { setAction(true); setRFQPRcartmodal(true); };
   const rfqPrCartCloseModal = () => { setAction(false); setRFQPRcartmodal(false); };
 
   const handleDeleteItemSet = (itemId) =>
@@ -413,7 +395,7 @@ const ManageRFQV2 = ({ claimType }) => {
 
         // Only allow item selection if at least one vendor has submitted a quote
         const hasClosedVendor = invitedVendors.some(
-          (vendor) => vendor?.status !== 'Open' && vendor?.isTermsAccepted == 'Y'
+          (vendor) => vendor?.status !== 'Open' && vendor?.isTermsAccepted === 'Y'
         );
 
         if (hasClosedVendor) {
@@ -437,11 +419,6 @@ const ManageRFQV2 = ({ claimType }) => {
   const prepareItemsForBidType = (auctionType) => {
     setSelectedBidType(auctionType);
     setRFQItemSet((prev) => prev.map((item) => buildAuctionItemForBidType(item, auctionType)));
-  };
-
-  const handleAuctionTypeSelection = (auctionType) => {
-    prepareItemsForBidType(auctionType);
-    rfqPrCartOpenModal();
   };
 
   const createAuctionFromPR = async () => {
@@ -1016,64 +993,50 @@ const ManageRFQV2 = ({ claimType }) => {
       )}
 
       {/* ── Create RFQ modal ── */}
-      <Modal
-        show={modal}
-        backdrop="static"
-        keyboard={false}
-        className="zindex10002 rfq-create-modal"
-        backdropClassName="zindex10002"
-        centered
-        contentClassName="border-0 rounded-default"
-        onHide={() => setModal(false)}
+      <PEModal
+        open={modal}
+        onClose={() => setModal(false)}
+        disableBackdropClose={true}
+        size="sm"
+        title="What would you like to do?"
+        footer={
+          <>
+            <button type="button" className="pe-btn pe-btn--ghost" onClick={() => setModal(false)}>Cancel</button>
+            <button type="button" className="pe-btn pe-btn--primary" onClick={handleTemplateNavigation}>Continue</button>
+          </>
+        }
       >
-        <Modal.Header className="pt-2 pb-2">
-          <Modal.Title>
-            <span style={{ fontSize: 14 }}>What would you like to do?</span>
-          </Modal.Title>
-          <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => setModal(false)}>
-            <HiOutlineX style={{ fontSize: 16 }} />
-          </button>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <div className="p-3">
-            <FormControl>
-              <RadioGroup
-                defaultValue="new"
-                name="new-rfq"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              >
-                <FormControlLabel value="new" control={<Radio size="small" />} label="Create a New RFQ" />
-                <FormControlLabel value="template" control={<Radio size="small" />} label="Select From Template" />
-              </RadioGroup>
-            </FormControl>
+        <FormControl>
+          <RadioGroup
+            defaultValue="new"
+            name="new-rfq"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          >
+            <FormControlLabel value="new" control={<Radio size="small" />} label="Create a New RFQ" />
+            <FormControlLabel value="template" control={<Radio size="small" />} label="Select From Template" />
+          </RadioGroup>
+        </FormControl>
 
-            {value === 'template' && (
-              <div className="mt-3">
-                <label className="pe-field-label">Select Template</label>
-                <Autocomplete
-                  disablePortal
-                  size="small"
-                  fullWidth
-                  className="w-100 f14"
-                  options={templatelist ?? []}
-                  getOptionLabel={(o) => o.templateTitle ?? ''}
-                  renderInput={(params) => (
-                    <TextField {...params} InputLabelProps={{ shrink: true }} />
-                  )}
-                  onChange={(_, v) => setSelectedTemplate(v)}
-                  onOpen={() => { if (!templatelist.length) getTemplateList(); }}
-                />
-              </div>
-            )}
-
-            <div className="col-12 mt-4 d-flex justify-content-end gap-2">
-              <button type="button" className="pe-btn pe-btn--ghost" onClick={() => setModal(false)}>Cancel</button>
-              <button type="button" className="pe-btn pe-btn--primary" onClick={handleTemplateNavigation}>Continue</button>
-            </div>
+        {value === 'template' && (
+          <div className="mt-3">
+            <label className="pe-field-label">Select Template</label>
+            <Autocomplete
+              disablePortal
+              size="small"
+              fullWidth
+              className="w-100 f14"
+              options={templatelist ?? []}
+              getOptionLabel={(o) => o.templateTitle ?? ''}
+              renderInput={(params) => (
+                <TextField {...params} InputLabelProps={{ shrink: true }} />
+              )}
+              onChange={(_, v) => setSelectedTemplate(v)}
+              onOpen={() => { if (!templatelist.length) getTemplateList(); }}
+            />
           </div>
-        </Modal.Body>
-      </Modal>
+        )}
+      </PEModal>
 
       {/* ── Select items modal (RFQ → Event) ── */}
       <CommonBottomDrawer

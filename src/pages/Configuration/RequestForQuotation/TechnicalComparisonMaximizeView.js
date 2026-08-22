@@ -32,7 +32,7 @@ const TechnicalComparisonMaximizeView = ({
 }) => {
   const showFinancialTab =
     actions.actionType === 'approval' &&
-    (actions.currentStage === 'Open' || actions.currentStage === 'Technical Approval')
+      (actions.currentStage === 'Open' || actions.currentStage === 'Technical Approval')
       ? actions.EventHeaderDetails?.showPriceTech
       : true;
 
@@ -120,7 +120,7 @@ const TechnicalComparisonMaximizeView = ({
                 color="primary"
                 disabled={!techScoreDirty}
                 onClick={() => techResetRef.current?.()}
-                sx={{ fontSize: '12px', textTransform: 'none', height: '30px' }}
+                sx={{ fontSize: '12px', textTransform: 'none', height: '30px', borderRadius: "6px" }}
               >
                 Reset Score
               </Button>
@@ -130,7 +130,7 @@ const TechnicalComparisonMaximizeView = ({
                 color="primary"
                 disabled={!techScoreDirty}
                 onClick={() => techUpdateRef.current?.()}
-                sx={{ fontSize: '12px', textTransform: 'none', height: '30px' }}
+                sx={{ fontSize: '12px', textTransform: 'none', height: '30px', borderRadius: "6px" }}
               >
                 Update Score
               </Button>

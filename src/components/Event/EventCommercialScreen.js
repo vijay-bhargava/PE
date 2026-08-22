@@ -3,13 +3,15 @@ import CommonBottomDrawer from "../CommonBottomDrawer";
 import { ApiClient } from '../../Apiclient';
 import { buildQueryParams, cleanAndConvertToArray } from '../../utils/common/utility';
 import { useStateValue } from '../../store';
-import { Autocomplete, Alert, Box, Button, Checkbox, Drawer, FormControlLabel, IconButton, Input, InputAdornment, MenuItem, Radio, RadioGroup, TextField, Tooltip, Typography } from '@mui/material';
-import { Close, PersonOutlined } from '@mui/icons-material';
+import {
+	Autocomplete, Alert, Checkbox, FormControlLabel,
+	IconButton, MenuItem, Radio, RadioGroup, TextField, Tooltip
+} from '@mui/material';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import { toast } from 'react-toastify';
 import WhiteTooltip from '../whitetooltip';
-import { HiOutlineX, HiPencilAlt, HiPlusSm, HiInformationCircle } from 'react-icons/hi';
-import { Modal } from 'react-bootstrap';
+import { HiOutlineX, HiPencilAlt, HiPlusSm } from 'react-icons/hi';
+import PEModal from "../PEModal";
 import EventCommercialDrawer from './EventCommercialDrawer';
 import { CLAIM_TYPES, ACTIONS } from '../../utils/permissionManager';
 import AddEditCurrency from '../../utils/common/AddEditCurrency';
@@ -20,7 +22,6 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 	const [{ atoken, customerid, customersuffix }, dispatch] = useStateValue();
 	const apiClient = new ApiClient(customersuffix);
 	const [CommercialLibrary, setCommercialLibrary] = useState([]);
-	const [PackageCommercialLibrary, setPackageCommercialLibrary] = useState([]);
 	const [SelectedCommercialLibrary, setSelectedCommercialLibrary] = useState(null);
 	const [LibraryTermsList, setLibraryTermsList] = useState([]);
 	const [modal1, setModal1] = useState(false);
@@ -168,9 +169,6 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 					Version: parseFloat(Version)
 				};
 			});
-
-
-
 		}
 		const rfqlevelterm = rfqLevelResults.some(item => item.termsId == 0)
 		let eventrfqterm = []
@@ -207,7 +205,6 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 				...obj,
 				grandTotalTermName: LibraryTermsList[0].grandTotalTermName
 			})
-
 		}
 	}, [LibraryTermsList, CommercialLibrary]);
 
@@ -243,12 +240,6 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 	useImperativeHandle(EventCommercialScreenRef, () => ({
 
 		saveRFQCommercialLibrary: async () => {
-			const isSelectedTermPresent = LibraryTermsList.some(s => s.isSelected === true);
-			// if (!isSelectedTermPresent) {
-			//     toast.error("Please select at least one Commercial term", { toastId: "selectcommercialtermerror" });
-			//     return;
-			// }
-
 			const isTermPresent = LibraryTermsList.some(s => s.isSelected === true && !s.level);
 			if (isTermPresent) {
 				toast.error("Please select level for all selected Terms", { toastId: "selectcommercialtermerror" });
@@ -523,17 +514,6 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 			return;
 		}
 
-		// if (
-		//     !SelectedCommercialLibrary?.grandTotalTermName ||
-		//     !selectedCommTerms?.some(term => term.name === SelectedCommercialLibrary.grandTotalTermName)
-		// ) {
-		//     
-		//     toast.error("Please ensure that a Net Price term is selected at item level", {
-		//         toastId: "grandtotalterm-required"
-		//     });
-		//     return;
-		// }
-
 		selectedCommTerms?.forEach(item => {
 
 			if (item.valuetype === "Currency") {
@@ -553,7 +533,6 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 			}
 		}
 	};
-
 
 	const saveRFQCommercialPackageLibrary = async () => {
 		const selectedCommTerms = LibraryTermsList.filter(s => s.isSelected === true && s.level === "rfq");
@@ -717,7 +696,7 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 	return (
 		<>
 			<div className="mb-5" style={{ overflow: 'visible' }}>
-				<div className="p-3 pt-0">
+				<div className="pt-0">
 					<div className="d-flex justify-content-between align-items-center">
 						<div className="flex-grow-1">
 							{(() => {
@@ -939,105 +918,73 @@ const EventCommercialScreen = forwardRef(({ EventType, EventId, LibraryType, Act
 				/>
 			</CommonBottomDrawer>
 
-			<Modal
+			<PEModal
+				open={modal1}
+				onClose={() => handleCloseModal1()}
 				size="md"
-				show={modal1}
-				backdrop="static"
-				keyboard={false}
-				centered
-				contentClassName="border-0"
-				onHide={() => handleCloseModal1()}
+				title="Select Currency Mode"
+				footer={Action && <>
+					<button type="button" className="pe-btn pe-btn--ghost" onClick={() => handleCloseModal1()}>Cancel</button>
+					<button type="button" className="pe-btn pe-btn--primary" onClick={handleCommercialCurrencyCheck}>Submit</button>
+				</>}
 			>
-				<div className="comm-currency-modal">
-					<div className="comm-currency-modal-header">
-						<span className="comm-currency-modal-title">Select Currency Mode</span>
-						<IconButton onClick={() => handleCloseModal1()} size="small">
-							<Close style={{ fontSize: 18 }} />
-						</IconButton>
-					</div>
-					<div className="comm-currency-modal-body">
-						<div className="mb-3">
-							<label className="pe-field-label">Select Currency <span className="text-danger">*</span></label>
-							<TextField
-								id="basecurrencymodal"
-								name="baseCurrency"
-								select
-								fullWidth
-								size="small"
-								variant="outlined"
-								value={modalCurrency.baseCurrency}
-								onChange={(e) => {
-									const newValue = e.target.value;
-									if (newValue === "new") { setOpenCurrencyModal(true); return; }
-									setModalCurrency((prev) => {
-										const updated = { ...prev, baseCurrency: newValue };
-										if (newValue === EventGeneralDetails?.baseCurrency) updated.currencyConversion = "1";
-										return updated;
-									});
-								}}
-							>
-								{currencyList && currencyList.map((option) => (
-									<MenuItem key={option.id} value={option?.currencyNm}>{option?.currencyNm}</MenuItem>
-								))}
-								<MenuItem value="new" style={{ fontStyle: 'italic', color: '#1976d2' }}>+ Add New</MenuItem>
-							</TextField>
-						</div>
-						<div className="mb-3">
-							<label className="pe-field-label">Conversion Factor</label>
-							<TextField
-								fullWidth
-								variant="outlined"
-								type="number"
-								id="modalcurrencyConversion"
-								value={modalCurrency.currencyConversion}
-								size="small"
-								name="currencyConversion"
-								disabled={modalCurrency.baseCurrency === EventGeneralDetails?.baseCurrency}
-								onChange={(e) => {
-									const newValue = e.target.value;
-									const regex = /^\d*\.?\d{0,4}$/;
-									if (newValue === '' || regex.test(newValue)) {
-										setModalCurrency((prev) => ({ ...prev, currencyConversion: newValue }));
-									}
-								}}
-							/>
-						</div>
-					</div>
-					{Action && (
-						<div className="comm-currency-modal-footer">
-							<button type="button" className="rfq-dv2-action-btn pe-btn--ghost" onClick={() => handleCloseModal1()}>Cancel</button>
-							<button type="button" className="rfq-dv2-action-btn pe-btn--primary" onClick={handleCommercialCurrencyCheck}>Submit</button>
-						</div>
-					)}
+				<div className="mb-3">
+					<label className="pe-field-label">Select Currency <span className="text-danger">*</span></label>
+					<TextField
+						id="basecurrencymodal"
+						name="baseCurrency"
+						select
+						fullWidth
+						size="small"
+						variant="outlined"
+						value={modalCurrency.baseCurrency}
+						onChange={(e) => {
+							const newValue = e.target.value;
+							if (newValue === "new") { setOpenCurrencyModal(true); return; }
+							setModalCurrency((prev) => {
+								const updated = { ...prev, baseCurrency: newValue };
+								if (newValue === EventGeneralDetails?.baseCurrency) updated.currencyConversion = "1";
+								return updated;
+							});
+						}}
+					>
+						<MenuItem value="new" style={{ fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}>ADD NEW</MenuItem>
+						{currencyList && currencyList.map((option) => (
+							<MenuItem key={option.id} value={option?.currencyNm}>{option?.currencyNm}</MenuItem>
+						))}
+					</TextField>
 				</div>
-			</Modal>
-			<Modal
+				<div className="mb-3">
+					<label className="pe-field-label">Conversion Factor</label>
+					<TextField
+						fullWidth
+						variant="outlined"
+						type="number"
+						id="modalcurrencyConversion"
+						value={modalCurrency.currencyConversion}
+						size="small"
+						name="currencyConversion"
+						disabled={modalCurrency.baseCurrency === EventGeneralDetails?.baseCurrency}
+						onChange={(e) => {
+							const newValue = e.target.value;
+							const regex = /^\d*\.?\d{0,4}$/;
+							if (newValue === '' || regex.test(newValue)) {
+								setModalCurrency((prev) => ({ ...prev, currencyConversion: newValue }));
+							}
+						}}
+					/>
+				</div>
+			</PEModal>
+			<PEModal
+				open={OpenCurrencyModal}
+				onClose={() => CloseCurrencyModal()}
 				size="lg"
-				show={OpenCurrencyModal}
-				backdrop="static"
-				keyboard={false}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={() => CloseCurrencyModal()}
+				title="Manage Currency"
 			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-							Manage Currency
-						</div>
-					</Modal.Title>
-					<IconButton onClick={() => CloseCurrencyModal()} size="small" edge="start">
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<AddEditCurrency handleCurrencyList={handleCurrencyList} />
-					</div>
-				</Modal.Body>
-			</Modal>
+				<div className="p-3">
+					<AddEditCurrency handleCurrencyList={handleCurrencyList} />
+				</div>
+			</PEModal>
 		</>
 	);
 });

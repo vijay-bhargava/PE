@@ -70,18 +70,18 @@ const RFQPreviewTab = ({
 
       {accessLevel?.find(x => x.claimType == 'Item Service')?.claimValue?.Read !== 'N' && (
         <>
-          <div className="d-flex justify-content-between align-items-center mb-3" id="rfqitemsdetails">
-            <div className="rfq-preview-section-title">
-              <ListAltOutlinedIcon className="rfq-preview-section-icon" />RFQ Items Details
-            </div>
-            {stagearray.includes(currentStage) && (
-              <button type="button" className="pe-icon-btn pe-icon-btn--edit" onClick={() => handletabEdit(2)}>
-                <HiPencilAlt />
-              </button>
-            )}
-          </div>
           <div className="rfq-preview-section-card mb-3">
             <div className="rfq-preview-card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3" id="rfqitemsdetails">
+                <div className="rfq-preview-section-title">
+                  <ListAltOutlinedIcon className="rfq-preview-section-icon" />RFQ Items Details
+                </div>
+                {stagearray.includes(currentStage) && (
+                  <button type="button" className="pe-icon-btn pe-icon-btn--edit" onClick={() => handletabEdit(2)}>
+                    <HiPencilAlt />
+                  </button>
+                )}
+              </div>
               {formik.values.boqReq === true ? (
                 <BoqScreen
                   idFromURL={idFromURL}
@@ -106,18 +106,18 @@ const RFQPreviewTab = ({
 
       {accessLevel?.find(x => x.claimType == 'Commercial Terms')?.claimValue?.Read !== 'N' && (
         <>
-          <div className="d-flex justify-content-between align-items-center mb-3" id="rfqcommercialdetails">
-            <div className="rfq-preview-section-title">
-              <ReceiptLongOutlinedIcon className="rfq-preview-section-icon" />RFQ Commercial Details
-            </div>
-            {stagearray.includes(currentStage) && (
-              <button type="button" className="pe-icon-btn pe-icon-btn--edit" onClick={() => handletabEdit(3)}>
-                <HiPencilAlt />
-              </button>
-            )}
-          </div>
           <div className="rfq-preview-section-card mb-3">
             <div className="rfq-preview-card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3" id="rfqcommercialdetails">
+                <div className="rfq-preview-section-title">
+                  <ReceiptLongOutlinedIcon className="rfq-preview-section-icon" />RFQ Commercial Details
+                </div>
+                {stagearray.includes(currentStage) && (
+                  <button type="button" className="pe-icon-btn pe-icon-btn--edit" onClick={() => handletabEdit(3)}>
+                    <HiPencilAlt />
+                  </button>
+                )}
+              </div>
               <EventCommercialScreen
                 EventType="RFQ"
                 EventId={idFromURL}
@@ -136,18 +136,18 @@ const RFQPreviewTab = ({
 
       {accessLevel?.find(x => x.claimType == 'Questions')?.claimValue?.Read !== 'N' && (
         <>
-          <div className="d-flex justify-content-between align-items-center mb-3" id="rfqquestions">
-            <div className="rfq-preview-section-title">
-              <HelpOutlineOutlinedIcon className="rfq-preview-section-icon" />RFQ Questions
-            </div>
-            {stagearray.includes(currentStage) && (
-              <button type="button" className="pe-icon-btn pe-icon-btn--edit" onClick={() => handletabEdit(4)}>
-                <HiPencilAlt />
-              </button>
-            )}
-          </div>
           <div className="rfq-preview-section-card mb-3">
             <div className="rfq-preview-card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3" id="rfqquestions">
+                <div className="rfq-preview-section-title">
+                  <HelpOutlineOutlinedIcon className="rfq-preview-section-icon" />RFQ Questions
+                </div>
+                {stagearray.includes(currentStage) && (
+                  <button type="button" className="pe-icon-btn pe-icon-btn--edit" onClick={() => handletabEdit(4)}>
+                    <HiPencilAlt />
+                  </button>
+                )}
+              </div>
               <EventQuestionScreen
                 props={{
                   eventid: idFromURL,
@@ -170,18 +170,18 @@ const RFQPreviewTab = ({
 
       {accessLevel?.find(x => x.claimType == 'Invite Vendor')?.claimValue?.Read !== 'N' && (
         <>
-          <div className="d-flex justify-content-between align-items-center mb-3" id="invitedsuppliers">
-            <div className="rfq-preview-section-title">
-              <GroupOutlinedIcon className="rfq-preview-section-icon" />Invited Suppliers
-            </div>
-            {stagearray.includes(currentStage) && (
-              <button type="button" className="pe-icon-btn pe-icon-btn--edit" onClick={() => handletabEdit(5)}>
-                <HiPencilAlt />
-              </button>
-            )}
-          </div>
           <div className="rfq-preview-section-card mb-3">
             <div className="rfq-preview-card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3" id="invitedsuppliers">
+                <div className="rfq-preview-section-title">
+                  <GroupOutlinedIcon className="rfq-preview-section-icon" />Invited Suppliers
+                </div>
+                {stagearray.includes(currentStage) && (
+                  <button type="button" className="pe-icon-btn pe-icon-btn--edit" onClick={() => handletabEdit(5)}>
+                    <HiPencilAlt />
+                  </button>
+                )}
+              </div>
               <div className="row">
                 <div className="col-12">
                   <SelectedSupplierCell selectedsupplier={selectedSupplier} />

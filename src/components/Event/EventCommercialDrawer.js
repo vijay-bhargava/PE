@@ -1,19 +1,9 @@
 ﻿﻿import React, { useState, useEffect } from "react";
-import { LoadingButton } from "@mui/lab";
 import {
-  FormControl,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  Tooltip,
-  InputAdornment,
-  Typography,
-  TextareaAutosize,
+  FormControl, IconButton, MenuItem, Select,
+  TextField, InputAdornment, Typography, TextareaAutosize,
 } from "@mui/material";
-import { HiOutlineX } from "react-icons/hi";
-import { Modal } from "react-bootstrap";
+import PEModal from "../PEModal";
 import * as yup from "yup";
 import "react-toastify/dist/ReactToastify.css";
 import "../../assets/css/design-system.css";
@@ -22,7 +12,7 @@ import { Delete } from "@mui/icons-material";
 import TextFieldCell from "../../pages/BaseCells/TextFieldCell.js";
 import { fetchCurrency } from "../../utils/common/index.js";
 import AddUpdateUom from "../../utils/common/AddUpdateUom.js";
-import { getMenuMaster, GetTablesColumns, UOMMasterList } from "../../utils/commerciallibrary/index.js";
+import { getMenuMaster, UOMMasterList } from "../../utils/commerciallibrary/index.js";
 import { LibraryFindAll } from "../../utils/questionlibrary/index.js";
 import { useStateValue } from "../../store/StateProvider.jsx";
 
@@ -34,11 +24,8 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
     setOpenUomModal(false)
     console.log("UOMMaster", UOMMaster)
   };
-  const [records, setRecords] = useState([]);
-  const [libraryType, setlibraryType] = useState("CommercialLibrary");
 
   const [{ atoken, customerid }, dispatch] = useStateValue();
-  const [modal, setModal] = useState(false);
   const [isActive, setisActive] = useState(true);
   const [isGrandTotal, setisGrandTotal] = useState(false);
 
@@ -48,32 +35,23 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
   const [libraryName, setlibraryName] = useState("");
   const [currencyType, setcurrencyType] = useState("");
 
-
   const [valuetype, setvaluetype] = useState("");
   const [isdefault, setisdefault] = useState(false);
   const [orderseq, setorderseq] = useState(0);
   const [level, setlevel] = useState("");
   const [commValue, setCommValue] = useState(0);
   const [formulavalue, setformulavalue] = useState("");
-  const [tooltipMessage, setTooltipMessage] = useState("");
-
-  const [LibraryModal, setLibraryModal] = useState(false);
-
-
-
 
   const [fieldName, setFieldName] = useState("");
   const [FormulaFieldName, setFormulaFieldName] = useState("");
   const [simpleOperator, setsimpleOperator] = useState("");
-  useEffect(() => {
 
+  useEffect(() => {
     if (editRecordData) {
       formik.setFieldValue("id", editRecordData?.id);
       prefilledCommercial();
-
     }
   }, []);
-
 
   useEffect(() => {
     // pullMenuMaster();
@@ -82,36 +60,14 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
     PullLibraryAll();
     // pullTablesColumns();
   }, []);
+
   const [eventtype, seteventtype] = useState("");
-  const [resultColumnsData, setResultColumnsData] = useState([]);
-  // const pullTablesColumns = () => {
-  //   var data = {
-  //     customerid:customerid ,
-  //     eventtype: eventtype,
-  //   };
-  //   setLoading(true);
-  //   GetTablesColumns(data, atoken).then((res) => {
-  //     setLoading(false);
-  //     if (res?.length) {
-  //       setResultColumnsData(res);
-  //       return true;
-  //     }
-  //   });
-  // };
-
-  const [isFormulaFieldDisabled, setIsFormulaFieldDisabled] = useState(false);
-  const [resultCommLib, setResultCommLib] = useState([]);
-
-
 
   const validationSchema = yup.object({
-
     name: yup
       .string("Please Enter a Title")
       .required("Title is required"),
-
   });
-
 
   const [isFixedValueEnabled, setIsFixedValueEnabled] = useState(true);
   const [isFormulaFieldEnabled, setIsFormulaFieldEnabled] = useState(true);
@@ -186,8 +142,6 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
     setorderseq(editRecordData?.orderseq);
     setlevel(editRecordData?.level);
     setCommValue(editRecordData?.commValue);
-    //to set
-
     const fieldNameGroup = editRecordData?.fieldNameGroup ? editRecordData?.fieldNameGroup.split(",") : [];
     setFormulaFieldName(fieldNameGroup)
 
@@ -219,10 +173,6 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
     });
   };
 
-
-
-
-
   const [UOMMaster, setUOMMaster] = useState([]);
   const pullUOMMasterList = () => {
     var data = {
@@ -250,18 +200,11 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
 
   const [CurrencyList, setCurrencyList] = useState([]);
   const pullCurrencyMaster = () => {
-
-
     fetchCurrency(atoken).then((res) => {
-
       setCurrencyList(res);
     });
   };
 
-
-  const [lastOperator, setLastOperator] = useState(""); // Track the last operator
-
-  const [selectedField, setSelectedField] = useState('');
   const [selectedOperator, setSelectedOperator] = useState('');
 
   const handleFieldSelect = (field) => {
@@ -285,8 +228,6 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
 
     setformulavalue((prevFormulaValue) => {
 
-
-
       const trimmedFormula = prevFormulaValue.trim();
       const lastChar = trimmedFormula.slice(-1);
 
@@ -297,8 +238,6 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
         ? `${prevFormulaValue}${selectedField}`
         : `${prevFormulaValue} ${selectedField}`;
     });
-
-
 
     setIsFixedValueEnabled(false);
   };
@@ -326,13 +265,9 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
     }
   };
 
-
   const handleTextareaChange = (e) => {
     setformulavalue(e.target.value);
   };
-
-
-
 
   const handleCommValueChange = (e) => {
     let newValue = e.target.value;
@@ -356,7 +291,6 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
     setSelectedOperator(''); // Clear the selected operator
     setsimpleOperator(''); // Clear the simple operator if applicable
   };
-
 
   const handleUomChange = (e) => {
 
@@ -486,10 +420,8 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
               label=""
               placeholder=""
               value={commValue}
-
               onChange={handleCommValueChange}
               disabled={!isFixedValueEnabled}
-
             />
 
           </div>
@@ -558,31 +490,18 @@ const EventCommercialDrawer = ({ callbackstep, editRecordData, LibraryTermsList 
             </div>
           </div>
         </div>
-        <Modal
+        <PEModal
+          open={OpenUomModal}
+          onClose={() => CloseModalUom()}
           size="lg"
-          dialogClassName="modal-custom-mdlg"
-          show={OpenUomModal}
-          backdrop="static"
-          keyboard={false}
-          value={"Add NEW CATEGORY"}
-          className="zindex1400"
-          backdropClassName="zindex1400"
-          centered
-          contentClassName="border-0"
-          onHide={() => CloseModalUom()}
+          title="Manage UOM"
+          bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+          bodyClassName="d-flex flex-column"
         >
-          <Modal.Body className="p-0">
-            <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-              <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage UOM</span>
-              <IconButton onClick={() => CloseModalUom()} size="small">
-                <HiOutlineX className="f20" style={{ color: 'var(--pe-text, #1f2937)' }} />
-              </IconButton>
-            </div>
-            <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
-              <AddUpdateUom handleUomList={handleUomList} isModal={true} />
-            </div>
-          </Modal.Body>
-        </Modal>
+          <div className="flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+            <AddUpdateUom handleUomList={handleUomList} isModal={true} />
+          </div>
+        </PEModal>
       </form>
     </>
   );

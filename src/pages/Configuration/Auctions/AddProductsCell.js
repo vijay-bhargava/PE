@@ -6,7 +6,7 @@ import {
 	MenuItem, TextField, Tooltip, Typography
 } from '@mui/material'
 import { useStateValue } from '../../../store'
-import { Modal } from "react-bootstrap";
+import PEModal from "../../../components/PEModal";
 import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { AuctionItemServiceAdd, AuctionItemServiceUpdate } from '../../../utils/common/utility';
@@ -34,6 +34,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, tempDat
 	const [UomModal, setUomModal] = useState(false);
 	const [uom, setuom] = useState("");
 	const CloseUomModal = () => setUomModal(false);
+
 	const validationSchema = yup.object().shape({
 		itemName: yup
 			.string('Enter Item/Service Name')
@@ -1156,47 +1157,30 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, tempDat
 				</div>
 
 
-				<Modal size="lg" show={UomModal} backdrop="static" keyboard={false} className="zindex1400" backdropClassName="zindex1400" centered contentClassName="border-0" onHide={() => CloseUomModal()}>
-					<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
-						<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-							<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage UOM</span>
-							<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseUomModal()}>
-								<HiOutlineX className="f20" />
-							</button>
-						</div>
-						<div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
-							<AddUpdateUom handleUomList={handleUomList} isModal={true} />
-						</div>
-					</Modal.Body>
-				</Modal>
+				<PEModal
+					size="lg"
+					open={UomModal}
+					onClose={() => CloseUomModal()}
+					title="Manage UOM"
+					bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+					bodyClassName="d-flex flex-column"
+				>
+					<div className="p-0 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+						<AddUpdateUom handleUomList={handleUomList} isModal={true} />
+					</div>
+				</PEModal>
 
-				<Modal size="lg" show={CategoryModal} backdrop="static" keyboard={false} className="zindex1400" backdropClassName="zindex1400" centered contentClassName="border-0" onHide={() => CloseCategoryModal()}>
-					<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
-						<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-							<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Item Category</span>
-							<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseCategoryModal()}>
-								<HiOutlineX className="f20" />
-							</button>
-						</div>
-						<div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
-							<AddPrItemCategory handleCategoryList={handleCategoryList} isModal={true} />
-						</div>
-					</Modal.Body>
-				</Modal>
+				<PEModal size="lg" open={CategoryModal} onClose={() => CloseCategoryModal()} title="Manage Item Category" bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }} bodyClassName="d-flex flex-column">
+					<div className="flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
+						<AddPrItemCategory handleCategoryList={handleCategoryList} isModal={true} />
+					</div>
+				</PEModal>
 
-				<Modal size="lg" show={ItemTypeModal} backdrop="static" keyboard={false} className="zindex1400" backdropClassName="zindex1400" centered contentClassName="border-0" onHide={() => CloseItemTypeModal()}>
-					<Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
-						<div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-							<span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Manage Item Type</span>
-							<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => CloseItemTypeModal()}>
-								<HiOutlineX className="f20" />
-							</button>
-						</div>
-						<div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
-							<AddEditItemType handleItemTypeList={handleItemTypeList} isModal={true} />
-						</div>
-					</Modal.Body>
-				</Modal>
+				<PEModal size="lg" open={ItemTypeModal} onClose={() => CloseItemTypeModal()} title="Manage Item Type" bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }} bodyClassName="d-flex flex-column">
+					<div className="flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
+						<AddEditItemType handleItemTypeList={handleItemTypeList} isModal={true} />
+					</div>
+				</PEModal>
 			</form>
 		</div>
 	)

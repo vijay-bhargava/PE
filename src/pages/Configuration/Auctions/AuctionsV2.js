@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useStateValue } from '../../../store';
+import { actionTypes, useStateValue } from '../../../store';
 import Auctions from './Auctions';
 import '../../../assets/css/rfq-detail-v2.css';
 
@@ -17,19 +17,21 @@ const normalizeAuctionCode = (code) => code.replace(/\//g, '-');
 const AuctionsV2 = ({ claimType, bidtype }) => {
   const navigate = useNavigate();
   const { pageSlug } = useParams();
-  const [{ eventCode }] = useStateValue();
+  const [{ eventCode }, dispatch] = useStateValue();
 
   const isNew = !pageSlug || pageSlug === 'add';
-  const fallbackCrumbLabel = isNew ? 'Auction' : (isDisplayableAuctionCode(eventCode) ? `Auction-${normalizeAuctionCode(eventCode)}` : 'Auction');
-
-  const [stableEventCode, setStableEventCode] = useState(() =>
-    isDisplayableAuctionCode(eventCode) ? normalizeAuctionCode(eventCode) : ''
-  );
+  const [stableEventCode, setStableEventCode] = useState('');
 
   const crumbLabel = useMemo(() => {
     if (isNew) return 'Auction';
-    return stableEventCode || fallbackCrumbLabel;
-  }, [fallbackCrumbLabel, isNew, stableEventCode]);
+    if (stableEventCode) return stableEventCode;
+    return pageSlug ? `Auction-${pageSlug}` : 'Auction';
+  }, [isNew, stableEventCode, pageSlug]);
+
+  useEffect(() => {
+    setStableEventCode('');
+    dispatch({ type: actionTypes.SET_EVENTCODE, value: null });
+  }, [pageSlug]);
 
   useEffect(() => {
     if (isDisplayableAuctionCode(eventCode)) {

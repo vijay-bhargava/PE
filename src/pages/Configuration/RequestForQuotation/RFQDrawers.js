@@ -1,20 +1,11 @@
 import React from 'react';
 import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Drawer,
-  Box,
-  TextField,
-  MenuItem,
-  IconButton,
+  Button, Drawer, Box,
+  TextField, MenuItem, IconButton,
 } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { Modal } from 'react-bootstrap';
 import { HiOutlineX } from 'react-icons/hi';
+import PEModal from '../../../components/PEModal';
 import CommonBottomDrawer from '../../../components/CommonBottomDrawer';
 import ApprovalConfirmDialog from '../../../components/RFQ/ApprovalConfirmDialog';
 import AddProductsCell from './AddProductsCell';
@@ -248,247 +239,197 @@ const RFQDrawers = ({
       </React.Fragment>
 
       {/* Delete Item Confirm Dialog */}
-      <Dialog open={confirmDelete} onClose={handleCloseDelete}>
-        <DialogTitle>{"Are you sure?"}</DialogTitle>
-        <DialogContent style={{ minWidth: '300px' }}>
-          <DialogContentText>You want to delete.</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDelete}>No</Button>
-          <Button onClick={() => removeItemData(removeItem)} autoFocus>Yes</Button>
-        </DialogActions>
-      </Dialog>
+      <PEModal
+        open={confirmDelete}
+        onClose={handleCloseDelete}
+        size="xs"
+        title="Are you sure?"
+        footer={
+          <>
+            <Button onClick={handleCloseDelete}>No</Button>
+            <Button onClick={() => removeItemData(removeItem)} autoFocus>Yes</Button>
+          </>
+        }
+      >
+        <p>You want to delete.</p>
+      </PEModal>
 
       {/* Cancel RFQ Dialog */}
-      <Dialog open={modalcancelOpen} onClose={() => handleCancelRFQModal(false)}>
-        <DialogTitle>{"Are you sure?"}</DialogTitle>
-        <DialogContent style={{ minWidth: '300px' }}>
-          <DialogContentText>Do you want to cancel this rfq? Unsaved changes will be lost.</DialogContentText>
-          <label className="pe-field-label">Enter reason <span className="rfq-required-star">*</span></label>
-          <TextField
-            autoFocus margin="dense" type="text" fullWidth
-            value={cancelReason}
-            onChange={handleCancelInputChange}
-            error={Boolean(rfqerror)}
-            helperText={rfqerror}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleCancelRFQModal(false)}>No</Button>
-          <Button onClick={() => handleCancelRFQModal(true)} autoFocus>Yes</Button>
-        </DialogActions>
-      </Dialog>
+      <PEModal
+        open={modalcancelOpen}
+        onClose={() => handleCancelRFQModal(false)}
+        size="sm"
+        title="Are you sure?"
+        footer={
+          <>
+            <Button onClick={() => handleCancelRFQModal(false)}>No</Button>
+            <Button onClick={() => handleCancelRFQModal(true)} autoFocus>Yes</Button>
+          </>
+        }
+      >
+        <p>Do you want to cancel this rfq? Unsaved changes will be lost.</p>
+        <label className="pe-field-label">Enter reason <span className="rfq-required-star">*</span></label>
+        <TextField
+          autoFocus margin="dense" type="text" fullWidth
+          value={cancelReason}
+          onChange={handleCancelInputChange}
+          error={Boolean(rfqerror)}
+          helperText={rfqerror}
+        />
+      </PEModal>
 
       {/* Purchase Organization Modal */}
-      <Modal
-        show={purchaseOrgModal}
-        dialogClassName="modal-custom-mdlg"
-        className="zindex1280"
-        backdropClassName="zindex1280"
-        backdrop="static"
-        keyboard={false}
-        centered
-        onHide={ClosePurcgaseOrgModal}
+      <PEModal
+        open={purchaseOrgModal}
+        onClose={ClosePurcgaseOrgModal}
+        size="lg"
+        title="Purchase Organization"
+        bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+        bodyClassName="d-flex flex-column"
       >
-        <Modal.Body className="p-0 d-flex flex-column">
-          <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-            <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Organization</span>
-            <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => ClosePurcgaseOrgModal()}>
-              <HiOutlineX />
-            </button>
-          </div>
-          <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
-            <PurchaseOrg isModal={true} handlepurchaseorgList={handlepurchaseorgList} />
-          </div>
-        </Modal.Body>
-      </Modal>
+        <div className="flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+          <PurchaseOrg isModal={true} handlepurchaseorgList={handlepurchaseorgList} />
+        </div>
+      </PEModal>
 
       {/* Loading Factor Modal */}
-      <Modal
-        show={loadingModal}
-        dialogClassName="modal-custom-mdlg"
-        className="zindex1280"
-        backdropClassName="zindex1280"
-        backdrop="static"
-        keyboard={false}
-        centered
-        onHide={CloseLoadingModal}
+      <PEModal
+        open={loadingModal}
+        onClose={CloseLoadingModal}
+        size="lg"
+        title="Loading Factor"
       >
-        <Modal.Body className="p-0 d-flex flex-column">
-          <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-            <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Loading Factor</span>
-            <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={CloseLoadingModal}>
-              <HiOutlineX />
-            </button>
-          </div>
-          <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
-            <LoadingFactor
-              isModal={true}
-              rfqId={idFromURL}
-              version={formik?.values?.Version}
-              vendorId={storeVId}
-              initialFactors={filteredLoadingFactors}
-              baseCurrency={formik?.values?.baseCurrency}
-              onSubmitSuccess={() => { setupdatesupplieronloading(1); setIsUpdated(true); }}
-            />
-          </div>
-        </Modal.Body>
-      </Modal>
+        <LoadingFactor
+          isModal={true}
+          rfqId={idFromURL}
+          version={formik?.values?.Version}
+          vendorId={storeVId}
+          initialFactors={filteredLoadingFactors}
+          baseCurrency={formik?.values?.baseCurrency}
+          onSubmitSuccess={() => { setupdatesupplieronloading(1); setIsUpdated(true); }}
+        />
+      </PEModal>
 
       {/* Purchase Group Modal */}
-      <Modal
-        show={purchaseOrgGrpModal}
-        dialogClassName="modal-custom-mdlg"
-        backdrop="static"
-        keyboard={false}
-        centered
-        contentClassName="border-0"
-        onHide={ClosePurcgaseOrgGrpModal}
+      <PEModal
+        open={purchaseOrgGrpModal}
+        onClose={ClosePurcgaseOrgGrpModal}
+        size="lg"
+        title="Purchase Group"
+        bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+        bodyClassName="d-flex flex-column"
       >
-        <Modal.Body className="p-0 d-flex flex-column" style={{ height: '78vh', overflow: 'hidden' }}>
-          <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-            <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Group</span>
-            <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => ClosePurcgaseOrgGrpModal()}>
-              <HiOutlineX />
-            </button>
-          </div>
-          <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
-            <PurchaseOrgGrp isModal />
-          </div>
-        </Modal.Body>
-      </Modal>
+        <div className="flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+          <PurchaseOrgGrp isModal />
+        </div>
+      </PEModal>
 
       {/* Save as Template Modal */}
-      <Modal
-        show={open}
-        backdrop="static"
-        keyboard={false}
-        className="zindex10002 rfq-create-modal"
-        backdropClassName="zindex10002"
-        centered
-        contentClassName="border-0 rounded-default"
-        onHide={handleClose}
+      <PEModal
+        open={open}
+        onClose={handleClose}
+        size="xs"
+        title="Save as Template"
+        footer={
+          <>
+            <button type="button" className="pe-btn pe-btn--ghost" onClick={handleClose}>Cancel</button>
+            <button type="button" className="pe-btn pe-btn--primary" onClick={handleSaveTemplate} disabled={!idFromURL}>Save</button>
+          </>
+        }
       >
-        <Modal.Header className="pt-2 pb-2">
-          <Modal.Title>
-            <span style={{ fontSize: 14 }}>Save as Template</span>
-          </Modal.Title>
-          <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={handleClose}>
-            <HiOutlineX style={{ fontSize: 16 }} />
-          </button>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <div className="p-3">
-            <label className="pe-field-label" htmlFor="rfqTemplateTitle">RFQ Template Title</label>
-            <TextField
-              id="rfqTemplateTitle"
-              fullWidth size="small" variant="outlined" autoComplete="off"
-              inputProps={{ maxLength: 100 }}
-              value={TemplateTitle}
-              onChange={(e) => setTemplateTitle(e.target.value)}
-            />
-            <div className="col-12 mt-4 d-flex justify-content-end gap-2">
-              <button type="button" className="pe-btn pe-btn--ghost" onClick={handleClose}>Cancel</button>
-              <button type="button" className="pe-btn pe-btn--primary" onClick={handleSaveTemplate} disabled={!idFromURL}>Save</button>
-            </div>
-          </div>
-        </Modal.Body>
-      </Modal>
+        <label className="pe-field-label" htmlFor="rfqTemplateTitle">RFQ Template Title</label>
+        <TextField
+          id="rfqTemplateTitle"
+          fullWidth size="small" variant="outlined" autoComplete="off"
+          inputProps={{ maxLength: 100 }}
+          value={TemplateTitle}
+          onChange={(e) => setTemplateTitle(e.target.value)}
+        />
+      </PEModal>
 
       {/* Confirm Event Update Dialog */}
       {confirmEventUpdate && (
-        <Dialog open={confirmEventUpdate} onClose={() => handleCloseEventUpdate(false)}>
-          <DialogTitle>{"Are you sure?"}</DialogTitle>
-          <DialogContent style={{ minWidth: '300px' }}>
-            <DialogContentText>
-              Are you sure you want to update the event? This action may trigger a reinitiation of the RFQ process.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => handleCloseEventUpdate(false)}>Cancel</Button>
-            <LoadingButton loading={loading} onClick={handleDraftEvent} autoFocus>Yes</LoadingButton>
-          </DialogActions>
-        </Dialog>
+        <PEModal
+          open={confirmEventUpdate}
+          onClose={() => handleCloseEventUpdate(false)}
+          size="xs"
+          title="Are you sure?"
+          footer={
+            <>
+              <Button onClick={() => handleCloseEventUpdate(false)}>Cancel</Button>
+              <LoadingButton loading={loading} onClick={handleDraftEvent} autoFocus>Yes</LoadingButton>
+            </>
+          }
+        >
+          <p>Are you sure you want to update the event? This action may trigger a reinitiation of the RFQ process.</p>
+        </PEModal>
       )}
 
       {/* Hidden file input for item Excel upload */}
       <input className="d-none" id="itemuploadid" ref={fileInputRef} type="file" onChange={handleFileChange} />
 
       {/* Clear All Items Confirm Dialog */}
-      <Dialog open={confirmClearAllItems} onClose={() => handleClearAllItems(false)}>
-        <DialogTitle>{"Are you sure?"}</DialogTitle>
-        <DialogContent style={{ minWidth: '300px' }}>
-          <DialogContentText>Are you sure you want to delete all Items ?</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleClearAllItems(false)}>No</Button>
-          <Button onClick={() => handleClearAllItems(true)} autoFocus>Yes</Button>
-        </DialogActions>
-      </Dialog>
+      <PEModal
+        open={confirmClearAllItems}
+        onClose={() => handleClearAllItems(false)}
+        size="xs"
+        title="Are you sure?"
+        footer={
+          <>
+            <Button onClick={() => handleClearAllItems(false)}>No</Button>
+            <Button onClick={() => handleClearAllItems(true)} autoFocus>Yes</Button>
+          </>
+        }
+      >
+        <p>Are you sure you want to delete all Items ?</p>
+      </PEModal>
 
       {/* Base Currency Modal */}
-      <Modal
+      <PEModal
+        open={modal1}
+        onClose={() => handleCloseModal1()}
         size="sm"
-        show={modal1}
-        backdrop="static"
-        keyboard={false}
-        centered
-        className="zindex1270 rfq-create-modal"
-        backdropClassName="zindex1270"
-        contentClassName="border-0 rounded-default"
-        onHide={() => handleCloseModal1()}
+        title="Select Base Currency"
       >
-        <Modal.Header className="pt-2 pb-2">
-          <Modal.Title>
-            <span style={{ fontSize: 14 }}>Select Base Currency</span>
-          </Modal.Title>
-          <button type="button" className="rfq-modal-close-btn" onClick={() => handleCloseModal1()}>
-            <HiOutlineX style={{ fontSize: 16 }} />
-          </button>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <div className="p-3">
-            <label className="pe-field-label">Select Currency <span className="rfq-required-star">*</span></label>
-            <TextField
-              id="basecurrencymodal"
-              name="baseCurrency"
-              select
-              className="w-100 f14"
-              size="small"
-              variant="outlined"
-              SelectProps={{
-                onOpen: () => {
-                  if (currencyList.length === 0 && !loadCurrency) {
-                    pullgetCurrency();
-                  }
-                },
-              }}
-              value={formik?.values?.baseCurrency}
-              onChange={(e) => {
-                const newValue = e.target?.value;
-                if (newValue === 'new') {
-                  handleCloseModal1();
-                  setTimeout(() => { setOpenCurrencyModal(true); }, 100);
-                  return;
-                }
-                formik.setFieldValue('baseCurrency', newValue);
-                handleCloseModal1();
-              }}
-            >
-              {loadCurrency ? (
-                <MenuItem>Loading...</MenuItem>
-              ) : [
-                ...(currencyList || []).map((option) => (
-                  <MenuItem key={option.id} value={option?.currencyNm}>
-                    {option?.currencyNm}
-                  </MenuItem>
-                )),
-                <MenuItem key="new" value="new" className="dropdown-add-new">Add New</MenuItem>,
-              ]}
-            </TextField>
-          </div>
-        </Modal.Body>
-      </Modal>
+        <label className="pe-field-label">Select Currency <span className="rfq-required-star">*</span></label>
+        <TextField
+          id="basecurrencymodal"
+          name="baseCurrency"
+          select
+          className="w-100 f14"
+          size="small"
+          variant="outlined"
+          SelectProps={{
+            onOpen: () => {
+              if (currencyList.length === 0 && !loadCurrency) {
+                pullgetCurrency();
+              }
+            },
+          }}
+          value={formik?.values?.baseCurrency}
+          onChange={(e) => {
+            const newValue = e.target?.value;
+            if (newValue === 'new') {
+              handleCloseModal1();
+              setTimeout(() => { setOpenCurrencyModal(true); }, 100);
+              return;
+            }
+            formik.setFieldValue('baseCurrency', newValue);
+            handleCloseModal1();
+          }}
+        >
+          {loadCurrency ? (
+            <MenuItem>Loading...</MenuItem>
+          ) : [
+            ...(currencyList || []).map((option) => (
+              <MenuItem key={option.id} value={option?.currencyNm}>
+                {option?.currencyNm}
+              </MenuItem>
+            )),
+            <MenuItem key="new" value="new" className="dropdown-add-new">Add New</MenuItem>,
+          ]}
+        </TextField>
+      </PEModal>
 
       {/* Uploading Overlay */}
       {isUploading && (
@@ -508,31 +449,14 @@ const RFQDrawers = ({
       )}
 
       {/* Manage Currency Modal */}
-      <Modal
+      <PEModal
+        open={OpenCurrencyModal}
+        onClose={() => CloseCurrencyModal()}
         size="md"
-        show={OpenCurrencyModal}
-        backdrop="static"
-        keyboard={false}
-        className="zindex1280"
-        backdropClassName="zindex1280"
-        centered
-        contentClassName="border-0"
-        onHide={() => CloseCurrencyModal()}
+        title="Manage Currency"
       >
-        <Modal.Header className="pt-2 pb-2 bgheaderCards">
-          <Modal.Title id="modal-heading">
-            <div className="d-flex align-items-center f14 text-white">Manage Currency</div>
-          </Modal.Title>
-          <IconButton onClick={() => CloseCurrencyModal()} size="small" edge="start">
-            <HiOutlineX className="f20 text-white" />
-          </IconButton>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <div className="p-3">
-            <AddEditCurrency handleCurrencyList={handleCurrencyList} />
-          </div>
-        </Modal.Body>
-      </Modal>
+        <AddEditCurrency handleCurrencyList={handleCurrencyList} />
+      </PEModal>
     </>
   );
 };
