@@ -19,6 +19,7 @@ const RFQItemsTab = ({
   idFromURL,
   rfqVersion,
   downloadItemsExcel,
+  downloadEventItemsExcel,
   setConfirmClearAllItems,
   toggleDrawer,
   handleEditItem,
@@ -95,11 +96,21 @@ const RFQItemsTab = ({
           <button
             type="button"
             className="pe-btn pe-btn--secondary"
-            disabled={!canAct || !canRead}
+            disabled={!canRead}
             onClick={downloadItemsExcel}
           >
-            Export Line Items
+            Excel Template
           </button>
+          {idFromURL && rfqItemsList?.length > 0 && (
+            <button
+              type="button"
+              className="pe-btn pe-btn--secondary"
+              disabled={!canRead}
+              onClick={downloadEventItemsExcel}
+            >
+              Export Line Items
+            </button>
+          )}
           <span className="rfq-items-divider" />
           <button
             type="button"

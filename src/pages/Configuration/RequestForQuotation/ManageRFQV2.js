@@ -28,6 +28,7 @@ import {
   findObjListByValueFromArray, getPayloadWithStage,
   invitedSupplierForAuction, pullMessageCount,
   fetchAttachmentsFromPRItems, handlesaveAttachment,
+  getApiErrorMessage,
 } from '../../../utils/common';
 import FilterRFQCell from './FilterRFQCell';
 import GridSkeleton from '../../../components/Skeleton/gridSkeleton';
@@ -155,9 +156,19 @@ const ManageRFQV2 = ({ claimType }) => {
 
   /* ── Table data ── */
   const [recorddata, setRecorddata] = useState([]);
+  const [rawRecordData, setRawRecordData] = useState([]);
   const [gridloading, setGridloading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 });
+
+  const applyRoleFilter = (result) => {
+    if (accessLevel?.list?.created?.toLowerCase()?.trim() === 'none') {
+      return result.filter((x) => x.stage && x.stage !== 'Draft');
+    }
+    return result;
+  };
 
   const pullRFQManageFind = () => {
     if (!isreadDisabled) { setRecorddata([]); return; }
@@ -170,17 +181,27 @@ const ManageRFQV2 = ({ claimType }) => {
     setGridloading(true);
     getRFQManageFind(data, atoken).then((res) => {
       setGridloading(false);
-      if (res?.length > 0) {
-        if (accessLevel?.list?.created?.toLowerCase().trim() === 'none') {
-          setRecorddata(res.filter((x) => x.status && x.status !== 'Draft'));
-        } else {
-          setRecorddata(res);
-        }
+      const list = Array.isArray(res) ? res : (res?.result ?? []);
+      if (list.length > 0) {
+        const filtered = applyRoleFilter(list);
+        setRawRecordData(filtered);
+        setRecorddata(filtered);
+      } else {
+        setRawRecordData([]);
+        setRecorddata([]);
       }
+    }).catch((err) => {
+      setGridloading(false);
+      toast.error(getApiErrorMessage(err), { toastId: 'rfq_manage_find_error' });
     });
   };
 
   useEffect(() => { pullRFQManageFind(); }, [atoken, customerid]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearchText(searchText), 400);
+    return () => clearTimeout(t);
+  }, [searchText]);
 
   /* ── Filter popover state — MUST be declared before filteredData ── */
   const [filterAnchor, setFilterAnchor] = useState(null);
@@ -258,9 +279,9 @@ const ManageRFQV2 = ({ claimType }) => {
       );
     }
 
-    // Text search
-    if (searchText.trim()) {
-      const q = searchText.toLowerCase();
+    // Text search (debounced)
+    if (debouncedSearchText.trim()) {
+      const q = debouncedSearchText.toLowerCase();
       data = data.filter((row) =>
         (row?.subject || row?.rfqSubject || '').toLowerCase().includes(q) ||
         (row?.eventCode || '').toLowerCase().includes(q) ||
@@ -273,7 +294,7 @@ const ManageRFQV2 = ({ claimType }) => {
 
   useEffect(() => {
     setPaginationModel((prev) => ({ ...prev, page: 0 }));
-  }, [searchText, recorddata.length]);
+  }, [debouncedSearchText, recorddata.length]);
 
   /* ── Advance filter panel ── */
   const [advFilterOpen, setAdvFilterOpen] = useState(false);
@@ -290,15 +311,18 @@ const ManageRFQV2 = ({ claimType }) => {
     setActiveFilterCount(filterModel.items.length);
   }, [filterModel]);
 
+  const [filterValues, setFilterValues] = useState({});
+
   const handleFilterList = (res) => {
-    if (accessLevel?.list?.created?.toLowerCase().trim() === 'none') {
-      setRecorddata(res.filter((x) => x.status && x.status !== 'Draft'));
-    } else {
-      setRecorddata(res);
-    }
+    const filtered = applyRoleFilter(Array.isArray(res) ? res : []);
+    setRecorddata(filtered);
   };
   const clearFilterList = () => {
-    pullRFQManageFind();
+    if (rawRecordData.length > 0) {
+      setRecorddata(rawRecordData);
+    } else {
+      pullRFQManageFind();
+    }
     setFilterModel({ items: [] });
     setTempFilterItems([emptyFilterItem()]);
   };
@@ -393,22 +417,29 @@ const ManageRFQV2 = ({ claimType }) => {
           rfqIsMultiCurrency: hydratedRFQ.isMultiCurrency,
         }));
 
-        // Only allow item selection if at least one vendor has submitted a quote
-        const hasClosedVendor = invitedVendors.some(
-          (vendor) => vendor?.status !== 'Open' && vendor?.isTermsAccepted === 'Y'
-        );
+        const isBoqRequired = selectedRfqId?.boqReq === true;
 
-        if (hasClosedVendor) {
-          setSelectedPRItemModal(selectedItems);
-          setSelectedItemsActive(
-            selectedItems
-              .filter((item) => rfqItemSet.some((existing) => existing.id === item.id && existing.rfqId === item.rfqId))
-              .map((item) => item.id)
-          );
-          setNoQuotesMessage(selectedItems.length ? '' : 'No line items available for this RFQ.');
-        } else {
+        if (isBoqRequired) {
           setSelectedPRItemModal([]);
-          setNoQuotesMessage('None of the vendors have quoted. Cannot proceed.');
+          setNoQuotesMessage("Auctions cannot be created for RFQs containing BOQ items. Please select a different RFQ.");
+        } else {
+          // Only allow item selection if at least one vendor has submitted a quote
+          const hasClosedVendor = invitedVendors.some(
+            (vendor) => vendor?.status !== 'Open' && vendor?.isTermsAccepted === 'Y'
+          );
+
+          if (hasClosedVendor) {
+            setSelectedPRItemModal(selectedItems);
+            setSelectedItemsActive(
+              selectedItems
+                .filter((item) => rfqItemSet.some((existing) => existing.id === item.id && existing.rfqId === item.rfqId))
+                .map((item) => item.id)
+            );
+            setNoQuotesMessage(selectedItems.length ? '' : 'No line items available for this RFQ.');
+          } else {
+            setSelectedPRItemModal([]);
+            setNoQuotesMessage('None of the vendors have quoted. Cannot proceed.');
+          }
         }
 
         setFirstRFQ(hydratedRFQ);
@@ -670,39 +701,45 @@ const ManageRFQV2 = ({ claimType }) => {
     },
   ].filter(Boolean);
 
-  const handleExportRFQs = useCallback(() => {
-    if (!filteredData.length) {
-      toast.info('No RFQ data available to export.', { toastId: 'rfq_export_empty' });
-      return;
+  const handleExportToExcel = async () => {
+    setIsExporting(true);
+    try {
+      const payload = {
+        RFQId: filterValues.RFQId || 0,
+        eventCode: filterValues.eventCode || '',
+        Subject: filterValues.Subject || debouncedSearchText || '',
+        Status: filterValues.Stage || '',
+        StartDate: filterValues.StartDate ?? null,
+        EndDate: filterValues.EndDate ?? null,
+        PurchOrgId: filterValues.PurchOrgId || 0,
+        PurchGrpId: filterValues.PurchGrpId || 0,
+      };
+      const res = await apiClient.api.post('/api/RFQManage/ExportRFQExcel', payload, {
+        headers: { Authorization: `Bearer ${atoken}` },
+        responseType: 'blob',
+      });
+      if (res?.data) {
+        const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/octet-stream' }));
+        const link = document.createElement('a');
+        link.href = url;
+        const contentDisposition = res.headers?.['content-disposition'];
+        let fileName = `RFQ_Export_${new Date().toISOString().split('T')[0]}.xlsx`;
+        if (contentDisposition) {
+          const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match && match[1]) fileName = match[1].replace(/['"]/g, '');
+        }
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error), { toastId: 'rfq_export_error' });
+    } finally {
+      setIsExporting(false);
     }
-
-    const exportColumns = EXPORT_COLUMNS.filter((column) => columnVisibility[column.field] !== false);
-    if (!exportColumns.length) {
-      toast.info('Please enable at least one column to export.', { toastId: 'rfq_export_no_columns' });
-      return;
-    }
-
-    const csvRows = [
-      exportColumns.map((column) => escapeCsvValue(column.label)).join(','),
-      ...filteredData.map((row) =>
-        exportColumns
-          .map((column) => escapeCsvValue(column.getValue(row, userDetail)))
-          .join(',')
-      ),
-    ];
-
-    const csvContent = `\uFEFF${csvRows.join('\r\n')}`;
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const stamp = new Date().toISOString().slice(0, 10);
-    link.href = url;
-    link.download = `manage-rfq-${stamp}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, [columnVisibility, filteredData, userDetail]);
+  };
 
   useEffect(() => {
     if (!colMenuAnchor) return;
@@ -928,11 +965,11 @@ const ManageRFQV2 = ({ claimType }) => {
               <button
                 type="button"
                 className="rfq-v2-tbtn rfq-v2-tbtn-export"
-                onClick={handleExportRFQs}
-                disabled={!filteredData.length}
+                onClick={handleExportToExcel}
+                disabled={isExporting}
               >
                 <FileDownloadOutlined />
-                Export
+                {isExporting ? 'Exporting...' : 'Export'}
                 <KeyboardArrowDownOutlined className="export-chevron" />
               </button>
             </div>
@@ -948,7 +985,7 @@ const ManageRFQV2 = ({ claimType }) => {
               <div className="rfq-v2-empty">
                 <p className="rfq-v2-empty-title">No RFQs found</p>
                 <p className="rfq-v2-empty-sub">
-                  {searchText ? 'Try adjusting your search.' : 'Create your first RFQ to get started.'}
+                  {debouncedSearchText ? 'Try adjusting your search.' : 'Create your first RFQ to get started.'}
                 </p>
               </div>
             ) : (
@@ -987,6 +1024,7 @@ const ManageRFQV2 = ({ claimType }) => {
             <FilterRFQCell
               handleFilterList={handleFilterList}
               clearFilterList={clearFilterList}
+              setFilterValues={setFilterValues}
             />
           </div>
         </div>

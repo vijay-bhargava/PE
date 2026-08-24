@@ -17,7 +17,7 @@ import { buildQueryParams } from "../../../utils/purchaseRequest";
 import { OrgGroupMasterList } from "../../../utils/commerciallibrary";
 import { getPurchaseOrgList, getEventStage } from "../../../utils/common/utility";
 
-const FilterRFQCell = ({ handleFilterList, clearFilterList }) => {
+const FilterRFQCell = ({ handleFilterList, clearFilterList, setFilterValues }) => {
   const [{ atoken, customerid, customersuffix }] = useStateValue();
   const [rfqLoading, setRfqLoading] = useState(false);
 
@@ -94,6 +94,7 @@ const FilterRFQCell = ({ handleFilterList, clearFilterList }) => {
       if (res) {
         const list = Array.isArray(res) ? res : (res?.result ?? []);
         handleFilterList(list);
+        if (setFilterValues) setFilterValues(values);
       } else {
         handleFilterList([]);
       }
@@ -107,6 +108,7 @@ const FilterRFQCell = ({ handleFilterList, clearFilterList }) => {
 
   const clear = () => {
     formik.resetForm();
+    if (setFilterValues) setFilterValues({});
     clearFilterList();
   };
 

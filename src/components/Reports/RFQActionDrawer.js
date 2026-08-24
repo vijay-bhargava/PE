@@ -38,7 +38,7 @@ dayjs.extend(timezone);
 const RFQActionDrawer = ({
 	rfqid,
 	enddate,
-	activityId, handleDraftEvent, rfqtype, EventHeaderDetails, Version, currentStage, downloadExcel }) => {
+	activityId, handleDraftEvent, rfqtype, EventHeaderDetails, Version, currentStage, downloadExcel, downloadpdf }) => {
 	const [locked, setLocked] = useState(false);
 	const [actiontext, setActionText] = useState('')
 	const [actionlocktype, setActionLockType] = useState(null)
@@ -804,6 +804,9 @@ const RFQActionDrawer = ({
 					)}
 					{downloadExcel && (
 						<MenuItem onClick={() => { setActionsAnchorEl(null); downloadExcel(); }} sx={{ fontSize: "14px" }}>Download Comparative Excel</MenuItem>
+					)}
+					{downloadpdf && (
+						<MenuItem onClick={() => { setActionsAnchorEl(null); downloadpdf(); }} sx={{ fontSize: "14px" }}>Download Comparative PDF</MenuItem>
 					)}
 					<MenuItem onClick={() => { setActionsAnchorEl(null); toggleDrawer("convertToAuction", true); }} sx={{ fontSize: "14px" }}>Convert to Auction</MenuItem>
 				</Menu>
