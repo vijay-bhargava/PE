@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { useEffect, useState } from 'react';
 import { Autocomplete, FormControl, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography, } from "@mui/material";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -118,8 +118,8 @@ const RFQSummaryDetailedReport = () => {
             const data = { slug: 'RFQSummaryDetailedReport' ,customerId: customerid };
             const res = await getReportColumns(data, atoken);
             //console.log('response pullReportColumns', res);
-            if (res?.result?.length > 0) {
-                setTableColumnLabels(res.result);
+            if (res?.length > 0) {
+                setTableColumnLabels(res);
                 pullRFQSummaryReport();
             } else {
                 //console.log('No columns returned');
@@ -276,7 +276,8 @@ const pullRFQSummaryReport = async (pageNumber = 1, pageSize = 10, filterData = 
         const payload = {
             reportName: "RFQSummaryDetailedReport",
             customerId: customerid,
-            area: "RFQManage"
+            area: "RFQManage",
+            timeZoneId: userDetail?.timeZone
         };
 
         console.log("📤 Calling export API with payload:", payload);

@@ -628,7 +628,8 @@
   background: transparent;
 }
 .v2-submenu.open {
-  max-height: 400px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
 }
 
 /* Submenu items */

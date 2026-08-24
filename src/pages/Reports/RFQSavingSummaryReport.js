@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { useEffect, useState } from 'react';
 import { Autocomplete, FormControl, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography, } from "@mui/material";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -118,8 +118,8 @@ const RFQSavingSummaryReport = () => {
             console.log('🔍 Fetching report columns with:', data);
             const res = await getReportColumns(data, atoken);
             console.log('📥 Columns response:', res);
-            if (res?.result?.length > 0) {
-                setTableColumnLabels(res.result);
+            if (res?.length > 0) {
+                setTableColumnLabels(res);
                 console.log('✅ Columns loaded, now fetching data...');
                 pullRFQSummaryReport();
             } else {
@@ -327,9 +327,10 @@ const pullRFQSummaryReport = async (pageNumber = 1, pageSize = 10, filterData = 
         setLoading(true);
 
         const payload = {
-            reportName: "RFQSummaryReport",
+            reportName: "RFQSavingSummaryReport",
             customerId: customerid,
-            area: "RFQManage"
+            area: "RFQManage",
+            timeZoneId: userDetail?.timeZone
         };
 
         console.log("📤 Calling export API with payload:", payload);

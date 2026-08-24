@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { useEffect, useState } from 'react';
 import { Autocomplete, FormControl, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography, } from "@mui/material";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -41,7 +41,7 @@ const BIDSummaryReport = () => {
     const [tableRows, setTableRows] = useState([]);
     const [originalTableRows, setOriginalTableRows] = useState([]); // Store original data
     const [columnVisibilityModel, setColumnVisibilityModel] = useState({});
-    const [divVisible, setDivVisible] = useState(true);
+    const [divVisible, setDivVisible] = useState(false);
     const [activeFiltersCount, setActiveFiltersCount] = useState(0);
         const [pageCount, setPageCount] = useState(0);
         const [pageSize, setPageSize] = useState(10);
@@ -120,8 +120,8 @@ const BIDSummaryReport = () => {
             const data = { slug: 'BIDSummaryReport' ,customerId: customerid };
             const res = await getReportColumns(data, atoken);
             //console.log('response pullReportColumns', res);
-            if (res?.result?.length > 0) {
-                setTableColumnLabels(res.result);
+            if (res?.length > 0) {
+                setTableColumnLabels(res);
                 pullBIDSummaryReport();
             } else {
                 //console.log('No columns returned');
@@ -174,7 +174,7 @@ const pullBIDSummaryReport = async (pageNumber = 1, pageSize = 10, filterData = 
 
         // GET request with query string
         const res = await apiClient.get(
-            `api/AuctionManage/SummaryReport?${queryParams}`,
+            `api/AuctionManage/BIDSummaryReport?${queryParams}`,
             atoken
         );
 
@@ -320,44 +320,27 @@ const pullBIDSummaryReport = async (pageNumber = 1, pageSize = 10, filterData = 
             const payload = {
                 reportName: "BIDSummaryReport",
                 customerId: customerid,
-                area: "BIDManage"
+                area: "AuctionManage",
+                timeZoneId: userDetail?.timeZone
             };
 
-            console.log("📤 Calling export API with payload:", payload);
-
             const queryString = new URLSearchParams(payload).toString();
-            const url = `/api/ReportConfig/DownloadReportExcel?${queryString}`;
+            const fullUrl = `api/ReportConfig/DownloadReportExcel?${queryString}`;
 
-            // Fetch with blob response
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${atoken}`,
-                    'Content-Type': 'application/json'
-                }
+            const response = await apiClient.api.get(fullUrl, {
+                headers: { Authorization: `Bearer ${atoken}` },
+                responseType: 'blob',
             });
 
-            ; // 🔴  hits after API response
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            // Convert response to blob
-            const blob = await response.blob();
-            
-            console.log("📥 Blob received, size:", blob.size);
-
-            // Create download link
+            const now = new Date();
+            const formatted = now.getFullYear() + String(now.getMonth() + 1).padStart(2, "0") + String(now.getDate()).padStart(2, "0") + String(now.getHours()).padStart(2, "0") + String(now.getMinutes()).padStart(2, "0") + String(now.getSeconds()).padStart(2, "0");
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const downloadUrl = window.URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = downloadUrl;
-            link.download = `BIDSummaryReport_${new Date().toISOString().split("T")[0]}.xlsx`;
-            
+            link.download = `BIDSummaryReport_${formatted}.xlsx`;
             document.body.appendChild(link);
             link.click();
-            
-            // Cleanup
             document.body.removeChild(link);
             window.URL.revokeObjectURL(downloadUrl);
 

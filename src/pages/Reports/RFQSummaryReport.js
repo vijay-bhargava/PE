@@ -124,17 +124,13 @@ const RFQSummaryReport = () => {
         try {
             const data = { slug: 'RFQSummaryReport' ,customerId: customerid };
             const res = await getReportColumns(data, atoken);
-            //console.log('response pullReportColumns', res);
-            if (res?.result?.length > 0) {
-                
-                setTableColumnLabels(res.result);
+            if (res?.length > 0) {
+                setTableColumnLabels(res);
                 pullRFQSummaryReport();
             } else {
-                //console.log('No columns returned');
                 setLoading(false);
             }
         } catch (error) {
-            //console.log('Error fetching report columns:', error);
             setLoading(false);
         }
     };
@@ -179,11 +175,7 @@ const pullRFQSummaryReport = async (pageNumber = 1, pageSize = 10, filterData = 
         });
  
         // GET request with query string
-        const res = await apiClient.get(
-            `api/RFQManage/RFQSummaryReport?${queryParams}`,
-            atoken
-        );
- 
+        const res = await apiClient.get(`api/RFQManage/RFQSummaryReport?${queryParams}`, atoken);
         const totalRecords = res?.pageMetadata?.totalCount || 0;
         setRowCount(totalRecords);
         setTotalCount(totalRecords);
@@ -286,7 +278,8 @@ const handleExportClick = async () => {
         const payload = {
             reportName: "RFQSummaryReport",
             customerId: customerid,
-            area: "RFQManage"
+            area: "RFQManage",
+            timeZoneId: userDetail?.timeZone
         };
 
         console.log("📤 Calling export API with payload:", payload);

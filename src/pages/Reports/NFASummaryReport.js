@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { useEffect, useState } from 'react';
 import { Autocomplete, FormControl, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography, } from "@mui/material";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -7,8 +7,9 @@ import { actionTypes, useStateValue } from '../../store';
 import { HiOutlineX} from "react-icons/hi";
 import CryptoJS from "crypto-js";
 import { DataGrid, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton, GridToolbarQuickFilter } from '@mui/x-data-grid';
-import { Box ,IconButton} from '@mui/material';
+import { Box, IconButton, Button } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
  
 import FilterRFQCell from '../Configuration/RequestForQuotation/FilterRFQCell';
 import { BackButton } from '../../utils/common/component';
@@ -41,7 +42,7 @@ const NFASummaryReport = () => {
     const [tableRows, setTableRows] = useState([]);
     const [originalTableRows, setOriginalTableRows] = useState([]); // Store original data
     const [columnVisibilityModel, setColumnVisibilityModel] = useState({});
-    const [divVisible, setDivVisible] = useState(true);
+    const [divVisible, setDivVisible] = useState(false);
     const [activeFiltersCount, setActiveFiltersCount] = useState(0);
         const [pageCount, setPageCount] = useState(0);
         const [pageSize, setPageSize] = useState(10);
@@ -111,8 +112,8 @@ const NFASummaryReport = () => {
             const data = { slug: 'NFASummaryReport' ,customerId: customerid };
             const res = await getReportColumns(data, atoken);
             //console.log('response pullReportColumns', res);
-            if (res?.result?.length > 0) {
-                setTableColumnLabels(res.result);
+            if (res?.length > 0) {
+                setTableColumnLabels(res);
                 pullNFASummaryReport();
             } else {
                 //console.log('No columns returned');
@@ -292,19 +293,49 @@ const pullNFASummaryReport = async (pageNumber = 1, pageSize = 10, filterData = 
     };
  
     const handleColumnVisibilityChange = (newModel) => {
-        console.log('newModel', newModel)
         setColumnVisibilityModel(newModel);
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newModel));
     };
- 
-   
- 
+
+    const handleExportClick = async () => {
+        try {
+            setLoading(true);
+            const payload = {
+                reportName: "NFASummaryReport",
+                customerId: customerid,
+                area: "NFAManage",
+                timeZoneId: userDetail?.timeZone
+            };
+            const queryString = new URLSearchParams(payload).toString();
+            const fullUrl = `api/ReportConfig/DownloadReportExcel?${queryString}`;
+            const response = await apiClient.api.get(fullUrl, {
+                headers: { Authorization: `Bearer ${atoken}` },
+                responseType: 'blob',
+            });
+            const now = new Date();
+            const formatted = now.getFullYear() + String(now.getMonth() + 1).padStart(2, "0") + String(now.getDate()).padStart(2, "0") + String(now.getHours()).padStart(2, "0") + String(now.getMinutes()).padStart(2, "0") + String(now.getSeconds()).padStart(2, "0");
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.download = `NFASummaryReport_${formatted}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (error) {
+            alert("Failed to export report. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (atoken && customerid) {
             pullReportColumns();
         }
     }, [atoken, customerid]);
-    function CustomToolbar({ onFilterClick, activeFiltersCount }) {
+    function CustomToolbar({ onFilterClick, activeFiltersCount, onExportClick }) {
         return (
             <GridToolbarContainer className="row">
                 <div className="d-flex justify-content-between w-100 align-items-center">
@@ -313,7 +344,7 @@ const pullNFASummaryReport = async (pageNumber = 1, pageSize = 10, filterData = 
                         <GridToolbarColumnsButton />
                         <GridToolbarFilterButton />
                         <GridToolbarDensitySelector />
-                        <GridToolbarExport />
+                        <Button size="small" startIcon={<FileDownloadIcon />} onClick={onExportClick} sx={{ textTransform: 'none', color: 'text.primary', '&:hover': { backgroundColor: 'action.hover' } }}>Export</Button>
                     </div>
  
                     {/* Right side: Quick Filter + Custom Filter Icon */}
@@ -426,7 +457,7 @@ const pullNFASummaryReport = async (pageNumber = 1, pageSize = 10, filterData = 
   style={{ height: 400, width: "100%" }}
  
   slots={{
-    toolbar: () => <CustomToolbar onFilterClick={toggleDivVisibility} activeFiltersCount={activeFiltersCount} />,
+    toolbar: () => <CustomToolbar onFilterClick={toggleDivVisibility} activeFiltersCount={activeFiltersCount} onExportClick={handleExportClick} />,
   }}
   slotProps={{
     toolbar: { showQuickFilter: true },

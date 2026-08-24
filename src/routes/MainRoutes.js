@@ -73,6 +73,9 @@ import NFASummaryReport from "../pages/Reports/NFASummaryReport";
 import TATReport from "../pages/Reports/TATReport";
 import POSummaryDetailedReport from "../pages/Reports/POSummaryDetailedReport";
 import InvoiceReport from "../pages/Reports/InvoiceReport";
+import CyclicReport from "../pages/Reports/CyclicReport";
+import GrnReport from "../pages/Reports/GrnReport";
+import SESReport from "../pages/Reports/SESReport";
 
 
 
@@ -423,6 +426,18 @@ const MainRoutes = {
 		{
 			path: "/reports/InvoiceReport",
 			element: <InvoiceReport />,
+		},
+		{
+			path: "/reports/CycleReport",
+			element: <CyclicReport />,
+		},
+		{
+			path: "/reports/GRNReport",
+			element: <GrnReport />,
+		},
+		{
+			path: "/reports/SESReport",
+			element: <SESReport />,
 		},
 		{
 			path: "/reports/BIDSavingSummaryReport",

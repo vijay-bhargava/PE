@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { useEffect, useState } from 'react';
 import { Autocomplete, FormControl, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography, } from "@mui/material";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -101,8 +101,8 @@ const POSummaryDetailedReport = () => {
             const data = { slug: 'POSummaryDetailedReport' ,customerId: customerid };
             const res = await getReportColumns(data, atoken);
             //console.log('response pullReportColumns', res);
-            if (res?.result?.length > 0) {
-                setTableColumnLabels(res.result);
+            if (res?.length > 0) {
+                setTableColumnLabels(res);
                 pullPOSummaryDetailedReport();
             } else {
                 //console.log('No columns returned');
@@ -259,7 +259,8 @@ const pullPOSummaryDetailedReport = async (pageNumber = 1, pageSize = 10, filter
         const payload = {
             reportName: "POSummaryDetailedReport",
             customerId: customerid,
-            area: "poconfirm"
+            area: "poconfirm",
+            timeZoneId: userDetail?.timeZone
         };
 
         console.log("📤 Calling export API with payload:", payload);
