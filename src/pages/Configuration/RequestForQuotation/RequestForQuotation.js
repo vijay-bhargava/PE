@@ -4,38 +4,14 @@ import * as yup from "yup";
 import IconButton from "@mui/material/IconButton";
 import HistoryCell from "../../BaseCells/HistoryCell";
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
-import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
-import ListAltOutlinedIcon from '@mui/icons-material/ListAltOutlined';
-import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
-import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
-import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 
 // Permission Management Imports
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
-import ApprovalConfirmDialog from '../../../components/RFQ/ApprovalConfirmDialog';
-import { HiOutlineX, HiPencilAlt } from "react-icons/hi";
-import {
-	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogContentText,
-	DialogTitle,
-	Menu,
-	MenuItem,
-	TextField,
-	Tooltip,
-	createFilterOptions,
-} from "@mui/material";
-import { Modal } from "react-bootstrap";
-import { Badge as BadgeStrap } from "react-bootstrap";
+import { Button, Menu, Tooltip, createFilterOptions } from "@mui/material";
 
-import Drawer from "@mui/material/Drawer";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
-import LoadingButton from "@mui/lab/LoadingButton";
-import ProductitemCell from "./ProductitemCell";
 import "react-quill/dist/quill.snow.css";
 import {
 	useLocation,
@@ -51,6 +27,8 @@ import {
 	handlesaveAttachment,
 	mapQuestionsToSubcategories,
 	downloadExcelTemplate,
+	downloadEventExcelTemplate,
+	getApiErrorMessage,
 	attachmentmodalforevent,
 	eventattachmentmodal,
 	filequeryparam,
@@ -71,39 +49,21 @@ import {
 	getRFQManageFindById,
 	scrollToTargetC,
 } from "../../../utils/common/utility";
-import AddProductsCell from "./AddProductsCell";
-import CommonBottomDrawer from "../../../components/CommonBottomDrawer";
-import BoqScreen from "./BoqScreen";
-import AddQuestionFormCell from "./AddQuestionFormCell";
 import { toast } from "react-toastify";
 import { MemoizedEventStageFlow } from "../../../utils/common/component";
-import { ApiClient, api } from "../../../Apiclient";
+import { ApiClient } from "../../../Apiclient";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
 import AttachmentWorkFlow from "../../BaseCells/attachmentworkflow";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import SelectedSupplierCell from "./SelectedSupplierCell";
 import { sanitizeInput } from "../../../utils/common/santize";
-import PurchaseOrgGrp from "../../../utils/common/PurchaseOrgGrp";
-import PurchaseOrg from "../../../utils/common/PurchaseOrg";
-import LoadingFactor from "./LoadingFactor";
 import GridSkeleton from "../../../components/Skeleton/gridSkeleton";
-import ERFQComparative from "./ERFQComparative";
-import RFQGeneralPreview from "./RFQGeneralPreview";
-import EventCommercialScreen from "../../../components/Event/EventCommercialScreen";
-import EventQuestionScreen from "../../../components/Event/EventQuestionScreen";
-import EventAllocationScreen from "../../../components/Event/EventAllocationScreen";
-import QueryList from "../../CommunucationHub/QueryList";
 import { FastApiClient } from "../../../FastApiClient";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import EventSuppliers from "../../../components/Event/EventSuppliers";
 import RFQItemsTab from "./RFQItemsTab";
 import RFQSupplierTab from "./RFQSupplierTab";
 import RFQGeneralTab from "./RFQGeneralTab";
 import RFQWorkflowPanel from "./RFQWorkflowPanel";
-import AddEditCurrency from "../../../utils/common/AddEditCurrency";
 import RFQCommercialTab from "./RFQCommercialTab";
 import RFQQuestionsTab from "./RFQQuestionsTab";
 import RFQQueryTab from "./RFQQueryTab";
@@ -184,11 +144,11 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				setApproverShow(false)
 		}
 		else {
-			if (newValue == "7") {
+			if (newValue === "7") {
 				setSelectedMenuItem("Publish RFQ")
 				setApproverShow(true)
 			}
-			else if (newValue == "9") {
+			else if (newValue === "9") {
 				setSelectedMenuItem("Save")
 			}
 			else {
@@ -222,6 +182,51 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const [isquestioneditDisabled, setIsQuestionEditDisabled] = useState(true);
 	const [issupplierreadDisabled, setIsSupplierReadDisabled] = useState(false);
 	const [issupplierraccesslevel, Setissupplierraccesslevel] = useState('');
+	const [isHistoryreadDisabled, setisHistoryReadDisabled] = useState(true);
+	const [isworkreadDisabled, setisworkReadDisabled] = useState(true);
+
+	// Question category states
+	const [allDataList, setAllDataList] = useState([]);
+	const [QuestionCategoryList, setQuestionCategoryList] = useState([]);
+	const [uncategorizedQuestions, setUncategorizedQuestions] = useState([]);
+
+	const getAuditHistoryRoles = async () => {
+		const dataR = {
+			roleId: parseInt(userDetail?.roleId),
+			featureName: "Request for Quotation",
+			claimType: "Audit History",
+		};
+		const queryParams = buildQueryParams(dataR);
+		const res = await apiClient.getres(`/api/auth/UserRoleClaim?${queryParams}`, atoken);
+		if (res) {
+			const data = res?.data;
+			dispatch({ type: actionTypes.SET_RoleClaims, value: data });
+		}
+		res?.data?.map(item => {
+			if (item.claimType === 'Audit History' && item.claimValue === 'Read' && item.accessLevel === 'None') {
+				setisHistoryReadDisabled(false);
+			}
+		});
+	};
+
+	const getworkflowRoles = async () => {
+		const dataR = {
+			roleId: parseInt(userDetail?.roleId),
+			featureName: "Request for Quotation",
+			claimType: "Work Flow",
+		};
+		const queryParams = buildQueryParams(dataR);
+		const res = await apiClient.getres(`/api/auth/UserRoleClaim?${queryParams}`, atoken);
+		if (res) {
+			const data = res?.data;
+			dispatch({ type: actionTypes.SET_RoleClaims, value: data });
+		}
+		res?.data?.map(item => {
+			if (item.claimType === 'Work Flow' && item.claimValue === 'Read' && item.accessLevel === 'None') {
+				setisworkReadDisabled(false);
+			}
+		});
+	};
 
 	useEffect(() => {
 		getUserRoleRights();
@@ -505,15 +510,15 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				baseCurrency: values.baseCurrency,
 				startDate: values?.startDate ? values?.startDate?.toISOString() : null,
 				endDate: values?.endDate?.toISOString(),
-				purchOrgId: values.purchOrgId?.id != "" ? values.purchOrgId?.id : 0,
-				purchGrpId: values.purchGrpId?.id != "" ? values.purchGrpId?.id : 0,
+				purchOrgId: values.purchOrgId?.id !== "" ? values.purchOrgId?.id : 0,
+				purchGrpId: values.purchGrpId?.id !== "" ? values.purchGrpId?.id : 0,
 				termandcondition: sanitizeInput(values.termandcondition),
 				rfqStatus: values.rfqStatus,
-				openQuotes: values.RFQType == "closed" ? "N" : "Y",
+				openQuotes: values.RFQType === "closed" ? "N" : "Y",
 				RFQType: values.RFQType,
-				bidOpeningDate: (values.bidOpeningDate && values.RFQType == "closed") ? values.bidOpeningDate?.toISOString() : null,
+				bidOpeningDate: (values.bidOpeningDate && values.RFQType === "closed") ? values.bidOpeningDate?.toISOString() : null,
 				boqReq: values.boqReq,
-				requisitioner: values.requisitioner != "" ? values.requisitioner : "",
+				requisitioner: values.requisitioner !== "" ? values.requisitioner : "",
 				multicurrencytList: values.IsMultiCurrency ? inputList : [],
 				technicalApproval: values.technicalApproval,
 				IsMultiCurrency: values.IsMultiCurrency,
@@ -535,72 +540,75 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				orgId,
 				orgGroupId
 			);
-			//console.log("RGQdatapayloaddatapayload", datapayload)
-			if (data?.id > 0) {
+			try {
+				if (data?.id > 0) {
 
-				const res = await apiClient.postres(
-					`/api/RFQManage/Update`,
-					datapayload,
-					atoken
-				);
-				if (res) {
-					toast.success(`RFQ details have been updated successfully.`, {
-						toastId: "rfqmanage_update"
-					});
-					// record saved id to avoid race with state updates
-					lastSavedIdRef.current = data?.id;
-					setIdFromURL(data?.id)
-					skipAutoTabCheckRef.current = true;
-					setValue(2);
-					//setLoading(false)
-				}
-				setLoading(false)
-			}
-			else {
-				const res = await apiClient.postres(
-					`/api/RFQManage/Add`,
-					datapayload,
-					atoken
-				);
-
-				if (res) {
-					// record saved id so parent flow can use it immediately
-					lastSavedIdRef.current = res.data;
-					setIdFromURL(res.data);
-					navigate(`/configuration/manage-rfq/${res.data}?tab=item`)
-					setcommcurrencyList([
-						{
-							id: "0",
-							baseCurrency: "",
-							currencyConversion: "",
-							rfqId: res.data,
-						},
-					]);
-					updateRequestCell(res.data);
-
-					const AttachFiles = attachmentforevent?.map((x) => {
-
-						x.eventId = res.data;
-						x.createdById = userDetail?.id;
-						x.createdByName = userDetail?.name;
-
-						return x;
-					});
-
-					handlesaveAttachment(AttachFiles, res.data, atoken);
-					toast.success(`RFQ details have been added successfully.`, {
-						toastId: "rfqmanage_update2"
-					});
-					skipAutoTabCheckRef.current = true;
-					setValue(2);
+					const res = await apiClient.postres(
+						`/api/RFQManage/Update`,
+						datapayload,
+						atoken
+					);
+					if (res) {
+						toast.success(`RFQ details have been updated successfully.`, {
+							toastId: "rfqmanage_update"
+						});
+						// record saved id to avoid race with state updates
+						lastSavedIdRef.current = data?.id;
+						setIdFromURL(data?.id)
+						skipAutoTabCheckRef.current = true;
+						setValue(2);
+					}
 					setLoading(false)
 				}
 				else {
-					setLoading(false)
-					toast.error("Error while saving data", {
-						toastId: "rfqmanage_error"
-					});
+					const res = await apiClient.postres(
+						`/api/RFQManage/Add`,
+						datapayload,
+						atoken
+					);
+
+					if (res) {
+						// record saved id so parent flow can use it immediately
+						lastSavedIdRef.current = res.data;
+						setIdFromURL(res.data);
+						navigate(`/configuration/manage-rfq/${res.data}?tab=item`)
+						setcommcurrencyList([
+							{
+								id: "0",
+								baseCurrency: "",
+								currencyConversion: "",
+								rfqId: res.data,
+							},
+						]);
+						updateRequestCell(res.data);
+
+						const AttachFiles = attachmentforevent?.map((x) => {
+
+							x.eventId = res.data;
+							x.createdById = userDetail?.id;
+							x.createdByName = userDetail?.name;
+
+							return x;
+						});
+
+						handlesaveAttachment(AttachFiles, res.data, atoken);
+						toast.success(`RFQ details have been added successfully.`, {
+							toastId: "rfqmanage_update2"
+						});
+						skipAutoTabCheckRef.current = true;
+						setValue(2);
+						setLoading(false)
+					}
+					else {
+						setLoading(false)
+						toast.error("Error while saving data", {
+							toastId: "rfqmanage_error"
+						});
+					}
 				}
+			} catch (error) {
+				setLoading(false);
+				toast.error(getApiErrorMessage(error), { toastId: 'rfqmanage_save_error' });
 			}
 		},
 	});
@@ -667,6 +675,29 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		]);
 	};
 
+	const handleCurrencyInputChange = (e, index) => {
+		const { name, value } = e.target;
+		if (!commcurrencyList || !Array.isArray(commcurrencyList) || index < 0 || index >= commcurrencyList.length) return;
+		const list = [...commcurrencyList];
+		if (!list[index]) list[index] = {};
+		list[index][name] = value;
+		setcommcurrencyList(list);
+	};
+
+	const handleRemoveCurrencyClick = (index) => {
+		if (!commcurrencyList || !Array.isArray(commcurrencyList) || index < 0 || index >= commcurrencyList.length) return;
+		const list = [...commcurrencyList];
+		list.splice(index, 1);
+		setcommcurrencyList(list);
+	};
+
+	const handleAddCurrencyClick = () => {
+		setcommcurrencyList([
+			...commcurrencyList,
+			{ id: "0", baseCurrency: "", currencyConversion: "", rfqId: idFromURL },
+		]);
+	};
+
 	const pullgetCurrency = () => {
 		if (currencyListLoaded || loadCurrency) {
 			return;
@@ -709,7 +740,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			OrgMstId: orgMstId,
 		};
 		OrgGroupMasterList(data, atoken).then((res) => {
-			if (res != "" && res != undefined) {
+			if (res !== "" && res !== undefined) {
 				setPurchaseGroupAllList(res || []);
 			}
 		});
@@ -781,8 +812,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				}
 				if (res?.[0]?.version && res?.[0]?.version > 0) {
 					formik.setFieldValue("Version", res?.[0]?.version);
-					const sameVersion = res?.[0]?.rfqVersionHistory?.find(x => x.version == res?.[0]?.version);
-					setOpenQuotes(sameVersion?.openQuotes == "Y" ? true : false);
+					const sameVersion = res?.[0]?.rfqVersionHistory?.find(x => x.version === res?.[0]?.version);
+					setOpenQuotes(sameVersion?.openQuotes === "Y" ? true : false);
 					// Reload items with the confirmed version (avoids stale formik value race)
 					pullRFQItemServiceFind(Id, res?.[0]?.version);
 				}
@@ -828,7 +859,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					formik.setFieldValue("boqReq", res?.[0]?.boqReq);
 				}
 
-				if (res?.[0]?.baseCurrency && res?.[0]?.baseCurrency != "") {
+				if (res?.[0]?.baseCurrency && res?.[0]?.baseCurrency !== "") {
 					formik.setFieldValue("baseCurrency", res?.[0]?.baseCurrency);
 				}
 
@@ -845,7 +876,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						formik.setFieldValue("multicurrencylist", currencyList);
 					}
 				}
-				if (res?.[0]?.technicalApproval && res?.[0]?.technicalApproval != "") {
+				if (res?.[0]?.technicalApproval && res?.[0]?.technicalApproval !== "") {
 					formik.setFieldValue(
 						"technicalApproval",
 						res?.[0]?.technicalApproval
@@ -856,7 +887,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					formik.setFieldValue("termandcondition", res?.[0]?.termandCondition);
 				}
 				if (res?.[0]?.openQuotes) {
-					const value = res?.[0]?.openQuotes == "N" ? true : false
+					const value = res?.[0]?.openQuotes === "N" ? true : false
 					formik.setFieldValue("sealedBid", value);
 				}
 
@@ -1009,7 +1040,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 					if (uniqueMappedRecords && uniqueMappedRecords?.length) {
 						const updatedrecord = res?.filter(
-							(x) => x.id == uniqueMappedRecords?.[0]
+							(x) => x.id === uniqueMappedRecords?.[0]
 						);
 						if (updatedrecord?.length > 0) {
 							setSelectedQuesDll(updatedrecord[0]);
@@ -1047,10 +1078,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			)
 			.map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
 			.join("&");
-	
+
 		const res = await apiClient.getres(
 			`/api/CommercialLib/Find?${queryParams}`,
-	
+
 			atoken
 		);
 		let response;
@@ -1058,7 +1089,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			response = res?.data?.result;
 		}
 		if (response && response?.length > 0) {
-	
+
 			// setCommercialLibFind(res)
 			const modifiedRes = response?.map((item) => ({
 				...item,
@@ -1077,13 +1108,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				tempDataEditData?.[0]?.rfqTermsCondition?.length &&
 				modifiedRes?.length
 			) {
-	
+
 				const updatedArray = modifiedRes?.map((item) => {
-	
+
 					const matchingItem = tempDataEditData?.[0]?.rfqTermsCondition?.find(
 						(updatedItem) => updatedItem.termsId === item.termsId
 					);
-	
+
 					if (matchingItem) {
 						return {
 							...item,
@@ -1102,7 +1133,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			}
 		}
 	};
-	
+
 	const [selectedQuesDll, setSelectedQuesDll] = useState();
 	const pullQuestionsLibFind = (selectedItem) => {
 		//console.log("selectedItems", selectedItem);
@@ -1114,45 +1145,45 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		getQuestionsLibFind(data, atoken).then((res) => {
 			//console.log("response getCommercialLibFind", res);
 			if (res && res?.length > 0) {
-	
+
 				setSelectedQuesionArray(res);
 				// setCommercialLibFind(res)
 			}
 		});
 	};
-	
+
 	const callbackQuesAddCustom = useCallback(
 		(quesData, questionforedit) => {
-	
+
 			if (!questionforedit) {
-	
+
 				setSelectedQuesionArray((prev) => [...prev, quesData]);
 				setState({ ...state, qusDrawer: false });
 			}
 			else {
-	
+
 				const obj = selectedQuesionArray.map((x) => {
-	
-					if (x.id == questionforedit.id) {
+
+					if (x.id === questionforedit.id) {
 						return quesData
 					}
 					else return x
 				});
-	
+
 				setSelectedQuesionArray(obj)
 				setState({ ...state, qusDrawer: false });
 				//setQuestionForEdit(null)
 			}
-	
+
 		},
 		[selectedQuesionArray]
 	);
-	
-	
+
+
 	const [selectedcommercialterm, setSelectedCommercialTerm] = useState(null);
 	//it is for opening modal of commercial term currency
 	const handleChangeCom = (index, value, x, openmodal) => {
-	
+
 		const item = commercialLibFind[index];
 		if (openmodal) {
 			setModal1(true)
@@ -1163,9 +1194,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			if (value) {
 				list[index]["level"] = value;
 			}
-	
+
 			//to handle selected dependent formula field
-			if (value == "item") {
+			if (value === "item") {
 				const selectedFieldGroup = list[index].fieldNameGroup.split(',');
 				// Iterate through the list to update dependent fields
 				list.forEach(item => {
@@ -1175,22 +1206,22 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					}
 				});
 			}
-	
+
 			setCommercialLibFind(list);
 			// set object for commecial  term
-	
+
 			setSelectedCommercialTerm(x);
 			if (x?.rfqTermCurrency && x?.rfqTermCurrency?.length > 0) {
 				setcommcurrencyList(x?.rfqTermCurrency);
 			}
 			//setModal1(true);
-	
+
 		} else {
 			const list = [...commercialLibFind];
 			list[index]["level"] = value;
-	
+
 			//to handle selected dependent formula field
-			if (value == "item") {
+			if (value === "item") {
 				const selectedFieldGroup = list[index].fieldNameGroup.split(',');
 				// Iterate through the list to update dependent fields
 				list.forEach(item => {
@@ -1201,7 +1232,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				});
 			}
 			// Get the fieldNameGroup of the selected item
-	
+
 			setCommercialLibFind(list);
 			setModal1(false);
 		}
@@ -1210,7 +1241,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const handlecurrencytermmodal = () => {
 		//console.log();
 		const updatedlist = commercialLibFind.map((x, i) => {
-			if (x.termsId == selectedcommercialterm?.termsId) {
+			if (x.termsId === selectedcommercialterm?.termsId) {
 				x.rfqTermCurrency = commcurrencyList;
 			}
 			return x;
@@ -1222,22 +1253,22 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			{ id: "0", baseCurrency: "", currencyConversion: "" },
 		]);
 	};
-	
+
 	const handleChangeComQues = (index, value) => {
 		const list = [...commercialLibFind];
 		list[index]["requirement"] = value;
 		setCommercialLibFind(list);
 	};
-	
+
 	//to autoselect required formula field
 	const handleComItemCheck = (index, value) => {
-	
+
 		const list = [...commercialLibFind];
 		// Set isSelected for the selected item
 		list[index]["isSelected"] = value;
 		setCommercialLibFind(list);
 	};
-	
+
 	const handleComItemAllCheck = (value) => {
 		const list = commercialLibFind?.map((component) => ({
 			...component,
@@ -1245,7 +1276,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		}));
 		setCommercialLibFind(list);
 	};
-	
+
 	const [itemEditTempData, setItemEditTempData] = useState([]);
 	const handleEditItem = useCallback((dataItem) => {
 		//console.log("dataItem", dataItem);
@@ -1266,7 +1297,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		},
 		[idFromURL]
 	);
-	
+
 	const callbackItemAdd = useCallback(
 		(pass) => {
 			setState({ ...state, addProductDrawer: false });
@@ -1275,13 +1306,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		},
 		[idFromURL]
 	);
-	
+
 	const removeItemData = (value) => {
 		var data = {
 			// RFQId: Number(idFromURL),
 			id: Number(value),
 		};
-	
+
 		RFQItemServiceDelete(data, atoken).then((res) => {
 			// console.log('response RFQItemServiceDelete', res);
 			if (res) {
@@ -1291,22 +1322,22 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			}
 		});
 	};
-	
+
 	//to fetch master data alias list data
 	useEffect(() => {
 		if (atoken, customerid) {
 			PullPurchaseOrgAll();
 		}
 	}, [atoken, customerid]);
-	
-	
+
+
 	useEffect(() => {
 		const data = queryParams.get("CommId")?.trim();
 		if (data) {
 			dispatch({ type: actionTypes.SET_CommId, value: parseInt(data) });
 		}
 	}, []);
-	
+
 	useEffect(() => {
 		if (formik.values.purchOrgId?.id) {
 			PullPurchaseGroupAll(formik.values.purchOrgId?.id);
@@ -1315,9 +1346,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setPurchaseGroupAllList([])
 		}
 	}, [formik.values.purchOrgId]);
-	
+
 	const { pageSlug, supplierid } = useParams();
-	
+
 	// If we're on the create route, ensure the main tab stays on General
 	useEffect(() => {
 		if (pageSlug === "add") {
@@ -1325,7 +1356,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setValue(1);
 		}
 	}, [pageSlug]);
-	
+
 	// Debug: log permission/tab state to help diagnose blank General tab (safe: pageSlug is declared)
 	useEffect(() => {
 		try {
@@ -1344,7 +1375,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			console.error("RFQ Debug error", e);
 		}
 	}, [pageSlug, idFromURL, value, loadingPermissions, showGeneralAccessDenied, canReadEarly, canCreateEarly, stagearray, currentStage]);
-	
+
 	// If the user has no General READ or CREATE permission, ensure General tab is active
 	useEffect(() => {
 		if (showGeneralAccessDenied && value !== 1) {
@@ -1355,28 +1386,28 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const [activityId, setActvityId] = useState(0);
 	const [stageValue, setStageValue] = useState('');
 	const [actionType, setActionType] = useState("");
-	
+
 	useEffect(() => {
-	
+
 		const params = new URLSearchParams(searchParams);
 		const actionTypeParam = params.get("ActionType");
 		const ActivityId = params.get("ActivityId");
 		const StageValue = params.get("Stage");
 		setActionType(actionTypeParam);
 		const newIdFromURL = pageSlug;
-	
+
 		// Only switch to the summary/report view for approval/forward actions when
 		// we have an existing RFQ id (not when creating a new one)
-		if ((actionTypeParam == "approval" || actionTypeParam == "Forward") && newIdFromURL && newIdFromURL !== "add") {
+		if ((actionTypeParam === "approval" || actionTypeParam === "Forward") && newIdFromURL && newIdFromURL !== "add") {
 			setValue(6);
 		}
-	
+
 		setActvityId(ActivityId ?? 0);
 		setStageValue(StageValue ?? '');
 		//#eventid and eventtype
 		dispatch({ type: actionTypes.SET_EVENTID, value: newIdFromURL ?? 0 });
 		dispatch({ type: actionTypes.SET_EVENTTYPE, value: "RFQ" });
-	
+
 		setIdFromURL(newIdFromURL);
 		setcommcurrencyList([
 			{
@@ -1386,23 +1417,23 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				rfqId: newIdFromURL,
 			},
 		]);
-	
+
 		updateRequestCell(newIdFromURL);
 	}, [searchParams]);
-	
-	
+
+
 	useEffect(() => {
-	
+
 		if (idFromURL && idFromURL > 0 && purchaseAllList && purchaseGroupAllList && requisitionerList) {
 			pullgetRFQManageFind(idFromURL);
 		}
-	
+
 		else {
-	
+
 			if (userDetail?.name) {
 				const foundOrg = purchaseAllList?.find(org => org.id === userDetail.purchOrgId);
 				formik.setFieldValue("purchOrgId", foundOrg ?? null);
-	
+
 				const userOrgGroup = userDetail.purchGrpId;
 				if (userOrgGroup?.length > 0) {
 					const foundGroup = purchaseGroupAllList?.find(grp => grp.id === userOrgGroup[0].orgGroupId);
@@ -1413,11 +1444,11 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			}
 		}
 	}, [idFromURL, purchaseAllList, location, requisitionerList]);
-	
+
 	useEffect(() => {
 		pullgetCurrency();
 	}, [atoken]);
-	
+
 	const saveRFQLineItems = async (exceldata) => {
 		const data = exceldata?.map((rfqitem, index) => {
 			const i = (rfqItemsList?.length + index + 1).toString();
@@ -1429,13 +1460,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				srno: i,
 			};
 		});
-	
+
 		const res = await apiClient.postres(
 			`/api/RFQItemService/${idFromURL}/AddItems`,
 			data,
 			atoken
 		);
-	
+
 		if (res) {
 			callbackItemAdd(res);
 			toast.success("Data Saved successfully", {
@@ -1443,10 +1474,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			});
 		}
 	};
-	
+
 	const handleSaveContinue = async () => {
-		if (value == 1) {
-	
+		if (value === 1) {
+
 			const currentDate = new Date();
 			if (formik.values.IsMultiCurrency) {
 				if (inputList?.length === 0) {
@@ -1456,13 +1487,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					return;
 				}
 			}
-	
+
 			// Prevent auto-selection effect from overriding our programmatic navigation
 			skipAutoTabCheckRef.current = true;
-	
+
 			// Validate the form first
 			const errors = await formik.validateForm();
-	
+
 			// If there are validation errors, mark all fields as touched and stop
 			if (Object.keys(errors).length > 0) {
 				// Mark all fields as touched to show validation errors
@@ -1475,18 +1506,18 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					purchGrpId: true,
 					termandcondition: true,
 				});
-	
+
 				toast.error("Please fill all required fields.", { toastId: "rfq_validation_error" });
 				return;
 			}
-	
+
 			// Submit the form and wait for onSubmit to complete (so idFromURL is set)
 			await formik.submitForm();
-	
+
 			// Only advance to Items/Services if submission was successful
 			// The onSubmit handler will set setValue(2) if successful
 		}
-		if (value == 2) {
+		if (value === 2) {
 			if (rfqItemsList?.length < 1) {
 				toast.error("please add items to continue", {
 					toastId: "additems_error"
@@ -1495,37 +1526,37 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			}
 			setValue(3);
 		}
-		if (value == 3) {
+		if (value === 3) {
 			//saveRFQCommLibraryAdd();
-	
+
 			const res = await EventCommercialScreenRef?.current?.saveRFQCommercialLibrary();
 			if (res) {
 				setValue(4);
 			}
 		}
-		if (value == 4) {
+		if (value === 4) {
 			const res = await EventQuestionScreenRef?.current?.saveEventQuestion();
 			if (res) {
 				setValue(5);
 			}
 			//saveRFQQuestionLibAdd();
 		}
-	
-		if (value == 5) {
+
+		if (value === 5) {
 			saveSelectedSuppliers();
 			setApproverShow(true)
 		}
-	
+
 	};
-	
+
 	const [modalcancelOpen, setModalCancelOpen] = useState(false);
 	const [cancelReason, setCancelReason] = useState("");
 	const [rfqerror, setRfqError] = useState("");
-	
+
 	const handleCancel = () => {
 		setModalCancelOpen(true);
 	}
-	
+
 	const handleCancelRFQModal = async (confirm) => {
 		if (confirm) {
 			if (!cancelReason.trim()) {
@@ -1553,15 +1584,15 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setRfqError("");
 		}
 	};
-	
+
 	const handleCancelInputChange = (e) => {
 		setCancelReason(e.target.value);
 		if (e.target.value.trim()) {
 			setRfqError("");
 		}
 	};
-	
-	
+
+
 	const handlecheckpreview = async () => {
 		//to check formik validity dynamically
 		if (!formik.isValid) {
@@ -1571,63 +1602,63 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setValue(1);
 			return false;
 		}
-	
+
 		return true;
 	};
-	
+
 	const checkApprovers = () => {
-	
+
 		if (!stagelist || stagelist.length === 0) {
 			toast.error("Error: No stages found in workflow.");
 			return false;
 		}
 		const isStageRequired = stagelist.filter((x) => x.required && x.wfId > 0);
-	
-	
+
+
 		for (const stage of isStageRequired) {
-	
-			const matchingWorkflow = approverInWorkflow?.find(workflow => workflow.stage == stage.wfname);
-	
+
+			const matchingWorkflow = approverInWorkflow?.find(workflow => workflow.stage === stage.wfname);
+
 			if (!matchingWorkflow) {
 				toast.error(`No workflow found for stage "${stage.wfname}".`);
 				return false;
 			}
-	
-			// if ((!matchingWorkflow.approvers || matchingWorkflow.approvers.length == 0) && stage.required) {
-			if ((matchingWorkflow.approvers && matchingWorkflow.approvers.length == 0)) {
+
+			// if ((!matchingWorkflow.approvers || matchingWorkflow.approvers.length === 0) && stage.required) {
+			if ((matchingWorkflow.approvers && matchingWorkflow.approvers.length === 0)) {
 				toast.error(`The mandatory  workflow "${stage.wfname}" has no approvers.`);
 				return false;
 			}
-	
+
 		}
 		return true;
 	};
-	
+
 	const handleErrorRFQSubmit = () => {
-	
+
 		const currentDate = new Date();
-	
+
 		if (!formik.values.startDate) {
 			formik.values.startDate = currentDate;
 		}
-	
+
 		if (stagearray.includes(currentStage)) {
 			if (formik.values.startDate < currentDate) {
 				formik.values.startDate = currentDate;
 			}
 		}
-	
+
 		if (formik.values?.endDate?.toISOString() < currentDate.toISOString()) {
 			toast.error("End date cannot be before the current date.", {
 				toastId: "rfqenddate"
 			});
-	
+
 			setValue(1)
 			setApproverShow(false)
 			formik.handleSubmit()
 			return false;
 		}
-	
+
 		if (formik.values?.startDate > formik.values?.endDate) {
 			toast.error("Start date cannot be after end date.", {
 				toastId: "rfqenddate2"
@@ -1636,7 +1667,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setApproverShow(false)
 			return false;
 		}
-	
+
 		if (rfqItemsList?.length < 1) {
 			toast.error(`select atleast one item`, {
 				toastId: "supp_fail"
@@ -1655,22 +1686,22 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		}
 		return true;
 	}
-	
+
 	const handleRFQSubmit = async () => {
-	
+
 		setLoading(true)
 		const isSubmit = handleErrorRFQSubmit();
 		if (!isSubmit) {
 			setLoading(false);
 			return;
 		}
-	
+
 		const isApprovers = checkApprovers();
 		if (!isApprovers) {
 			setLoading(false);
 			return;
 		}
-	
+
 		const data = {
 			activityId: activityId,
 			RFQId: parseInt(idFromURL),
@@ -1689,7 +1720,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			orgGroupId
 		);
 		const enddate = formik.values.endDate.toISOString();
-	
+
 		const selectedsupp = InvitedSupplierModal(
 			selectedSupplier,
 			parseInt(idFromURL),
@@ -1698,40 +1729,45 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			userDetail,
 			formik?.values?.Version
 		);
-	
+
 		const invitedSuppliers = {
 			rfqVendorDetails: selectedsupp,
 			activityId: parseInt(activityId),
 			RFQId: parseInt(idFromURL),
 			CurrentStage: currentStage
-	
+
 		};
-	
-		const ressupp = await apiClient.postres(
-			`/api/RFQVendorInvite/${idFromURL}/Add`,
-			invitedSuppliers,
-			atoken
-		);
-	
-		const res = await apiClient.postres(
-			`/api/RFQManage/RFQSubmit`,
-			datapayload,
-			atoken
-		);
-	
-		if (res) {
-			toast.success("RFQ Published Successfully", {
-				toastId: "submit_published"
-			});
-			navigate(`/configuration/manage-rfq`);
+
+		try {
+			const ressupp = await apiClient.postres(
+				`/api/RFQVendorInvite/${idFromURL}/Add`,
+				invitedSuppliers,
+				atoken
+			);
+
+			const res = await apiClient.postres(
+				`/api/RFQManage/RFQSubmit`,
+				datapayload,
+				atoken
+			);
+
+			if (res) {
+				toast.success("RFQ Published Successfully", {
+					toastId: "submit_published"
+				});
+				navigate(`/configuration/manage-rfq`);
+			}
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: 'rfq_submit_error' });
+		} finally {
+			setLoading(false);
 		}
-		setLoading(false);
 	};
-	
+
 	// useEffect(() => {
-	
+
 	// 	if (
-	// 		(value == 1 || value == 6) &&
+	// 		(value === 1 || value === 6) &&
 	// 		idFromURL &&
 	// 		tempDataEditData &&
 	// 		tempDataEditData?.length > 0
@@ -1744,10 +1780,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	// }, [idFromURL, tempDataEditData, value]);
 	const [tabloading, setTabLoading] = useState(false)
 	const [isUploading, setIsUploading] = useState(false);
-	
+
 	useEffect(() => {
-	
-		if (value == 2 && idFromURL) {
+
+		if (value === 2 && idFromURL) {
 			// Only call if pullgetRFQManageFind has already completed (tempDataEditData is set).
 			// If tempDataEditData is not yet loaded, pullgetRFQManageFind will call
 			// pullRFQItemServiceFind(id, version) directly once it finishes — no duplicate needed.
@@ -1757,30 +1793,24 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				pullRFQItemServiceFind(idFromURL, resolvedVersion);
 			}
 		}
-		if (value == 3) {
+		if (value === 3) {
 			pullLibraryOrgEntityFind();
 		}
-		if (value == 4) {
+		if (value === 4) {
 			pullLibraryOrgEntityFindQues();
 		}
-		if (value == 5) {
-	
-	
+		if (value === 5) {
+
+
 			getTotalSupplier();
 			// getCategorylist();
 		}
 	}, [idFromURL, value]);
-	
-	
+
 	//tab2
-	
-	
-	
 	const fastapiclient = new FastApiClient();
-	
-	
+
 	const handleItemsUpload = async (file) => {
-	
 		const data = {
 			templateId: 3,
 			customerId: parseInt(customerid),
@@ -1797,7 +1827,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			const tenant = cleanHost.split(".")[0];
 			const response = await fastapiclient.postresmultipart(`bulk-upload/excel-upload`, data, tenant)
 			if (response) {
-	
+
 				const errorDetails = response.data?.error_details;
 				// if (Array.isArray(errorDetails) && errorDetails.length > 0) {
 				// 	const allErrors = errorDetails.join("\n");
@@ -1810,7 +1840,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						acc[field].add(err.row);
 						return acc;
 					}, {});
-	
+
 					const formattedErrorElement = (
 						<div style={{ maxWidth: '90vw', wordWrap: 'break-word' }}>
 							{Object.entries(fieldToRowsMap).map(([field, rows], index) => (
@@ -1828,7 +1858,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 							))}
 						</div>
 					);
-	
+
 					toast.error(formattedErrorElement, {
 						autoClose: true,
 						style: {
@@ -1848,7 +1878,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				if (fileInputRef.current) {
 					fileInputRef.current.value = "";
 				}
-	
+
 			}
 			else {
 				toast.error("Error uploading file");
@@ -1859,12 +1889,21 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			toast.error("An error occurred during file upload");
 		}
 		finally {
-	
+
 			setIsUploading(false); // Stop loader
 		}
 	}
-	
-	
+
+	const downloadEventItemsExcel = async () => {
+		await downloadEventExcelTemplate({
+			eventType: 'RFQ',
+			eventId: idFromURL,
+			customerId: customerid,
+			templateId: 3,
+			fileName: `RFQ_Event_template_${new Date().getTime()}.xlsx`,
+		});
+	};
+
 	const downloadItemsExcel = async () => {
 		await downloadExcelTemplate({
 			customerId: customerid,
@@ -1873,7 +1912,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			eventType: "RFQ"
 		});
 	}
-	
+
 	const [selectedCategory, setSelectedCategory] = useState(null);
 	const [categoryList, setCategoryList] = useState([]);
 	const getCategorylist = async () => {
@@ -1881,17 +1920,17 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			CustomerId: customerid,
 		}
 		const queryParams = buildQueryParams(obj);
-	
+
 		const res = await apiClient.getres(
 			`/api/ItemCategory/Find?${queryParams}`,
 			atoken
 		);
-	
+
 		if (res) {
 			setCategoryList(res?.data?.result || []);
 		}
 	};
-	
+
 	const getUserRoleRights = async () => {
 		const obj = {
 			FeatureName: "Request for Quotation",
@@ -1899,13 +1938,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			CreatedById: userDetail?.id
 		}
 		const queryParams = buildQueryParams(obj);
-	
+
 		try {
 			const res = await apiClient.getres(
 				`/api/rolemanagement/GetUserRoleRights?${queryParams}`,
 				atoken
 			);
-	
+
 			if (res?.data) {
 				const permManager = new PermissionManager(Array.isArray(res.data) ? res.data : []);
 				setPermissionManager(permManager);
@@ -1916,7 +1955,32 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setLoadingPermissions(false);
 		}
 	};
-	
+
+	const pullCategoryList = async (value) => {
+		var data = {
+			CustomerId: customerid,
+			LibraryId: value?.id ? value?.id : value,
+		};
+		setLoading(true);
+		const queryParams = Object.entries(data)
+			?.filter(([key, val]) => val !== null && val !== undefined && val !== "")
+			.map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
+			.join("&");
+
+		const res = await apiClient.getres(`/api/QCategory/Find?${queryParams}`, atoken);
+		const res2 = await apiClient.getres(`/api/QuestionsLib/Find?${queryParams}`, atoken);
+		const categories = res?.data?.result;
+		const questions = res2?.data?.result;
+		setAllDataList(questions);
+		const result = mapQuestionsToSubcategories(categories, questions);
+		if (res !== "" && res !== undefined) {
+			setQuestionCategoryList(result);
+		}
+		const uncategorized = questions?.filter(question => !question.questionCategory);
+		setUncategorizedQuestions(uncategorized);
+		setLoading(false);
+	};
+
 	const handleSupplierWithCategory = async (selectedCategory) => {
 		const obj = {
 			CustomerId: customerid,
@@ -1924,19 +1988,19 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			CategoryId: selectedCategory?.id,
 		};
 		const queryParams = buildQueryParams(obj);
-	
+
 		const res = await apiClient.getres(
 			`/api/managevendors/GetVendorUsers?${queryParams}`,
 			atoken
 		);
-	
+
 		if (res.data?.length > 0) {
 			const data = res.data;
 			const emails = data?.map((item) => item.email);
 			const resetSuppliers = totalSupplier?.map((supplier) => ({
 				...supplier, isShow: false,
 			}));
-	
+
 			const updatedSuppliers = resetSuppliers?.map((supplier) => {
 				if (emails.includes(supplier.email)) {
 					return { ...supplier, isShow: true };
@@ -1951,28 +2015,28 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setTotalSupplier(resetSuppliers);
 		}
 	};
-	
+
 	const [totalSupplier, setTotalSupplier] = useState([]);
 	const getTotalSupplier = async () => {
-	
+
 		setTabLoading(true)
 		const obj = {
 			CustomerId: customerid,
 			//Advance: `Advance`,
 		};
 		const queryParams = buildQueryParams(obj);
-	
+
 		const res = await apiClient.getres(
 			`/api/managevendors/GetVendorUsers?${queryParams}`,
 			atoken
 		);
-	
+
 		if (Array.isArray(tempDataEditData) && tempDataEditData.length > 0 && Array.isArray(tempDataEditData[0]?.rfqVendorInvited) && tempDataEditData[0]?.rfqVendorInvited.length > 0) {
-	
-			const ids = tempDataEditData[0].rfqVendorInvited?.filter(x => x.version == formik?.values?.Version).map((item) => item.vendorId);
-			const contactids = tempDataEditData[0].rfqVendorInvited.filter(x => x.version == formik?.values?.Version).map((item) => item.contactId);
-	
-			setttingSelectedSupplier(ids, true, res?.data, tempDataEditData[0].rfqVendorInvited?.filter(x => x.version == formik?.values?.Version), contactids);
+
+			const ids = tempDataEditData[0].rfqVendorInvited?.filter(x => x.version === formik?.values?.Version).map((item) => item.vendorId);
+			const contactids = tempDataEditData[0].rfqVendorInvited.filter(x => x.version === formik?.values?.Version).map((item) => item.contactId);
+
+			setttingSelectedSupplier(ids, true, res?.data, tempDataEditData[0].rfqVendorInvited?.filter(x => x.version === formik?.values?.Version), contactids);
 		} else {
 			const showTotalsupplier = res?.data?.map((supplier) => {
 				return { ...supplier, isShow: true };
@@ -1982,7 +2046,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		setTabLoading(false)
 	};
 	const setttingSelectedSupplier = (ids, value, totalSupplier, selectedVendors, contactids) => {
-	
+
 		const resetSuppliers = totalSupplier?.map((supplier) => {
 			return { ...supplier, isShow: true };
 		});
@@ -1991,7 +2055,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			const matchIndex = ids?.findIndex((vendorId, idx) =>
 				supplier.vendorId === vendorId && supplier.contactId === contactids[idx]
 			);
-	
+
 			if (matchIndex !== -1) {
 				const selectedVendor = selectedVendors?.find(v =>
 					v.vendorID === supplier.vendorId && v.contactId === supplier.contactId
@@ -2000,20 +2064,20 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			}
 			return supplier;
 		});
-	
+
 		setTotalSupplier(updatedSuppliers);
-	
+
 		// Preserve the invitation order by sorting based on the ids array order
 		const selectedList = ids?.map((vendorId, idx) => {
 			return updatedSuppliers?.find(
 				(supplier) => supplier.vendorId === vendorId && supplier.contactId === contactids[idx] && supplier.isSelected
 			);
 		}).filter(Boolean); // Remove any undefined entries
-	
+
 		console.log("selectedList ", selectedList)
 		setSelectedSupplier(selectedList);
 	};
-	
+
 	const [selectedSupplier, setSelectedSupplier] = useState([]);
 	console.log("selectedSupplier::", selectedSupplier)
 	const [matchedSuppliers, setMatchedSuppliers] = useState([]);
@@ -2032,7 +2096,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				toast.error("Supplier removed Successfully", {
 					toastId: "abheedel"
 				})
-	
+
 			}
 		}
 		const { id, contactId } = row
@@ -2052,8 +2116,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		list[index]["isSelected"] = value;
 		list[index]["subject"] = tempDataEditData?.[0]?.subject;
 		//list[index]["companyName"] = userDetail.customerName;
-	
-		const selectedList = list?.filter((s) => s.isSelected == true);
+
+		const selectedList = list?.filter((s) => s.isSelected === true);
 		if (selectedList?.length > 75) {
 			toast.info(`You can select only 75 suppliers`, {
 				toastId: "suppliermax_info"
@@ -2061,7 +2125,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			return;
 		}
 		setTotalSupplier(list);
-	
+
 		setSelectedSupplier(selectedList);
 	};
 	const [selectAll, setSelectAll] = useState(true);
@@ -2071,12 +2135,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			isSelected: selectAll,
 		}));
 		setTotalSupplier(updatedList);
-	
+
 		setSelectedSupplier(selectAll ? updatedList : []);
 	};
-	
+
 	const clearSelectedSupplier = async (x, value) => {
-	
+
 		//delete supplier from table
 		if (x.id) {
 			const data = {
@@ -2090,7 +2154,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				toast.error("Supplier removed Successfully", {
 					toastId: "abheedel"
 				})
-	
+
 			}
 		}
 		const email = x?.email;
@@ -2100,17 +2164,17 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		const list = [...totalSupplier];
 		list[index]["isSelected"] = value;
 		setTotalSupplier(list);
-		const selectedList = list?.filter((s) => s?.isSelected == true);
-	
+		const selectedList = list?.filter((s) => s?.isSelected === true);
+
 		setSelectedSupplier(selectedList);
 	};
-	
+
 	const clearALLSelectedSupplier = async () => {
 		//to remove all  supplier from given event
 		const data = {
 			RFQId: idFromURL
 		}
-	
+
 		const queryparam = buildQueryParams(data);
 		const res = await apiClient.put(`/api/RFQVendorInvite/Delete?${queryparam}`, null, atoken)
 		if (res) {
@@ -2118,12 +2182,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				toastId: "abheedel"
 			})
 		}
-	
+
 		const list = totalSupplier?.map((item) => ({ ...item, isSelected: false }));
 		setTotalSupplier(list);
 		setSelectedSupplier([]);
 	};
-	
+
 	const saveSelectedSuppliers = async () => {
 		const enddate = formik?.values?.endDate?.toISOString();
 		const data = InvitedSupplierModal(
@@ -2134,7 +2198,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			userDetail,
 			formik?.values?.Version
 		);
-	
+
 		if (data.length === 0) {
 			toast.error(`Please select a supplier before proceeding.`, {
 				toastId: "supplierselection_error"
@@ -2147,13 +2211,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			RFQId: parseInt(idFromURL),
 			CurrentStage: currentStage
 		};
-	
+
 		const res = await apiClient.postres(
 			`/api/RFQVendorInvite/${idFromURL}/Add`,
 			invitedSuppliers,
 			atoken
 		);
-	
+
 		if (res) {
 			pullgetRFQManageFind(idFromURL)
 			setRFQPreview(true)
@@ -2164,26 +2228,174 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			});
 		}
 	};
-	
+
 	// loading factor modal state
 	const [storeVId, setStoreVId] = useState('');
 	const [filteredLoadingFactors, setFilteredLoadingFactors] = useState([]);
+	const [loadingFactors, setLoadingFactors] = useState([]);
+	const [factorDesc, setFactorDesc] = useState('');
+	const [loadingOn, setLoadingOn] = useState('');
+	const [factorType, setFactorType] = useState('');
+	const [factorPerc, setFactorPerc] = useState(0);
+	const [loadingAmount, setLoadingAmount] = useState(0);
+	const [editIndex, setEditIndex] = useState(null);
+	const [errors, setErrors] = useState({});
+	const [loadingupdatebtn, setLoadingUpdateBtn] = useState(false);
+	const [isUpdated, setIsUpdated] = useState(false);
+	const [loadingModal, setLoadingModal] = useState(false);
+
+	const validationSchemaloading = yup.object({
+		factorDesc: yup.string().required('Reason of Loading Factor is required'),
+		factorType: yup.string().required('Loading Type is required'),
+	});
+
+	const validateLoadingForm = (values) => {
+		try {
+			validationSchemaloading.validateSync(values, { abortEarly: false });
+			return null;
+		} catch (err) {
+			return err.inner.reduce((acc, error) => {
+				acc[error.path] = error.message;
+				return acc;
+			}, {});
+		}
+	};
+
+	const handleAddLoadingFactor = () => {
+		setLoadingUpdateBtn(true);
+		const formValues = {
+			factorDesc,
+			factorType,
+			...(factorType === 'A' ? { loadingAmount } : { factorPerc }),
+			loadingOn,
+		};
+		const validationErrors = validateLoadingForm(formValues);
+		if (validationErrors) {
+			setErrors(validationErrors);
+			setLoadingUpdateBtn(false);
+			return;
+		}
+
+		const newLoadingFactor = {
+			rfqId: parseInt(idFromURL),
+			version: formik?.values?.Version,
+			customerId: customerid,
+			vendorId: storeVId,
+			factorDesc,
+			factorType,
+			...(factorType === 'A' ? { loadingAmount: parseFloat(loadingAmount) } : { factorPerc: parseFloat(factorPerc) }),
+			loadingOn: "RFQ",
+		};
+
+		let updatedLoadingFactors;
+		if (editIndex !== null) {
+			updatedLoadingFactors = [...filteredLoadingFactors];
+			updatedLoadingFactors[editIndex] = newLoadingFactor;
+			setEditIndex(null);
+		} else {
+			updatedLoadingFactors = [...filteredLoadingFactors, newLoadingFactor];
+		}
+
+		setLoadingFactors(updatedLoadingFactors);
+		const vendorLoadingFactors = updatedLoadingFactors?.filter(f => f.vendorId === storeVId);
+		setFilteredLoadingFactors(vendorLoadingFactors ?? []);
+
+		const updatedSuppliers = selectedSupplier.map(supplier => {
+			if (supplier.id === storeVId) {
+				const existingFactors = supplier.rfqLoadingFactor || [];
+				if (editIndex !== null) {
+					existingFactors[editIndex] = newLoadingFactor;
+				} else {
+					existingFactors.push(newLoadingFactor);
+				}
+				return { ...supplier, rfqLoadingFactor: existingFactors };
+			}
+			return supplier;
+		});
+		setSelectedSupplier(updatedSuppliers);
+
+		setFactorDesc('');
+		setFactorType('');
+		setFactorPerc(0);
+		setLoadingOn('');
+		setLoadingAmount('');
+		setErrors({});
+		setLoadingUpdateBtn(true);
+	};
+
+	const handleDeleteLoadingFactor = (index) => {
+		setLoadingUpdateBtn(true);
+		const updatedLoadingFactors = filteredLoadingFactors?.filter((_, i) => i !== index);
+		setLoadingFactors(updatedLoadingFactors);
+		const vendorLoadingFactors = updatedLoadingFactors?.filter(f => f.vendorId === storeVId);
+		setFilteredLoadingFactors(vendorLoadingFactors ?? []);
+
+		const updatedSuppliers = selectedSupplier.map(supplier => {
+			if (supplier.id === storeVId) {
+				const existingFactors = supplier.rfqLoadingFactor || [];
+				const updatedFactors = existingFactors?.filter((_, i) => i !== index);
+				return { ...supplier, rfqLoadingFactor: updatedFactors };
+			}
+			return supplier;
+		});
+		setSelectedSupplier(updatedSuppliers);
+	};
+
+	const handleEditLoadingFactor = (index) => {
+		setLoadingUpdateBtn(true);
+		if (filteredLoadingFactors && filteredLoadingFactors.length > index) {
+			const factor = filteredLoadingFactors[index];
+			setFactorDesc(factor.factorDesc || '');
+			setFactorType(factor.factorType || '');
+			if (factor.factorType === 'A') {
+				setLoadingAmount(factor.loadingAmount || 0);
+			} else {
+				setFactorPerc(factor.factorPerc || 0);
+			}
+			setLoadingOn(factor.loadingOn || '');
+			setEditIndex(index);
+		}
+	};
+
+	const updateSupplierLoadingFactor = async () => {
+		try {
+			setIsUpdated(false);
+			filteredLoadingFactors.forEach(x => { x.id = 0; });
+			const data = { VendorId: storeVId, Version: formik?.values?.Version };
+			const queryParamsLF = buildQueryParams(data);
+			const res = await apiClient.postres(
+				`/api/RFQManage/${idFromURL}/RFQLoadingFactor?${queryParamsLF}`,
+				filteredLoadingFactors,
+				atoken
+			);
+			if (res) {
+				toast.success("Loading factor updated successfully", { toastId: "loading_factor_update" });
+				setLoadingUpdateBtn(false);
+				setLoadingModal(false);
+				setupdatesupplieronloading(1);
+				setIsUpdated(true);
+			}
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: "loading_factor_error" });
+		} finally {
+			setLoadingUpdateBtn(false);
+		}
+	};
 	const rfqReportActionsRef = useRef(null);
 	const [rfqActionsPortalReady, setRfqActionsPortalReady] = useState(false);
 	const [erfqActiveSubTab, setErfqActiveSubTab] = useState(0);
-	const [isUpdated, setIsUpdated] = useState(false);
 	const [approvershow, setApproverShow] = useState(true);
 	const handleApprover = (booleanvalue) => setApproverShow(booleanvalue);
-	
+
 	const queryParams = new URLSearchParams(location.search);
-	
+
 	const handleLoadingFactorClick = (vendor) => {
 		setStoreVId(vendor?.vendorId);
 		setupdatesupplieronloading(0);
 		setFilteredLoadingFactors(vendor?.rfqLoadingFactor ?? []);
 		setLoadingModal(true);
 	};
-	
+
 	const handleLoadingFactorNew = (vendor) => {
 		const newFactors = JSON.parse(vendor?.loadingFactors ?? '[]').map((item) => ({
 			rfqId: parseInt(idFromURL),
@@ -2202,7 +2414,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		setFilteredLoadingFactors(newFactors);
 		setLoadingModal(true);
 	};
-	
+
 	const validationSchemaApprover = yup.object().shape({
 		status: yup.string().required("status is required"),
 	});
@@ -2210,7 +2422,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		enableReinitialize: true,
 		initialValues: {
 			rfqId: parseInt(idFromURL),
-			status: actionType == "Forward" ? "Forward" : "Approved",
+			status: actionType === "Forward" ? "Forward" : "Approved",
 			approveComment: "",
 			activityId: parseInt(activityId),
 			startDate: null,
@@ -2222,8 +2434,8 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			//no need to send startdate and enddate in other case
 			delete values?.startDate
 			delete values?.endDate
-	
-			if (actionType == 'Forward') {
+
+			if (actionType === 'Forward') {
 				const datapayload = getPayloadWithStage(
 					"currentStage",
 					currentStage,
@@ -2245,17 +2457,17 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				setLoading(false)
 				return
 			}
-	
+
 			const stageInfo = getStageInfo(currentStage, stagelist);
-	
+
 			let IsApproved = false;
-			if (values?.status == "Approved") {
+			if (values?.status === "Approved") {
 				IsApproved = true
 			}
 			else {
 				IsApproved = false
 			}
-	
+
 			const actionData = {
 				customerId: parseInt(customerid),
 				eventId: parseInt(idFromURL),
@@ -2267,10 +2479,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				vendorId: supplierid ?? 0,
 				eventSubject: formik?.values?.subject ?? "",
 				RecordCreatorId: EventHeaderDetails?.createdById,
-	
+
 			}
-	
-			if (actionType == 'approval') {
+
+			if (actionType === 'approval') {
 				const res = await apiClient.postres(
 					`/api/ApprovalAction/ApprovalAction`,
 					actionData,
@@ -2299,80 +2511,79 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setLoading(false)
 		},
 	});
-	
+
 	const [eventAppList, setEventAppList] = useState([]);
 	const [wfupdate, setwfUpdate] = useState([false]);
 	//to get approvers in each workflow to handle required/not required state handling
 	const [approverInWorkflow, setApproverInWorkflow] = useState([])
 	const handleEventAppList = useCallback((arr, updatedvalue) => {
-	
+
 		setEventAppList(arr);
 		setApproverInWorkflow(updatedvalue)
 	}, []);
 	const handleWorkFlowUpdate = useCallback(() => {
 		setwfUpdate((prev) => !prev);
 	}, []);
-	
+
 	const VendorfilterOptions = createFilterOptions({
 		matchFrom: "any",
 		stringify: (option) => `${option.contactPerson} ${option.email} `,
 	});
-	
+
 	const [pageCount, setPageCount] = React.useState(10);
-	
+
 	//pagination for total suppliers
 	const [pageTS, setPageTS] = React.useState(1);
-	
+
 	const handlePaginationTS = (event, value) => {
 		if (value) {
 			setPageTS(value);
 		}
 	};
-	
+
 	//pagination for selected suppliers
 	const [pageSS, setPageSS] = React.useState(1);
 	const [totalpageSS, setTotalPageSS] = React.useState(
 		Math.ceil(selectedSupplier / pageCount)
 	);
-	
+
 	//to update purchOrgId
 	useEffect(() => {
-	
+
 		if (purchaseAllList && purchaseAllList.length > 0 && OrgId) {
-	
+
 			const updatedvalue = findObjByValueFromArray(purchaseAllList, OrgId, 'id')
 			//console.log(purchaseAllList, OrgId, updatedvalue)
 			formik.setFieldValue("purchOrgId", updatedvalue);
 		}
-	
+
 		//to set default purchase group when purchase group length is 1 
-		if (!idFromURL && purchaseAllList && purchaseAllList.length == 1) {
+		if (!idFromURL && purchaseAllList && purchaseAllList.length === 1) {
 			formik.setFieldValue("purchOrgId", purchaseAllList[0])
 		}
-	
+
 	}, [OrgId, purchaseAllList])
 	//to update purchGrpId
 	useEffect(() => {
-	
+
 		if (purchaseGroupAllList && purchaseGroupAllList.length > 0 && OrgGroupId) {
 			const updatedvalue = findObjByValueFromArray(purchaseGroupAllList, OrgGroupId, 'id')
 			//console.log(purchaseGroupAllList,OrgGroupId,updatedvalue)
 			formik.setFieldValue("purchGrpId", updatedvalue);
 		}
 		//to set default purchase group when purchase group length is 1 
-		if (!idFromURL && purchaseGroupAllList && purchaseGroupAllList.length == 1) {
+		if (!idFromURL && purchaseGroupAllList && purchaseGroupAllList.length === 1) {
 			formik.setFieldValue("purchGrpId", purchaseGroupAllList[0])
 		}
-	
+
 	}, [OrgGroupId, purchaseGroupAllList])
-	
-	
+
 	useEffect(() => {
-	
+
 		handlePaginationSS();
 		setTotalPageSS(Math.ceil(selectedSupplier?.length / pageCount));
 	}, [pageSS, selectedSupplier]);
-	
+
 	useEffect(() => {
 		const urlparams = {
 			EventType: "RFQ",
@@ -2382,13 +2593,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			OrgGroupId: idFromURL ? (formik.values.purchGrpId?.id || 0) : 0,
 			Version: parseInt(formik?.values?.Version) || 1,
 		};
-	
+
 		// If no idFromURL, drop Version (since it won’t be relevant)
 		if (idFromURL) {
 			getEventStages(urlparams);
 		}
 	}, [idFromURL]); // ✅ runs once on mount, and again when idFromURL changes
-	
+
 	useEffect(() => {
 		if (stagelist && stagelist.length > 0) {
 			return;
@@ -2412,12 +2623,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		}
 		getEventStages(urlparams);
 	}, [])
-	
+
 	const getEventStages = async (urlparams) => {
 		const queryParams = buildQueryParams(urlparams)
 		const res = await apiClient.getres(`api/EventStage/EventStageFind?${queryParams}`, atoken);
 		if (res?.data?.result.length > 0) {
-	
+
 			const result = res?.data?.result?.filter((item) => item.stageSeq > 0)
 			setStageList(result);
 			// stagearray intentionally stays ['Draft'] — it represents editable stages only,
@@ -2426,40 +2637,40 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			// const stagesarray = result?.map((item) => item.currentStage);
 		}
 	}
-	
+
 	//handle as per role
 	useEffect(() => {
-	
-		if (accessLevel?.find(x => x.claimType == "Work Flow")?.claimValue?.Read == "N") {
+
+		if (accessLevel?.find(x => x.claimType === "Work Flow")?.claimValue?.Read === "N") {
 			setApproverShow(false)
 		}
 	}, [])
-	
+
 	//to handle param url query params based tab selection on initial loading
 	useEffect(() => {
-	
+
 		const params = new URLSearchParams(window.location.search);
 		const tab = params.get("tab");
 		if (tab) {
 			handleTabQueries(tab)
 		}
-	
+
 	}, [])
-	
+
 	const handleTabQueries = (tabValue) => {
-	
+
 		switch (tabValue) {
 			case 'item':
 				skipAutoTabCheckRef.current = true;
 				return setValue(2);
 			case 'report':
 				return tabReport();
-	
+
 			default:
 				return '';
 		}
 	};
-	
+
 	const tabReport = () => {
 		// Don't open the summary/report view when creating a new RFQ (pageSlug === 'add' or no id yet)
 		if (pageSlug === "add" || idFromURL === "add" || !idFromURL) {
@@ -2468,15 +2679,15 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		setValue(6);
 		setTabShow(false);
 	}
-	
+
 	const handlePaginationSS = (event, value) => {
 		if (value) {
 			setPageSS(value);
 		}
 	};
-	
+
 	const [rfqpreview, setRFQPreview] = useState(true);
-	
+
 	const handleClearAll = async () => {
 		setConfirmClearAllItems(false);
 		const res = await apiClient.postres(
@@ -2491,28 +2702,28 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setrfqItemsList([]);
 		}
 	};
-	
+
 	// to save attachment as rfq created related to attachment workflow
 	const [attachmentforevent, setAttachmentforEvent] = useState(null);
 	const handleattachmentforevent = useCallback((data) => {
 		setAttachmentforEvent(data);
 	}, []);
 	const handleAttachmentCount = (count) => {
-	
+
 		setAttachmentCount(count);
 	};
-	
+
 	// Debug: Track modal state changes
 	useEffect(() => {
 		console.log("OpenCurrencyModal state changed to:", OpenCurrencyModal);
 	}, [OpenCurrencyModal]);
-	
+
 	useEffect(() => {
 		console.log("modal1 state changed to:", modal1);
 	}, [modal1]);
-	
+
 	useEffect(() => {
-	
+
 		console.log("Attachments:", attachmentforevent);
 	}, [attachmentforevent]);
 	const handleFileChange = (event) => {
@@ -2524,26 +2735,25 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		setRFQPreview(true);
 		setValue(value);
 	};
-	
+
 	const [open, setOpen] = React.useState(false);
 	const handleClose = () => {
 		setOpen(false);
 	};
 	const handleClickOpen = () => {
-	
+
 		setOpen(true);
 	};
 	const [purchaseOrgModal, setPurchaseOrgModal] = useState(false);
 	const [purchaseOrgGrpModal, setPurchaseOrgGrpModal] = useState(false);
-	const [loadingModal, setLoadingModal] = useState(false);
 	const ClosePurcgaseOrgModal = () => setPurchaseOrgModal(false);
 	const ClosePurcgaseOrgGrpModal = () => setPurchaseOrgGrpModal(false);
 	const [age, setAge] = React.useState('');
-	
+
 	const [anchorEl, setAnchorEl] = React.useState(null);
 	const [statusAnchorEl, setStatusAnchorEl] = React.useState(null);
 	const [workflowPanelTab, setWorkflowPanelTab] = useState("workflow");
-	
+
 	// ── Fetch right-panel tab data when tab switches ─────────────────────────
 	// NOTE: must be AFTER workflowPanelTab declaration to avoid temporal dead zone
 	useEffect(() => {
@@ -2555,13 +2765,13 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			fetchPanelAttachments();
 		}
 	}, [workflowPanelTab, approvershow, idFromURL]);
-	
+
 	// ── Right panel: History tab state ──────────────────────────────────────
 	const [historyAudit, setHistoryAudit] = useState([]);
 	const [historyGraph, setHistoryGraph] = useState([]);
 	const [historyLoading, setHistoryLoading] = useState(false);
 	const [historySelectedItem, setHistorySelectedItem] = useState(null);
-	
+
 	const fetchPanelHistory = async () => {
 		if (!idFromURL) return;
 		setHistoryLoading(true);
@@ -2579,15 +2789,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		}
 		setHistoryLoading(false);
 	};
-	
-	const getHistoryInitials = (name) => {
-		if (!name) return '?';
-		return name.split(' ').map(p => p.charAt(0)).join('').toUpperCase().slice(0, 2);
-	};
-	
+
 	// ── Right panel: Attachments tab state ──────────────────────────────────
 	const [panelSavedAttach, setPanelSavedAttach] = useState([]);
-	const [panelNewFiles, setPanelNewFiles] = useState([]);
 	const [panelAttachLoading, setPanelAttachLoading] = useState(false);
 	const [panelAttachDesc, setPanelAttachDesc] = useState('');
 	const [panelAttachFile, setPanelAttachFile] = useState(null);
@@ -2596,7 +2800,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const [panelHasCheckboxChanged, setPanelHasCheckboxChanged] = useState(false);
 	const [panelIsUpdating, setPanelIsUpdating] = useState(false);
 	const panelFileInputRef = useRef(null);
-	
+
 	const fetchPanelAttachments = async () => {
 		setPanelAttachLoading(true);
 		setPanelHasCheckboxChanged(false);
@@ -2631,7 +2835,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		}
 		setPanelAttachLoading(false);
 	};
-	
+
 	const addPanelAttachment = async () => {
 		const descToUse = panelAttachDesc.trim();
 		if (!descToUse) {
@@ -2667,7 +2871,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setPanelAttachAdding(false);
 		}
 	};
-	
+
 	const updatePanelAttachments = async () => {
 		if (!panelSavedAttach.length) return;
 		setPanelIsUpdating(true);
@@ -2689,52 +2893,39 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setPanelIsUpdating(false);
 		}
 	};
-	
+
 	const deletePanelAttachment = async (index, id) => {
 		const res = await apiClient.postres(`/api/eventattachment/${id}/Delete`, null, atoken);
 		if (res) {
-			const updated = panelSavedAttach.filter((_, i) => i !== index);
+			const updated = panelSavedAttach.filter((_, i) => i === index);
 			setPanelSavedAttach(updated);
 			handleattachmentforevent(updated);
 		}
 	};
-	
-	const handleClick = (event) => {
-		// Handle the main button click
-		console.log("Main button clicked");
-	};
-	
+
 	const handleMenuClick = (item) => {
-	
-		if (item != "Save as Templates" && item != "Cancel" && item != "Approverforward") {
+
+		if (item !== "Save as Templates" && item !== "Cancel" && item !== "Approverforward") {
 			setSelectedMenuItem(item);
 		}
-	
+
 		setAnchorEl(null); // Close the menu after selection
 		handleSelectButtonGroup(item)
 	};
-	
-	const handleMenuOpen = (event) => {
-		setAnchorEl(event.currentTarget);
-	};
-	
+
 	const [selectedMenuItem, setSelectedMenuItem] = useState("Save & Continue");
-	const handleMenuClose = () => {
-		setAnchorEl(null);
-	};
-	
 	const handleStatusMenuOpen = (event) => {
 		setStatusAnchorEl(event.currentTarget);
 	};
-	
+
 	const handleStatusMenuClose = () => {
 		setStatusAnchorEl(null);
 	};
 	// RFQ Template Title
 	const [TemplateTitle, setTemplateTitle] = useState("")
-	
+
 	const handleSaveTemplate = async () => {
-	
+
 		if (!TemplateTitle.trim()) {
 			toast.error("please enter valid name")
 			return "";
@@ -2743,7 +2934,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			toast.error("RFQ ID must be there to create template")
 			return "";
 		}
-	
+
 		const data = {
 			"templateTitle": TemplateTitle.trim(),
 			"subject": formik?.values?.subject.trim(),
@@ -2757,22 +2948,19 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setOpen(false)
 		}
 	}
-	
-	const handleSelectChange = (event) => {
-		setAge(event.target.value);
-	};
+
 	const CloseLoadingModal = () => setLoadingModal(false);
-	
-	//all actions related to supplier 
+
+	//all actions related to supplier
 	const [selectedAction, setSelectedAction] = useState("")
 	const validationSchemaSurrogate = yup.object().shape({
-	
+
 		email: yup
 			.string('Enter email')
 			.required('Please enter your email')
 			.email('Enter a valid email'),
 	});
-	
+
 	const formik_Action = useFormik({
 		enableReinitialize: true,
 		initialValues: {
@@ -2781,7 +2969,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			email: "",
 			Reason: ""
 		},
-		validationSchema: selectedAction == "Surrogate RFQ" ? validationSchemaSurrogate : "",
+		validationSchema: selectedAction === "Surrogate RFQ" ? validationSchemaSurrogate : "",
 		onSubmit: async (values) => {
 			if (!values?.supplier) {
 				toast.error(`Please Select Supplier`, {
@@ -2789,9 +2977,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				});
 				return;
 			}
-	
+
 			const v = values?.supplier;
-	
+
 			// Common structure
 			const rfqVendorDetails = {
 				rfqId: pageSlug,
@@ -2802,7 +2990,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				customerId: customerid,
 				version: v?.lastVersion
 			};
-	
+
 			let currentStage = "";
 			if (selectedAction === "Surrogate RFQ") {
 				currentStage = "Surrogate";
@@ -2811,7 +2999,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			} else if (selectedAction === "Send Reminder") {
 				currentStage = "Send Reminder";
 			}
-	
+
 			if (selectedAction === "Surrogate RFQ") {
 				const payload = {
 					name: values?.name,
@@ -2829,7 +3017,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						"orgGroupId": 0
 					}
 				};
-	
+
 				const res = await apiClient.postres(`/api/RFQManage/RFQSurrogate`, payload, atoken);
 				if (res) {
 					setState({ ...state, surrogateDrawer: false });
@@ -2842,7 +3030,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					supplierActionType: "", // always empty
 					currentStage: currentStage
 				};
-	
+
 				const res = await apiClient.postres(`/api/RFQManage/${pageSlug}/RFQInvitationVersion`, payload, atoken);
 				if (res) {
 					setState({ ...state, surrogateDrawer: false });
@@ -2857,7 +3045,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			}
 		}
 	});
-	
+
 	useEffect(() => {
 		if (formik?.values) {
 			console.log("formik values changed:", formik);
@@ -2865,24 +3053,24 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	}, [formik])
 	const [tabshow, setTabShow] = useState(true)
 	const handleSupplierSurrogate = (v, action) => {
-	
+
 		setState({ ...state, surrogateDrawer: true });
-		if (action == "Surrogate") {
+		if (action === "Surrogate") {
 			setSelectedAction("Surrogate RFQ")
 		}
-		else if (action == "Reminder") {
+		else if (action === "Reminder") {
 			setSelectedAction("Send Reminder")
 		}
-		else if (action == "Reopen") {
-	
+		else if (action === "Reopen") {
+
 			setSelectedAction("Reopen Quotes")
 		}
-	
+
 		formik_Action.setFieldValue("supplier", v)
 	}
-	
+
 	const handleSupplierAction = (v, action) => {
-	
+
 		switch (action) {
 			case "Surrogate":
 				return handleSupplierSurrogate(v, action)
@@ -2894,11 +3082,11 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				return null;
 		}
 	};
-	
+
 	//
-	
+
 	const handleDraftEvent = useCallback(async () => {
-	
+
 		const payload = {
 			id: pageSlug,
 			stage: "Draft",
@@ -2906,9 +3094,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			description: formik?.values?.description,
 			Version: formik?.values?.Version + 1,
 		}
-	
+
 		const res = await apiClient.postres(`/api/RFQManage/Update`, payload, atoken)
-	
+
 		if (res) {
 			setCurrentStage("Draft")
 			setValue(1)
@@ -2918,22 +3106,22 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			return true
 		}
 		return false
-	
+
 	}, [formik])
-	
+
 	//
 	const [confirmEventUpdate, setConfirmEventUpdate] = useState(false);
 	const [confirmClearAllItems, setConfirmClearAllItems] = useState(false)
 	const [updatesupplieronloading, setupdatesupplieronloading] = useState(1)
-	
+
 	const handleCloseEventUpdate = (value) => {
 		setConfirmEventUpdate(false);
 	};
 	const handleOpenEventUpdate = useCallback((value) => {
 		setConfirmEventUpdate(true);
 	}, []);
-	
-	
+
+
 	if (pageSlug && !tempDataEditData) {
 		return (
 			<GridSkeleton />
@@ -2944,9 +3132,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		await handleSaveContinue()
 		navigate(`/configuration/manage-rfq`);
 	}
-	
+
 	const handleButtonGroup = () => {
-	
+
 		switch (selectedMenuItem) {
 			case "Publish RFQ":
 				return handleRFQSubmit()
@@ -2966,9 +3154,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				return ""
 		}
 	}
-	
+
 	const handleApproverForward = async () => {
-	
+
 		const values = {
 			rfqId: parseInt(idFromURL),
 			status: "Forward",
@@ -2994,11 +3182,11 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			navigate(`/app`);
 		}
 	}
-	
+
 	const handleSelectButtonGroup = (selectedMenuItem) => {
-	
+
 		switch (selectedMenuItem) {
-	
+
 			case "Save as Templates":
 				return handleClickOpen()
 			case "Cancel":
@@ -3021,14 +3209,14 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				return ""
 		}
 	}
-	
+
 	const handleCreateNFA = () => {
 		//logic for create nfa
 	}
-	
+
 	const handleSendMailtoSuppliers = async () => {
 		//logic for send mail to suppliers
-	
+
 		// const data = {
 		// 	rfqid: idFromURL,
 		// 	stage: "RFQ Close Email",
@@ -3045,27 +3233,27 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			// navigate(`/App`);
 		}
 	}
-	
+
 	const handleSaveAllocation = async () => {
 		//logic for save allocation
 		const res = await NFASOBRFQRef?.current?.saveSOBDetails();
 	}
-	
+
 	const handleSendAllocationEmail = async () => {
-	
+
 		const data = {
 			eventId: idFromURL,
 			eventType: "RFQ",
 		}
 		const queryParams = buildQueryParams(data)
-	
+
 		const res = await apiClient.postres(
 			`/api/NFAManage/SendSOBEmail`,
 			queryParams,
 			atoken
 		);
 	}
-	
+
 	const handleSaveAndClose = async () => {
 		//logic for save and close
 		const res1 = await NFASOBRFQRef?.current?.saveSOBDetails();
@@ -3074,14 +3262,14 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			handleApproverForward();
 		}
 	}
-	
+
 	const handleTab = (booleanvalue) => {
 		// setTabShow(booleanvalue)
 		// if (booleanvalue) {
 		// 	setValue(1)
 		// }
 	}
-	
+
 	const handleClearAllItems = (value) => {
 		if (value) {
 			handleClearAll()
@@ -3089,7 +3277,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			setConfirmClearAllItems(false);
 		}
 	};
-	
+
 	const handleBaseCurrency = () => {
 		console.log("handleBaseCurrency called, loading currencies...");
 		if (currencyList.length === 0 && !loadCurrency) {
@@ -3097,7 +3285,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		}
 		setModal1(true);
 	}
-	
+
 	const handleRequisitionerChange = (value) => {
 		if (value === null) {
 			formik.setFieldValue('requisitioner', '');
@@ -3105,14 +3293,14 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			formik.setFieldValue('purchGrpId', null);
 			return;
 		}
-	
+
 		const selectedRequisitioner = requisitionerList?.find(item => item.name === value);
 		if (selectedRequisitioner) {
 			formik.setFieldValue('requisitioner', selectedRequisitioner.name);
-	
+
 			const foundOrg = purchaseAllList?.find(org => org.id === selectedRequisitioner.orgId);
 			formik.setFieldValue('purchOrgId', foundOrg ?? null);
-	
+
 			const userOrgGroup = selectedRequisitioner.userOrgGroup;
 			if (userOrgGroup?.length > 0) {
 				const foundGroup = purchaseGroupAllList?.find(grp => grp.id === userOrgGroup[0].orgGroupId);
@@ -3122,12 +3310,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			}
 		}
 	};
-	
+
 	// Derive dropdown steps from the same stagelist used by the horizontal stepper
 	const rfqStatusSteps = Array.isArray(stagelist) && stagelist.length > 0
 		? stagelist.map(s => s.stageName || s.currentStage).filter(Boolean)
 		: ["Draft"];
-	
+
 	const normalizedCurrentStage = (currentStage || "Draft").trim();
 	const currentStatusIndex = Math.max(
 		0,
@@ -3135,25 +3323,25 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			(step) => step.toLowerCase() === normalizedCurrentStage.toLowerCase()
 		)
 	);
-	
+
 	const formatRfqDateTime = (value) => {
 		if (!value) return "-";
 		const parsed = dayjs(value);
 		return parsed.isValid() ? parsed.format("DD-MM-YY HH:mm") : "-";
 	};
-	
+
 	const isNewRFQ = !idFromURL || idFromURL === "add";
 	const isSaveContinueHeaderDisabled =
 		loading ||
-		(value == 9
-			? currentStage != "Allocation"
+		(value === 9
+			? currentStage !== "Allocation"
 			: isNewRFQ
 				? false
 				: !stagearray.includes(currentStage));
 	const showTabSaveContinue =
 		!actionType &&
 		(isNewRFQ || normalizedCurrentStage.toLowerCase() === "draft");
-	
+
 	//##return
 	return (
 		<>
@@ -3172,7 +3360,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost" onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
 												Cancel
 											</button>
-	
+
 											{/* Secondary actions */}
 											{stagearray.includes(currentStage) && (
 												<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Draft')}>
@@ -3184,7 +3372,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 													Save as Template
 												</button>
 											)}
-											{currentStage === 'Allocation' && value == "9" && (
+											{currentStage === 'Allocation' && value === "9" && (
 												<button type="button" className="rfq-dv2-action-btn pe--secondary" onClick={() => handleMenuClick('Save & Close')}>
 													Save &amp; Close
 												</button>
@@ -3210,7 +3398,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 												}
 												return null;
 											})()}
-	
+
 											{/* Primary action — always last */}
 											{value === 7 && (
 												<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={() => handleMenuClick('Publish RFQ')}>
@@ -3227,7 +3415,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 													{value === 5 ? "Save Suppliers" : "Save & Continue"}
 												</button>
 											)}
-											{currentStage === 'Allocation' && value == "9" && (
+											{currentStage === 'Allocation' && value === "9" && (
 												<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={() => handleMenuClick('Save')}>
 													Save
 												</button>
@@ -3240,7 +3428,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									)}
 								</div>
 							</div>
-	
+
 							{/* Stage flow — visible in non-v2 layout, hidden via CSS in v2 shell */}
 							<div className="rfq-dv2-stage-flow-wrap">
 								<MemoizedEventStageFlow
@@ -3248,7 +3436,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									currentStage={currentStage}
 								/>
 							</div>
-	
+
 							{/* ── Row 2: meta info ── */}
 							<div className="rfq-dv2-head-bottom">
 								<div className="rfq-dv2-meta-row">
@@ -3312,7 +3500,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								</Menu>
 							</div>
 						</div>
-	
+
 						{/* Tab Navigation and Icons Header */}
 						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 bg-grey" style={{ flexShrink: 0 }}>
 							{/* Tab Navigation */}
@@ -3360,7 +3548,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											disabled={!idFromURL}
 										/>
 									)}
-									{idFromURL && currentStage.trim() == "Draft" && (
+									{idFromURL && currentStage.trim() === "Draft" && (
 										<Tab
 											value={7}
 											label={<span className="section-heading">Preview</span>}
@@ -3369,7 +3557,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									)}
 									{idFromURL && (
 										(currentStage.trim() !== "Under Pre Approval" && currentStage.trim() !== "Draft") ||
-										formik?.values?.Version != 1
+										formik?.values?.Version !== 1
 									) && (
 											<Tab
 												value={6}
@@ -3384,7 +3572,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 											disabled={!idFromURL}
 										/>
 									)}
-									{idFromURL && (currentStage.trim() == "Allocation" || currentStage.trim() == "Awarded") && stagelist?.some(item => item.currentStage == "Allocation") && (
+									{idFromURL && (currentStage.trim() === "Allocation" || currentStage.trim() === "Awarded") && stagelist?.some(item => item.currentStage === "Allocation") && (
 										<Tab
 											value={9}
 											label={<span className="section-heading">Allocation</span>}
@@ -3393,7 +3581,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									)}
 								</Tabs>
 							</Box>
-	
+
 							{false && showTabSaveContinue && (
 								<div className="rfq-dv2-tab-save-action">
 									<Button
@@ -3407,9 +3595,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									</Button>
 								</div>
 							)}
-	
+
 							{value === 6 && <div ref={(el) => { rfqReportActionsRef.current = el; if (el && !rfqActionsPortalReady) setRfqActionsPortalReady(true); }} style={{ display: 'flex', alignItems: 'center' }} />}
-	
+
 							{/* Top-right icons: History, Attachment, and Approval */}
 							{/* <div className="d-flex align-items-center gap-2"> */}
 							<div className="d-flex align-items-center gap-2 rfq-dv2-tab-actions" aria-hidden="true">
@@ -3424,12 +3612,12 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										permissionManager={effectivePermissionManager}
 									/>
 								)}
-	
+
 								{idFromURL && (
 									<HistoryCell eventtype={`RFQ`} eventId={idFromURL}
 										permissionManager={effectivePermissionManager}
 									/>
-	
+
 								)}
 								{idFromURL && (<Tooltip title="Show/Hide Approvers">
 									<IconButton
@@ -3443,10 +3631,10 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										</div>
 									</IconButton>
 								</Tooltip>)}
-	
+
 							</div>
 						</div>
-	
+
 						{/* Tab Content */}
 						<div className="flex-grow-1 hidden-scrollbar" style={{ overflowY: value === 2 || value === 5 || value === 6 || value === 8 || value === 9 ? 'hidden' : 'auto', padding: value === 6 || value === 8 || value === 9 ? '0' : '20px 16px 16px', display: value === 2 || value === 5 || value === 6 || value === 8 || value === 9 ? 'flex' : 'block', flexDirection: value === 2 || value === 5 || value === 6 || value === 8 || value === 9 ? 'column' : undefined }}>
 							{/* General Tab Content */}
@@ -3487,7 +3675,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									setOpenCurrencyModal={setOpenCurrencyModal}
 								/>
 							)}
-	
+
 							{/* Items/Services Tab Content */}
 							{value === 2 && (
 								<div className="rfq-items-tab-content" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -3504,6 +3692,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 										idFromURL={idFromURL}
 										rfqVersion={formik?.values?.Version}
 										downloadItemsExcel={downloadItemsExcel}
+										downloadEventItemsExcel={downloadEventItemsExcel}
 										setConfirmClearAllItems={setConfirmClearAllItems}
 										toggleDrawer={toggleDrawer}
 										handleEditItem={handleEditItem}
@@ -3512,7 +3701,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									/>
 								</div>
 							)}
-	
+
 							{/* Commercial Terms Tab Content */}
 							{value === 3 && (
 								<RFQCommercialTab
@@ -3543,7 +3732,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								/>
 							)}
 
-							{value == 5 && (
+							{value === 5 && (
 								<RFQSupplierTab
 									tabloading={tabloading}
 									issupplierreadDisabled={issupplierreadDisabled}
@@ -3577,7 +3766,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									formik={formik}
 								/>
 							)}
-							{value == 6 && idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL)) && (
+							{value === 6 && idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL)) && (
 								<RFQComparativeTab
 									idFromURL={idFromURL}
 									accessLevel={accessLevel}
@@ -3617,14 +3806,14 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 								/>
 							)}
 
-							{value == 8 && (
+							{value === 8 && (
 								<RFQQueryTab
 									pageSlug={pageSlug}
 									accessLevel={accessLevel}
 									permissionManager={permissionManager}
 								/>
 							)}
-							{value == 9 && (
+							{value === 9 && (
 								<RFQAllocationTab
 									idFromURL={idFromURL}
 									formik={formik}
@@ -3632,7 +3821,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 									NFASOBRFQRef={NFASOBRFQRef}
 								/>
 							)}
-							{value == 7 && (
+							{value === 7 && (
 								<RFQPreviewTab
 									rfqpreview={rfqpreview}
 									showGeneralAccessDenied={showGeneralAccessDenied}
@@ -3663,7 +3852,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 						</div>
 					</div>
 				</div>
-	
+
 				{/* Right content - Approval Section */}
 				<RFQWorkflowPanel
 					approvershow={approvershow}
@@ -3709,7 +3898,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					handleattachmentforevent={handleattachmentforevent}
 				/>
 			</div>
-	
+
 			<RFQDrawers
 				state={state}
 				toggleDrawer={toggleDrawer}
@@ -3747,6 +3936,22 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				filteredLoadingFactors={filteredLoadingFactors}
 				setupdatesupplieronloading={setupdatesupplieronloading}
 				setIsUpdated={setIsUpdated}
+				factorDesc={factorDesc}
+				setFactorDesc={setFactorDesc}
+				factorType={factorType}
+				setFactorType={setFactorType}
+				factorPerc={factorPerc}
+				setFactorPerc={setFactorPerc}
+				loadingAmount={loadingAmount}
+				setLoadingAmount={setLoadingAmount}
+				loadingOn={loadingOn}
+				setLoadingOn={setLoadingOn}
+				loadingFactorErrors={errors}
+				loadingupdatebtn={loadingupdatebtn}
+				handleAddLoadingFactor={handleAddLoadingFactor}
+				handleDeleteLoadingFactor={handleDeleteLoadingFactor}
+				handleEditLoadingFactor={handleEditLoadingFactor}
+				updateSupplierLoadingFactor={updateSupplierLoadingFactor}
 				purchaseOrgGrpModal={purchaseOrgGrpModal}
 				ClosePurcgaseOrgGrpModal={ClosePurcgaseOrgGrpModal}
 				open={open}

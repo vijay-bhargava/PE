@@ -1,42 +1,28 @@
-import {
-	Badge,
-	Box,
-	Drawer,
-	IconButton
-} from "@mui/material";
+import { Badge, Box, Drawer, IconButton } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import * as yup from "yup";
 import { HiOutlineBell, HiOutlineX } from "react-icons/hi";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-	FindThreadChat,
-	FindUserList,
-	insertThread,
-} from "../../../utils/communication";
+import { FindThreadChat, FindUserList, insertThread, } from "../../../utils/communication";
 import { actionTypes, useStateValue } from "../../../store";
 import { useFormik } from "formik";
-
 import { toast } from "react-toastify";
 import { uploadFilesOnAzure } from "../../../utils/documentlibrary";
-import { downloadFilesOnAzure, getExtension, pullMessageCount, validateFileSize } from "../../../utils/common";
+import { downloadFilesOnAzure, pullMessageCount, validateFileSize } from "../../../utils/common";
 import CommunicationHub from "../CommunicationHub";
-import { api, ApiClient } from "../../../Apiclient";
+import { ApiClient } from "../../../Apiclient";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
 
 const MessageCell = () => {
-	const [
-		{ atoken, rtoken, customerid, userDetail, eventType, customersuffix, eventId, Notificationlist, CommId, opendrawer, messageCount, isNotificationOpen, messageSource },
-		dispatch,
-	] = useStateValue();
+	const [{ atoken, rtoken, customerid, userDetail, eventType, customersuffix, eventId, Notificationlist, CommId, opendrawer, messageCount, isNotificationOpen, messageSource },
+		dispatch,] = useStateValue();
 	const location = useLocation();
 
 	const apiClient = new ApiClient(customersuffix);
 	const navigate = useNavigate();
-	const [state, setState] = useState({
-		sidebar: false,
-	});
-	const toggleDrawer = (anchor, open) => (event) => {
+	const [state, setState] = useState({ sidebar: false });
 
+	const toggleDrawer = (anchor, open) => (event) => {
 		if (
 			event.type === "keydown" &&
 			(event.key === "Tab" || event.key === "Shift")
@@ -98,10 +84,7 @@ const MessageCell = () => {
 
 	const queryparams = new URLSearchParams(location.search);
 	const [userChatMobile, setUserChatMobile] = useState(false);
-	const [jobId, setjobId] = useState(1);
 	const [commHeader, setCommHeader] = useState(0);
-	const [UnreadMessage, setUnreadMessage] = useState([]);
-	const [loadingChat, setloadingChat] = useState(false);
 
 	const [openChat, setOpenchat] = useState(false);
 	const [chatData, setChatData] = useState([]);
@@ -119,6 +102,7 @@ const MessageCell = () => {
 	const [commParticipantUser, setCommParticipantUser] = useState([]);
 	const [Messagedata, setMessagedata] = useState([]);
 	const [selectedNotification, setSelectedNotification] = useState(null);
+
 	const getMessageListParams = (specificCommId = null) => {
 
 		const currentPath = location.pathname;
@@ -269,7 +253,6 @@ const MessageCell = () => {
 						const finalData = Object.values(groupedData);
 
 						setMessagedata(finalData);
-
 
 						dispatch({
 							type: actionTypes.SET_Notificationlist,
@@ -538,7 +521,7 @@ const MessageCell = () => {
 		};
 		setLoading(true);
 		FindUserList(data, atoken).then((res) => {
-			if (res != "" && res != undefined) {
+			if (res !== "" && res !== undefined) {
 				setUserList(res);
 			}
 			setLoading(false);
@@ -549,7 +532,7 @@ const MessageCell = () => {
 		if (arraylist?.length > 0) {
 			userList?.map((data) => {
 				arraylist?.map((array) => {
-					if (data.id == array.userId) {
+					if (data.id === array.userId) {
 						arrayNew.push(data);
 					}
 				});
@@ -813,14 +796,8 @@ const MessageCell = () => {
 						}}
 					>
 						<HiOutlineBell style={{ fontSize: '25px' }} />
-
 					</Badge>
 				</IconButton>
-
-
-
-
-
 
 				{isOpen && (
 					<div className="rfq-v2-filter-panel v2-notif-drawer-panel" ref={popperRef}>
@@ -841,7 +818,7 @@ const MessageCell = () => {
 											dispatch({ type: actionTypes.SET_NotificationDrawer, value: false });
 											setIsOpen(false);
 										}}
-										className="rfq-v2-filter-panel-close v2-notif-close-btn"
+										className="pe-icon-btn pe-icon-btn--close v2-notif-close-btn"
 										type="button"
 										aria-label="Close notifications"
 									>

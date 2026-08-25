@@ -4,16 +4,8 @@ import {
   Autocomplete, FormControl, FormControlLabel,
   Radio, RadioGroup, TextField, Tooltip,
 } from '@mui/material';
-import {
-  AddOutlined,
-  FilterListOutlined,
-  FileDownloadOutlined,
-  KeyboardArrowDownOutlined,
-  SearchOutlined,
-  TuneOutlined,
-  ViewColumnOutlined,
-} from '@mui/icons-material';
-import { HiOutlineX, HiTrash } from 'react-icons/hi';
+import { AddOutlined } from '@mui/icons-material';
+import { HiTrash } from 'react-icons/hi';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import PEModal from '../../../components/PEModal';
 import { PETable } from '../../../components/RFQ/PETable';
@@ -28,64 +20,19 @@ import {
   findObjListByValueFromArray, getPayloadWithStage,
   invitedSupplierForAuction, pullMessageCount,
   fetchAttachmentsFromPRItems, handlesaveAttachment,
+  getApiErrorMessage,
 } from '../../../utils/common';
 import FilterRFQCell from './FilterRFQCell';
 import GridSkeleton from '../../../components/Skeleton/gridSkeleton';
 import { buildQueryParams } from '../../../utils/purchaseRequest';
 import { ApiClient } from '../../../Apiclient';
 import NotFoundPage from '../../../components/NotAllowed';
+import { PETableToolbar } from '../../../components/RFQ/PETableToolbar';
 import '../../../assets/css/manage-rfq-v2.css';
 import '../../../assets/css/design-system.css';
+import StatusBadge from '../../../components/StatusBadge';
 
-/* ── Status badge colour map ── */
-const STATUS_CFG = {
-  Draft: { bg: '#f3f4f6', color: '#6b7280', dot: '#9ca3af' },
-  Cancel: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
-  'Pre Approval': { bg: '#fef3c7', color: '#92400e', dot: '#d97706' },
-  'Under Pre Approval': { bg: '#fef9c3', color: '#713f12', dot: '#ca8a04' },
-  'Technical Approval': { bg: '#d1fae5', color: '#065f46', dot: '#10b981' },
-  'Under Technical Approval': { bg: '#ecfdf5', color: '#065f46', dot: '#34d399' },
-  'Commercial Approval': { bg: '#dbeafe', color: '#1e40af', dot: '#3b82f6' },
-  'Under Commercial Approval': { bg: '#ede9fe', color: '#4c1d95', dot: '#7c3aed' },
-  Published: { bg: '#d1fae5', color: '#065f46', dot: '#10b981' },
-  Closed: { bg: '#e5e7eb', color: '#374151', dot: '#6b7280' },
-};
-
-const STATUS_CFG_NORMALIZED = {
-  draft: { bg: '#eeeeee', color: '#374151', dot: '#9ca3af' },
-  cancel: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
-  cancelled: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
-  open: { bg: '#dcfce7', color: '#166534', dot: '#22c55e' },
-  'pre approval': { bg: '#fff3cd', color: '#7a3f00', dot: '#b45309' },
-  'under pre approval': { bg: '#fff3cd', color: '#7a3f00', dot: '#b45309' },
-  'forward for approval': { bg: '#ffedd5', color: '#9a3412', dot: '#f97316' },
-  'technical approval': { bg: '#dcfce7', color: '#065f46', dot: '#10b981' },
-  'under technical approval': { bg: '#dcfce7', color: '#065f46', dot: '#10b981' },
-  'commercial approval': { bg: '#dff2ff', color: '#075985', dot: '#0284c7' },
-  'under commercial approval': { bg: '#dff2ff', color: '#075985', dot: '#0284c7' },
-  allocation: { bg: '#e0e7ff', color: '#3730a3', dot: '#6366f1' },
-  allocated: { bg: '#e0e7ff', color: '#3730a3', dot: '#6366f1' },
-  awarded: { bg: '#fef9c3', color: '#854d0e', dot: '#eab308' },
-  published: { bg: '#dcfce7', color: '#166534', dot: '#22c55e' },
-  closed: { bg: '#e5e7eb', color: '#374151', dot: '#6b7280' },
-  rejected: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
-  approved: { bg: '#dcfce7', color: '#166534', dot: '#22c55e' },
-};
-
-const getStatusConfig = (status) => {
-  const key = String(status || '').trim().toLowerCase();
-  return STATUS_CFG_NORMALIZED[key] || STATUS_CFG[status] || { bg: '#f3f4f6', color: '#6b7280', dot: '#9ca3af' };
-};
-
-const RFQStatusBadge = ({ status }) => {
-  const c = getStatusConfig(status);
-  return (
-    <span className="rfq-v2-status-badge" style={{ background: c.bg, color: c.color }} title={status || ''}>
-      <span className="rfq-v2-status-dot" style={{ background: c.dot }} />
-      {status || '—'}
-    </span>
-  );
-};
+const RFQStatusBadge = ({ status }) => <StatusBadge status={status || '—'} />;
 
 /* ── Stages where "Create Event" action is available ── */
 const CAN_CREATE_EVENT = (stage) =>
@@ -99,21 +46,6 @@ const AUCTION_TYPES = [
   { label: 'French Forward Auction', bidTypeId: 5 },
   { label: 'French Reverse Auction', bidTypeId: 6 },
 ];
-
-const EXPORT_COLUMNS = [
-  { field: 'id', label: 'RFQ ID', getValue: (row) => row?.id ?? '' },
-  { field: 'eventCode', label: 'RFQ Code', getValue: (row) => row?.eventCode || '' },
-  { field: 'rfqSubject', label: 'RFQ Subject', getValue: (row) => row?.subject || row?.rfqSubject || '' },
-  { field: 'stage', label: 'Status', getValue: (row) => row?.stage || '' },
-  { field: 'startDate', label: 'Start Date', getValue: (row, userDetail) => row?.startDate ? formatDateViaLocale(row.startDate, userDetail) : '' },
-  { field: 'endDate', label: 'End Date', getValue: (row, userDetail) => row?.endDate ? formatDateViaLocale(row.endDate, userDetail) : '' },
-  { field: 'createdByName', label: 'Created by', getValue: (row) => row?.createdByName || '' },
-];
-
-const escapeCsvValue = (value) => {
-  const text = String(value ?? '');
-  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-};
 
 const normalizeRFQDetailResult = (result) => {
   if (Array.isArray(result)) return result;
@@ -155,9 +87,19 @@ const ManageRFQV2 = ({ claimType }) => {
 
   /* ── Table data ── */
   const [recorddata, setRecorddata] = useState([]);
+  const [rawRecordData, setRawRecordData] = useState([]);
   const [gridloading, setGridloading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 });
+
+  const applyRoleFilter = (result) => {
+    if (accessLevel?.list?.created?.toLowerCase()?.trim() === 'none') {
+      return result.filter((x) => x.stage && x.stage !== 'Draft');
+    }
+    return result;
+  };
 
   const pullRFQManageFind = () => {
     if (!isreadDisabled) { setRecorddata([]); return; }
@@ -170,17 +112,27 @@ const ManageRFQV2 = ({ claimType }) => {
     setGridloading(true);
     getRFQManageFind(data, atoken).then((res) => {
       setGridloading(false);
-      if (res?.length > 0) {
-        if (accessLevel?.list?.created?.toLowerCase().trim() === 'none') {
-          setRecorddata(res.filter((x) => x.status && x.status !== 'Draft'));
-        } else {
-          setRecorddata(res);
-        }
+      const list = Array.isArray(res) ? res : (res?.result ?? []);
+      if (list.length > 0) {
+        const filtered = applyRoleFilter(list);
+        setRawRecordData(filtered);
+        setRecorddata(filtered);
+      } else {
+        setRawRecordData([]);
+        setRecorddata([]);
       }
+    }).catch((err) => {
+      setGridloading(false);
+      toast.error(getApiErrorMessage(err), { toastId: 'rfq_manage_find_error' });
     });
   };
 
   useEffect(() => { pullRFQManageFind(); }, [atoken, customerid]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearchText(searchText), 400);
+    return () => clearTimeout(t);
+  }, [searchText]);
 
   /* ── Filter popover state — MUST be declared before filteredData ── */
   const [filterAnchor, setFilterAnchor] = useState(null);
@@ -258,9 +210,9 @@ const ManageRFQV2 = ({ claimType }) => {
       );
     }
 
-    // Text search
-    if (searchText.trim()) {
-      const q = searchText.toLowerCase();
+    // Text search (debounced)
+    if (debouncedSearchText.trim()) {
+      const q = debouncedSearchText.toLowerCase();
       data = data.filter((row) =>
         (row?.subject || row?.rfqSubject || '').toLowerCase().includes(q) ||
         (row?.eventCode || '').toLowerCase().includes(q) ||
@@ -273,7 +225,7 @@ const ManageRFQV2 = ({ claimType }) => {
 
   useEffect(() => {
     setPaginationModel((prev) => ({ ...prev, page: 0 }));
-  }, [searchText, recorddata.length]);
+  }, [debouncedSearchText, recorddata.length]);
 
   /* ── Advance filter panel ── */
   const [advFilterOpen, setAdvFilterOpen] = useState(false);
@@ -290,15 +242,18 @@ const ManageRFQV2 = ({ claimType }) => {
     setActiveFilterCount(filterModel.items.length);
   }, [filterModel]);
 
+  const [filterValues, setFilterValues] = useState({});
+
   const handleFilterList = (res) => {
-    if (accessLevel?.list?.created?.toLowerCase().trim() === 'none') {
-      setRecorddata(res.filter((x) => x.status && x.status !== 'Draft'));
-    } else {
-      setRecorddata(res);
-    }
+    const filtered = applyRoleFilter(Array.isArray(res) ? res : []);
+    setRecorddata(filtered);
   };
   const clearFilterList = () => {
-    pullRFQManageFind();
+    if (rawRecordData.length > 0) {
+      setRecorddata(rawRecordData);
+    } else {
+      pullRFQManageFind();
+    }
     setFilterModel({ items: [] });
     setTempFilterItems([emptyFilterItem()]);
   };
@@ -393,22 +348,29 @@ const ManageRFQV2 = ({ claimType }) => {
           rfqIsMultiCurrency: hydratedRFQ.isMultiCurrency,
         }));
 
-        // Only allow item selection if at least one vendor has submitted a quote
-        const hasClosedVendor = invitedVendors.some(
-          (vendor) => vendor?.status !== 'Open' && vendor?.isTermsAccepted === 'Y'
-        );
+        const isBoqRequired = selectedRfqId?.boqReq === true;
 
-        if (hasClosedVendor) {
-          setSelectedPRItemModal(selectedItems);
-          setSelectedItemsActive(
-            selectedItems
-              .filter((item) => rfqItemSet.some((existing) => existing.id === item.id && existing.rfqId === item.rfqId))
-              .map((item) => item.id)
-          );
-          setNoQuotesMessage(selectedItems.length ? '' : 'No line items available for this RFQ.');
-        } else {
+        if (isBoqRequired) {
           setSelectedPRItemModal([]);
-          setNoQuotesMessage('None of the vendors have quoted. Cannot proceed.');
+          setNoQuotesMessage("Auctions cannot be created for RFQs containing BOQ items. Please select a different RFQ.");
+        } else {
+          // Only allow item selection if at least one vendor has submitted a quote
+          const hasClosedVendor = invitedVendors.some(
+            (vendor) => vendor?.status !== 'Open' && vendor?.isTermsAccepted === 'Y'
+          );
+
+          if (hasClosedVendor) {
+            setSelectedPRItemModal(selectedItems);
+            setSelectedItemsActive(
+              selectedItems
+                .filter((item) => rfqItemSet.some((existing) => existing.id === item.id && existing.rfqId === item.rfqId))
+                .map((item) => item.id)
+            );
+            setNoQuotesMessage(selectedItems.length ? '' : 'No line items available for this RFQ.');
+          } else {
+            setSelectedPRItemModal([]);
+            setNoQuotesMessage('None of the vendors have quoted. Cannot proceed.');
+          }
         }
 
         setFirstRFQ(hydratedRFQ);
@@ -670,62 +632,46 @@ const ManageRFQV2 = ({ claimType }) => {
     },
   ].filter(Boolean);
 
-  const handleExportRFQs = useCallback(() => {
-    if (!filteredData.length) {
-      toast.info('No RFQ data available to export.', { toastId: 'rfq_export_empty' });
-      return;
-    }
-
-    const exportColumns = EXPORT_COLUMNS.filter((column) => columnVisibility[column.field] !== false);
-    if (!exportColumns.length) {
-      toast.info('Please enable at least one column to export.', { toastId: 'rfq_export_no_columns' });
-      return;
-    }
-
-    const csvRows = [
-      exportColumns.map((column) => escapeCsvValue(column.label)).join(','),
-      ...filteredData.map((row) =>
-        exportColumns
-          .map((column) => escapeCsvValue(column.getValue(row, userDetail)))
-          .join(',')
-      ),
-    ];
-
-    const csvContent = `\uFEFF${csvRows.join('\r\n')}`;
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const stamp = new Date().toISOString().slice(0, 10);
-    link.href = url;
-    link.download = `manage-rfq-${stamp}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, [columnVisibility, filteredData, userDetail]);
-
-  useEffect(() => {
-    if (!colMenuAnchor) return;
-    const handleClickOutside = (e) => {
-      if (colPopoverRef.current && !colPopoverRef.current.contains(e.target)) {
-        setColMenuAnchor(null);
+  const handleExportToExcel = async () => {
+    setIsExporting(true);
+    try {
+      const payload = {
+        RFQId: filterValues.RFQId || 0,
+        eventCode: filterValues.eventCode || '',
+        Subject: filterValues.Subject || debouncedSearchText || '',
+        Status: filterValues.Stage || '',
+        StartDate: filterValues.StartDate ?? null,
+        EndDate: filterValues.EndDate ?? null,
+        PurchOrgId: filterValues.PurchOrgId || 0,
+        PurchGrpId: filterValues.PurchGrpId || 0,
+      };
+      const res = await apiClient.api.post('/api/RFQManage/ExportRFQExcel', payload, {
+        headers: { Authorization: `Bearer ${atoken}` },
+        responseType: 'blob',
+      });
+      if (res?.data) {
+        const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/octet-stream' }));
+        const link = document.createElement('a');
+        link.href = url;
+        const contentDisposition = res.headers?.['content-disposition'];
+        let fileName = `RFQ_Export_${new Date().toISOString().split('T')[0]}.xlsx`;
+        if (contentDisposition) {
+          const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match && match[1]) fileName = match[1].replace(/['"]/g, '');
+        }
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [colMenuAnchor]);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error), { toastId: 'rfq_export_error' });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
-  // Click-outside for filter popover
-  useEffect(() => {
-    if (!filterAnchor) return;
-    const handleClickOutside = (e) => {
-      if (filterPopoverRef.current && !filterPopoverRef.current.contains(e.target)) {
-        setFilterAnchor(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [filterAnchor]);
 
   /* ── Guard: not authorised ── */
   if (!isreadDisabled) {
@@ -765,178 +711,42 @@ const ManageRFQV2 = ({ claimType }) => {
         <div className="rfq-v2-card">
 
           {/* ── Toolbar ── */}
-          <div className="rfq-v2-toolbar">
-            {/* Search */}
-            <div className="rfq-v2-search-wrapper">
-              <input
-                className="rfq-v2-search"
-                placeholder="Search RFQ..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
+          <PETableToolbar
+            searchText={searchText}
+            onSearchChange={setSearchText}
+            searchPlaceholder="Search RFQ..."
+            showFilter
+            filterColumns={FILTER_COLUMNS}
+            filterModel={filterModel}
+            onFilterModelChange={(m) => { setFilterModel(m); setActiveFilterCount(m.items.length); }}
+            showColumns
+            columns={[
+              { field: 'rfqSubject', headerName: 'RFQ' },
+              { field: 'stage', headerName: 'Status' },
+              { field: 'startDate', headerName: 'Start Date' },
+              { field: 'endDate', headerName: 'End Date' },
+              { field: 'createdByName', headerName: 'Created by' },
+              { field: 'Action', headerName: 'Action' },
+            ]}
+            hiddenAlways={[]}
+            columnVisibilityModel={columnVisibility}
+            onColumnVisibilityChange={setColumnVisibility}
+            onColumnVisibilityReset={() => setColumnVisibility({ rfqSubject: true, stage: true, startDate: true, endDate: true, createdByName: true, Action: true })}
+            showAdvFilter
+            advFilterOpen={advFilterOpen}
+            onAdvFilterToggle={() => setAdvFilterOpen(v => !v)}
+            advFilterCount={advFilterOpen ? 1 : 0}
+            advFilterPanel={(
+              <FilterRFQCell
+                handleFilterList={handleFilterList}
+                clearFilterList={clearFilterList}
+                setFilterValues={setFilterValues}
               />
-              <SearchOutlined className="rfq-v2-search-icon" />
-            </div>
-
-            {/* Right buttons */}
-            <div className="rfq-v2-toolbar-right">
-              {/* ── Filter popover (status checkboxes) ── */}
-              <div style={{ position: 'relative' }}>
-                <button
-                  className="rfq-v2-tbtn"
-                  onClick={(e) => setFilterAnchor(filterAnchor ? null : e.currentTarget)}
-                >
-                  <FilterListOutlined />
-                  Filter
-                  {activeFilterCount > 0 && (
-                    <span className="rfq-v2-filter-count">{activeFilterCount}</span>
-                  )}
-                </button>
-
-                {filterAnchor && (
-                  <div className="rfq-v2-col-popover rfq-v2-filter-popover" ref={filterPopoverRef}>
-                    {/* Header */}
-                    <div className="rfq-v2-col-popover-header">
-                      <span className="rfq-v2-col-popover-title">
-                        <FilterListOutlined className="rfq-v2-col-title-icon" />
-                        Filters
-                      </span>
-                      <button className="rfq-v2-col-reset" onClick={resetFilter}>Reset</button>
-                    </div>
-
-                    {/* Filter rows */}
-                    <div className="rfq-v2-filter-rows">
-                      {tempFilterItems.map((item, idx) => (
-                        <div key={item.id} className="rfq-v2-filter-row-item">
-                          {/* Column */}
-                          <select
-                            className="rfq-v2-filter-select"
-                            value={item.field}
-                            onChange={(e) => setTempFilterItems(prev =>
-                              prev.map((f, i) => i === idx ? { ...f, field: e.target.value } : f)
-                            )}
-                          >
-                            {FILTER_COLUMNS.map((c) => (
-                              <option key={c.field} value={c.field}>{c.label}</option>
-                            ))}
-                          </select>
-
-                          {/* Operator */}
-                          <select
-                            className="rfq-v2-filter-select"
-                            value={item.operator}
-                            onChange={(e) => setTempFilterItems(prev =>
-                              prev.map((f, i) => i === idx ? { ...f, operator: e.target.value } : f)
-                            )}
-                          >
-                            {FILTER_OPERATORS.map((op) => (
-                              <option key={op} value={op}>{op}</option>
-                            ))}
-                          </select>
-
-                          {/* Value — hidden for isEmpty/isNotEmpty */}
-                          {item.operator !== 'isEmpty' && item.operator !== 'isNotEmpty' && (
-                            <input
-                              type="text"
-                              className="rfq-v2-filter-value-input"
-                              placeholder="Filter value"
-                              value={item.value}
-                              onChange={(e) => setTempFilterItems(prev =>
-                                prev.map((f, i) => i === idx ? { ...f, value: e.target.value } : f)
-                              )}
-                            />
-                          )}
-
-                          {/* Remove row */}
-                          {tempFilterItems.length > 1 && (
-                            <button
-                              className="rfq-v2-filter-remove-btn"
-                              onClick={() => setTempFilterItems(prev => prev.filter((_, i) => i !== idx))}
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Add filter row + Apply */}
-                    <div className="rfq-v2-filter-popover-footer">
-                      <button
-                        className="rfq-v2-filter-add-btn"
-                        onClick={() => setTempFilterItems(prev => [...prev, emptyFilterItem()])}
-                      >
-                        + Add filter
-                      </button>
-                      <button className="rfq-v2-filter-apply-btn" onClick={applyFilter}>
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <button
-                className="rfq-v2-tbtn"
-                onClick={() => setAdvFilterOpen((v) => !v)}
-              >
-                <TuneOutlined />
-                Advance Filter
-                {advFilterOpen && (
-                  <span className="rfq-v2-filter-count">1</span>
-                )}
-              </button>
-
-              <div style={{ position: 'relative' }}>
-                <button className="rfq-v2-tbtn" onClick={(e) => setColMenuAnchor(colMenuAnchor ? null : e.currentTarget)}>
-                  <ViewColumnOutlined />
-                  Columns
-                  {Object.values(columnVisibility).some(v => !v) && (
-                    <span className="rfq-v2-filter-count">{Object.values(columnVisibility).filter(v => !v).length}</span>
-                  )}
-                </button>
-                {colMenuAnchor && (
-                  <div className="rfq-v2-col-popover" ref={colPopoverRef}>
-                    <div className="rfq-v2-col-popover-header">
-                      <span className="rfq-v2-col-popover-title">
-                        <ViewColumnOutlined className="rfq-v2-col-title-icon" />
-                        Manage Columns
-                      </span>
-                      <button className="rfq-v2-col-reset" onClick={() => setColumnVisibility({ rfqSubject: true, stage: true, startDate: true, endDate: true, createdByName: true, Action: true })}>Reset</button>
-                    </div>
-                    {[
-                      { field: 'rfqSubject', label: 'RFQ' },
-                      { field: 'stage', label: 'Status' },
-                      { field: 'startDate', label: 'Start Date' },
-                      { field: 'endDate', label: 'End Date' },
-                      { field: 'createdByName', label: 'Created by' },
-                      { field: 'Action', label: 'Action' },
-                    ].map(col => (
-                      <label key={col.field} className="rfq-v2-col-item">
-                        <input
-                          type="checkbox"
-                          className="rfq-v2-col-check"
-                          checked={!!columnVisibility[col.field]}
-                          onChange={() => setColumnVisibility(prev => ({ ...prev, [col.field]: !prev[col.field] }))}
-                        />
-                        <span className="rfq-v2-col-label">{col.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <button
-                type="button"
-                className="rfq-v2-tbtn rfq-v2-tbtn-export"
-                onClick={handleExportRFQs}
-                disabled={!filteredData.length}
-              >
-                <FileDownloadOutlined />
-                Export
-                <KeyboardArrowDownOutlined className="export-chevron" />
-              </button>
-            </div>
-          </div>
+            )}
+            showExport
+            onExport={handleExportToExcel}
+            exportLoading={isExporting}
+          />
 
           {/* ── Table ── */}
           <div className="rfq-v2-table-wrapper">
@@ -948,7 +758,7 @@ const ManageRFQV2 = ({ claimType }) => {
               <div className="rfq-v2-empty">
                 <p className="rfq-v2-empty-title">No RFQs found</p>
                 <p className="rfq-v2-empty-sub">
-                  {searchText ? 'Try adjusting your search.' : 'Create your first RFQ to get started.'}
+                  {debouncedSearchText ? 'Try adjusting your search.' : 'Create your first RFQ to get started.'}
                 </p>
               </div>
             ) : (
@@ -969,28 +779,6 @@ const ManageRFQV2 = ({ claimType }) => {
           </div>
         </div>
       </div>
-
-      {/* ── Advance Filter slide-in panel ── */}
-      {advFilterOpen && (
-        <div className="rfq-v2-filter-panel">
-          <div className="rfq-v2-filter-panel-header">
-            <h3 className="rfq-v2-filter-panel-title">Advance Search</h3>
-            <button
-              className="rfq-v2-filter-panel-close"
-              onClick={() => setAdvFilterOpen(false)}
-              aria-label="Close"
-            >
-              <HiOutlineX size={16} />
-            </button>
-          </div>
-          <div className="rfq-v2-filter-panel-body">
-            <FilterRFQCell
-              handleFilterList={handleFilterList}
-              clearFilterList={clearFilterList}
-            />
-          </div>
-        </div>
-      )}
 
       {/* ── Create RFQ modal ── */}
       <PEModal

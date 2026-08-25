@@ -54,6 +54,42 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, on
 	const handleClosePoDetail = () => setOpenPoDetail(false);
 
 	const [expandedSummary, setExpandedSummary] = useState(false);
+	const [openLoadingF, SetLoadingF] = useState(false);
+	const [selectedLoadingF, SetSelectedLoadingF] = useState(null);
+	const handleCloseLoadingF = () => SetLoadingF(false);
+	const handleOpenLoadingF = (v) => {
+		SetLoadingF(true);
+		SetSelectedLoadingF(v);
+	};
+
+	const [expandedFinancial, setExpandedFinancial] = useState(false);
+	const [expandedCommercial, setExpandedCommercial] = useState(false);
+	const [expandedTechnical, setExpandedTechnical] = useState(false);
+	const [expandedSupplierAttachments, setExpandedSupplierAttachments] = useState(false);
+
+	const handleAccordionChange = (panel) => (event, isExpanded) => {
+		switch (panel) {
+			case 'financial':
+				setExpandedFinancial(isExpanded);
+				break;
+			case 'commercial':
+				setExpandedCommercial(isExpanded);
+				break;
+			case 'technical':
+				setExpandedTechnical(isExpanded);
+				break;
+			case 'summary':
+				setExpandedSummary(isExpanded);
+				break;
+			case 'supplierAttachments':
+				setExpandedSupplierAttachments(isExpanded);
+				break;
+			default:
+				break;
+		}
+	};
+
+	const [showcommercial, setShowCommercial] = useState(true);
 
 	const { pageSlug, supplierid } = useParams();
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -103,6 +139,46 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, on
 	const [supplierList, setSupplierList] = useState([]);
 	const [QuestionResponses, setQuestionResponses] = useState([]);
 	const [selectedVersion, setSelectedVersion] = useState(null);
+
+	const downloadPdf = useCallback(async () => {
+		try {
+			let VersionParam;
+			let finalversionparam = false;
+			if (version?.includes("x")) {
+				VersionParam = version.split(".")[0];
+				finalversionparam = true;
+			} else {
+				VersionParam = version;
+			}
+			const reqdata = {
+				version: parseFloat(VersionParam),
+				finalVersion: finalversionparam,
+				isBOQ: actions.EventHeaderDetails?.boqReq ? true : false,
+				activityId: actions?.activityId,
+			};
+			const queryParams = buildQueryParams(reqdata);
+			const response = await apiClient.api.get(
+				`/api/RFQManage/comparison-report/${actions?.rfqid}?${queryParams}`,
+				{
+					responseType: 'blob',
+					headers: { Authorization: `Bearer ${atoken}` },
+				}
+			);
+			const url = window.URL.createObjectURL(new Blob([response.data]));
+			const link = document.createElement("a");
+			link.href = url;
+			link.setAttribute('download', `RFQ_Comparison_Report_${actions?.rfqid}.pdf`);
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			window.URL.revokeObjectURL(url);
+			toast.success(`Report downloaded successfully.`, { autoClose: 2000 });
+		} catch (error) {
+			console.error("Error downloading PDF:", error);
+			toast.error("Error downloading comparison report.", { toastId: "report_download_error", autoClose: 3000 });
+		}
+	}, [atoken, actions?.rfqid, version, apiClient]);
+
 	const RFQcomparativeReport = async () => {
 		let VersionParam;
 		let finalversionparam = false;
@@ -3002,6 +3078,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, on
 				Version={actions?.rfqheaderversion}
 				EventHeaderDetails={actions?.EventHeaderDetails}
 				downloadExcel={downloadExcel}
+				downloadpdf={downloadPdf}
 				currentStage={actions?.currentStage}
 			/>
 			<button type="button"

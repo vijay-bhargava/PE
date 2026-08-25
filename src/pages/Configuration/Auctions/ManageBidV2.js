@@ -3,12 +3,10 @@ import {
   Autocomplete, FormControl, FormControlLabel,
   Radio, RadioGroup, TextField, Tooltip,
 } from '@mui/material';
-import {
-  AddOutlined, FileDownloadOutlined, FilterListOutlined,
-  KeyboardArrowDownOutlined, SearchOutlined, TuneOutlined, ViewColumnOutlined,
-} from '@mui/icons-material';
+import { AddOutlined } from '@mui/icons-material';
+import { PETableToolbar } from '../../../components/RFQ/PETableToolbar';
 import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
-import { HiOutlineX, HiPencilAlt } from 'react-icons/hi';
+import { HiPencilAlt } from 'react-icons/hi';
 import { Link, useNavigate } from 'react-router-dom';
 import PEModal from '../../../components/PEModal';
 import { actionTypes, useStateValue } from '../../../store';
@@ -26,38 +24,9 @@ import { PETable } from '../../../components/RFQ/PETable';
 import CommonTooltip from '../../../components/commonTooltip';
 import '../../../assets/css/manage-rfq-v2.css';
 import '../../../assets/css/design-system.css';
+import StatusBadge from '../../../components/StatusBadge';
 
-/* ── Auction status badge colour map ── */
-const AUCTION_STATUS_CFG = {
-  draft: { bg: '#eeeeee', color: '#374151', dot: '#9ca3af' },
-  cancel: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
-  cancelled: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
-  open: { bg: '#dbeafe', color: '#1e40af', dot: '#3b82f6' },
-  running: { bg: '#dcfce7', color: '#166534', dot: '#22c55e' },
-  paused: { bg: '#fff3cd', color: '#7a3f00', dot: '#b45309' },
-  close: { bg: '#e5e7eb', color: '#374151', dot: '#6b7280' },
-  closed: { bg: '#e5e7eb', color: '#374151', dot: '#6b7280' },
-  awarded: { bg: '#fef9c3', color: '#854d0e', dot: '#eab308' },
-  allocation: { bg: '#e0e7ff', color: '#3730a3', dot: '#6366f1' },
-  published: { bg: '#dcfce7', color: '#166534', dot: '#22c55e' },
-  'under pre approval': { bg: '#fff3cd', color: '#7a3f00', dot: '#b45309' },
-  'pre approval': { bg: '#fff3cd', color: '#7a3f00', dot: '#b45309' },
-};
-
-const getAuctionStatusConfig = (status) => {
-  const key = String(status || '').trim().toLowerCase();
-  return AUCTION_STATUS_CFG[key] || { bg: '#f3f4f6', color: '#6b7280', dot: '#9ca3af' };
-};
-
-const AuctionStatusBadge = ({ status }) => {
-  const c = getAuctionStatusConfig(status);
-  return (
-    <span className="rfq-v2-status-badge" style={{ background: c.bg, color: c.color }} title={status || ''}>
-      <span className="rfq-v2-status-dot" style={{ background: c.dot }} />
-      {status || '—'}
-    </span>
-  );
-};
+const AuctionStatusBadge = ({ status }) => <StatusBadge status={status || '—'} />;
 
 const bidTypeMap = {
   1: 'Forward Auction',
@@ -217,8 +186,6 @@ const ManageBidV2 = () => {
   };
 
   /* ── Filter popover (column filters) ── */
-  const [filterAnchor, setFilterAnchor] = useState(null);
-  const filterPopoverRef = React.useRef(null);
   const [filterModel, setFilterModel] = useState({ items: [] });
   const [activeFilterCount, setActiveFilterCount] = useState(0);
 
@@ -230,27 +197,6 @@ const ManageBidV2 = () => {
     { field: 'bidEndDate', label: 'End Date' },
     { field: 'createdByName', label: 'Created By' },
   ];
-  const FILTER_OPERATORS = ['contains', 'equals', 'startsWith', 'endsWith', 'isEmpty', 'isNotEmpty'];
-
-  const _filterIdRef = React.useRef(0);
-  const emptyFilterItem = () => ({ id: ++_filterIdRef.current, field: 'bidsubject', operator: 'contains', value: '' });
-  const [tempFilterItems, setTempFilterItems] = useState([emptyFilterItem()]);
-
-  const applyFilter = () => {
-    const validItems = tempFilterItems.filter(
-      (f) => f.operator === 'isEmpty' || f.operator === 'isNotEmpty' || (f.value && f.value.trim())
-    );
-    setFilterModel({ items: validItems });
-    setActiveFilterCount(validItems.length);
-    setFilterAnchor(null);
-  };
-
-  const resetFilter = () => {
-    setFilterModel({ items: [] });
-    setActiveFilterCount(0);
-    setTempFilterItems([emptyFilterItem()]);
-    setFilterAnchor(null);
-  };
 
   const getFieldValue = (row, field) => {
     switch (field) {
@@ -275,15 +221,6 @@ const ManageBidV2 = () => {
       default: return cellVal.includes(v);
     }
   };
-
-  useEffect(() => {
-    if (!filterAnchor) return;
-    const handleClickOutside = (e) => {
-      if (filterPopoverRef.current && !filterPopoverRef.current.contains(e.target)) setFilterAnchor(null);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [filterAnchor]);
 
   /* ── Client-side search + column filter ── */
   const filteredData = (() => {
@@ -329,7 +266,6 @@ const ManageBidV2 = () => {
     pullBidManageFind();
     setFilterModel({ items: [] });
     setActiveFilterCount(0);
-    setTempFilterItems([emptyFilterItem()]);
   };
 
   /* ── Column visibility ── */
@@ -337,17 +273,6 @@ const ManageBidV2 = () => {
     bidsubject: true, bidTypeID: true, stage: true,
     bidStDate: true, bidEndDate: true, action: true, createdBy: true
   });
-  const [colMenuAnchor, setColMenuAnchor] = useState(null);
-  const colPopoverRef = React.useRef(null);
-
-  useEffect(() => {
-    if (!colMenuAnchor) return;
-    const handleClickOutside = (e) => {
-      if (colPopoverRef.current && !colPopoverRef.current.contains(e.target)) setColMenuAnchor(null);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [colMenuAnchor]);
 
   /* ── Export ── */
   const handleExport = useCallback(() => {
@@ -580,172 +505,40 @@ const ManageBidV2 = () => {
         <div className="rfq-v2-card">
 
           {/* ── Toolbar ── */}
-          <div className="rfq-v2-toolbar">
-            <div className="rfq-v2-search-wrapper">
-              <input
-                className="rfq-v2-search"
-                placeholder="Search auctions..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
+          <PETableToolbar
+            searchText={searchText}
+            onSearchChange={setSearchText}
+            searchPlaceholder="Search auctions..."
+            showFilter
+            filterColumns={FILTER_COLUMNS}
+            filterModel={filterModel}
+            onFilterModelChange={(m) => { setFilterModel(m); setActiveFilterCount(m.items.length); }}
+            showColumns
+            columns={[
+              { field: 'bidsubject', headerName: 'Auction' },
+              { field: 'bidTypeID', headerName: 'Type' },
+              { field: 'stage', headerName: 'Status' },
+              { field: 'bidStDate', headerName: 'Start Date' },
+              { field: 'bidEndDate', headerName: 'End Date' },
+              { field: 'action', headerName: 'Action' },
+            ]}
+            hiddenAlways={[]}
+            columnVisibilityModel={columnVisibility}
+            onColumnVisibilityChange={setColumnVisibility}
+            onColumnVisibilityReset={() => setColumnVisibility({ bidsubject: true, bidTypeID: true, stage: true, bidStDate: true, bidEndDate: true, action: true, createdBy: true })}
+            showAdvFilter
+            advFilterOpen={advFilterOpen}
+            onAdvFilterToggle={() => setAdvFilterOpen((v) => !v)}
+            advFilterCount={advFilterOpen ? 1 : 0}
+            advFilterPanel={
+              <FilterAuctionCell
+                handleFilterList={handleFilterList}
+                clearFilterList={clearFilterList}
               />
-              <SearchOutlined className="rfq-v2-search-icon" />
-            </div>
-
-            <div className="rfq-v2-toolbar-right">
-              {/* ── Filter popover ── */}
-              <div style={{ position: 'relative' }}>
-                <button
-                  className="rfq-v2-tbtn"
-                  onClick={(e) => setFilterAnchor(filterAnchor ? null : e.currentTarget)}
-                >
-                  <FilterListOutlined />
-                  Filter
-                  {activeFilterCount > 0 && (
-                    <span className="rfq-v2-filter-count">{activeFilterCount}</span>
-                  )}
-                </button>
-
-                {filterAnchor && (
-                  <div className="rfq-v2-col-popover rfq-v2-filter-popover" ref={filterPopoverRef}>
-                    <div className="rfq-v2-col-popover-header">
-                      <span className="rfq-v2-col-popover-title">
-                        <FilterListOutlined className="rfq-v2-col-title-icon" />
-                        Filters
-                      </span>
-                      <button className="rfq-v2-col-reset" onClick={resetFilter}>Reset</button>
-                    </div>
-
-                    <div className="rfq-v2-filter-rows">
-                      {tempFilterItems.map((item, idx) => (
-                        <div key={item.id} className="rfq-v2-filter-row-item">
-                          <select
-                            className="rfq-v2-filter-select"
-                            value={item.field}
-                            onChange={(e) => setTempFilterItems((prev) =>
-                              prev.map((f, i) => i === idx ? { ...f, field: e.target.value } : f)
-                            )}
-                          >
-                            {FILTER_COLUMNS.map((c) => (
-                              <option key={c.field} value={c.field}>{c.label}</option>
-                            ))}
-                          </select>
-
-                          <select
-                            className="rfq-v2-filter-select"
-                            value={item.operator}
-                            onChange={(e) => setTempFilterItems((prev) =>
-                              prev.map((f, i) => i === idx ? { ...f, operator: e.target.value } : f)
-                            )}
-                          >
-                            {FILTER_OPERATORS.map((op) => (
-                              <option key={op} value={op}>{op}</option>
-                            ))}
-                          </select>
-
-                          {item.operator !== 'isEmpty' && item.operator !== 'isNotEmpty' && (
-                            <input
-                              type="text"
-                              className="rfq-v2-filter-value-input"
-                              placeholder="Filter value"
-                              value={item.value}
-                              onChange={(e) => setTempFilterItems((prev) =>
-                                prev.map((f, i) => i === idx ? { ...f, value: e.target.value } : f)
-                              )}
-                            />
-                          )}
-
-                          {tempFilterItems.length > 1 && (
-                            <button
-                              className="rfq-v2-filter-remove-btn"
-                              onClick={() => setTempFilterItems((prev) => prev.filter((_, i) => i !== idx))}
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="rfq-v2-filter-popover-footer">
-                      <button
-                        className="rfq-v2-filter-add-btn"
-                        onClick={() => setTempFilterItems((prev) => [...prev, emptyFilterItem()])}
-                      >
-                        + Add filter
-                      </button>
-                      <button className="rfq-v2-filter-apply-btn" onClick={applyFilter}>
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <button
-                className="rfq-v2-tbtn"
-                onClick={() => setAdvFilterOpen((v) => !v)}
-              >
-                <TuneOutlined />
-                Advance Filter
-                {advFilterOpen && <span className="rfq-v2-filter-count">1</span>}
-              </button>
-
-              <div style={{ position: 'relative' }}>
-                <button className="rfq-v2-tbtn" onClick={(e) => setColMenuAnchor(colMenuAnchor ? null : e.currentTarget)}>
-                  <ViewColumnOutlined />
-                  Columns
-                  {Object.values(columnVisibility).some((v) => !v) && (
-                    <span className="rfq-v2-filter-count">{Object.values(columnVisibility).filter((v) => !v).length}</span>
-                  )}
-                </button>
-                {colMenuAnchor && (
-                  <div className="rfq-v2-col-popover" ref={colPopoverRef}>
-                    <div className="rfq-v2-col-popover-header">
-                      <span className="rfq-v2-col-popover-title">
-                        <ViewColumnOutlined className="rfq-v2-col-title-icon" />
-                        Manage Columns
-                      </span>
-                      <button
-                        className="rfq-v2-col-reset"
-                        onClick={() => setColumnVisibility({ bidsubject: true, bidTypeID: true, stage: true, bidStDate: true, bidEndDate: true, action: true })}
-                      >
-                        Reset
-                      </button>
-                    </div>
-                    {[
-                      { field: 'bidsubject', label: 'Auction' },
-                      { field: 'bidTypeID', label: 'Type' },
-                      { field: 'stage', label: 'Status' },
-                      { field: 'bidStDate', label: 'Start Date' },
-                      { field: 'bidEndDate', label: 'End Date' },
-                      { field: 'action', label: 'Action' },
-                    ].map((col) => (
-                      <label key={col.field} className="rfq-v2-col-item">
-                        <input
-                          type="checkbox"
-                          className="rfq-v2-col-check"
-                          checked={!!columnVisibility[col.field]}
-                          onChange={() => setColumnVisibility((prev) => ({ ...prev, [col.field]: !prev[col.field] }))}
-                        />
-                        <span className="rfq-v2-col-label">{col.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <button
-                type="button"
-                className="rfq-v2-tbtn rfq-v2-tbtn-export"
-                onClick={handleExport}
-                disabled={!filteredData.length}
-              >
-                <FileDownloadOutlined />
-                Export
-                <KeyboardArrowDownOutlined className="export-chevron" />
-              </button>
-            </div>
-          </div>
+            }
+            showExport
+            onExport={handleExport}
+          />
 
           {/* ── Table ── */}
           <div className="rfq-v2-table-wrapper">
@@ -782,28 +575,6 @@ const ManageBidV2 = () => {
           </div>
         </div>
       </div>
-
-      {/* ── Advance Filter slide-in panel ── */}
-      {advFilterOpen && (
-        <div className="rfq-v2-filter-panel">
-          <div className="rfq-v2-filter-panel-header">
-            <h3 className="rfq-v2-filter-panel-title">Advance Search</h3>
-            <button
-              className="rfq-v2-filter-panel-close"
-              onClick={() => setAdvFilterOpen(false)}
-              aria-label="Close"
-            >
-              <HiOutlineX size={16} />
-            </button>
-          </div>
-          <div className="rfq-v2-filter-panel-body">
-            <FilterAuctionCell
-              handleFilterList={handleFilterList}
-              clearFilterList={clearFilterList}
-            />
-          </div>
-        </div>
-      )}
 
       {/* ── Create Auction modal ── */}
       <PEModal
