@@ -1,368 +1,317 @@
-﻿import React from 'react';
+import React from 'react'
 import { useEffect, useState } from 'react';
-import { FormControl, InputLabel, MenuItem, Select, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import '../../assets/css/manage-rfq-v2.css';
+import StatusBadge from '../../components/StatusBadge';
+import { FormControl, MenuItem, Select, Box } from "@mui/material";
+import { Link } from "react-router-dom";
 import { formatDateViaLocaleonlydatenottime, getReportColumns } from '../../utils/common/utility';
 import { actionTypes, useStateValue } from '../../store';
-import { HiOutlineX } from "react-icons/hi";
 import CryptoJS from "crypto-js";
-import { DataGrid, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarFilterButton, GridToolbarQuickFilter } from '@mui/x-data-grid';
-import { Box, IconButton, Button } from '@mui/material';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import { BackButton } from '../../utils/common/component';
+import { PETable } from '../../components/RFQ/PETable';
+import { PETableToolbar } from '../../components/RFQ/PETableToolbar';
 import { useFormik } from 'formik';
 import TextFieldCell from '../BaseCells/TextFieldCell';
 import { LoadingButton } from "@mui/lab";
 import { LocalizationProvider, MobileDateTimePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { buildQueryParams } from '../../utils/purchaseRequest/index';
+import { buildQueryParams } from '../../utils/purchaseRequest';
 import { ApiClient } from '../../Apiclient';
 import { isTokenExpired } from '../../utils/common';
 import { useCookies } from "react-cookie";
 
 const GrnReport = () => {
 
-    const [{ atoken, rtoken, customerid, userDetail, customersuffix }, dispatch] = useStateValue();
-    const apiClient = new ApiClient(customersuffix);
-    const [cookie, setCookie] = useCookies(["patkn", "prtkn"]);
-    const LOCAL_STORAGE_KEY = 'GrnReportColumnVisibility';
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
-    const [grnLoading, setGrnLoading] = useState(false);
-    const [tableColumnLabels, setTableColumnLabels] = useState([]);
-    const [tableRows, setTableRows] = useState([]);
-    const [columnVisibilityModel, setColumnVisibilityModel] = useState({ id: false });
-    const [divVisible, setDivVisible] = useState(false);
-    const [activeFiltersCount, setActiveFiltersCount] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
-    const [page, setPage] = useState(1);
-    const [rowCount, setRowCount] = useState(0);
-    const [TotalCount, setTotalCount] = useState(0);
+	const [{ atoken, rtoken, customerid, userDetail, customersuffix }, dispatch] = useStateValue();
+	const apiClient = new ApiClient(customersuffix);
+	const [cookie, setCookie] = useCookies(["patkn", "prtkn"]);
+	const LOCAL_STORAGE_KEY = 'GrnReportColumnVisibility';
 
-    useEffect(() => {
-        const storedVisibility = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (storedVisibility) {
-            setColumnVisibilityModel(JSON.parse(storedVisibility));
-        }
-    }, []);
+	useEffect(() => {
+		const storedVisibility = localStorage.getItem(LOCAL_STORAGE_KEY);
+		if (storedVisibility) { setColumnVisibilityModel(JSON.parse(storedVisibility)); }
+	}, []);
 
-    const toggleDivVisibility = () => setDivVisible(!divVisible);
-    const closeDivVisibility = () => setDivVisible(false);
+	const [loading, setLoading] = useState(true);
+	const [grnLoading, setGrnLoading] = useState(false);
+	const [tableColumnLabels, setTableColumnLabels] = useState([]);
+	const [tableRows, setTableRows] = useState([]);
+	const [searchText, setSearchText] = useState('');
+	const [originalTableRows, setOriginalTableRows] = useState([]);
+	const [density, setDensity] = useState('standard');
+	const [filterModel, setFilterModel] = useState({ items: [] });
+	const [columnVisibilityModel, setColumnVisibilityModel] = useState({ id: false });
+	const [divVisible, setDivVisible] = useState(false);
+	const [activeFiltersCount, setActiveFiltersCount] = useState(0);
+	const [pageSize, setPageSize] = useState(10);
+	const [page, setPage] = useState(1);
+	const [rowCount, setRowCount] = useState(0);
+	const [TotalCount, setTotalCount] = useState(0);
 
-    const clear = async () => {
-        formik.resetForm();
-        setActiveFiltersCount(0);
-        setPage(1);
-        setGrnLoading(true);
-        await pullGrnReport(1, pageSize);
-        setGrnLoading(false);
-    };
+	const getStatusChip = (value) => <StatusBadge status={value} />;
 
-    const columns = tableColumnLabels?.map(item => ({
-        field: item?.columnName,
-        headerName: item?.columnTitle,
-        minWidth: 100,
-        flex: 1,
-        editable: false,
-        hideable: item?.hideable || true,
-        valueFormatter: (item?.columnTitle?.includes("Date"))
-            ? (params) => params.value ? formatDateViaLocaleonlydatenottime(params.value, userDetail) : ""
-            : undefined,
-        renderCell: (params) => (
-            <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {params?.formattedValue}
-            </Box>
-        ),
-    }));
+	const columns = tableColumnLabels
+		?.filter(item => item?.columnName !== 'eventCode' && item?.columnName !== 'id')
+		?.map(item => {
+			const isStatusCol = ['stage', 'status'].some(k => item?.columnName?.toLowerCase().includes(k));
+			const isDateCol = ["GRN Date", "PO Date", "From Date", "To Date"].includes(item?.columnTitle);
+			const isLongCol = item?.columnName === 'vendorName';
+			return {
+				field: item?.columnName,
+				headerName: item?.columnTitle,
+				width: isLongCol ? 200 : isStatusCol ? 140 : 170,
+				minWidth: isLongCol ? 150 : isStatusCol ? 110 : isDateCol ? 130 : 90,
+				maxWidth: isLongCol ? 300 : isStatusCol ? 200 : isDateCol ? 220 : 250,
+				editable: false,
+				hideable: item?.hideable ?? true,
+				valueFormatter: isDateCol
+					? (params) => params.value ? formatDateViaLocaleonlydatenottime(params.value, userDetail) : ""
+					: undefined,
+				renderCell: (params) => {
+					if (isStatusCol) {
+						return (
+							<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+								{getStatusChip(params?.formattedValue ?? params?.value)}
+							</div>
+						);
+					}
+					return (
+						<Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+							{params?.formattedValue}
+						</Box>
+					);
+				},
+			};
+		});
 
-    const updateToken = async () => {
-        const res = await isTokenExpired(atoken, rtoken, customerid);
-        if (res) {
-            if (res?.accessToken !== "") {
-                dispatch({ type: actionTypes.SET_ATOKEN, value: res.accessToken });
-                setCookie("patkn", CryptoJS.AES.encrypt(`${res.accessToken}`, process.env.REACT_APP_TOKEN_INCRYPT_KEY)?.toString(), { path: "/", maxAge: 86400 });
-            }
-            if (res?.refreshToken !== "") {
-                dispatch({ type: actionTypes.SET_RTOKEN, value: res.refreshToken });
-                setCookie("prtkn", CryptoJS.AES.encrypt(`${res.refreshToken}`, process.env.REACT_APP_TOKEN_INCRYPT_KEY)?.toString(), { path: "/", maxAge: 86400 });
-            }
-            return true;
-        }
-        return false;
-    };
+	const filterColumns = (columns || []).map(c => ({ field: c.field, label: c.headerName }));
 
-    const pullReportColumns = async () => {
-        try {
-            const data = { slug: 'GRNReport', customerId: customerid };
-            const res = await getReportColumns(data, atoken);
-            if (res?.length > 0) {
-                setTableColumnLabels(res);
-                pullGrnReport();
-            } else {
-                setLoading(false);
-            }
-        } catch (error) {
-            setLoading(false);
-        }
-    };
+	const pullReportColumns = async () => {
+		try {
+			const data = { slug: 'GRNReport', customerId: customerid };
+			const res = await getReportColumns(data, atoken);
+			if (res?.length > 0) { setTableColumnLabels(res); pullGrnReport(); }
+			else { setLoading(false); }
+		} catch (error) { setLoading(false); }
+	};
 
-    const pullGrnReport = async (pageNumber = 1, pageSz = 10, filterData = null) => {
-        setLoading(true);
-        try {
-            await updateToken();
-            let queryParams;
-            if (filterData && Object.keys(filterData).length > 0) {
-                queryParams = buildQueryParams({
-                    CustomerId: customerid,
-                    ...filterData
-                });
-            } else {
-                queryParams = buildQueryParams({
-                    CustomerId: customerid,
-                    PageNumber: pageNumber,
-                    PageSize: pageSz,
-                });
-            }
-            const res = await apiClient.get(`/api/grnheader/GRNReport?${queryParams}`, atoken);
-            if (res && res.result && res.result.length > 0) {
-                const totalRecords = res?.pageMetadata?.totalCount || res.result.length;
-                setRowCount(totalRecords);
-                setTotalCount(totalRecords);
-                setTableRows(res.result);
-            } else {
-                setTableRows([]);
-                setRowCount(0);
-                setTotalCount(0);
-            }
-        } catch (error) {
-            setTableRows([]);
-            setRowCount(0);
-            setTotalCount(0);
-        } finally {
-            setLoading(false);
-        }
-    };
+	const updateToken = async () => {
+		const res = await isTokenExpired(atoken, rtoken, customerid);
+		if (res) {
+			if (res?.accessToken !== "") { dispatch({ type: actionTypes.SET_ATOKEN, value: res.accessToken }); setCookie("patkn", CryptoJS.AES.encrypt(`${res.accessToken}`, process.env.REACT_APP_TOKEN_INCRYPT_KEY)?.toString(), { path: "/", maxAge: 86400 }); }
+			if (res?.refreshToken !== "") { dispatch({ type: actionTypes.SET_RTOKEN, value: res.refreshToken }); setCookie("prtkn", CryptoJS.AES.encrypt(`${res.refreshToken}`, process.env.REACT_APP_TOKEN_INCRYPT_KEY)?.toString(), { path: "/", maxAge: 86400 }); }
+			return true;
+		} else { return false; }
+	};
 
-    const getRowId = (row) => row.sr || row.id || row.grnId || row.lineId || Math.random();
+	const pullGrnReport = async (pageNumber = 1, pageSz = 10, filterData = null) => {
+		setLoading(true);
+		try {
+			await updateToken();
+			const queryParams = buildQueryParams({ CustomerId: customerid, PageNumber: pageNumber, PageSize: pageSz, ...(filterData || {}) });
+			const res = await apiClient.get(`/api/grnheader/GRNReport?${queryParams}`, atoken);
+			const totalRecords = res?.pageMetadata?.totalCount || 0;
+			setRowCount(totalRecords); setTotalCount(totalRecords);
+			if (res?.result && res.result.length > 0) { setTableRows(res.result); if (!filterData) setOriginalTableRows(res.result); }
+			else { setTableRows([]); setOriginalTableRows([]); setRowCount(0); setTotalCount(0); }
+		} catch (error) { setTableRows([]); setOriginalTableRows([]); setRowCount(0); setTotalCount(0); }
+		finally { setLoading(false); }
+	};
 
-    const formik = useFormik({
-        initialValues: { POId: '', VendorName: '', Status: '', FromDate: null, ToDate: null },
-        onSubmit: (values) => handleFilterSubmit(values),
-    });
+	const getRowId = (row) => row.id || row.grnId || Math.random();
 
-    const handleFilterSubmit = async (filterValues) => {
-        setGrnLoading(true);
-        try {
-            let activeCount = 0;
-            if (filterValues.POId?.trim()) activeCount++;
-            if (filterValues.VendorName?.trim()) activeCount++;
-            if (filterValues.Status?.trim()) activeCount++;
-            if (filterValues.FromDate) activeCount++;
-            if (filterValues.ToDate) activeCount++;
-            setActiveFiltersCount(activeCount);
+	const formik = useFormik({
+		initialValues: { PoId: '', VendorName: '', Status: '', FromDate: null, ToDate: null },
+		onSubmit: (values) => { handleFilterSubmit(values); },
+	});
 
-            const filterData = {
-                POId: filterValues.POId || null,
-                FromDate: filterValues.FromDate ? new Date(filterValues.FromDate).toISOString() : null,
-                ToDate: filterValues.ToDate ? new Date(filterValues.ToDate).toISOString() : null,
-                VendorName: filterValues.VendorName || null,
-                Status: filterValues.Status || null,
-            };
-            Object.keys(filterData).forEach(key => { if (!filterData[key]) delete filterData[key]; });
-            setPage(1);
-            await pullGrnReport(1, pageSize, filterData);
-            setGrnLoading(false);
-        } catch (error) {
-            setGrnLoading(false);
-        }
-    };
+	const handleFilterSubmit = async (filterValues) => {
+		setGrnLoading(true);
+		try {
+			let activeCount = 0;
+			if (filterValues.PoId && filterValues.PoId.trim() !== '') activeCount++;
+			if (filterValues.VendorName && filterValues.VendorName.trim() !== '') activeCount++;
+			if (filterValues.Status && filterValues.Status.trim() !== '') activeCount++;
+			if (filterValues.FromDate) activeCount++;
+			if (filterValues.ToDate) activeCount++;
+			setActiveFiltersCount(activeCount);
+			const filterData = {
+				Status: filterValues.Status || null,
+				FromDate: filterValues.FromDate ? new Date(filterValues.FromDate).toISOString() : null,
+				ToDate: filterValues.ToDate ? new Date(filterValues.ToDate).toISOString() : null,
+				VendorName: filterValues.VendorName || null,
+				PoId: filterValues.PoId || null
+			};
+			Object.keys(filterData).forEach(key => { if (filterData[key] === null || filterData[key] === '') { delete filterData[key]; } });
+			setPage(1);
+			await pullGrnReport(1, pageSize, filterData);
+			setGrnLoading(false);
+		} catch (error) { setGrnLoading(false); }
+	};
 
-    const handleColumnVisibilityChange = (newModel) => {
-        setColumnVisibilityModel(newModel);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newModel));
-    };
+	const clear = async () => {
+		formik.resetForm();
+		setActiveFiltersCount(0);
+		setPage(1);
+		setGrnLoading(true);
+		await pullGrnReport(1, pageSize);
+		setGrnLoading(false);
+	};
 
-    const handleExportClick = async () => {
-        try {
-            setLoading(true);
-            const filterData = activeFiltersCount > 0 ? {
-                POId: formik.values.POId || null,
-                FromDate: formik.values.FromDate ? new Date(formik.values.FromDate).toISOString() : null,
-                ToDate: formik.values.ToDate ? new Date(formik.values.ToDate).toISOString() : null,
-                VendorName: formik.values.VendorName || null,
-                Status: formik.values.Status || null,
-            } : {};
-            Object.keys(filterData).forEach(key => { if (!filterData[key]) delete filterData[key]; });
+	const handleColumnVisibilityChange = (newModel) => {
+		setColumnVisibilityModel(newModel);
+		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newModel));
+	};
 
-            const payload = {
-                reportName: "GRNReport",
-                customerId: customerid,
-                area: "grnheader",
-                timeZoneId: userDetail?.timeZone,
-                ...filterData,
-            };
-            const queryString = new URLSearchParams(payload).toString();
-            const response = await apiClient.api.get(`api/ReportConfig/DownloadReportExcel?${queryString}`, {
-                headers: { Authorization: `Bearer ${atoken}` },
-                responseType: 'blob',
-            });
-            const now = new Date();
-            const formatted = now.getFullYear() + String(now.getMonth() + 1).padStart(2, "0") + String(now.getDate()).padStart(2, "0") + String(now.getHours()).padStart(2, "0") + String(now.getMinutes()).padStart(2, "0") + String(now.getSeconds()).padStart(2, "0");
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const downloadUrl = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = downloadUrl;
-            link.download = `GRNReport_${formatted}.xlsx`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(downloadUrl);
-        } catch (error) {
-            alert("Failed to export report. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
+	const handleColumnVisibilityReset = () => {
+		const d = { id: false };
+		setColumnVisibilityModel(d);
+		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(d));
+	};
 
-    useEffect(() => {
-        if (atoken && customerid) {
-            pullReportColumns();
-        }
-    }, [atoken, customerid]);
+	const handleExportClick = async () => {
+		try {
+			setLoading(true);
+			const payload = { reportName: "GRNReport", customerId: customerid, area: "grnheader", timeZoneId: userDetail?.timeZone };
+			const response = await apiClient.api.get(`api/ReportConfig/DownloadReportExcel?${new URLSearchParams(payload).toString()}`,
+				{
+					headers: { Authorization: `Bearer ${atoken}` },
+					responseType: 'blob'
+				});
+			const now = new Date();
+			const formatted = now.getFullYear() + String(now.getMonth() + 1).padStart(2, "0") + String(now.getDate()).padStart(2, "0") + String(now.getHours()).padStart(2, "0") + String(now.getMinutes()).padStart(2, "0") + String(now.getSeconds()).padStart(2, "0");
+			const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+			const downloadUrl = window.URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = downloadUrl;
+			link.download = `GRNReport_${formatted}.xlsx`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(downloadUrl);
+		} catch (error) {
+			alert("Failed to export report. Please try again.");
+		}
+		finally { setLoading(false); }
+	};
 
-    function NoRowsOverlay() {
-        return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'text.secondary' }}>
-                <Typography variant="h6" color="textSecondary">No Data Found</Typography>
-            </Box>
-        );
-    }
+	useEffect(() => { if (atoken && customerid) { pullReportColumns(); } }, [atoken, customerid]);
 
-    function CustomToolbar({ onFilterClick, activeFiltersCount, onExportClick }) {
-        return (
-            <GridToolbarContainer className="row">
-                <div className="d-flex justify-content-between w-100 align-items-center">
-                    <div className="d-flex gap-2">
-                        <GridToolbarColumnsButton />
-                        <GridToolbarFilterButton />
-                        <GridToolbarDensitySelector />
-                        <Button size="small" startIcon={<FileDownloadIcon />} onClick={onExportClick} sx={{ textTransform: 'none', color: 'text.primary', '&:hover': { backgroundColor: 'action.hover' } }}>Export</Button>
-                    </div>
-                    <div className="d-flex align-items-center gap-2">
-                        <GridToolbarQuickFilter />
-                        <div className="filterIconCircle shadow-sm position-relative" onClick={onFilterClick} title="Open Filters" style={{ cursor: 'pointer' }}>
-                            <FilterListIcon />
-                            {activeFiltersCount > 0 && (
-                                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style={{ fontSize: '10px', padding: '2px 6px' }}>{activeFiltersCount}</span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </GridToolbarContainer>
-        );
-    }
+	const filteredRows = searchText.trim()
+		? tableRows.filter(row => Object.values(row).some(v => String(v ?? '').toLowerCase().includes(searchText.toLowerCase())))
+		: tableRows;
 
-    return (
-        <div className="mainContainer d-flex">
-            <div className={`leftContent ${divVisible ? "col-9" : "col-12"} d-flex flex-column`}>
-                <div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ height: '100%' }}>
-                    <div className="d-flex justify-content-between border-bottom align-items-center mb-3 mt-2">
-                        <div className="page-heading text-dark-blue textMedium">
-                            <BackButton title="GRN Report" />
-                        </div>
-                    </div>
-                    {activeFiltersCount > 0 && (
-                        <div className="alert alert-info d-flex justify-content-between align-items-center mb-2" role="alert">
-                            <span><strong>{activeFiltersCount}</strong> filter(s) applied. Showing <strong>{tableRows.length}</strong> records on this page of <strong>{rowCount}</strong> total filtered records.</span>
-                            <button type="button" className="btn btn-sm btn-outline-primary" onClick={clear}>Clear Filters</button>
-                        </div>
-                    )}
-                    <div className="row">
-                        <div className="col-12">
-                            <Box sx={{ width: '100%', height: 'calc(100vh - 150px)', mt: 2 }}>
-                                <DataGrid
-                                    rows={tableRows}
-                                    getRowId={getRowId}
-                                    columns={columns}
-                                    loading={loading || grnLoading}
-                                    rowHeight={40}
-                                    columnHeaderHeight={40}
-                                    className="f13 border-0"
-                                    disableRowSelectionOnClick
-                                    pagination
-                                    paginationMode="server"
-                                    pageSizeOptions={[10, 25, 50, 100]}
-                                    rowCount={TotalCount}
-                                    paginationModel={{ page: page - 1, pageSize }}
-                                    onPaginationModelChange={(model) => {
-                                        const currentFilters = activeFiltersCount > 0 ? { POId: formik.values.POId || null, FromDate: formik.values.FromDate ? new Date(formik.values.FromDate).toISOString() : null, ToDate: formik.values.ToDate ? new Date(formik.values.ToDate).toISOString() : null, VendorName: formik.values.VendorName || null, Status: formik.values.Status || null } : null;
-                                        if (currentFilters) Object.keys(currentFilters).forEach(key => { if (!currentFilters[key]) delete currentFilters[key]; });
-                                        if (model.page !== (page - 1)) { setPage(model.page + 1); pullGrnReport(model.page + 1, model.pageSize, currentFilters); }
-                                        if (model.pageSize !== pageSize) { setPageSize(model.pageSize); setPage(1); pullGrnReport(1, model.pageSize, currentFilters); }
-                                    }}
-                                    sx={{ height: '100%', width: '100%', '& .MuiDataGrid-virtualScroller': { overflow: 'auto' }, '& .MuiDataGrid-cell': { display: 'flex', alignItems: 'center' } }}
-                                    slots={{ toolbar: () => <CustomToolbar onFilterClick={toggleDivVisibility} activeFiltersCount={activeFiltersCount} onExportClick={handleExportClick} />, noRowsOverlay: NoRowsOverlay }}
-                                    slotProps={{ toolbar: { showQuickFilter: true } }}
-                                    getRowClassName={(params) => params.indexRelativeToCurrentPage % 2 === 0 ? "even overFlow" : "odd overFlow"}
-                                    columnVisibilityModel={columnVisibilityModel}
-                                    onColumnVisibilityModelChange={handleColumnVisibilityChange}
-                                />
-                            </Box>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {divVisible && (
-                <div className={`rightContent ${divVisible ? "col-3" : "d-none"}`}>
-                    <div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column ms-3 right-panel-container">
-                        <div className="d-flex flex-column flex-grow-1" style={{ height: '100%' }}>
-                            <div className="d-flex justify-content-between border-bottom align-items-center py-1">
-                                <div className="page-heading text-dark-blue ms-2">Advance Search</div>
-                                <IconButton onClick={closeDivVisibility} size="small" edge="start"><HiOutlineX className="f16" /></IconButton>
-                            </div>
-                            <div className="flex-grow-1 p-3">
-                                <form onSubmit={formik.handleSubmit} autoComplete="off">
-                                    <div className="row">
-                                        <div className="col-12 mb-3">
-                                            <TextFieldCell id="POId" name="POId" label="PO ID" value={formik.values.POId} onChange={(e) => formik.setFieldValue("POId", e.target.value)} />
-                                        </div>
-                                        <div className="col-12 mb-3">
-                                            <TextFieldCell id="VendorName" name="VendorName" label="Vendor Name" maxLength={200} value={formik.values.VendorName} onChange={(e) => formik.setFieldValue("VendorName", e.target.value)} />
-                                        </div>
-                                        <div className="col-12 mb-3">
-                                            <FormControl fullWidth>
-                                                <InputLabel id="status-label">Status</InputLabel>
-                                                <Select id="status" labelId="status-label" label="Status" variant="outlined" size="small" value={formik.values.Status} onChange={(e) => formik.setFieldValue("Status", e.target.value)}>
-                                                    <MenuItem value="">All</MenuItem>
-                                                    <MenuItem value="Pending">Pending</MenuItem>
-                                                    <MenuItem value="Approved">Approved</MenuItem>
-                                                    <MenuItem value="Rejected">Rejected</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </div>
-                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                            <div className="col-12 mb-3">
-                                                <MobileDateTimePicker label="From Date" className="w-100 f14" value={formik.values.FromDate} onChange={(v) => formik.setFieldValue("FromDate", v)} slotProps={{ textField: { variant: "outlined", size: "small" } }} />
-                                            </div>
-                                            <div className="col-12 mb-3">
-                                                <MobileDateTimePicker label="To Date" className="w-100 f14" value={formik.values.ToDate} onChange={(v) => formik.setFieldValue("ToDate", v)} slotProps={{ textField: { variant: "outlined", size: "small" } }} />
-                                            </div>
-                                        </LocalizationProvider>
-                                        <div className="col-12 text-end">
-                                            <LoadingButton variant="contained" color="primary" className="me-3 text-capitalize" onClick={clear}>Clear</LoadingButton>
-                                            <LoadingButton loading={grnLoading} variant="outlined" color="primary" className="text-capitalize" onClick={(e) => { e.preventDefault(); formik.handleSubmit(); }}>Submit</LoadingButton>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
+	return (
+		<>
+			<div className="rfq-v2-page">
+				<div className="rfq-v2-page-header">
+					<div className="rfq-v2-breadcrumb">
+						<Link to="/app">Home</Link><span className="rfq-v2-breadcrumb-sep">/</span>
+						<span>Reports</span><span className="rfq-v2-breadcrumb-sep">/</span>
+						<span>GRN Report</span>
+					</div>
+				</div>
+				<div className="rfq-v2-card">
+					<PETableToolbar
+						searchText={searchText}
+						onSearchChange={setSearchText}
+						searchPlaceholder="Search GRN..."
+						showFilter
+						filterColumns={filterColumns}
+						filterModel={filterModel}
+						onFilterModelChange={setFilterModel}
+						showColumns
+						columns={columns || []}
+						hiddenAlways={['id']}
+						columnVisibilityModel={columnVisibilityModel}
+						onColumnVisibilityChange={handleColumnVisibilityChange}
+						onColumnVisibilityReset={handleColumnVisibilityReset}
+						showDensity
+						density={density}
+						onDensityChange={setDensity}
+						showAdvFilter
+						advFilterOpen={divVisible}
+						onAdvFilterToggle={() => setDivVisible(v => !v)}
+						advFilterCount={activeFiltersCount}
+						advFilterPanel={(
+							<form className="rfq-v2-filter-body"
+								onSubmit={formik.handleSubmit}
+								autoComplete="off">
+								<div className="rfq-v2-filter-fields">
+									<div>
+										<label className="rfq-v2-filter-label">PO ID</label>
+										<TextFieldCell id="PoId" name="PoId" value={formik.values.PoId} onChange={(e) => formik.setFieldValue("PoId", e.target.value)} className="rfq-v2-filter-field" />
+									</div>
+									<div>
+										<label className="rfq-v2-filter-label">Vendor Name</label>
+										<TextFieldCell id="VendorName" name="VendorName" value={formik.values.VendorName} onChange={(e) => formik.setFieldValue("VendorName", e.target.value)} className="rfq-v2-filter-field" />
+									</div>
+									<div>
+										<label className="rfq-v2-filter-label">Status</label>
+										<FormControl fullWidth>
+											<Select displayEmpty id="Status" variant="outlined" size="small" value={formik.values.Status} onChange={(e) => formik.setFieldValue("Status", e.target.value)}>
+												{["All", "Pending", "Approved", "Rejected"].map((s) => (
+													<MenuItem key={s} value={s}>{s}</MenuItem>
+												))}
+											</Select>
+										</FormControl>
+									</div>
+									<LocalizationProvider dateAdapter={AdapterDateFns}>
+										<div>
+											<label className="rfq-v2-filter-label">From Date</label>
+											<MobileDateTimePicker className="w-100 f14" value={formik.values.FromDate}
+												onChange={(v) => formik.setFieldValue("FromDate", v)}
+												slotProps={{ textField: { variant: "outlined", size: "small" } }} />
+										</div>
+										<div>
+											<label className="rfq-v2-filter-label">To Date</label>
+											<MobileDateTimePicker className="w-100 f14" value={formik.values.ToDate}
+												onChange={(v) => formik.setFieldValue("ToDate", v)}
+												slotProps={{ textField: { variant: "outlined", size: "small" } }} />
+										</div>
+									</LocalizationProvider>
+								</div>
+								<div className="rfq-v2-filter-footer">
+									<button type="button" className="rfq-v2-filter-btn-reset" onClick={clear}>Reset</button>
+									<LoadingButton type="submit" loading={grnLoading}
+										className="rfq-v2-filter-btn-apply" disableElevation
+										onClick={async (e) => { e.preventDefault(); formik.handleSubmit(); }}
+									>Apply
+									</LoadingButton>
+								</div>
+							</form>
+						)}
+						showExport
+						onExport={handleExportClick}
+						exportLoading={loading}
+					/>
+					<div className="rfq-v2-table-wrapper">
+						<PETable
+							className="rfq-v2-datagrid"
+							rows={filteredRows}
+							getRowId={getRowId}
+							columns={columns}
+							loading={loading || grnLoading}
+							rowHeight={52}
+							pagination
+							paginationMode="server"
+							pageSizeOptions={[10, 25, 50]}
+							rowCount={TotalCount} paginationModel={{ page: page - 1, pageSize }}
+							onPaginationModelChange={(model) => {
+								const currentFilters = activeFiltersCount > 0 ? { Status: formik.values.Status || null, FromDate: formik.values.FromDate ? new Date(formik.values.FromDate).toISOString() : null, ToDate: formik.values.ToDate ? new Date(formik.values.ToDate).toISOString() : null, VendorName: formik.values.VendorName || null, PoId: formik.values.PoId || null } : null;
+								if (currentFilters) Object.keys(currentFilters).forEach(key => { if (currentFilters[key] === null || currentFilters[key] === '') delete currentFilters[key]; });
+								if (model.page !== (page - 1)) { setPage(model.page + 1); pullGrnReport(model.page + 1, model.pageSize, currentFilters); }
+								if (model.pageSize !== pageSize) { setPageSize(model.pageSize); setPage(1); pullGrnReport(1, model.pageSize, currentFilters); }
+							}}
+							columnVisibilityModel={columnVisibilityModel} onColumnVisibilityModelChange={handleColumnVisibilityChange}
+							filterModel={filterModel} onFilterModelChange={setFilterModel}
+							disableColumnResize density={density}
+							getRowClassName={(params) => params.indexRelativeToCurrentPage % 2 === 0 ? 'even overFlow' : 'odd overFlow'}
+						/>
+					</div>
+				</div>
+			</div>
+		</>
+	);
+}
 
 export default GrnReport;

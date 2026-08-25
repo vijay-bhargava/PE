@@ -1,683 +1,348 @@
-﻿import React from 'react'
+import React from 'react'
+import '../../assets/css/manage-rfq-v2.css';
+import StatusBadge from '../../components/StatusBadge';
 import { useEffect, useState } from 'react';
-import { Autocomplete, FormControl, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography, } from "@mui/material";
-import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { formatDateViaLocale, formatDateViaLocaleonlydatenottime, getBIDSummaryReport, getReportColumns, getRFQSummaryReport } from '../../utils/common/utility';
+import { FormControl, MenuItem, Select } from "@mui/material";
+import { useNavigate, Link } from "react-router-dom";
+import { formatDateViaLocaleonlydatenottime, getReportColumns } from '../../utils/common/utility';
 import { actionTypes, useStateValue } from '../../store';
-import { HiOutlineX} from "react-icons/hi";
 import CryptoJS from "crypto-js";
-import { DataGrid, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton, GridToolbarQuickFilter } from '@mui/x-data-grid';
-import { Box ,IconButton,Button} from '@mui/material';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import FilterRFQCell from '../Configuration/RequestForQuotation/FilterRFQCell';
-import { BackButton } from '../../utils/common/component';
+import { Box } from '@mui/material';
+import { PETable } from '../../components/RFQ/PETable';
+import { PETableToolbar } from '../../components/RFQ/PETableToolbar';
 import { useFormik } from 'formik';
 import TextFieldCell from '../BaseCells/TextFieldCell';
 import { LoadingButton } from "@mui/lab";
 import { LocalizationProvider, MobileDateTimePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { buildQueryParams } from '../../utils/purchaseRequest';
+import { buildQueryParams } from '../../utils/purchaseRequest/index';
 import { ApiClient } from '../../Apiclient';
 import { isTokenExpired } from '../../utils/common';
 import { useCookies } from "react-cookie";
 
 const BIDSummaryReport = () => {
 
-    const [{ atoken, rtoken, customerid, userDetail, eventId, eventType,customersuffix }, dispatch] = useStateValue();
-    const apiClient = new ApiClient(customersuffix);
-    const [cookie, setCookie, removeCookie] = useCookies(["patkn", "prtkn"]);
-    const LOCAL_STORAGE_KEY = 'BIDSummaryReportColumnVisibility';
-    useEffect(() => {
-        const storedVisibility = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (storedVisibility) {
-            setColumnVisibilityModel(JSON.parse(storedVisibility));
-        }
-    }, []);
- const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
-    const [rfqLoading, setRfqLoading] = useState(false);
-    const [tableColumnLabels, setTableColumnLabels] = useState([]);
-    const [tableRows, setTableRows] = useState([]);
-    const [originalTableRows, setOriginalTableRows] = useState([]); // Store original data
-    const [columnVisibilityModel, setColumnVisibilityModel] = useState({});
-    const [divVisible, setDivVisible] = useState(false);
-    const [activeFiltersCount, setActiveFiltersCount] = useState(0);
-        const [pageCount, setPageCount] = useState(0);
-        const [pageSize, setPageSize] = useState(10);
-        const [page, setPage] = useState(1);
-    // Pagination state
+	const [{ atoken, rtoken, customerid, userDetail, customersuffix }, dispatch] = useStateValue();
+	const apiClient = new ApiClient(customersuffix);
+	const [cookie, setCookie] = useCookies(["patkn", "prtkn"]);
+	const LOCAL_STORAGE_KEY = 'BIDSummaryReportColumnVisibility';
 
-    const [rowCount, setRowCount] = useState(0);
-    
-        const toggleDivVisibility = () => {
-            setDivVisible(!divVisible);
-        };
-    
-        const closeDivVisibility = () => {
-            setDivVisible(false);
-        };
-    const clear = async () => {
-        // Reset formik values
-        formik.resetForm();
-        
-        // Reset active filters count
-        setActiveFiltersCount(0);
-        
-        // Reset pagination to first page
-        setPage(1);
-        
-        // Reload original data from API without filters
-        await pullBIDSummaryReport(1, pageSize, null);
-        
-        // Close the filter panel
-      
-    };
- const columns = tableColumnLabels?.map((item) => ({
-    field: item?.columnName,
-    headerName: item?.columnTitle,
-    minWidth: item?.width || 180,
-    flex: 1,
-    editable: false,
+	useEffect(() => {
+		const storedVisibility = localStorage.getItem(LOCAL_STORAGE_KEY);
+		if (storedVisibility) { setColumnVisibilityModel(JSON.parse(storedVisibility)); }
+	}, []);
 
-    // hideable should NOT default to true always — so use ?? instead of ||
-    hideable: item?.hideable ?? true,
+	const navigate = useNavigate();
+	const [loading, setLoading] = useState(true);
+	const [rfqLoading, setRfqLoading] = useState(false);
+	const [tableColumnLabels, setTableColumnLabels] = useState([]);
+	const [tableRows, setTableRows] = useState([]);
+	const [searchText, setSearchText] = useState('');
+	const [originalTableRows, setOriginalTableRows] = useState([]);
+	const [density, setDensity] = useState('standard');
+	const [filterModel, setFilterModel] = useState({ items: [] });
+	const [columnVisibilityModel, setColumnVisibilityModel] = useState({});
+	const [divVisible, setDivVisible] = useState(false);
+	const [activeFiltersCount, setActiveFiltersCount] = useState(0);
+	const [pageSize, setPageSize] = useState(10);
+	const [page, setPage] = useState(1);
+	const [rowCount, setRowCount] = useState(0);
+	const [TotalCount, setTotalCount] = useState(0);
 
-    // Apply valueFormatter only for date fields
-    valueFormatter:
-        ["Start Date", "End Date", "Configure Date"].includes(item?.columnTitle)
-            ? (params) =>
-                  params.value
-                      ? formatDateViaLocaleonlydatenottime(params.value, userDetail)
-                      : ""
-            : undefined,
+	const getStatusChip = (value) => <StatusBadge status={value} />;
 
-    // Always return a valid element for renderCell
-    renderCell: (params) => (
-        <Box
-            sx={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'pointer',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-            }}
-            title="Click to view details"
-            onClick={() => {
-                navigate(`/configuration/manage-auction/${params?.row?.id}`);
-            }}
-        >
-            {params?.formattedValue}
-        </Box>
-    ),
-}));
+	const columns = tableColumnLabels
+		?.filter(item => item?.columnName !== 'eventCode' && item?.columnName !== 'id')
+		?.map(item => {
+			const isStatusCol = ['stage', 'status'].some(k => item?.columnName?.toLowerCase().includes(k));
+			const isDateCol = ["Start Date", "End Date", "Configure Date"].includes(item?.columnTitle);
+			return {
+				field: item?.columnName,
+				headerName: item?.columnTitle,
+				width: item?.columnName === 'subject' ? 260 : isStatusCol ? 140 : 150,
+				minWidth: item?.columnName === 'subject' ? 200 : isStatusCol ? 110 : isDateCol ? 130 : 90,
+				maxWidth: item?.columnName === 'subject' ? 400 : isStatusCol ? 200 : isDateCol ? 220 : 250,
+				editable: false,
+				hideable: item?.hideable || true,
+				valueFormatter: isDateCol
+					? (params) => params.value ? formatDateViaLocaleonlydatenottime(params.value, userDetail) : ""
+					: undefined,
+				renderCell: (params) => {
+					if (item?.columnName === 'subject') {
+						return (
+							<div className="rfq-v2-cell" onClick={() => navigate(`/configuration/manage-auction/${params?.row?.id}`)}>
+								<span className="rfq-v2-cell-subject" title={params.value || ''}>{params.value || params?.formattedValue}</span>
+								<span className="rfq-v2-cell-code">{params.row.eventCode || ''}</span>
+							</div>
+						);
+					}
+					if (isStatusCol) {
+						return (
+							<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+								{getStatusChip(params?.formattedValue ?? params?.value)}
+							</div>
+						);
+					}
+					return (
+						<Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }}
+							onClick={() => navigate(`/configuration/manage-auction/${params?.row?.id}`)}>
+							{params?.formattedValue}
+						</Box>
+					);
+				},
+			};
+		});
 
-    const pullReportColumns = async () => {
-        try {
-            const data = { slug: 'BIDSummaryReport' ,customerId: customerid };
-            const res = await getReportColumns(data, atoken);
-            //console.log('response pullReportColumns', res);
-            if (res?.length > 0) {
-                setTableColumnLabels(res);
-                pullBIDSummaryReport();
-            } else {
-                //console.log('No columns returned');
-                setLoading(false);
-            }
-        } catch (error) {
-            //console.log('Error fetching report columns:', error);
-            setLoading(false);
-        }
-    };
-    const location = useLocation();
-        const queryParams = new URLSearchParams(location.search);
-        const updateToken = async () => {
-            const res = await isTokenExpired(atoken, rtoken, customerid);
-            if (res) {
-                if (res?.accessToken != "") {
-                    dispatch({ type: actionTypes.SET_ATOKEN, value: res.accessToken });
-                    var userAccessToken = CryptoJS.AES.encrypt(
-                        `${res.accessToken}`,
-                        process.env.REACT_APP_TOKEN_INCRYPT_KEY
-                    )?.toString();
-                    setCookie("patkn", userAccessToken, { path: "/", maxAge: 86400 });
-                }
-                if (res?.refreshToken != "") {
-                    dispatch({ type: actionTypes.SET_RTOKEN, value: res.refreshToken });
-                    var userRefreshToken = CryptoJS.AES.encrypt(
-                        `${res.refreshToken}`,
-                        process.env.REACT_APP_TOKEN_INCRYPT_KEY
-                    )?.toString();
-                    setCookie("prtkn", userRefreshToken, { path: "/", maxAge: 86400 });
-                }
-                return true;
-            } else {
-                return false;
-            }
-        };
-const pullBIDSummaryReport = async (pageNumber = 1, pageSize = 10, filterData = null) => {
-    setLoading(true);
+	const filterColumns = (columns || []).map(c => ({ field: c.field, label: c.headerName }));
 
-    try {
-        await updateToken(); // Refresh token if needed
+	const pullReportColumns = async () => {
+		try {
+			const data = { slug: 'BIDSummaryReport', customerId: customerid };
+			const res = await getReportColumns(data, atoken);
+			if (res?.length > 0) { setTableColumnLabels(res); pullBIDSummaryReport(); }
+			else { setLoading(false); }
+		} catch (error) { setLoading(false); }
+	};
 
-        // Build query parameters
-        const queryParams = buildQueryParams({
-            CustomerId: customerid,
-            PageNumber: pageNumber,
-            PageSize: pageSize,
-            ...filterData // include any extra filters if passed
-        });
+	const updateToken = async () => {
+		const res = await isTokenExpired(atoken, rtoken, customerid);
+		if (res) {
+			if (res?.accessToken !== "") { dispatch({ type: actionTypes.SET_ATOKEN, value: res.accessToken }); setCookie("patkn", CryptoJS.AES.encrypt(`${res.accessToken}`, process.env.REACT_APP_TOKEN_INCRYPT_KEY)?.toString(), { path: "/", maxAge: 86400 }); }
+			if (res?.refreshToken !== "") { dispatch({ type: actionTypes.SET_RTOKEN, value: res.refreshToken }); setCookie("prtkn", CryptoJS.AES.encrypt(`${res.refreshToken}`, process.env.REACT_APP_TOKEN_INCRYPT_KEY)?.toString(), { path: "/", maxAge: 86400 }); }
+			return true;
+		} else { return false; }
+	};
 
-        // GET request with query string
-        const res = await apiClient.get(
-            `api/AuctionManage/BIDSummaryReport?${queryParams}`,
-            atoken
-        );
+	const pullBIDSummaryReport = async (pageNumber = 1, pageSize = 10, filterData = null) => {
+		setLoading(true);
+		try {
+			await updateToken();
+			const queryParams = buildQueryParams({ CustomerId: customerid, PageNumber: pageNumber, PageSize: pageSize, ...(filterData || {}) });
+			const res = await apiClient.get(`api/AuctionManage/BIDSummaryReport?${queryParams}`, atoken);
+			const totalRecords = res?.pageMetadata?.totalCount || 0;
+			setRowCount(totalRecords); setTotalCount(totalRecords);
+			if (res?.result && res.result.length > 0) { setTableRows(res.result); if (!filterData) setOriginalTableRows(res.result); }
+			else { setTableRows([]); setOriginalTableRows([]); setRowCount(0); setTotalCount(0); }
+		} catch (error) { setTableRows([]); setOriginalTableRows([]); setRowCount(0); setTotalCount(0); }
+		finally { setLoading(false); }
+	};
 
-        const totalRecords = res?.pageMetadata?.totalCount || 0;
-        setRowCount(totalRecords);
-        setTotalCount(totalRecords);
+	const getRowId = (row) => row.id;
 
-        if (res?.result && res.result.length > 0) {
-            setTableRows(res.result);
-            if (!filterData) setOriginalTableRows(res.result);
-        } else {
-            setTableRows([]);
-            setOriginalTableRows([]);
-            setRowCount(0);
-            setTotalCount(0);
-        }
+	const formik = useFormik({
+		initialValues: { BidId: '', Subject: '', Status: '', FromDate: null, ToDate: null },
+		onSubmit: (values) => { handleFilterSubmit(values); },
+	});
 
-    } catch (error) {
-        setTableRows([]);
-        setOriginalTableRows([]);
-        setRowCount(0);
-        setTotalCount(0);
-    } finally {
-        setLoading(false);
-    }
-};
+	const handleFilterSubmit = async (filterValues) => {
+		setRfqLoading(true);
+		try {
+			let activeCount = 0;
+			if (filterValues.BidId && filterValues.BidId.trim() !== '') activeCount++;
+			if (filterValues.Subject && filterValues.Subject.trim() !== '') activeCount++;
+			if (filterValues.Status && filterValues.Status.trim() !== '') activeCount++;
+			if (filterValues.FromDate) activeCount++;
+			if (filterValues.ToDate) activeCount++;
+			setActiveFiltersCount(activeCount);
+			const filterData = {
+				Status: filterValues.Status || null,
+				FromDate: filterValues.FromDate ? new Date(filterValues.FromDate).toISOString() : null,
+				ToDate: filterValues.ToDate ? new Date(filterValues.ToDate).toISOString() : null,
+				Subject: filterValues.Subject || null,
+				BidId: filterValues.BidId || null
+			};
+			Object.keys(filterData).forEach(key => { if (filterData[key] === null || filterData[key] === '') delete filterData[key]; });
+			setPage(1);
+			await pullBIDSummaryReport(1, pageSize, filterData);
+			setRfqLoading(false);
+		} catch (error) { setRfqLoading(false); }
+	};
 
+	const clear = async () => {
+		formik.resetForm();
+		setActiveFiltersCount(0);
+		setPage(1);
+		setRfqLoading(true);
+		await pullBIDSummaryReport(1, pageSize);
+		setRfqLoading(false);
+	};
 
+	const handleColumnVisibilityChange = (newModel) => {
+		setColumnVisibilityModel(newModel);
+		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newModel));
+	};
+	const handleColumnVisibilityReset = () => {
+		const d = {};
+		setColumnVisibilityModel(d);
+		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(d));
+	};
 
-    // const pullRFQSummaryReport = async (pageNumber = 1, pageSize = 10, filterData = null) => {
-    //     try {
-    //         const data = filterData || { 
-    //             CustomerId: customerid,
-    //             pageNumber: pageNumber,
-    //             pageSize: pageSize
-    //         };
-            
-    //         setLoading(true);
-    //         const res = await getRFQSummaryReport(data, atoken);
-    //         setLoading(false);
-            
-    //         console.log('response getRFQSummaryReport', res);
-            
-    //         // Handle paginated response
-    //         if (res?.result && Array.isArray(res.result)) {
-    //             setTableRows(res.result);
-    //             setRowCount(res.pageMetadata?.totalCount || 0);
-                
-    //             // Store original data for reference
-    //             if (!filterData) {
-    //                 setOriginalTableRows(res.result);
-    //             }
-    //         } else if (Array.isArray(res)) {
-    //             // Handle non-paginated response (backward compatibility)
-    //             setTableRows(res);
-    //             setRowCount(res.length);
-    //             setOriginalTableRows(res);
-    //         } else {
-    //             setTableRows([]);
-    //             setRowCount(0);
-    //             setOriginalTableRows([]);
-    //         }
-    //     } catch (error) {
-    //         setLoading(false);
-    //         console.error('Error fetching RFQ summary report:', error);
-    //     }
-    // };
+	const handleExportClick = async () => {
+		try {
+			setLoading(true);
+			const payload = { reportName: "BIDSummaryReport", customerId: customerid, area: "AuctionManage", timeZoneId: userDetail?.timeZone };
+			const response = await apiClient.api.get(`api/ReportConfig/DownloadReportExcel?${new URLSearchParams(payload).toString()}`,
+				{
+					headers: { Authorization: `Bearer ${atoken}` },
+					responseType: 'blob'
+				});
+			const now = new Date();
+			const formatted = now.getFullYear() + String(now.getMonth() + 1).padStart(2, "0") + String(now.getDate()).padStart(2, "0") + String(now.getHours()).padStart(2, "0") + String(now.getMinutes()).padStart(2, "0") + String(now.getSeconds()).padStart(2, "0");
+			const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+			const downloadUrl = window.URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = downloadUrl;
+			link.download = `BIDSummaryReport_${formatted}.xlsx`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(downloadUrl);
+		} catch (error) {
+			if (error.response) { alert(`Export failed: ${error.response.status} - ${error.response.statusText || 'Server error'}`); }
+			else { alert(`Export failed: ${error.message || 'Network error'}`); }
+		} finally { setLoading(false); }
+	};
 
-    const getRowId = (row) => {
-        return row.id;
-    }
-    const formik = useFormik({
-        initialValues: {
-            BidId: '',
-            Subject: '',
-            Status: '',
-            FromDate: null,
-            ToDate: null,
-        },
-        onSubmit: (values) => {
-            handleFilterSubmit(values);
-        },
-    });
-    const [TotalCount, setTotalCount] = useState(0);
+	useEffect(() => { if (atoken && customerid) { pullReportColumns(); } }, [atoken, customerid]);
 
-    const handleFilterSubmit = async (filterValues) => {
-        setRfqLoading(true);
-        
-        try {
-            // Count active filters
-            let activeCount = 0;
-            if (filterValues.BidId && filterValues.BidId.trim() !== '') activeCount++;
-            if (filterValues.Subject && filterValues.Subject.trim() !== '') activeCount++;
-            if (filterValues.Status && filterValues.Status.trim() !== '') activeCount++;
-            if (filterValues.FromDate) activeCount++;
-            if (filterValues.ToDate) activeCount++;
-            
-            setActiveFiltersCount(activeCount);
-            
-            // Prepare filter data object
-            const filterData = {
-                Status: filterValues.Status || null,
-                FromDate: filterValues.FromDate ? new Date(filterValues.FromDate).toISOString() : null,
-                ToDate: filterValues.ToDate ? new Date(filterValues.ToDate).toISOString() : null,
-                Subject: filterValues.Subject || null,
-                BidId: filterValues.BidId || null,
-            };
+	const filteredRows = searchText.trim()
+		? tableRows.filter(row => Object.values(row).some(v => String(v ?? '').toLowerCase().includes(searchText.toLowerCase())))
+		: tableRows;
 
-            // Remove null/undefined/empty values
-            Object.keys(filterData).forEach(key => {
-                if (filterData[key] === null || filterData[key] === undefined || filterData[key] === '') {
-                    delete filterData[key];
-                }
-            });
-
-            // Call pullBIDSummaryReport with filters, resetting to page 1
-            await pullBIDSummaryReport(1, pageSize, filterData);
-            
-            // Reset pagination to first page
-            setPage(1);
-            
-            setRfqLoading(false);
-            
-            // Close the filter panel after applying filters
-           
-        } catch (error) {
-            console.error('Error filtering data:', error);
-            setRfqLoading(false);
-        }
-    };
-
-    const handleColumnVisibilityChange = (newModel) => {
-        console.log('newModel', newModel)
-        setColumnVisibilityModel(newModel);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newModel));
-    };
-
-       const handleExportClick = async () => {
-        // 🔴  hits when Export is clicked
-        try {
-            setLoading(true);
-
-            const payload = {
-                reportName: "BIDSummaryReport",
-                customerId: customerid,
-                area: "AuctionManage",
-                timeZoneId: userDetail?.timeZone
-            };
-
-            const queryString = new URLSearchParams(payload).toString();
-            const fullUrl = `api/ReportConfig/DownloadReportExcel?${queryString}`;
-
-            const response = await apiClient.api.get(fullUrl, {
-                headers: { Authorization: `Bearer ${atoken}` },
-                responseType: 'blob',
-            });
-
-            const now = new Date();
-            const formatted = now.getFullYear() + String(now.getMonth() + 1).padStart(2, "0") + String(now.getDate()).padStart(2, "0") + String(now.getHours()).padStart(2, "0") + String(now.getMinutes()).padStart(2, "0") + String(now.getSeconds()).padStart(2, "0");
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const downloadUrl = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = downloadUrl;
-            link.download = `BIDSummaryReport_${formatted}.xlsx`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(downloadUrl);
-
-            console.log("✅ Report downloaded successfully");
-        } catch (error) {
-            console.error("❌ Export Error:", error);
-            alert("Failed to export report. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (atoken && customerid) {
-            pullReportColumns();
-        }
-    }, [atoken, customerid]);
-
-    function NoRowsOverlay() {
-        return (
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100%',
-                    color: 'text.secondary'
-                }}
-            >
-                <Typography variant="h6" color="textSecondary">
-                    No Data Found
-                </Typography>
-            </Box>
-        );
-    }
-
-    function CustomToolbar({ onFilterClick, activeFiltersCount, onExportClick }) {
-        const handleCustomExportClick = () => {
-            ; // 🔴  1: Check if export button click is intercepted
-            console.log('🔵 Custom Export button clicked in CustomToolbar');
-            console.log('🔵 About to call onExportClick (handleExportClick)');
-            onExportClick(); // Use custom export function
-            console.log('🔵 onExportClick called');
-        };
-        return (
-            <GridToolbarContainer className="row">
-                <div className="d-flex justify-content-between w-100 align-items-center">
-                    {/* Left side buttons */}
-                    <div className="d-flex gap-2">
-                        <GridToolbarColumnsButton />
-                        <GridToolbarFilterButton />
-                        <GridToolbarDensitySelector />
-                        {/* <GridToolbarExport /> */}
-                            {/* Custom Export Button */}
-                                                <Button
-                                                    size="small"
-                                                    startIcon={<FileDownloadIcon />}
-                                                    onClick={handleCustomExportClick}
-                                                    sx={{ 
-                                                        textTransform: 'none',
-                                                        color: 'text.primary',
-                                                        '&:hover': {
-                                                            backgroundColor: 'action.hover'
-                                                        }
-                                                    }}
-                                                >
-                                                    Export
-                                                </Button>
-                    </div>
-
-                    {/* Right side: Quick Filter + Custom Filter Icon */}
-                    <div className="d-flex align-items-center gap-2">
-                        <GridToolbarQuickFilter />
-                        <div
-                            className="filterIconCircle shadow-sm position-relative"
-                            onClick={onFilterClick}
-                            title="Open Filters"
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <FilterListIcon />
-                            {activeFiltersCount > 0 && (
-                                <span 
-                                    className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"
-                                    style={{ fontSize: '10px', padding: '2px 6px' }}
-                                >
-                                    {activeFiltersCount}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </GridToolbarContainer>
-        );
-    }
-
-    return (
-            <div className="mainContainer d-flex">
-  {/* LEFT CONTENT */}
-  <div className={`leftContent ${divVisible ? "col-9" : "col-12"} d-flex flex-column`}>
-    <div
-      className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column"
-      style={{ height: 'calc(100vh - 120px)' }}
-    >
-      <div className="d-flex justify-content-between border-bottom align-items-center mb-3 mt-2">
-        <div className="page-heading text-dark-blue textMedium">
-          <BackButton title="BID Summary Report" />
-        </div>
-      </div>
-      {activeFiltersCount > 0 && (
-        <div className="alert alert-info d-flex justify-content-between align-items-center mb-2" role="alert">
-          <span>
-            <strong>{activeFiltersCount}</strong> filter(s) applied. Showing <strong>{tableRows.length}</strong> records on this page of <strong>{rowCount}</strong> total filtered records.
-          </span>
-          <button 
-            type="button" 
-            className="btn btn-sm btn-outline-primary"
-            onClick={clear}
-          >
-            Clear Filters
-          </button>
-        </div>
-      )}
-      <div className="row">
-        <div className="col-12 col-md-12 col-lg-12">
-          <Box sx={{ width: '100%', mt: 2 }}>
-         <DataGrid
-  rows={tableRows}
-  getRowId={getRowId}
-  columns={columns}
-  loading={loading || rfqLoading}
-  rowHeight={40}
-  columnHeaderHeight={40}
-  className="f13 border-0"
-  disableRowSelectionOnClick
-
-  // ✅ Pagination
-  pagination
-  paginationMode="server"
-  pageSizeOptions={[10, 25, 50]}
-  rowCount={rowCount}
-  paginationModel={{
-    page: page - 1,
-    pageSize: pageSize
-  }}
-  onPaginationModelChange={(model) => {
-    if (model.page !== (page - 1)) {
-      setPage(model.page + 1);
-      pullBIDSummaryReport(model.page + 1, model.pageSize);
-    }
-    if (model.pageSize !== pageSize) {
-      setPageSize(model.pageSize);
-      setPage(1);
-      pullBIDSummaryReport(1, model.pageSize);
-    }
-  }}
-
-  // ✅ Use flex height to fill available space
-   style={{ height: 400, width: "100%" }}
-
-  slots={{
-    toolbar: () => <CustomToolbar onFilterClick={toggleDivVisibility} activeFiltersCount={activeFiltersCount} onExportClick={handleExportClick} />,
-    noRowsOverlay: NoRowsOverlay,
-  }}
-  slotProps={{
-    toolbar: { showQuickFilter: true },
-  }}
-  getRowClassName={(params) =>
-    params.indexRelativeToCurrentPage % 2 === 0 ? "even overFlow" : "odd overFlow"
-  }
-  columnVisibilityModel={columnVisibilityModel}
-  onColumnVisibilityModelChange={handleColumnVisibilityChange}
-/>
-
-          </Box>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {/* RIGHT CONTENT */}
-   {/* RIGHT CONTENT (Filter Panel) */}
-                 {divVisible && (
-                     <div className={`rightContent ${divVisible ? " col-3" : "d-none"}`}>
-                         <div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column ms-3 right-panel-container">
-                             <form className="d-flex flex-column flex-grow-1">
-                                 <div className="d-flex flex-column flex-grow-1" style={{ height: '100%' }}>
-                                     <div className="d-flex justify-content-between border-bottom align-items-center py-1">
-                                         <div className="page-heading text-dark-blue ms-2">
-                                             Advance Search
-                                         </div>
-                                         <IconButton onClick={closeDivVisibility} size="small" edge="start">
-                                             <HiOutlineX className="f16" />
-                                         </IconButton>
-                                     </div>
-                                     <div className="flex-grow-1">
-                                       <div className="rightContent">
-            <div className="bg-white p-3" style={{ border: "none" }}>
-                <form onSubmit={formik.handleSubmit} autoComplete="off">
-                    <div className="d-flex flex-column flex-grow-1" style={{ height: '100%' }}>
-                        <div className="flex-grow-1">
-                            <div className="p-3 ps-2 pe-2">
-                                <div className="row">
-                                    <div className="col-12 mb-3">
-                                        <TextFieldCell
-                                            id="bidId"
-                                            name="bidId"
-                                            label="Bid ID"
-                                            value={formik.values.BidId}
-                                            onChange={(e) => formik.setFieldValue("BidId", e.target.value)}
-                                        />
-                                    </div>
-
-
-                                    <div className="col-12 mb-3">
-                                        <TextFieldCell
-                                            id="subject"
-                                            name="subject"
-                                            label="Subject"
-                                            maxLength={200}
-                                            value={formik.values.Subject}
-                                            onChange={(e) => formik.setFieldValue("Subject", e.target.value)}
-                                            InputProps={{
-                                                endAdornment: formik.values.Subject && (
-                                                    <InputAdornment position="end">
-                                                        <Typography variant="body2" color="textSecondary">
-                                                            {formik.values.Subject.length}/200
-                                                        </Typography>
-                                                    </InputAdornment>
-                                                ),
-                                            }}
-                                        />
-                                    </div>
-
-
-                                    <div className="col-12 mb-3">
-                                        <FormControl fullWidth>
-                                            <InputLabel id="status">Status</InputLabel>
-                                            <Select
-                                                id="status"
-                                                labelId="status"
-                                                label="Status"
-                                                variant="outlined"
-                                                size="small"
-                                                value={formik.values.Status}
-                                                onChange={(e) => formik.setFieldValue("Status", e.target.value)}
-                                            >
-                                                {["Open", "Draft", "Under Pre Approval","Running", "Close"].map((s) => (
-                                                    <MenuItem key={s} value={s}>{s}</MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </div>
-
-
-                                    <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                        <div className="col-12 mb-3">
-                                            <MobileDateTimePicker
-                                                label="From Date/Time"
-                                                className="w-100 f14"
-                                                value={formik.values.FromDate}
-                                                onChange={(newValue) => formik.setFieldValue("FromDate", newValue)}
-                                                slotProps={{
-                                                    textField: {
-                                                        variant: "outlined",
-                                                        size: "small",
-                                                        error: !!formik.errors.FromDate,
-                                                        helperText: formik.errors.FromDate,
-                                                    },
-                                                }}
-                                            />
-                                        </div>
-
-                                        <div className="col-12 mb-3">
-                                            <MobileDateTimePicker
-                                                label="To Date/Time"
-                                                className="w-100 f14"
-                                                value={formik.values.ToDate}
-
-                                                onChange={(newValue) => formik.setFieldValue("ToDate", newValue)}
-                                                slotProps={{
-                                                    textField: {
-                                                        variant: "outlined",
-                                                        size: "small",
-                                                        error: !!formik.errors.ToDate,
-                                                        helperText: formik.errors.ToDate,
-                                                    },
-                                                }}
-                                            />
-                                        </div>
-                                    </LocalizationProvider>
-
-                        
-
-                                    
-
-                                    {/* Buttons */}
-                                    <div className="col-12 text-end">
-                                        <LoadingButton
-                                            variant="contained"
-                                            color="primary"
-                                            className="me-3 text-capitalize"
-                                            onClick={clear}
-                                        >
-                                            Clear
-                                        </LoadingButton>
-                                        <LoadingButton
-                                            loading={rfqLoading}
-                                            variant="outlined"
-                                            color="primary"
-                                            className="text-capitalize"
-                                            onClick={async (e) => {
-                                                e.preventDefault();
-                                                formik.handleSubmit();
-                                            }}
-                                        >
-                                            Submit
-                                        </LoadingButton>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </form>
-            </div>
-
-        </div>
-                                     </div>
-                                 </div>
-                             </form>
-                         </div>
-                     </div>
-                 )}
-</div>
-
-    )
+	return (
+		<>
+			<div className="rfq-v2-page">
+				<div className="rfq-v2-page-header">
+					<div className="rfq-v2-breadcrumb">
+						<Link to="/app">Home</Link><span className="rfq-v2-breadcrumb-sep">/</span>
+						<span>Reports</span><span className="rfq-v2-breadcrumb-sep">/</span>
+						<span>BID Summary Report</span>
+					</div>
+				</div>
+				<div className="rfq-v2-card">
+					<PETableToolbar
+						searchText={searchText}
+						onSearchChange={setSearchText}
+						searchPlaceholder="Search..."
+						showFilter
+						filterColumns={filterColumns}
+						filterModel={filterModel}
+						onFilterModelChange={setFilterModel}
+						showColumns
+						columns={columns || []}
+						hiddenAlways={[]}
+						columnVisibilityModel={columnVisibilityModel}
+						onColumnVisibilityChange={handleColumnVisibilityChange}
+						onColumnVisibilityReset={handleColumnVisibilityReset}
+						showDensity
+						density={density}
+						onDensityChange={setDensity}
+						showAdvFilter
+						advFilterOpen={divVisible}
+						onAdvFilterToggle={() => setDivVisible(v => !v)}
+						advFilterCount={activeFiltersCount}
+						advFilterPanel={(
+							<form className="rfq-v2-filter-body"
+								onSubmit={formik.handleSubmit}
+								autoComplete="off">
+								<div className="rfq-v2-filter-fields">
+									<div>
+										<label className="rfq-v2-filter-label">Bid ID</label>
+										<TextFieldCell id="BidId" name="BidId" value={formik.values.BidId} onChange={(e) => formik.setFieldValue("BidId", e.target.value)} className="rfq-v2-filter-field" />
+									</div>
+									<div>
+										<label className="rfq-v2-filter-label">Subject</label>
+										<TextFieldCell id="subject" name="subject" maxLength={200} value={formik.values.Subject} onChange={(e) => formik.setFieldValue("Subject", e.target.value)} className="rfq-v2-filter-field" />
+									</div>
+									<div>
+										<label className="rfq-v2-filter-label">Status</label>
+										<FormControl fullWidth>
+											<Select displayEmpty id="Status"
+												variant="outlined"
+												size="small"
+												value={formik.values.Status}
+												onChange={(e) => formik.setFieldValue("Status", e.target.value)}>
+												{["Open", "Draft", "Under Pre Approval", "Running", "Close"].map((s) => (
+													<MenuItem key={s} value={s}>{s}</MenuItem>
+												))}
+											</Select>
+										</FormControl>
+									</div>
+									<LocalizationProvider dateAdapter={AdapterDateFns}>
+										<div>
+											<label className="rfq-v2-filter-label">From Date/Time</label>
+											<MobileDateTimePicker className="w-100 f14" value={formik.values.FromDate}
+												onChange={(v) => formik.setFieldValue("FromDate", v)}
+												slotProps={{ textField: { variant: "outlined", size: "small" } }} />
+										</div>
+										<div>
+											<label className="rfq-v2-filter-label">To Date/Time</label>
+											<MobileDateTimePicker className="w-100 f14" value={formik.values.ToDate}
+												onChange={(v) => formik.setFieldValue("ToDate", v)}
+												slotProps={{ textField: { variant: "outlined", size: "small" } }} />
+										</div>
+									</LocalizationProvider>
+								</div>
+								<div className="rfq-v2-filter-footer">
+									<button type="button" className="rfq-v2-filter-btn-reset" onClick={clear}>Reset</button>
+									<LoadingButton type="submit" loading={rfqLoading}
+										className="rfq-v2-filter-btn-apply" disableElevation
+										onClick={async (e) => { e.preventDefault(); formik.handleSubmit(); }}
+									>Apply
+									</LoadingButton>
+								</div>
+							</form>
+						)}
+						showExport
+						onExport={handleExportClick}
+						exportLoading={loading}
+					/>
+					<div className="rfq-v2-table-wrapper">
+						<PETable
+							className="rfq-v2-datagrid"
+							rows={filteredRows}
+							getRowId={getRowId}
+							columns={columns}
+							loading={loading || rfqLoading}
+							rowHeight={52}
+							pagination
+							paginationMode="server"
+							pageSizeOptions={[10, 25, 50]}
+							rowCount={TotalCount}
+							paginationModel={{ page: page - 1, pageSize }}
+							onPaginationModelChange={(model) => {
+								const currentFilters = activeFiltersCount > 0 ? {
+									Status: formik.values.Status || null,
+									FromDate: formik.values.FromDate ? new Date(formik.values.FromDate).toISOString() : null,
+									ToDate: formik.values.ToDate ? new Date(formik.values.ToDate).toISOString() : null,
+									Subject: formik.values.Subject || null,
+									BidId: formik.values.BidId || null
+								} : null;
+								if (currentFilters) Object.keys(currentFilters).forEach(key => {
+									if (currentFilters[key] === null || currentFilters[key] === '') delete currentFilters[key];
+								});
+								if (model.page !== (page - 1)) {
+									setPage(model.page + 1);
+									pullBIDSummaryReport(model.page + 1, model.pageSize, currentFilters);
+								}
+								if (model.pageSize !== pageSize) {
+									setPageSize(model.pageSize); setPage(1);
+									pullBIDSummaryReport(1, model.pageSize, currentFilters);
+								}
+							}}
+							columnVisibilityModel={columnVisibilityModel}
+							onColumnVisibilityModelChange={handleColumnVisibilityChange}
+							filterModel={filterModel}
+							onFilterModelChange={setFilterModel}
+							disableColumnResize
+							density={density}
+							getRowClassName={(params) => params.indexRelativeToCurrentPage % 2 === 0 ? 'even overFlow' : 'odd overFlow'}
+						/>
+					</div>
+				</div>
+			</div>
+		</>
+	);
 }
 
-export default BIDSummaryReport
+export default BIDSummaryReport;

@@ -614,7 +614,7 @@ const AuctionCommunication = ({ bidId, connection, handleApprover, VendorsCommID
 						<div className="v2-notif-header">
 							<span className="v2-notif-title">Chats</span>
 							<div className="v2-notif-header-actions">
-								<button type="button" className="rfq-v2-filter-panel-close v2-notif-close-btn" onClick={() => handleApprover(false)}>
+								<button type="button" className="pe-icon-btn pe-icon-btn--close v2-notif-close-btn" onClick={() => handleApprover(false)}>
 									<HiOutlineX className="v2-notif-close-icon" />
 								</button>
 							</div>

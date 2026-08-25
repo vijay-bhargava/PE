@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 0 16px;
+  padding: 20px 2px 20px 2px ;
   gap: 12px;
 }
 
@@ -255,6 +255,35 @@
   font-size: 14px !important;
   color: #9ca3af;
   margin-left: 2px;
+}
+
+/* MUI DataGrid toolbar buttons — styled to match rfq-v2-tbtn */
+.rfq-v2-card .MuiDataGrid-toolbarContainer {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.rfq-v2-card .MuiDataGrid-toolbarContainer .MuiButton-root {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #374151;
+  text-transform: none;
+  line-height: 1;
+  min-width: unset;
+}
+.rfq-v2-card .MuiDataGrid-toolbarContainer .MuiButton-root:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+.rfq-v2-card .MuiDataGrid-toolbarContainer .MuiButton-root .MuiButton-startIcon svg {
+  font-size: 15px;
+  color: #6b7280;
 }
 
 /* Primary action button (Add New) */
@@ -554,23 +583,6 @@
   font-weight: 600;
   color: #111827;
   margin: 0;
-}
-.rfq-v2-filter-panel-close {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: transparent;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #6b7280;
-  transition: background 0.12s;
-}
-.rfq-v2-filter-panel-close:hover {
-  background: #f3f4f6;
-  color: #374151;
 }
 
 /* Panel body — hosts the form (flex column, takes all remaining height) */
