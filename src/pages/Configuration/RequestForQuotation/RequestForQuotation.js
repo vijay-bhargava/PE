@@ -910,6 +910,7 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				}
 				if (res[0]?.stage) {
 					setCurrentStage(res[0]?.stage);
+					dispatch({ type: actionTypes.SET_STAGE, value: res[0]?.stage });
 				}
 			}
 		});

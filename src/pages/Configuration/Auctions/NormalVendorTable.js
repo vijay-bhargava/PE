@@ -4,16 +4,66 @@ import { PETableSimple } from '../../../components/RFQ/PETable';
 
 const NormalVendorTable = ({ auctionItem }) => {
 	const upType = auctionItem?.auctionManageData[0]?.bidTypeID === 1 || auctionItem?.auctionManageData[0]?.bidTypeID === 5;
+	const isFreightOrFormula = [3, 4].includes(auctionItem?.auctionManageData[0]?.bidTypeID);
+
+	// Derive term columns from the first vendor for the current line item
+	const termColumns = (() => {
+		if (!isFreightOrFormula) return [];
+		const firstVendor = auctionItem?.allVendorParticipationDetails?.find(
+			v => v.bidParameterId === auctionItem?.item?.bidParameterId && v.bidParticipationTermsHeader
+		);
+		if (!firstVendor) return [];
+		try {
+			const allTerms = JSON.parse(firstVendor.bidParticipationTermsHeader) || [];
+			const filteredTerms = allTerms.filter(t => !/total/i.test(t.name));
+			const auctionCT = auctionItem?.auctionManageData[0]?.auctionCT || [];
+			const textTermIds = new Set(
+				filteredTerms
+					.filter(term => {
+						const ctEntry = auctionCT.find(ct => ct.id === term.termId);
+						return ctEntry && ctEntry.valuetype !== 'Currency';
+					})
+					.map(t => t.termId)
+			);
+			return [
+				...filteredTerms.filter(t => !textTermIds.has(t.termId)).map(t => ({ ...t, isText: false })),
+				...filteredTerms.filter(t => textTermIds.has(t.termId)).map(t => ({ ...t, isText: true })),
+			];
+		} catch { return []; }
+	})();
+
+	const bidSubTypeId = auctionItem?.auctionManageData[0]?.bidSubTypeId;
+	const stage = auctionItem?.auctionManageData[0]?.stage;
+	const showLatestQuoteCol = bidSubTypeId != 82 || ["Close", "Awarded", "Allocation"].includes(stage);
+	const latestQuoteLabel = bidSubTypeId != 82 ? 'Latest Quote' : 'Accepted Price';
 
 	const columns = [
 		{
 			key: 'companyName',
 			label: 'Suppliers',
-			renderCell: (_, sq) => (
-				auctionItem?.auctionManageData[0]?.hideVendor === true && auctionItem?.bidStatus === 'running'
-					? <Tooltip title="Vendor Name"><span>Anonymous Vendor</span></Tooltip>
-					: <Tooltip title="Vendor Name"><span>{sq.companyName}{sq.selectedCurrency && ` (${sq.selectedCurrency})`}</span></Tooltip>
-			),
+			renderCell: (_, sq) => {
+				const invitedVendor = auctionItem?.ManageInvitedVendors?.find(v => v.vendorId === sq.vendorId);
+				const isOnline = invitedVendor?.status === true;
+				if (auctionItem?.auctionManageData[0]?.hideVendor === true && auctionItem?.bidStatus === 'running') {
+					return <Tooltip title="Vendor Name"><span>Anonymous Vendor</span></Tooltip>;
+				}
+				return (
+					<Tooltip title="Vendor Name">
+						<span style={{ display: 'inline-flex', alignItems: 'center' }}>
+							{isOnline && (
+								<>
+									<style>{`@keyframes ripple { 0% { transform: scale(.8); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }`}</style>
+									<span style={{ position: "relative", width: "10px", height: "10px", display: "inline-flex", marginRight: "8px", flexShrink: 0 }}>
+										<span style={{ position: "absolute", width: "100%", height: "100%", borderRadius: "50%", background: "#00c853", animation: "ripple 1.5s infinite" }} />
+										<span style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#00c853", zIndex: 1, boxShadow: "0 0 10px #00c853" }} />
+									</span>
+								</>
+							)}
+							{sq.companyName}{sq.selectedCurrency && ` (${sq.selectedCurrency})`}
+						</span>
+					</Tooltip>
+				);
+			},
 		},
 		{
 			key: 'rankValue',
@@ -26,7 +76,7 @@ const NormalVendorTable = ({ auctionItem }) => {
 				</div>
 			),
 		},
-		{
+		...(bidSubTypeId != 82 ? [{
 			key: 'initialPrice',
 			label: 'Initial Quote',
 			renderCell: (_, sq) => {
@@ -84,10 +134,10 @@ const NormalVendorTable = ({ auctionItem }) => {
 					</div>
 				);
 			},
-		},
-		{
+		}] : []),
+		...(showLatestQuoteCol ? [{
 			key: 'quotedPrice',
-			label: 'Latest Quote',
+			label: latestQuoteLabel,
 			renderCell: (_, sq) => {
 				const isEditing = auctionItem?.editingVendorId === sq.vendorId && auctionItem?.editingParameterId === sq.bidParameterId;
 				const canEdit = !(
@@ -109,7 +159,7 @@ const NormalVendorTable = ({ auctionItem }) => {
 							{auctionItem?.prebidValues.find(i => i.createdById === sq.vendorId && i.bidParameterId === sq.bidParameterId)?.quotedPrice
 								|| (sq.quotedPrice && sq.quotedPrice !== 0 ? auctionItem?.thousands_separators(sq.quotedPrice) : (sq.quotedPrice === null && sq.id > 0 ? 'Quoted' : 'Not Participated'))}
 						</span>
-						{sq.rankValue !== null && auctionItem?.bidStatus !== null && !auctionItem?.auctionManageData[0]?.hideVendor && sq.quotedPrice !== null && sq.quotedPrice !== undefined && (
+						{sq.rankValue !== null && auctionItem?.bidStatus !== null && !auctionItem?.auctionManageData[0]?.hideVendor && !auctionItem?.auctionManageData[0]?.groupAuction && sq.quotedPrice !== null && sq.quotedPrice !== undefined && bidSubTypeId != 82 && (
 							<Tooltip title="Remove Quote">
 								<button className="pe-icon-btn pe-icon-btn--close" onClick={() => auctionItem?.handleOpenModalRemoveQuote(sq?.quotedPrice, sq?.id)}><HiX /></button>
 							</Tooltip>
@@ -124,7 +174,17 @@ const NormalVendorTable = ({ auctionItem }) => {
 					</div>
 				);
 			},
-		},
+		}] : []),
+		...(isFreightOrFormula ? termColumns.map(col => ({
+			key: `term_${col.termId}`,
+			label: col.name,
+			renderCell: (_, sq) => {
+				let terms = [];
+				try { terms = JSON.parse(sq.bidParticipationTermsHeader) || []; } catch { terms = []; }
+				const t = terms.find(t => t.termId === col.termId);
+				return t ? (col.isText ? (t.remarks || 'N/A') : auctionItem?.thousands_separators(t.quotedPrice)) : '-';
+			},
+		})) : []),
 		{
 			key: '_bidValue',
 			label: 'Bid Value',

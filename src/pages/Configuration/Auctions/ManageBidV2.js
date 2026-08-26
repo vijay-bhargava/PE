@@ -13,7 +13,7 @@ import { actionTypes, useStateValue } from '../../../store';
 import { bidlist, checkUTC, formatDateViaLocale, getAuctionManageFind } from '../../../utils/common/utility';
 import CryptoJS from 'crypto-js';
 import { useCookies } from 'react-cookie';
-import { pullMessageCount } from '../../../utils/common';
+import { getApiErrorMessage, pullMessageCount } from '../../../utils/common';
 import { ApiClient } from '../../../Apiclient';
 import { toast } from 'react-toastify';
 import * as signalR from '@microsoft/signalr';
@@ -151,6 +151,9 @@ const ManageBidV2 = () => {
         setRecorddata([]);
         setTotalCount(0);
       }
+    }).catch((error) => {
+      setGridloading(false);
+      toast.error(getApiErrorMessage(error));
     });
   };
 
@@ -441,7 +444,7 @@ const ManageBidV2 = () => {
         setBidTypeList(response.result);
       }
     } catch (error) {
-      console.error('Error fetching bid types:', error);
+      toast.error(getApiErrorMessage(error));
     }
   };
 

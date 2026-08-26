@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TextField, Typography } from '@mui/material';
-import { formatbidtime, getDateFormatPatteronLocale, userampm } from '../../../utils/common/utility';
+import { formatbidtime, getDateFormatPatteronLocale, userampm, checkUTC } from '../../../utils/common/utility';
 import { getApiErrorMessage } from '../../../utils/common';
 import { ApiClient } from "../../../Apiclient";
 import { useStateValue } from '../../../store';
@@ -26,6 +26,7 @@ const StaggerAuction = ({ actions }) => {
   const [currentTableIndex, setCurrentTableIndex] = useState(0);
   const [uniqueGroupCount, setUniqueGroupCount] = useState(0);
   const [slotStatus, setSlotStatus] = useState(null);
+  const staggerStatusCalledRef = useRef(false);
   useEffect(() => {
     if (actions?.auctionManageData?.length > 0) {
       setBidParameterData(actions?.auctionManageData[0]?.bidParamater);
@@ -37,6 +38,12 @@ const StaggerAuction = ({ actions }) => {
       setCurrentTableIndex(actions.pageNumber - 1);
     }
   }, [actions?.pageNumber]);
+
+  useEffect(() => {
+    if (actions?.totalCount !== undefined && actions.totalCount > 0) {
+      setUniqueGroupCount(actions.totalCount);
+    }
+  }, [actions?.totalCount]);
 
   //timer calculation before bid start here
   const [timeRemainingForGrp, setTimeRemainingForGrp] = useState("");
@@ -53,8 +60,8 @@ const StaggerAuction = ({ actions }) => {
 
       if (currentGroupItems.length > 0) {
         const firstItem = currentGroupItems[0];
-        const bidStartDate = new Date(firstItem.itemStDate + 'Z').getTime();
-        const bidEndDate = new Date(firstItem.itemEndDate + 'Z').getTime();
+        const bidStartDate = new Date(checkUTC(firstItem.itemStDate)).getTime();
+        const bidEndDate = new Date(checkUTC(firstItem.itemEndDate)).getTime();
         const currentTime = actions?.getCurrentServerTime?.() ?? Date.now();
 
         if (currentTime < bidStartDate) {
@@ -63,7 +70,10 @@ const StaggerAuction = ({ actions }) => {
           setSlotStatus("Slot_Not_Started");
         } else if (currentTime > bidEndDate) {
           if (["Running"].includes(actions?.auctionManageData[0]?.stage) || actions?.bidStatus === "running") {
-            handleStaggerStatus();
+            if (!staggerStatusCalledRef.current) {
+              staggerStatusCalledRef.current = true;
+              handleStaggerStatus();
+            }
           }
           setTimeRemainingForGrp("00:00:00");
           clearInterval(timer); // ✅ timer is defined now
@@ -92,23 +102,31 @@ const StaggerAuction = ({ actions }) => {
     return () => clearInterval(timer);
   }, [actions?.lineItemsPerPage, actions?.pageNumber, actions?.reopenTrigger]);
 
+  // Reset the guard whenever we move to a different slot so handleStaggerStatus
+  // can fire correctly for the new slot.
+  useEffect(() => {
+    staggerStatusCalledRef.current = false;
+  }, [actions?.pageNumber]);
+
   // Use the pagination function passed from parent component
   const callbackPagination = actions?.fetchVendorParameterDetailsLineItems;
   const callbackPaginationForVendors = actions?.fetchVendorParameterDetails;
 
   const handleNext = () => {
-    //
-    setCurrentTableIndex((prevIndex) => (prevIndex + 1) % actions?.totalCount);
-    if (callbackPagination) {
-      callbackPagination(actions?.pageNumber + 1, 10);
+    if (actions?.pageNumber < actions?.totalCount) {
+      setCurrentTableIndex((prevIndex) => prevIndex + 1);
+      if (callbackPagination) {
+        callbackPagination(actions?.pageNumber + 1, 10);
+      }
     }
   };
 
   const handlePrevious = () => {
-    //
-    setCurrentTableIndex((prevIndex) => (prevIndex - 1 + actions?.totalCount) % actions?.totalCount);
-    if (callbackPagination) {
-      callbackPagination(actions?.pageNumber - 1, 10);
+    if (actions?.pageNumber > 1) {
+      setCurrentTableIndex((prevIndex) => prevIndex - 1);
+      if (callbackPagination) {
+        callbackPagination(actions?.pageNumber - 1, 10);
+      }
     }
   };
 
@@ -242,7 +260,7 @@ const StaggerAuction = ({ actions }) => {
 
   const handleRemoveQoutes = async () => {
     try {
-      const res = await apiClient.postres(`/api/AuctionParticipation/RemoveQuotes?HeaderId=${vendorParamIdStagger}&quotedPrice=${parseFloat(vendorQuotedPriceStagger)}&Remarks=${removeRemark}`, null, atoken)
+      const res = await apiClient.postres(`/api/AuctionParticipation/RemoveQuotes?HeaderId=${vendorParamIdStagger}&quotedPrice=${parseFloat(vendorQuotedPriceStagger)}&Remarks=${encodeURIComponent(removeRemark)}`, null, atoken)
       if (res) {
         toast.success('Successfully removed the quotes.');
         setOpenRemoveQuoteStagger(false);
@@ -267,6 +285,23 @@ const StaggerAuction = ({ actions }) => {
   const [prebidValues, setPrebidValues] = useState([]);
   const [duplicateQuoteModalOpen, setDuplicateQuoteModalOpen] = useState(false);
   const [duplicateQuoteGroups, setDuplicateQuoteGroups] = useState([]);
+
+  // When vendor participation data refreshes (via SignalR), remove any pending
+  // prebid entries for vendors who have now submitted their own quote.
+  useEffect(() => {
+    const vendorDetails = actions?.allVendorParticipationDetails || [];
+    if (vendorDetails.length === 0) return;
+    setPrebidValues(prev => prev.filter(entry => {
+      const vendorNowHasQuote = vendorDetails.some(
+        v => v.vendorId === entry.createdById &&
+          v.bidParameterId === entry.bidParameterId &&
+          v.quotedPrice !== null &&
+          v.quotedPrice !== undefined &&
+          v.quotedPrice !== 0
+      );
+      return !vendorNowHasQuote;
+    }));
+  }, [actions?.allVendorParticipationDetails]);
 
   const getDuplicateQuoteGroups = () => {
     if (actions?.auctionManageData?.[0]?.groupAuction) return [];

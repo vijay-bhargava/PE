@@ -53,14 +53,21 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 	const BidId = auctionId || parseInt(pageSlug);
 	const location = useLocation();
 	const [lineItemsPerPage, setLineItemsPerPage] = useState([]);
+	const [currentOfferedPrices, setCurrentOfferedPrices] = useState({});
 	const [pageNumber, setPageNumber] = useState(1);
 	const [reopenTrigger, setReopenTrigger] = useState(0);
 	const pageNumberRef = useRef(pageNumber);
+	const hasRefreshedOnCloseRef = useRef(false);
+	const prevBidStatusForTimerRef = useRef(null);
 	useEffect(() => {
 		pageNumberRef.current = pageNumber;
 	}, [pageNumber]);
 	const [totalCount, setTotalCount] = useState(0);
 	const [runningSlotNumber, setRunningSlotNumber] = useState(null);
+	const runningSlotNumberRef = useRef(null);
+	useEffect(() => {
+		runningSlotNumberRef.current = runningSlotNumber;
+	}, [runningSlotNumber]);
 	const [connectionStatus, setConnectionStatus] = useState('connecting'); // 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'failed'
 	const [showRefreshDialog, setShowRefreshDialog] = useState(false);
 	const reconnectAttemptsRef = useRef(0);
@@ -92,6 +99,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 		return serverTimeRef.current + (performance.now() - performanceStartRef.current);
 	};
 	const [isFullScreen, setIsFullScreen] = useState(isDifferentPage);
+	const [ManageInvitedVendors, setManageInvitedVendors] = useState([]);
 
 	//signalR
 	const [loading, setLoading] = useState(false);
@@ -102,8 +110,11 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 	// Sticky header state
 	const [isHeaderSticky, setIsHeaderSticky] = useState(false);
 	const cardRef = useRef(null);
+	const isUnmountingRef = useRef(false);
+	const connectionRef = useRef(null);
 
 	useEffect(() => {
+		isUnmountingRef.current = false;
 		if (!pageSlug || !atoken) return;
 
 		// Don't create new connection if dialog is shown or if already connecting/connected
@@ -141,11 +152,18 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 						signalR.HttpTransportType.LongPolling,
 				}
 			)
+			.withAutomaticReconnect([0, 2000, 5000, 10000])
 			.build();
 
+		connectionRef.current = connect;
 		// Removed automatic reconnection - will be handled manually in onclose
 
 		connect.onclose((error) => {
+			if (isUnmountingRef.current) {
+				console.log('Component unmounting, ignoring SignalR close');
+				return;
+			}
+
 			console.error('SignalR closed. Error:', error?.message, error?.stack, error);
 
 			// If dialog already shown, don't do anything
@@ -223,7 +241,8 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 			});
 
 		return () => {
-			// Clear all timeouts and refs on cleanup
+			isUnmountingRef.current = true;
+
 			if (connectionTimeoutRef.current) {
 				clearTimeout(connectionTimeoutRef.current);
 				connectionTimeoutRef.current = null;
@@ -232,11 +251,12 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 				clearTimeout(reconnectingTimeoutRef.current);
 				reconnectingTimeoutRef.current = null;
 			}
-			hasShownDialogRef.current = false;
 
-			if (connect) {
-				connect.stop().then(() => console.log('SignalR connection stopped.'));
-				setConnection(null);
+			if (connectionRef.current) {
+				connectionRef.current
+					.stop()
+					.then(() => console.log('SignalR connection stopped.'))
+					.catch(console.error);
 			}
 		};
 	}, [pageSlug, atoken]);
@@ -280,28 +300,192 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 	useEffect(() => {
 		// Set up the connection and handle incoming updates
 		if (connection) {
-			connection.on("UpdateAllRanks", (data) => {
+			const handleUpdateAllRanks = (data) => {
+
 				if (data.length !== 0) {
+
 					if (data?.vendors) {
 						const vendorData = data?.vendors;
-						if (pageSlug === vendorData[0]?.bidId) {
+						if (BidId == vendorData[0]?.bidId) {
 
-							//alert("UpdateAllRanks", data);
 							if (vendorData[0]?.alertExtension === "Y") {
-								setBidEndDate(vendorData[0]?.bidEndDate)
-								getAuctionManageFind();
+
+								const newEndDate = vendorData[0]?.bidEndDate;
+								const newExtensions = vendorData[0]?.extensions;
+								const newExtensionDuration = vendorData[0]?.extensionDuration;
+								setBidEndDate(newEndDate);
+								const newGroupEndDate = data.groupEndDate;
+								const activeGroupNo = runningSlotNumberRef.current ?? vendorData[0]?.groupNo;
+								const vendorGroupDateMap = {};
+
+								vendorData.forEach(v => {
+									if (v.groupNo > 0 && v.itemStDate && v.itemEndDate && !vendorGroupDateMap[v.groupNo]) {
+										vendorGroupDateMap[v.groupNo] = {
+											itemStDate: v.itemStDate,
+											itemEndDate: v.itemEndDate,
+										};
+									}
+								});
+
+								SetAuctionManageData(prev => {
+
+									if (!Array.isArray(prev)) {
+										console.error("auctionManageData is not an array:", prev);
+										return [];
+									}
+
+									if (prev.length === 0) return prev;
+
+									const updated = [...prev];
+									const activeParamBefore = (updated[0].bidParamater || []).find(
+										p => p.groupNo === activeGroupNo
+									);
+									let shiftMs = 0;
+									if (
+										newGroupEndDate &&
+										newGroupEndDate !== '0001-01-01T00:00:00' &&
+										activeParamBefore?.itemEndDate
+									) {
+										shiftMs =
+											new Date(checkUTC(newGroupEndDate)).getTime() -
+											new Date(checkUTC(activeParamBefore.itemEndDate)).getTime();
+									}
+									if (!shiftMs && newExtensionDuration) {
+										shiftMs = newExtensionDuration * 60 * 1000;
+									}
+									const shiftDateStr = (dateStr) => {
+										if (!dateStr || !shiftMs) return dateStr;
+										return new Date(new Date(checkUTC(dateStr)).getTime() + shiftMs)
+											.toISOString()
+											.replace('Z', '');
+									};
+									const updatedBidParamater = (updated[0].bidParamater || []).map(param => {
+
+										let updatedParam = { ...param };
+										const vDates = vendorGroupDateMap[param.groupNo];
+										if (vDates) {
+											updatedParam = { ...updatedParam, itemStDate: vDates.itemStDate, itemEndDate: vDates.itemEndDate };
+										}
+
+										if (
+											newGroupEndDate &&
+											newGroupEndDate !== '0001-01-01T00:00:00' &&
+											param.groupNo === activeGroupNo
+										) {
+											updatedParam = {
+												...updatedParam,
+												itemEndDate: newGroupEndDate,
+												itemStDate: updatedParam.itemStDate || new Date().toISOString().replace('Z', ''),
+											};
+										} else if (shiftMs > 0 && param.groupNo > activeGroupNo) {
+											updatedParam = {
+												...updatedParam,
+												itemStDate: shiftDateStr(updatedParam.itemStDate),
+												itemEndDate: shiftDateStr(updatedParam.itemEndDate),
+											};
+										}
+
+										return updatedParam;
+									});
+									updated[0] = {
+										...updated[0],
+										bidEndDate: newEndDate,
+										extensions: newExtensions ?? updated[0].extensions,
+										extensionDuration: newExtensionDuration ?? updated[0].extensionDuration,
+										actualDuration: vendorData[0]?.actualDuration,
+										bidParamater: updatedBidParamater,
+									};
+									return updated;
+								});
 								fetchVendorParameterDetailsLineItems(pageNumberRef.current, rowsPerPage, true);
 							}
-
 							fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
 						}
-					}
-					else {
-						if (pageSlug === data[0]?.bidId) {
-							//alert("UpdateAllRanks", data);
+					} else {
+
+						if (BidId == data[0]?.bidId) {
 							if (data[0]?.alertExtension === "Y") {
-								setBidEndDate(data?.bidEndDate)
-								getAuctionManageFind();
+								const newEndDate = data[0]?.bidEndDate;
+								const newExtensions = data[0]?.extensions;
+								const newExtensionDuration = data[0]?.extensionDuration;
+								setBidEndDate(newEndDate);
+								const newGroupEndDate = data.groupEndDate;
+								const activeGroupNo = runningSlotNumberRef.current ?? data[0]?.groupNo;
+								const vendorGroupDateMap = {};
+								data.forEach(v => {
+									if (v.groupNo > 0 && v.itemStDate && v.itemEndDate && !vendorGroupDateMap[v.groupNo]) {
+										vendorGroupDateMap[v.groupNo] = {
+											itemStDate: v.itemStDate,
+											itemEndDate: v.itemEndDate,
+										};
+									}
+								});
+								SetAuctionManageData(prev => {
+									if (!Array.isArray(prev)) {
+										console.error("auctionManageData is not an array:", prev);
+										return [];
+									}
+
+									if (prev.length === 0) return prev;
+
+									const updated = [...prev];
+									const activeParamBefore = (updated[0].bidParamater || []).find(
+										p => p.groupNo === activeGroupNo
+									);
+									let shiftMs = 0;
+									if (
+										newGroupEndDate &&
+										newGroupEndDate !== '0001-01-01T00:00:00' &&
+										activeParamBefore?.itemEndDate
+									) {
+										shiftMs =
+											new Date(checkUTC(newGroupEndDate)).getTime() -
+											new Date(checkUTC(activeParamBefore.itemEndDate)).getTime();
+									}
+									if (!shiftMs && newExtensionDuration) {
+										shiftMs = newExtensionDuration * 60 * 1000;
+									}
+									const shiftDateStr = (dateStr) => {
+										if (!dateStr || !shiftMs) return dateStr;
+										return new Date(new Date(checkUTC(dateStr)).getTime() + shiftMs)
+											.toISOString()
+											.replace('Z', '');
+									};
+									const updatedBidParamater = (updated[0].bidParamater || []).map(param => {
+										let updatedParam = { ...param };
+										const vDates = vendorGroupDateMap[param.groupNo];
+										if (vDates) {
+											updatedParam = { ...updatedParam, itemStDate: vDates.itemStDate, itemEndDate: vDates.itemEndDate };
+										}
+										if (
+											newGroupEndDate &&
+											newGroupEndDate !== '0001-01-01T00:00:00' &&
+											param.groupNo === activeGroupNo
+										) {
+											updatedParam = {
+												...updatedParam,
+												itemEndDate: newGroupEndDate,
+												itemStDate: updatedParam.itemStDate || new Date().toISOString().replace('Z', ''),
+											};
+										} else if (shiftMs > 0 && param.groupNo > activeGroupNo) {
+											updatedParam = {
+												...updatedParam,
+												itemStDate: shiftDateStr(updatedParam.itemStDate),
+												itemEndDate: shiftDateStr(updatedParam.itemEndDate),
+											};
+										}
+										return updatedParam;
+									});
+									updated[0] = {
+										...updated[0],
+										bidEndDate: newEndDate,
+										extensions: newExtensions ?? updated[0].extensions,
+										extensionDuration: newExtensionDuration ?? updated[0].extensionDuration,
+										actualDuration: data[0]?.actualDuration,
+										bidParamater: updatedBidParamater,
+									};
+									return updated;
+								});
 								fetchVendorParameterDetailsLineItems(pageNumberRef.current, rowsPerPage, true);
 							}
 
@@ -313,7 +497,9 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 
 					fetchVendorParameterDetails(pageNumberRef.current, rowsPerPage);
 				}
-			});
+			};
+
+			connection.on("UpdateAllRanks", handleUpdateAllRanks);
 		}
 	}, [connection, BidId, pageSlug, pageNumberRef.current]);
 
@@ -321,35 +507,38 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 	useEffect(() => {
 		if (connection) {
 			const handleAuctionTimeUpdate = (timeUpdate) => {
-				//alert("AuctionTimeUpdate", timeUpdate);
-				//console.log("Data update received:", timeUpdate);
 
-				const updatedTimeDetail = { ...auctionManageData };
-				let isTimeUpdated = false;
+				SetAuctionManageData(prev => {
+					if (!Array.isArray(prev) || prev.length === 0) return prev;
 
-				if (updatedTimeDetail[0].id === timeUpdate?.id) {
-					const currentDateTime = new Date().toISOString()
-					if (timeUpdate?.bidEndDate < currentDateTime) {
+					const current = prev[0];
+					if (current?.id != timeUpdate?.id) return prev;
+
+					const currentServerTime = getCurrentServerTime();
+
+					if (timeUpdate?.bidEndDate < currentServerTime) {
 						setIsCircleLoading(true);
 						setTimeout(() => {
 							setIsCircleLoading(false);
 							navigate(`/configuration/manage-auction`);
 						}, 2000);
-					} else {
-						isTimeUpdated = true;
-						updatedTimeDetail[0].bidStDate = timeUpdate?.bidStDate;
-						updatedTimeDetail[0].bidEndDate = timeUpdate?.bidEndDate;
-						updatedTimeDetail[0].bidDuration = timeUpdate?.bidDuration;
-						updatedTimeDetail[0].actualDuration = timeUpdate?.actualDuration;
-						updatedTimeDetail[0].extensions = timeUpdate?.extensions;
-						updatedTimeDetail[0].extensionDuration = timeUpdate?.extensionDuration;
+						return prev;
 					}
-				}
-				if (isTimeUpdated) {
-					SetAuctionManageData(updatedTimeDetail);
+
 					setBidStDate(timeUpdate?.bidStDate);
 					setBidEndDate(timeUpdate?.bidEndDate);
-				}
+
+					const updated = [...prev];
+					updated[0] = {
+						...current,
+						bidStDate: timeUpdate?.bidStDate,
+						bidEndDate: timeUpdate?.bidEndDate,
+						actualDuration: timeUpdate?.actualDuration,
+						extensions: timeUpdate?.extensions,
+						extensionDuration: timeUpdate?.extensionDuration,
+					};
+					return updated;
+				});
 			};
 
 			connection.on("AuctionTimeUpdate", handleAuctionTimeUpdate);
@@ -359,6 +548,62 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 			}
 		}
 	}, [connection, auctionManageData, BidId]);
+
+	useEffect(() => {
+		if (!connection) return;
+		const handlePriceUpdate = (data) => {
+			console.log("PRICE_UPDATE received::", data);
+			setCurrentOfferedPrices(prev => ({
+				...prev,
+				[data?.id]: data?.nextPrice,
+			}));
+		};
+
+		connection.off("PRICE_UPDATE");
+		connection.on("PRICE_UPDATE", handlePriceUpdate);
+
+		return () => {
+			connection.off("PRICE_UPDATE", handlePriceUpdate);
+		};
+	}, [connection, lineItemsPerPage]);
+
+	useEffect(() => {
+		if (!connection) return;
+		const handleAuctionAccepted = (data) => {
+			console.log("AUCTION_ACCEPTED received::", data);
+			setTimeRemaining("00:00:00");
+			setBidstatus(null);
+			fetchVendorParameterDetailsLineItems()
+			setTimeout(() => {
+				refreshData();
+			}, 500);
+		};
+
+		connection.off("AUCTION_ACCEPTED");
+		connection.on("AUCTION_ACCEPTED", handleAuctionAccepted);
+
+		return () => {
+			connection.off("AUCTION_ACCEPTED", handleAuctionAccepted);
+		};
+	}, [connection, lineItemsPerPage]);
+
+	useEffect(() => {
+		if (!connection) return;
+		const handleAuctionClosed = (data) => {
+			console.log("AUCTION_CLOSED received::", data);
+			fetchVendorParameterDetailsLineItems()
+			setTimeout(() => {
+				refreshData();
+			}, 500);
+		};
+
+		connection.off("AUCTION_CLOSED");
+		connection.on("AUCTION_CLOSED", handleAuctionClosed);
+
+		return () => {
+			connection.off("AUCTION_CLOSED", handleAuctionClosed);
+		};
+	}, [connection, lineItemsPerPage]);
 
 	useEffect(() => {
 
@@ -591,33 +836,46 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 	}, [bidStatus, reOpenSuccess]);
 
 	useEffect(() => {
+		hasRefreshedOnCloseRef.current = false; // reset guard whenever dates change
+		prevBidStatusForTimerRef.current = null; // reset previous status on new dates
 		const calculateTimeRemaining = () => {
-			const currentTime = getCurrentServerTime() ?? new Date().getTime();
+			const currentTime = getCurrentServerTime();
+			if (!currentTime) return;
 			const bidStartDate = new Date(checkUTC(bidStDateTime)).getTime();
 			const timeDiff = bidStartDate - currentTime;
 			if (timeDiff > 0) {
 				setTimeRemaining(formatbidtime(timeDiff));
 				setBidstatus("not_started");
+				prevBidStatusForTimerRef.current = "not_started";
 			} else {
 				const bidEndDate = new Date(checkUTC(bidEndDateTime)).getTime();
 				const endDiff = bidEndDate - currentTime;
 				if (endDiff > 0) {
 					setTimeRemaining(formatbidtime(endDiff));
 					setBidstatus("running");
+					prevBidStatusForTimerRef.current = "running";
 				} else {
 					setTimeRemaining("00:00:00");
 					clearInterval(timer);
 					setBidstatus(null);
-					refreshData();
+					// Only refresh if auction was previously running in this session
+					// (real-time close), not on initial page load when already closed
+					if (prevBidStatusForTimerRef.current === "running" && !hasRefreshedOnCloseRef.current) {
+						hasRefreshedOnCloseRef.current = true;
+						refreshData();
+					}
 				}
 			}
 		};
 		let timer;
-		const currentTime = getCurrentServerTime() ?? new Date().getTime();
-		const flag = new Date(checkUTC(bidEndDateTime)).getTime() > currentTime;
-		if (flag && bidStDateTime && bidEndDateTime) {
-			timer = setInterval(calculateTimeRemaining, 1000);
-			return () => clearInterval(timer);
+		const currentTime = getCurrentServerTime();
+		const flag = currentTime && new Date(checkUTC(bidEndDateTime)).getTime() > currentTime;
+		if (bidStDateTime && bidEndDateTime) {
+			calculateTimeRemaining(); // always run once immediately to set initial state
+			if (flag) {
+				timer = setInterval(calculateTimeRemaining, 1000);
+				return () => clearInterval(timer);
+			}
 		}
 	}, [bidStDateTime, bidEndDateTime]);
 
@@ -1023,6 +1281,62 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 	const [description, setDescription] = useState('');
 	const [showRankToVendor, setShowRankToVendor] = useState('');
 	const [maximumExtension, setMaximumExtension] = useState('');
+	const [hideQuote, setHideQuote] = useState(false);
+	const [hideVendor, setHideVendor] = useState(false);
+
+	// ---- Closed auction download menu ----
+	const [reportMenuAnchor, setReportMenuAnchor] = useState(null);
+	const [reportDownloading, setReportDownloading] = useState(false);
+
+	const handleReportMenuOpen = (e) => setReportMenuAnchor(e.currentTarget);
+	const handleReportMenuClose = () => setReportMenuAnchor(null);
+
+	const downloadAuctionReport = async (format) => {
+		handleReportMenuClose();
+		setReportDownloading(true);
+		const endpoint = format === 'excel'
+			? '/api/AuctionManage/ManageAuctionReportExcel'
+			: '/api/AuctionManage/ManageAuctionReportPdf';
+		const payload = {
+			CustomerId: customerid,
+			EventType: 'Auction',
+			EventId: BidId,
+			LoginUserId: userDetail?.id || 0,
+		};
+		const queryParams = buildQueryParams(payload);
+		try {
+			const res = await apiClient.api.get(`${endpoint}?${queryParams}`, {
+				responseType: 'blob',
+				headers: { Authorization: `Bearer ${atoken}` },
+			});
+			const contentDisposition = res.headers?.['content-disposition'] || '';
+			const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+			const ext = format === 'excel' ? '.xlsx' : '.pdf';
+			const filename = filenameMatch ? filenameMatch[1].replace(/['"]/g, '') : `AuctionReport_${BidId}${ext}`;
+			const url = window.URL.createObjectURL(new Blob([res.data]));
+			const link = document.createElement('a');
+			link.href = url;
+			link.setAttribute('download', filename);
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			window.URL.revokeObjectURL(url);
+			toast.success(`Report downloaded successfully.`, { autoClose: 2000 });
+		} catch (error) {
+			console.error("downloadAuctionReport failed:", error);
+			toast.error(
+				getApiErrorMessage(error),
+				{
+					toastId: "report_download_error",
+					autoClose: 3000
+				}
+			);
+			return false;
+		} finally {
+			setReportDownloading(false);
+		}
+	};
+	// ---- End closed auction download menu ----
 
 	const handleOpenModal = (type) => {
 		setFieldBidType(type);
@@ -1035,6 +1349,10 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 			setShowRankToVendor(auctionManageData[0]?.showRankToVendor || '');
 		} else if (type === 'maximumExtension') {
 			setMaximumExtension(auctionManageData[0]?.maximumExtension || '');
+		} else if (type === 'hideQuote') {
+			setHideQuote(auctionManageData[0]?.hideQuote ?? false);
+		} else if (type === 'hideVendor') {
+			setHideVendor(auctionManageData[0]?.hideVendor ?? false);
 		}
 		setBidOpen(true);
 	};
@@ -1043,6 +1361,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 
 		let fieldTxt = null;
 		let fieldValue = null;
+		let fieldFlg = false;
 
 		if (fieldBidType === 'subject') {
 			fieldTxt = subject;
@@ -1052,6 +1371,10 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 			fieldTxt = showRankToVendor;
 		} else if (fieldBidType === 'maximumExtension') {
 			fieldValue = maximumExtension;
+		} else if (fieldBidType === 'hideQuote') {
+			fieldFlg = hideQuote;
+		} else if (fieldBidType === 'hideVendor') {
+			fieldFlg = hideVendor;
 		}
 
 
@@ -1059,7 +1382,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 			BidId: auctionId || parseInt(pageSlug),
 			ParameterId: 0,   //0 for biddetails only
 			FieldName: fieldBidType, //string
-			FieldFlg: false, //boolean
+			FieldFlg: fieldFlg, //boolean
 			FieldTxt: fieldTxt ? fieldTxt : null, //string
 			FieldValue: parseInt(fieldValue) ? parseInt(fieldValue) : 0,
 			CreatedBy: userDetail.id, //int
@@ -1627,6 +1950,8 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 		showRankToVendor: "Show Rank To Vendor",
 		maximumExtension: "Maximum Extension",
 		description: "Description",
+		hideQuote: "Mask Quote",
+		hideVendor: "Mask Participants",
 	};
 
 
@@ -1801,6 +2126,34 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 									onRunningSlotClick={handleRunningSlotClick}
 									onEditField={handleOpenModal}
 								/>
+								{/* Download Report button — shown when auction is closed */}
+								{['Close', 'Awarded', 'Allocation'].includes(auctionManageData[0]?.stage) && (
+									<div className="d-flex justify-content-end align-items-center px-3 py-1" style={{ background: '#f3f4f6', borderBottom: '1px solid #e5e7eb' }}>
+										<Tooltip title="Download Report">
+											<span>
+												<button
+													className="pe-btn pe-btn--ghost"
+													onClick={handleReportMenuOpen}
+													disabled={reportDownloading}
+													style={{ fontSize: 12, padding: '4px 12px', display: 'flex', alignItems: 'center', gap: 6 }}
+												>
+													{reportDownloading ? <CircularProgress size={14} /> : <HiDotsVertical />}
+													Download Report
+												</button>
+											</span>
+										</Tooltip>
+										<Menu
+											anchorEl={reportMenuAnchor}
+											open={Boolean(reportMenuAnchor)}
+											onClose={handleReportMenuClose}
+											anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+											transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+										>
+											<MenuItem onClick={() => downloadAuctionReport('excel')}>Download Excel</MenuItem>
+											<MenuItem onClick={() => downloadAuctionReport('pdf')}>Download PDF</MenuItem>
+										</Menu>
+									</div>
+								)}
 								{/* Scrollable item table area */}
 								<div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 									{auctionManageData[0]?.bidClosingType === 'S' ? (
@@ -2024,7 +2377,8 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 																editingParameterId,
 																hasLoadingFactor,
 																permissionManager: permissionManager,
-																hasRemovePermission: permissionManager?.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.REMOVE)
+																hasRemovePermission: permissionManager?.hasPermission(CLAIM_TYPES.MANAGE_AUCTION, ACTIONS.REMOVE),
+																ManageInvitedVendors: ManageInvitedVendors
 															}}
 														/>
 													)}
@@ -2055,6 +2409,7 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 									handleApprover={handleApprover}
 									VendorsCommID={auctionManageData[0]?.bidVendorInvited}
 									permissionManager={permissionManager}
+									setManageInvitedVendors={setManageInvitedVendors}
 								/>
 							</div>
 						)}
@@ -2224,6 +2579,36 @@ const AuctionControl = ({ isDifferentPage = true, onBidStatusChange = () => { },
 												{ext === -1 ? 'Unlimited' : ext}
 											</MenuItem>
 										))}
+									</TextField>
+								</div>
+							)}
+							{fieldBidType === 'hideQuote' && (
+								<div className="mb-3">
+									<label className="pe-field-label">Mask Quote</label>
+									<TextField
+										select
+										value={hideQuote}
+										onChange={(e) => setHideQuote(e.target.value === 'true')}
+										size="small"
+										fullWidth
+									>
+										<MenuItem value="true">Yes</MenuItem>
+										<MenuItem value="false">No</MenuItem>
+									</TextField>
+								</div>
+							)}
+							{fieldBidType === 'hideVendor' && (
+								<div className="mb-3">
+									<label className="pe-field-label">Mask Participants</label>
+									<TextField
+										select
+										value={hideVendor}
+										onChange={(e) => setHideVendor(e.target.value === 'true')}
+										size="small"
+										fullWidth
+									>
+										<MenuItem value="true">Yes</MenuItem>
+										<MenuItem value="false">No</MenuItem>
 									</TextField>
 								</div>
 							)}

@@ -10,6 +10,7 @@ import { useStateValue } from '../../../store';
 import { ApiClient } from '../../../Apiclient';
 import { buildMultiParamQueryParams, buildQueryParams } from '../../../utils/purchaseRequest';
 import { formatDateViaLocale } from '../../../utils/common/utility';
+import { getApiErrorMessage } from '../../../utils/common';
 import { LoadingButton } from '@mui/lab';
 import { toast } from 'react-toastify';
 import { HiOutlineX } from 'react-icons/hi';
@@ -98,7 +99,7 @@ const MessageMirrored = ({ time, body, attachment }) => {
 
 
 // Define the CommunicationHub component
-const AuctionCommunication = ({ bidId, connection, handleApprover, VendorsCommID, permissionManager }) => {
+const AuctionCommunication = ({ bidId, connection, handleApprover, VendorsCommID, permissionManager, setManageInvitedVendors = () => {} }) => {
 	const [{ atoken, customerid, customersuffix, userDetail }, dispatch] = useStateValue();
 	const apiClient = useMemo(() => new ApiClient(customersuffix), [customersuffix]);
 	const [selectedVendorName, setSelectedVendorName] = useState(null);
@@ -128,22 +129,38 @@ const AuctionCommunication = ({ bidId, connection, handleApprover, VendorsCommID
 	const [InvitedVendors, setInvitedVendors] = useState([]);
 	const InvitedVendorsRef = useRef([]);
 	const [MessageType, setMessageType] = useState('');
+	const [broadcastMessages, setBroadcastMessages] = useState([]);
 	//console.log("InvitedVendors::", InvitedVendors)
 
 	const fetchInvitedVendorDetails = async () => {
-		const res = await apiClient.get(
-			`api/AuctionParticipation/InvitedVendors?BidId=${bidId}`,
-			atoken
-		);
-		if (res) {
-			setInvitedVendors(res);
-			InvitedVendorsRef.current = res;
+		try {
+			const res = await apiClient.get(
+				`api/AuctionParticipation/InvitedVendors?BidId=${bidId}`,
+				atoken
+			);
+			if (res) {
+				setInvitedVendors(res);
+				InvitedVendorsRef.current = res;
+				setManageInvitedVendors(res);
+				return true;
+			}
+			setInvitedVendors([]);
+			InvitedVendorsRef.current = [];
+			setManageInvitedVendors([]);
+			return false;
+		} catch (error) {
+			console.error("fetchInvitedVendorDetails failed:", error);
+			toast.error(getApiErrorMessage(error), { toastId: "invited_vendor_error" });
+			setInvitedVendors([]);
+			InvitedVendorsRef.current = [];
+			setManageInvitedVendors([]);
+			return false;
 		}
 	};
 
 
 	useEffect(() => {
-		if (!connection || connection._connectionState !== "Connected") return;
+		if (!connection) return;
 
 		const handleVendorConnectionStatus = (connectedUsers) => {
 			console.log("objChatVL::", connectedUsers);
@@ -172,6 +189,7 @@ const AuctionCommunication = ({ bidId, connection, handleApprover, VendorsCommID
 			if (isUpdated) {
 				InvitedVendorsRef.current = updatedVendorDetail;
 				setInvitedVendors(updatedVendorDetail);
+				setManageInvitedVendors(updatedVendorDetail);
 
 				setCommParticipantUser((prev) =>
 					prev.map((user) =>
@@ -369,6 +387,7 @@ const AuctionCommunication = ({ bidId, connection, handleApprover, VendorsCommID
 				})
 				.catch((error) => {
 					console.error("Error sending message:", error);
+					toast.error(getApiErrorMessage(error), { toastId: "send_message_error" });
 					setLoading(false);
 				});
 		},
@@ -412,72 +431,76 @@ const AuctionCommunication = ({ bidId, connection, handleApprover, VendorsCommID
 		}
 	}, [Messagedata]);
 	const pullMessageList = useCallback(async (commId) => {
+		try {
+			var data = {
+				Id: commId
+			};
 
-		var data = {
-			Id: commId
-		};
+			const queryParams = buildMultiParamQueryParams(data);
+			const res = await apiClient.getres(`api/Communication/FindByCommId?${queryParams}`, atoken);
 
-		const queryParams = buildMultiParamQueryParams(data);
-		// const res = await apiClient.getres(`api/Communication/Find?${queryParams}`, atoken);
-		const res = await apiClient.getres(`api/Communication/FindByCommId?${queryParams}`, atoken);
-
-		if (res?.data?.result && res.data.result.length > 0) {
-
-			const data = res?.data?.result;
-			setMessagedata(data[0]?.commDetails);
-			setSelectedCommId(data[0]?.commDetails[0]?.commId);
-			// Scroll to bottom after loading messages
-			setTimeout(() => scrollMessagesToBottom(), 100);
+			if (res?.data?.result && res.data.result.length > 0) {
+				const data = res?.data?.result;
+				setMessagedata(data[0]?.commDetails);
+				setSelectedCommId(data[0]?.commDetails[0]?.commId);
+				setTimeout(() => scrollMessagesToBottom(), 100);
+			}
+		} catch (error) {
+			console.error("pullMessageList error:", error);
+			setMessagedata([]);
+			setSelectedCommId(0);
+			toast.error(getApiErrorMessage?.(error) || "Failed to fetch messages.");
 		}
 	}, [apiClient, atoken]);
 
 	const BroadCastMessageList = async () => {
+		try {
+			var data = {
+				CustomerId: customerid,
+				SortingColumn: "Id",
+				EventId: bidId,
+				EventType: "Auction"
+			};
 
-		var data = {
-			CustomerId: customerid,
-			SortingColumn: "Id",
-			EventId: bidId,
-			EventType: "Auction"
-		};
+			const queryParams = buildQueryParams(data);
+			const res = await apiClient.getres(`api/Communication/FindByCommId?${queryParams}`, atoken);
+			if (res) {
+				const data = res?.data?.result;
 
-		const queryParams = buildQueryParams(data);
-		const res = await apiClient.getres(`api/Communication/FindByCommId?${queryParams}`, atoken);
-		if (res) {
+				if (data && data.length > 0) {
+					const allVendorsWithCommId = InvitedVendors.map((vendor) => {
+						const vendorCommHeader = data.find((commHeader) =>
+							commHeader.commDetails?.some(detail =>
+								detail.commParticipantUser?.some(user => user.userId === vendor.contactId)
+							)
+						);
 
-			const data = res?.data?.result;
-			//setBroadCastMessagedata(data);
+						return {
+							userId: vendor.contactId,
+							userName: vendor.contactPerson,
+							userEmail: vendor.emailId,
+							isRead: false,
+							DCommId: 0,
+							isVendorYN: "Y",
+							linkurl: "",
+							customerId: customerid,
+							connectionId: vendor.connectionId ?? '',
+							commId: vendorCommHeader?.id || 0
+						};
+					});
 
-			// Populate vendors with their respective commIds from the broadcast data
-			if (data && data.length > 0) {
-				const allVendorsWithCommId = InvitedVendors.map((vendor) => {
-					// Find the commHeader for this vendor
-					const vendorCommHeader = data.find((commHeader) =>
-						commHeader.commDetails?.some(detail =>
-							detail.commParticipantUser?.some(user => user.userId === vendor.contactId)
-						)
-					);
-
-					return {
-						userId: vendor.contactId,
-						userName: vendor.contactPerson,
-						userEmail: vendor.emailId,
-						isRead: false,
-						DCommId: 0,
-						isVendorYN: "Y",
-						linkurl: "",
-						customerId: customerid,
-						connectionId: vendor.connectionId ?? '',
-						commId: vendorCommHeader?.id || 0  // Use the commHeader's id as commId
-					};
-				});
-
-				setCommParticipantUser(allVendorsWithCommId);
+					setCommParticipantUser(allVendorsWithCommId);
+				}
 			}
+		} catch (error) {
+			console.error("BroadCastMessageList error:", error);
+			setBroadcastMessages([]);
+			setCommParticipantUser([]);
+			toast.error(getApiErrorMessage?.(error) || "Failed to fetch broadcast messages.");
 		}
 	};
 
 	const [isOverlay, setIsOverlay] = useState(false);
-	console.log("isOverlay::", isOverlay)
 	// const [MessageType, setMessageType] = useState('');
 	const [isSupplierOnline, setIsSupplierOnline] = useState(false);
 	const [activeTab, setActiveTab] = useState('suppliers'); // 'suppliers' or 'broadcast'
@@ -529,7 +552,7 @@ const AuctionCommunication = ({ bidId, connection, handleApprover, VendorsCommID
 	}, [InvitedVendors, VendorsCommID, pullMessageList, handleChangeVendor]);
 
 	useEffect(() => {
-		if (!connection || connection._connectionState !== "Connected") return;
+		if (!connection) return;
 
 		const messageHandler = (objcommHeaderDto) => {
 

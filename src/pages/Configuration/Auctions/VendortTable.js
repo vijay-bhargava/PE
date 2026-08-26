@@ -9,11 +9,29 @@ const VendortTable = ({ actions, auctionItem, actionsR, hasLoadingFactor }) => {
 		{
 			key: 'companyName',
 			label: 'Suppliers',
-			renderCell: (_, sq) => (
-				actions?.auctionManageData[0]?.hideVendor === true && actions?.bidStatus === 'running'
-					? <Tooltip title="Supplier Name"><span>Anonymous Supplier</span></Tooltip>
-					: <Tooltip title="Supplier Name"><span>{sq.companyName}{sq.selectedCurrency && ` (${sq.selectedCurrency})`}</span></Tooltip>
-			),
+			renderCell: (_, sq) => {
+				const invitedVendor = actions?.ManageInvitedVendors?.find(v => v.vendorId === sq.vendorId);
+				const isOnline = invitedVendor?.status === true;
+				if (actions?.auctionManageData[0]?.hideVendor === true && actions?.bidStatus === 'running') {
+					return <Tooltip title="Supplier Name"><span>Anonymous Supplier</span></Tooltip>;
+				}
+				return (
+					<Tooltip title="Supplier Name">
+						<span style={{ display: 'inline-flex', alignItems: 'center' }}>
+							{isOnline && (
+								<>
+									<style>{`@keyframes ripple { 0% { transform: scale(.8); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }`}</style>
+									<span style={{ position: "relative", width: "10px", height: "10px", display: "inline-flex", marginRight: "8px", flexShrink: 0 }}>
+										<span style={{ position: "absolute", width: "100%", height: "100%", borderRadius: "50%", background: "#00c853", animation: "ripple 1.5s infinite" }} />
+										<span style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#00c853", zIndex: 1, boxShadow: "0 0 10px #00c853" }} />
+									</span>
+								</>
+							)}
+							{sq.companyName}{sq.selectedCurrency && ` (${sq.selectedCurrency})`}
+						</span>
+					</Tooltip>
+				);
+			},
 		},
 		{
 			key: 'rankValue',
@@ -106,8 +124,8 @@ const VendortTable = ({ actions, auctionItem, actionsR, hasLoadingFactor }) => {
 						<span>
 							{actionsR?.prebidValues.find(i => i.createdById === sq.vendorId && i.bidParameterId === sq.bidParameterId)?.quotedPrice
 								|| (sq.quotedPrice && sq.quotedPrice !== 0 ? actionsR?.thousands_separators(sq.quotedPrice) : (sq.quotedPrice === null && sq.id > 0 ? 'Quoted' : 'Not Participated'))}
-							</span>{" "}
-						{sq.rankValue !== null && actionsR?.slotStatus !== "Slot_Closed" && actions?.bidStatus !== null && !actions?.auctionManageData[0]?.hideVendor && sq.quotedPrice !== null && sq.quotedPrice !== undefined && (
+						</span>{" "}
+						{sq.rankValue !== null && actionsR?.slotStatus !== "Slot_Closed" && actions?.bidStatus !== null && !actions?.auctionManageData[0]?.hideVendor && !actions?.auctionManageData[0]?.prebid && !actions?.auctionManageData[0]?.groupAuction && sq.quotedPrice !== null && sq.quotedPrice !== undefined && (
 							<Tooltip title="Remove Quote">
 								<button className="pe-icon-btn pe-icon-btn--close" onClick={() => actionsR?.handleOpenModalRemoveQuoteInStagger(sq?.quotedPrice, sq?.id)}><HiX /></button>
 							</Tooltip>

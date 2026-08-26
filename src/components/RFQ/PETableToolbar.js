@@ -90,6 +90,9 @@ export function PETableToolbar({
   onExport,
   exportLoading = false,
   exportLabel = 'Export',
+
+  // Extra buttons rendered before the standard right-side buttons
+  rightContent,
 }) {
   // Internal popover open state
   const [filterAnchor, setFilterAnchor] = useState(false);
@@ -189,6 +192,7 @@ export function PETableToolbar({
 
         {/* Right side buttons */}
         <div className="rfq-v2-toolbar-right">
+          {rightContent}
 
           {/* ── Filter popover ── */}
           {showFilter && (
