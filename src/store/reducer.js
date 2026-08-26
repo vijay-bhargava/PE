@@ -3,7 +3,7 @@ export const initialState = {
 	rtoken: null,
 	customerid: null,
 	managerId: null,
-customersuffix: null,
+	customersuffix: null,
 	usertimezone: null,
 	userdialingcode: null,
 	eventId: 0,
@@ -16,15 +16,15 @@ customersuffix: null,
 	Notificationlist: [],
 	NotificationlistRaiseQuery: [],
 	CommId: 0,
-	opendrawer:false,
+	opendrawer: false,
 	logincount: 0,
 	bidtype: null,
-	messageCount: 0, 
+	messageCount: 0,
 	isNotificationOpen: false,
 	latestCommId: null,
 	dashboardFilter: 'Last 7 days',
 	messageSource: null,
-
+	stage: null,
 };
 
 export const actionTypes = {
@@ -52,14 +52,11 @@ export const actionTypes = {
 	SET_Bidtype: "SET_Bidtype",
 	SET_Opendrawer: "SET_Opendrawer",
 	SET_MESSAGE_COUNT: "SET_MESSAGE_COUNT",
-	SET_NotificationDrawer: "SET_NotificationDrawer", 
+	SET_NotificationDrawer: "SET_NotificationDrawer",
 	SET_LATEST_COMMID: "SET_LATEST_COMMID",
 	SET_DASHBOARD_FILTER: "SET_DASHBOARD_FILTER",
 	SET_MessageSource: "SET_MessageSource",
-
-
-
-
+	SET_STAGE: "SET_STAGE",
 };
 
 const reducer = (state, action) => {
@@ -92,7 +89,7 @@ const reducer = (state, action) => {
 			return { ...state, eventId: action.value };
 		case actionTypes.SET_EVENTTYPE:
 			return { ...state, eventType: action.value };
-			case actionTypes.SET_EVENTCODE:
+		case actionTypes.SET_EVENTCODE:
 			return { ...state, eventCode: action.value };
 		case actionTypes.SET_RoleClaims:
 			return { ...state, roleClaims: action.value };
@@ -102,7 +99,7 @@ const reducer = (state, action) => {
 			return { ...state, eventApproverList: action.value };
 		case actionTypes.SET_Notificationlist:
 			return { ...state, Notificationlist: action.value };
-			case actionTypes.SET_NotificationlistRaiseQuery:
+		case actionTypes.SET_NotificationlistRaiseQuery:
 			return { ...state, NotificationlistRaiseQuery: action.value };
 		case actionTypes.SET_CommId:
 			return { ...state, CommId: action.value };
@@ -114,17 +111,18 @@ const reducer = (state, action) => {
 			return { ...state, logincount: action.value };
 		case actionTypes.SET_Opendrawer:
 			return { ...state, opendrawer: action.value };
-			case actionTypes.SET_MESSAGE_COUNT:
-				return { ...state, messageCount: action.value };
-				case actionTypes.SET_NotificationDrawer:
-	return { ...state, isNotificationOpen: action.value };
+		case actionTypes.SET_MESSAGE_COUNT:
+			return { ...state, messageCount: action.value };
+		case actionTypes.SET_NotificationDrawer:
+			return { ...state, isNotificationOpen: action.value };
 		case actionTypes.SET_LATEST_COMMID:
 			return { ...state, latestCommId: action.value };
 		case actionTypes.SET_DASHBOARD_FILTER:
 			return { ...state, dashboardFilter: action.value };
 		case actionTypes.SET_MessageSource:
 			return { ...state, messageSource: action.value };
-
+		case actionTypes.SET_STAGE:
+			return { ...state, stage: action.value };
 	}
 };
 

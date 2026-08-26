@@ -167,6 +167,12 @@ const Auctions = ({ claimType, breadcrumb }) => {
 	}, [atoken]);
 
 	useEffect(() => {
+		return () => {
+			dispatch({ type: actionTypes.SET_STAGE, value: null });
+		};
+	}, [dispatch]);
+
+	useEffect(() => {
 		if (value === 8 || value === "8") {
 			// Check allocation status from EventAllocationScreen via ref
 			if (NFASOBRFQRef.current && typeof NFASOBRFQRef.current.isAllocationSubmitted === 'function') {
@@ -965,6 +971,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				}
 				if (res?.result?.[0]?.stage) {
 					setCurrentStage(res?.result?.[0]?.stage);
+					dispatch({ type: actionTypes.SET_STAGE, value: res?.result?.[0]?.stage });
 				}
 				if (res?.result?.[0]?.hideQuote) {
 					formik.setFieldValue("hideQuote", (res?.result?.[0]?.hideQuote));
@@ -984,6 +991,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 
 	const handleBidStatusChange = (status) => {
 		setCurrentStage(status);
+		dispatch({ type: actionTypes.SET_STAGE, value: status });
 		//console.log("Bid Status received from child:", status);
 	};
 

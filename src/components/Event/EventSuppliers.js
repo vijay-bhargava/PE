@@ -3,10 +3,8 @@ import { IconButton, Tooltip, MenuItem, Menu, Alert } from '@mui/material';
 import { PETable } from '../../components/RFQ/PETable';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { RiDeleteBin6Line } from 'react-icons/ri';
-import {
-  FilterListOutlined, ViewColumnOutlined, FileDownloadOutlined,
-  SearchOutlined, KeyboardArrowDownOutlined, DensitySmallOutlined, ExpandMore,
-} from '@mui/icons-material';
+import { ExpandMore } from '@mui/icons-material';
+import { PETableToolbar } from '../../components/RFQ/PETableToolbar';
 import { buildQueryParams } from '../../utils/purchaseRequest';
 import { useParams } from 'react-router-dom';
 import { ApiClient } from '../../Apiclient';
@@ -18,13 +16,11 @@ const FILTER_COLUMNS = [
   { field: 'supplierName', label: 'Supplier Name' },
   { field: 'status', label: 'Status' },
 ];
-const FILTER_OPERATORS = ['contains', 'equals', 'startsWith', 'endsWith', 'isEmpty', 'isNotEmpty'];
 const DENSITY_OPTIONS = [
   { key: 'compact', label: 'Compact', height: 36 },
   { key: 'standard', label: 'Standard', height: 48 },
   { key: 'comfortable', label: 'Comfortable', height: 60 },
 ];
-const emptyFilter = () => ({ id: Date.now(), field: 'supplierName', operator: 'contains', value: '' });
 
 const EventSuppliers = ({
   selectedSupplier, stagearray, currentStage,
@@ -47,25 +43,15 @@ const EventSuppliers = ({
 
   // toolbar state
   const [searchText, setSearchText] = useState('');
-  const [filterAnchor, setFilterAnchor] = useState(null);
-  const [tempFilterItems, setTempFilterItems] = useState([emptyFilter()]);
-  const [activeFilters, setActiveFilters] = useState([]);
-  const [colMenuAnchor, setColMenuAnchor] = useState(null);
+  const [filterModel, setFilterModel] = useState({ items: [] });
   const [columnVisibility, setColumnVisibility] = useState({ supplierName: true, status: true, date: true, actions: true });
-  const [densityAnchor, setDensityAnchor] = useState(null);
   const [density, setDensity] = useState('standard');
 
-  const filterPopoverRef = useRef(null);
-  const colPopoverRef = useRef(null);
-  const densityPopoverRef = useRef(null);
   const versionPopoverRef = useRef(null);
 
-  // close popovers on outside click
+  // close version popover on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (filterPopoverRef.current && !filterPopoverRef.current.contains(e.target)) setFilterAnchor(null);
-      if (colPopoverRef.current && !colPopoverRef.current.contains(e.target)) setColMenuAnchor(null);
-      if (densityPopoverRef.current && !densityPopoverRef.current.contains(e.target)) setDensityAnchor(null);
       if (versionPopoverRef.current && !versionPopoverRef.current.contains(e.target)) setVersionAnchor(null);
     };
     document.addEventListener('mousedown', handler);
@@ -122,14 +108,8 @@ const EventSuppliers = ({
     const s = searchText.toLowerCase();
     const matchesSearch = !s || [row.contactPerson, row.emailId, row.companyName, supplierstatus(row)]
       .some(v => (v || '').toLowerCase().includes(s));
-    return matchesSearch && activeFilters.every(f => matchesFilter(row, f));
+    return matchesSearch && filterModel.items.every(f => matchesFilter(row, f));
   });
-
-  const applyFilter = () => {
-    setActiveFilters(tempFilterItems.filter(f => f.operator === 'isEmpty' || f.operator === 'isNotEmpty' || f.value.trim()));
-    setFilterAnchor(null);
-  };
-  const resetFilter = () => { setTempFilterItems([emptyFilter()]); setActiveFilters([]); setFilterAnchor(null); };
 
   const handleExport = () => {
     if (!filteredData.length) return;
@@ -145,7 +125,6 @@ const EventSuppliers = ({
   };
 
   const rowHeight = DENSITY_OPTIONS.find(d => d.key === density)?.height ?? 48;
-  const activeFilterCount = activeFilters.filter(f => f.value.trim() || f.operator === 'isEmpty' || f.operator === 'isNotEmpty').length;
   const COL_DEFS = [
     { field: 'supplierName', label: 'Supplier Name' },
     { field: 'status', label: 'Status' },
@@ -240,21 +219,25 @@ const EventSuppliers = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* ── Toolbar ── */}
-      <div className="rfq-v2-toolbar">
-        {/* Search */}
-        <div className="rfq-v2-search-wrapper">
-          <input
-            className="rfq-v2-search"
-            placeholder="Search suppliers..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-          <SearchOutlined className="rfq-v2-search-icon" />
-        </div>
-
-        {/* Right buttons */}
-        <div className="rfq-v2-toolbar-right">
-          {/* Version selector */}
+      <PETableToolbar
+        searchText={searchText}
+        onSearchChange={setSearchText}
+        searchPlaceholder="Search suppliers..."
+        showFilter
+        filterColumns={FILTER_COLUMNS}
+        filterModel={filterModel}
+        onFilterModelChange={setFilterModel}
+        showColumns
+        columns={COL_DEFS.map(c => ({ field: c.field, headerName: c.label }))}
+        columnVisibilityModel={columnVisibility}
+        onColumnVisibilityChange={setColumnVisibility}
+        onColumnVisibilityReset={() => setColumnVisibility({ supplierName: true, status: true, date: true, actions: true })}
+        showDensity
+        density={density}
+        onDensityChange={setDensity}
+        showExport
+        onExport={handleExport}
+        rightContent={
           <div style={{ position: 'relative' }}>
             <button
               type="button"
@@ -262,7 +245,7 @@ const EventSuppliers = ({
               onClick={(e) => setVersionAnchor(versionAnchor ? null : e.currentTarget)}
             >
               <span>Version {Version}</span>
-              <span style={{ width: 1, alignSelf: 'stretch', background: '#e5e7eb', }} />
+              <span style={{ width: 1, alignSelf: 'stretch', background: '#e5e7eb' }} />
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <ExpandMore style={{ fontSize: 16 }} />
               </span>
@@ -277,113 +260,15 @@ const EventSuppliers = ({
               </div>
             )}
           </div>
-
-          {/* Filter */}
-          <div style={{ position: 'relative' }}>
-            <button className="rfq-v2-tbtn" onClick={(e) => setFilterAnchor(filterAnchor ? null : e.currentTarget)}>
-              <FilterListOutlined />
-              Filters
-              {activeFilterCount > 0 && <span className="rfq-v2-filter-count">{activeFilterCount}</span>}
-            </button>
-            {filterAnchor && (
-              <div className="rfq-v2-col-popover rfq-v2-filter-popover" ref={filterPopoverRef}>
-                <div className="rfq-v2-col-popover-header">
-                  <span className="rfq-v2-col-popover-title"><FilterListOutlined className="rfq-v2-col-title-icon" />Filters</span>
-                  <button className="rfq-v2-col-reset" onClick={resetFilter}>Reset</button>
-                </div>
-                <div className="rfq-v2-filter-rows">
-                  {tempFilterItems.map((item, idx) => (
-                    <div key={item.id} className="rfq-v2-filter-row-item">
-                      <select className="rfq-v2-filter-select" value={item.field} onChange={(e) => setTempFilterItems(prev => prev.map((f, i) => i === idx ? { ...f, field: e.target.value } : f))}>
-                        {FILTER_COLUMNS.map(c => <option key={c.field} value={c.field}>{c.label}</option>)}
-                      </select>
-                      <select className="rfq-v2-filter-select" value={item.operator} onChange={(e) => setTempFilterItems(prev => prev.map((f, i) => i === idx ? { ...f, operator: e.target.value } : f))}>
-                        {FILTER_OPERATORS.map(op => <option key={op} value={op}>{op}</option>)}
-                      </select>
-                      {item.operator !== 'isEmpty' && item.operator !== 'isNotEmpty' && (
-                        <input type="text" className="rfq-v2-filter-value-input" placeholder="Filter value" value={item.value}
-                          onChange={(e) => setTempFilterItems(prev => prev.map((f, i) => i === idx ? { ...f, value: e.target.value } : f))} />
-                      )}
-                      {tempFilterItems.length > 1 && (
-                        <button className="rfq-v2-filter-remove-btn" onClick={() => setTempFilterItems(prev => prev.filter((_, i) => i !== idx))}>×</button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div className="rfq-v2-filter-popover-footer">
-                  <button className="rfq-v2-filter-add-btn" onClick={() => setTempFilterItems(prev => [...prev, emptyFilter()])}>+ Add filter</button>
-                  <button className="rfq-v2-filter-apply-btn" onClick={applyFilter}>Apply</button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Columns */}
-          <div style={{ position: 'relative' }}>
-            <button className="rfq-v2-tbtn" onClick={(e) => setColMenuAnchor(colMenuAnchor ? null : e.currentTarget)}>
-              <ViewColumnOutlined />
-              Columns
-              {Object.values(columnVisibility).some(v => !v) && (
-                <span className="rfq-v2-filter-count">{Object.values(columnVisibility).filter(v => !v).length}</span>
-              )}
-            </button>
-            {colMenuAnchor && (
-              <div className="rfq-v2-col-popover" ref={colPopoverRef}>
-                <div className="rfq-v2-col-popover-header">
-                  <span className="rfq-v2-col-popover-title"><ViewColumnOutlined className="rfq-v2-col-title-icon" />Manage Columns</span>
-                  <button className="rfq-v2-col-reset" onClick={() => setColumnVisibility({ supplierName: true, status: true, date: true, actions: true })}>Reset</button>
-                </div>
-                {COL_DEFS.map(col => (
-                  <label key={col.field} className="rfq-v2-col-item">
-                    <input type="checkbox" className="rfq-v2-col-check" checked={!!columnVisibility[col.field]}
-                      onChange={() => setColumnVisibility(prev => ({ ...prev, [col.field]: !prev[col.field] }))} />
-                    <span className="rfq-v2-col-label">{col.label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Density */}
-          <div style={{ position: 'relative' }}>
-            <button className="rfq-v2-tbtn" onClick={(e) => setDensityAnchor(densityAnchor ? null : e.currentTarget)}>
-              <DensitySmallOutlined />
-              Density
-            </button>
-            {densityAnchor && (
-              <div className="rfq-v2-col-popover" ref={densityPopoverRef} style={{ minWidth: 140 }}>
-                <div className="rfq-v2-col-popover-header">
-                  <span className="rfq-v2-col-popover-title"><DensitySmallOutlined className="rfq-v2-col-title-icon" />Row density</span>
-                </div>
-                {DENSITY_OPTIONS.map(opt => (
-                  <label key={opt.key} className="rfq-v2-col-item">
-                    <input type="radio" className="rfq-v2-col-check" checked={density === opt.key}
-                      onChange={() => { setDensity(opt.key); setDensityAnchor(null); }} />
-                    <span className="rfq-v2-col-label">{opt.label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Export */}
-          <button className="rfq-v2-tbtn rfq-v2-tbtn-export" onClick={handleExport} disabled={!filteredData.length}>
-            <FileDownloadOutlined />
-            Export
-            <span style={{ width: 1, alignSelf: 'stretch', background: '#e5e7eb', }} />
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ExpandMore style={{ fontSize: 16 }} />
-            </span>
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* ── Table ── */}
       <div className="rfq-v2-table-wrapper">
         {filteredData.length === 0 ? (
           <div className="rfq-v2-empty">
             <p className="rfq-v2-empty-title">No suppliers found</p>
-            <p className="rfq-v2-empty-sub">{searchText || activeFilterCount ? 'Try adjusting your search or filters.' : 'No suppliers have been invited yet.'}</p>
+            <p className="rfq-v2-empty-sub">{searchText || filterModel.items.length > 0 ? 'Try adjusting your search or filters.' : 'No suppliers have been invited yet.'}</p>
           </div>
         ) : (
           <PETable

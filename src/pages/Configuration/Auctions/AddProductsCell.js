@@ -16,7 +16,7 @@ import { sanitizeInput } from '../../../utils/common/santize';
 import { toast } from 'react-toastify';
 import { FindItemCategory, FindItemType } from '../../../utils/purchaseRequest';
 import { uploadFilesOnAzureURL } from '../../../utils/manageParticipants';
-import { DecimalValueRegEx, getFileName, uploadFilesOnAzure2 } from '../../../utils/common';
+import { DecimalValueRegEx, getApiErrorMessage, getFileName, uploadFilesOnAzure2 } from '../../../utils/common';
 import { UploadOutlined } from '@mui/icons-material';
 import { ApiClient } from "../../../Apiclient";
 import AddPrItemCategory from '../../../utils/common/AddPrItemCategory';
@@ -263,7 +263,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, tempDat
 						}
 					});
 				} catch (error) {
-					toast.error("An error occurred while saving the data. Please try again.", {
+					toast.error(getApiErrorMessage(error) || "An error occurred while saving the data.", {
 						toastId: "itemdelete1_error"
 					});
 					setLoadingSubmit(false);
@@ -295,22 +295,25 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, tempDat
 	};
 
 	const handleItemPOSearch = async (value) => {
-		const selectedValue = value
-		const res = await apiClient.get(
-			`api/poconfirm/Find?CustomerId=${parseInt(customerid)}&POCreationDetails_ItemDesc=${selectedValue}`,
-			atoken
-		);
+		if (value === null || value === undefined || String(value).trim() === "") {
+			return;
+		}
 
-		if (res) {
-			const lastElement = res.result[res.result.length - 1];
-			if (lastElement) {
-				formik.setFieldValue("poNumber", lastElement?.poNumber);
-				formik.setFieldValue("poVendorName", lastElement?.vendorName);
-				formik.setFieldValue("poValue", lastElement?.poAmount)
-				formik.setFieldValue("poDate", lastElement?.pO_Date ? new Date(lastElement?.pO_Date) : null);
-				const materialPONetPrice = lastElement?.poCreationDetails[0]?.materialPONetPrice;
-				formik.setFieldValue("poUnitRate", materialPONetPrice ? parseFloat(materialPONetPrice) : 0);
-			}
+		try {
+			const selectedValue = value;
+
+			const res = await apiClient.get(
+				`api/PRItemService/FindPODetailsByItemCode?itemCode=${selectedValue}&customerId=${customerid}`,
+				atoken
+			);
+
+			formik.setFieldValue("poNumber", res?.data?.poNumber);
+			formik.setFieldValue("poVendorName", res?.data?.poVendorName);
+			formik.setFieldValue("poValue", res?.data?.poValue || 0);
+			formik.setFieldValue("poDate", res?.data?.poDate ? new Date(res?.data?.poDate) : null);
+			formik.setFieldValue("poUnitRate", res?.data?.unitRate || 0);
+		} catch (error) {
+			toast.error(getApiErrorMessage(error) || "Failed to fetch PO details.", { toastId: "po_search_error" });
 		}
 	};
 
@@ -443,7 +446,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, tempDat
 							id="itemName"
 							name="itemName"
 							placeholder="Enter item/service name"
-							onBlur={() => handleItemPOSearch(formik.values.itemName)}
+							onBlur={() => handleItemPOSearch(formik.values.itemCode)}
 							inputProps={{ maxLength: 100 }}
 							value={formik.values.itemName}
 							onChange={formik.handleChange}

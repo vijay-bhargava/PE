@@ -60,9 +60,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
         atoken
       );
 
-      console.log('Raw API response:', res);
-
-      // Check if we got a valid response 
+      // Check if we got a valid response
       if (!res) {
         console.error('No response received from API');
         throw new Error('No response from API');
@@ -259,23 +257,22 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
   };
 
   const handleItemPOSearch = async (value) => {
-    const selectedValue = value
-
-    const res = await apiClient.get(
-      `api/poconfirm/Find?CustomerId=${parseInt(customerid)}&POCreationDetails_ItemDesc=${selectedValue}`,
-      atoken
-    );
-
-    if (res) {
-      const lastElement = res.result[res.result.length - 1]; // Get the last element
-      if (lastElement) {
-        formik.setFieldValue("poNumber", lastElement?.poNumber);
-        formik.setFieldValue("poVendorName", lastElement?.vendorName);
-        formik.setFieldValue("poValue", lastElement?.poAmount)
-        formik.setFieldValue("poDate", lastElement?.pO_Date ? new Date(lastElement?.pO_Date) : null);
-        const materialPONetPrice = lastElement?.poCreationDetails[0]?.materialPONetPrice;
-        formik.setFieldValue("poUnitRate", materialPONetPrice ? parseFloat(materialPONetPrice) : 0);
-      }
+    if (value === null || value === undefined || String(value).trim() === "") {
+      return;
+    }
+    try {
+      const selectedValue = value;
+      const res = await apiClient.get(
+        `api/PRItemService/FindPODetailsByItemCode?itemCode=${selectedValue}&customerId=${customerid}`,
+        atoken
+      );
+      formik.setFieldValue("poNumber", res?.data?.poNumber);
+      formik.setFieldValue("poVendorName", res?.data?.poVendorName);
+      formik.setFieldValue("poValue", res?.data?.poValue || 0);
+      formik.setFieldValue("poDate", res?.data?.poDate ? new Date(res?.data?.poDate) : null);
+      formik.setFieldValue("poUnitRate", res?.data?.unitRate || 0);
+    } catch (error) {
+      console.error("handleItemPOSearch failed:", error);
     }
   };
 
@@ -607,7 +604,7 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               className='f14'
               id="itemName"
               name="itemName"
-              onBlur={() => handleItemPOSearch(formik.values.itemName)}
+              onBlur={() => handleItemPOSearch(formik.values.itemCode)}
               inputProps={{ maxLength: 200 }}
               value={formik.values.itemName}
               onChange={formik.handleChange}
@@ -699,15 +696,8 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 max: 100,
               }}
               type="number"
-              // onChange={(e) => {
-              //   const regex = /^[0-9]*\.?[0-9]{0,4}$/;
-              //   if (regex.test(e.target.value)) {
-              //     formik.setFieldValue("targetPrice", parseFloat(e.target.value));
-              //   }
-              // }}
               onChange={(e) => {
                 const regex = /^\d{0,10}(\.\d{0,4})?$/;
-
                 if (regex.test(e.target.value)) {
                   formik.setFieldValue("targetPrice", parseFloat(e.target.value));
                 }
@@ -818,7 +808,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
               onChange={handleItemCategoryChange}
               renderOption={(props, option) => (
                 <Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
-
                   {option.categoryDescription}
                 </Box>
               )}
@@ -952,7 +941,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
 
           </div>
 
-
           <div className='col-6 col-md-6 col-lg-4 mb-3'>
             <label className="pe-field-label">Item Image</label>
             <TextField
@@ -1006,8 +994,6 @@ const AddProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, action,
                 pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
               }}
               value={getFileName(formik.values.itemFile)}
-
-
               disabled={true}
               InputProps={{
                 endAdornment: (

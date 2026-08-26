@@ -12,8 +12,9 @@ import { ListOutlined } from '@mui/icons-material';
 import { formatDateViaLocale } from '../../../utils/common/utility';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import { useStateValue } from '../../../store';
 // Function to transform data for chart - each vendor gets their own data points
-const groupByVendor = (selectedParameterData) => {
+const groupByVendor = (selectedParameterData, userDetail) => {
   // Sort by submission time to maintain chronological order
   const sortedData = selectedParameterData?.sort((a, b) =>
     new Date(a.submissionTime) - new Date(b.submissionTime)
@@ -25,7 +26,7 @@ const groupByVendor = (selectedParameterData) => {
 
   sortedData.forEach(item => {
     // Extract only time (HH:MM:SS) from submission time
-    const fullDateTime = formatDateViaLocale(item.submissionTime, null, true);
+    const fullDateTime = formatDateViaLocale(item.submissionTime, userDetail, true);
     const timeWithSeconds = fullDateTime?.split('  ')[1] || fullDateTime; // Get only time part after double space
     const vendorName = item.vendorName;
 
@@ -57,6 +58,7 @@ const groupByVendor = (selectedParameterData) => {
 
 
 const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
+  const [{ userDetail }] = useStateValue();
   // State for pagination
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -143,7 +145,7 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
             backdrop-filter: blur(10px);
           ">
             <div style="font-size: 14px; opacity: 0.9; margin-bottom: 4px;">🚀 Bid Start</div>
-            <div style="font-size: 16px; font-weight: 600;">${formatDateViaLocale(auctionManageData[0]?.bidStDate)}</div>
+            <div style="font-size: 16px; font-weight: 600;">${formatDateViaLocale(auctionManageData[0]?.bidStDate, userDetail)}</div>
           </div>
           <div style="
             background: rgba(255,255,255,0.2);
@@ -152,7 +154,7 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
             backdrop-filter: blur(10px);
           ">
             <div style="font-size: 14px; opacity: 0.9; margin-bottom: 4px;">🏁 Bid End</div>
-            <div style="font-size: 16px; font-weight: 600;">${formatDateViaLocale(auctionManageData[0]?.bidEndDate)}</div>
+            <div style="font-size: 16px; font-weight: 600;">${formatDateViaLocale(auctionManageData[0]?.bidEndDate, userDetail)}</div>
           </div>
           <div style="
             background: rgba(255,255,255,0.2);
@@ -335,7 +337,7 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
                     color: #4a5568;
                     font-family: 'Courier New', monospace;
                     font-size: 13px;
-                  ">${formatDateViaLocale(item.submissionTime, null, true)}</td>
+                  ">${formatDateViaLocale(item.submissionTime, userDetail, true)}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -424,8 +426,8 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
     const dateInfo = document.createElement('div');
     dateInfo.innerHTML = `
       <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: 600; font-size: 14px; background: #f8f9fa; padding: 12px; border-radius: 6px;">
-        <div style="color: #28a745;"><strong>Bid Start:</strong> ${formatDateViaLocale(auctionManageData[0]?.bidStDate)}</div>
-        <div style="color: #dc3545;"><strong>Bid End:</strong> ${formatDateViaLocale(auctionManageData[0]?.bidEndDate)}</div>
+        <div style="color: #28a745;"><strong>Bid Start:</strong> ${formatDateViaLocale(auctionManageData[0]?.bidStDate, userDetail)}</div>
+        <div style="color: #dc3545;"><strong>Bid End:</strong> ${formatDateViaLocale(auctionManageData[0]?.bidEndDate, userDetail)}</div>
       </div>
     `;
     container.appendChild(dateInfo);
@@ -467,7 +469,7 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
         : displayName || '';
 
       // Format submission time to be more compact but readable
-      const submissionTime = formatDateViaLocale(item?.submissionTime) || '';
+      const submissionTime = formatDateViaLocale(item?.submissionTime, userDetail) || '';
 
       return `
                 <tr style="background-color: ${index % 2 === 0 ? '#f8f9fa' : 'white'}; border-bottom: 1px solid #dee2e6;">
@@ -561,7 +563,7 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
       const row = [
         `"${getVendorDisplayName(item.vendorName)}"`, // Wrap in quotes to handle commas in names
         item.quotedPrice,
-        `"${formatDateViaLocale(item.submissionTime, null, true)}"` // Wrap in quotes for proper formatting with seconds
+        `"${formatDateViaLocale(item.submissionTime, userDetail, true)}"` // Wrap in quotes for proper formatting with seconds
       ];
       csvContent += row.join(',') + '\n';
     });
@@ -596,7 +598,7 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
   //   }
   // };
 
-  const groupedData = groupByVendor(selectedParameterData);
+  const groupedData = groupByVendor(selectedParameterData, userDetail);
   const uniquesupplierlist = Array.from(new Set(selectedParameterData.map(item => item.vendorName)));
 
   // Create vendor name mapping for anonymous display
@@ -685,8 +687,8 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
       maxtime.setMinutes(maxtime.getMinutes() - 5);
 
       // Format min and max times
-      minX = formatDateViaLocale(mintime.toISOString());
-      maxX = formatDateViaLocale(maxtime.toISOString());;
+      minX = formatDateViaLocale(mintime.toISOString(), userDetail);
+      maxX = formatDateViaLocale(maxtime.toISOString(), userDetail);;
     }
   }
 
@@ -763,10 +765,10 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
             fontWeight: '600'
           }}>
             <div style={{ color: '#28a745' }}>
-              <strong>Auction Start:</strong> {formatDateViaLocale(auctionManageData[0]?.bidStDate)}
+              <strong>Auction Start:</strong> {formatDateViaLocale(auctionManageData[0]?.bidStDate, userDetail)}
             </div>
             <div style={{ color: '#dc3545' }}>
-              <strong>Auction End:</strong> {formatDateViaLocale(auctionManageData[0]?.bidEndDate)}
+              <strong>Auction End:</strong> {formatDateViaLocale(auctionManageData[0]?.bidEndDate, userDetail)}
             </div>
           </div>
 
@@ -937,11 +939,11 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
           {/* Info bar — pinned top */}
           <div className="d-flex align-items-center justify-content-between px-1 mb-2" style={{ flexShrink: 0 }}>
             <span style={{ fontSize: '12px', color: '#495057' }}>
-              Auction Start: <span style={{ fontWeight: 600, color: '#28a745' }}>{formatDateViaLocale(auctionManageData[0]?.bidStDate)}</span>
+              Auction Start: <span style={{ fontWeight: 600, color: '#28a745' }}>{formatDateViaLocale(auctionManageData[0]?.bidStDate, userDetail)}</span>
             </span>
             <div className="d-flex align-items-center gap-2">
               <span style={{ fontSize: '12px', color: '#495057' }}>
-                Auction End: <span style={{ fontWeight: 600, color: '#dc3545' }}>{formatDateViaLocale(auctionManageData[0]?.bidEndDate)}</span>
+                Auction End: <span style={{ fontWeight: 600, color: '#dc3545' }}>{formatDateViaLocale(auctionManageData[0]?.bidEndDate, userDetail)}</span>
               </span>
               <button type="button" className="pe-btn pe-btn--secondary" style={{ fontSize: 11, padding: '2px 8px' }} onClick={handleClick}>
                 <ListOutlined style={{ fontSize: 14, marginRight: 2, verticalAlign: 'middle' }} />Export
@@ -1046,7 +1048,7 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
                 { key: 'sno', label: 'S.No', width: 60, renderCell: (_, row, idx) => page * rowsPerPage + idx + 1 },
                 { key: 'vendorName', label: 'Supplier Name', renderCell: (v) => getVendorDisplayName(v) },
                 { key: 'quotedPrice', label: 'Quoted Price', renderCell: (v) => <span style={{ color: '#28a745', fontWeight: 700 }}>{v?.toLocaleString('en-IN')}</span> },
-                { key: 'submissionTime', label: 'Submission Time', renderCell: (v) => formatDateViaLocale(v, null, true) },
+                { key: 'submissionTime', label: 'Submission Time', renderCell: (v) => formatDateViaLocale(v, userDetail, true) },
               ]}
               rows={paginatedItems.filter(item => item.quotedPrice)}
               getRowKey={(_, idx) => idx}
@@ -1068,4 +1070,4 @@ const BidGraphs = ({ selectedParameterData, auctionManageData, bidStatus }) => {
     </div>
   );
 };
-export default BidGraphs;
+export default React.memo(BidGraphs);
