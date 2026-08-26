@@ -34,6 +34,7 @@ import {
 	fetchCities,
 	fetchStates,
 	fetchMasters,
+	getApiErrorMessage,
 } from "../../../utils/common";
 import validator from "validator";
 import { HiOutlineX } from "react-icons/hi";
@@ -83,6 +84,8 @@ const AddCustomer = ({ callbackstep, editRecordData, handleChangeTab, handleCust
 	const [adminEmail, setAdminEmail] = useState("");
 	const [dialingCode, setDialingCode] = useState("");
 	const [isActive, setisActive] = useState(true);
+	const [isAiEnable, setisAiEnable] = useState(false);
+	const [isMsmeEnable, setisMsmeEnable] = useState(false);
 	const [isWhatsAppEnabled, setIsWhatsAppEnabled] = useState(true);
 	const [loginUrlSuffix, setLoginUrlSuffix] = useState("");
 	const [defaultCurrency, setDefaultCurrency] = useState("");
@@ -116,25 +119,24 @@ const AddCustomer = ({ callbackstep, editRecordData, handleChangeTab, handleCust
 	}, [country_list,timezone_list]);
 
 	const [userList, setUserList] = useState([]);
-    const pullUsersList = () => {
-      
-      var data = {
+    const pullUsersList = async () => {
+      const data = {
         CustomerId: customerid,
-       IsActive : "true"
-      // managerId:managerId
+        IsActive: "true",
       };
-      setLoading(true);
-	
-      FindUser(data,atoken).then((res) => {
-        console.log(res); 
-       
-        if (res != "" && res != undefined) {
-            setUserList(res);
-       
+      try {
+        setLoading(true);
+        const res = await FindUser(data, atoken);
+        if (res && res.length) {
+          setUserList(res);
+        } else {
+          setUserList([]);
         }
+      } catch (error) {
+        toast.error(getApiErrorMessage(error), { toastId: "user_list_error" });
+      } finally {
         setLoading(false);
-     
-      });
+      }
     }; 
 
 	const Constraint = "^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$";
@@ -184,71 +186,60 @@ const AddCustomer = ({ callbackstep, editRecordData, handleChangeTab, handleCust
 		},
 		validationSchema: validationSchema,
 		onSubmit: async (values) => {
-         
 			setLoading(true);
-           
-			var data = {
-				customerName: customerName,
-				customerEmail: adminEmail,
-				accountManagerEmail: accountManagerEmail,
-				contactPersonName: contactPersonName,
-				address: address,
-				country: country,
-				state: Cstate,
-				city: city,
-				zipCode: zipCode,
-				website: website,
-				dialingCode: dialingCode,
-				phoneNo: phoneNo,
-				description: description,
-				adminEmail: adminEmail,
-				loginUrlSuffix: loginUrlSuffix,
-				defaultCurrency: defaultCurrency,
-				isWhatsAppEnabled: isWhatsAppEnabled,
-				timeZone: timeZone,
-				imgLogo: imgLogo,
-				imgBG1: imgBG1,
-				imgBG2: imgBG2,
-				imgBG3: imgBG3,
-				isActive: isActive,
-			};
-			if (editRecordData?.id > 0) {
-				let res = await UpdateCustomer(data, editRecordData?.id, atoken)
-
-				if (res) {
-					setLoading(false);
-					dispatch({ type: actionTypes.SET_MSGALERTTYPE, value: "success" });
-					dispatch({
-						type: actionTypes.SET_MSGALERTDATA,
-						value: res?.data?.message,
-					});
-					dispatch({ type: actionTypes.SET_MSGALERT, value: true });
-					clearfilledCS();
-					callbackstep("update");
-					return true;
+			try {
+				const data = {
+					customerName: customerName,
+					customerEmail: adminEmail,
+					accountManagerEmail: accountManagerEmail,
+					contactPersonName: contactPersonName,
+					address: address,
+					country: country,
+					state: Cstate,
+					city: city,
+					zipCode: zipCode,
+					website: website,
+					dialingCode: dialingCode,
+					phoneNo: phoneNo,
+					description: description,
+					adminEmail: adminEmail,
+					loginUrlSuffix: loginUrlSuffix,
+					defaultCurrency: defaultCurrency,
+					isWhatsAppEnabled: isWhatsAppEnabled,
+					timeZone: timeZone,
+					imgLogo: imgLogo,
+					imgBG1: imgBG1,
+					imgBG2: imgBG2,
+					imgBG3: imgBG3,
+					isActive: isActive,
+					isAiEnable: isAiEnable,
+					isMsmeEnable: isMsmeEnable,
+				};
+				if (editRecordData?.id > 0) {
+					const res = await UpdateCustomer(data, editRecordData?.id, atoken);
+					if (res) {
+						dispatch({ type: actionTypes.SET_MSGALERTTYPE, value: "success" });
+						dispatch({ type: actionTypes.SET_MSGALERTDATA, value: res?.data?.message });
+						dispatch({ type: actionTypes.SET_MSGALERT, value: true });
+						clearfilledCS();
+						callbackstep("update");
+					}
+				} else {
+					const res = await RegisterCustomer(data, atoken);
+					if (res) {
+						dispatch({ type: actionTypes.SET_MSGALERTTYPE, value: "success" });
+						dispatch({ type: actionTypes.SET_MSGALERTDATA, value: res?.data?.message });
+						dispatch({ type: actionTypes.SET_MSGALERT, value: true });
+						handleCustomerId(res);
+						handleChangeTab(2);
+						clearfilledCS();
+					}
 				}
-
-			} else {
-				let res = await RegisterCustomer(data, atoken);
-				if (res) {
-					setLoading(false);
-					dispatch({ type: actionTypes.SET_MSGALERTTYPE, value: "success" });
-					dispatch({
-						type: actionTypes.SET_MSGALERTDATA,
-						value: res?.data?.message,
-					});
-					dispatch({ type: actionTypes.SET_MSGALERT, value: true });
-					handleCustomerId(res);
-					handleChangeTab(2);
-					//callbackstep("add");
-					clearfilledCS();
-					return true;
-				}
+			} catch (error) {
+				toast.error(getApiErrorMessage(error), { toastId: "customer_save_error" });
+			} finally {
+				setLoading(false);
 			}
-			// handleTab1value(data);
-			// handleChangeTab(2);
-			//return;
-
 		},
 	});
 
@@ -353,6 +344,8 @@ const AddCustomer = ({ callbackstep, editRecordData, handleChangeTab, handleCust
 			);
 
 			setisActive(editRecordData?.isActive);
+			setisAiEnable(editRecordData?.isAIEnable);
+			setisMsmeEnable(editRecordData?.isMsmeEnable);
 		}
 	};
 
@@ -379,6 +372,8 @@ const AddCustomer = ({ callbackstep, editRecordData, handleChangeTab, handleCust
 		setimgBG2("");
 		setimgBG3("");
 		setisActive(false);
+		setisAiEnable(false);
+		setisMsmeEnable(false);
 	};
 
 	const handleWebsite = (event) => {
@@ -456,27 +451,30 @@ const AddCustomer = ({ callbackstep, editRecordData, handleChangeTab, handleCust
 	
 	//handling masters
 	const handleStates = async (countryKey, company) => {
-		const res = await fetchStates(countryKey, atoken);
-		if (res) {
-			setStateList(res);
-			if (company) {
-				setCState(
-					findObjByValueFromArray(res, company?.state, "stateName") || null
-				);
+		try {
+			const res = await fetchStates(countryKey, atoken);
+			if (res) {
+				setStateList(res);
+				if (company) {
+					setCState(findObjByValueFromArray(res, company?.state, "stateName") || null);
+				}
 			}
+		} catch (error) {
+			toast.error(getApiErrorMessage(error) || "Failed to load states", { toastId: "states_error" });
 		}
 	};
 
 	const handleCity = async (stateId, company) => {
-		const res = await fetchCities(stateId, atoken);
-		if (res) {
-			setCityList(res);
-			if (company) {
-
-				setCity(
-					findObjByValueFromArray(res, company?.city, "cityName") || null
-				);
+		try {
+			const res = await fetchCities(stateId, atoken);
+			if (res) {
+				setCityList(res);
+				if (company) {
+					setCity(findObjByValueFromArray(res, company?.city, "cityName") || null);
+				}
 			}
+		} catch (error) {
+			toast.error(getApiErrorMessage(error) || "Failed to load cities", { toastId: "cities_error" });
 		}
 	};
 

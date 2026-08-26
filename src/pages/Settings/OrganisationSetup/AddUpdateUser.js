@@ -41,7 +41,7 @@ import { OrgGroupMasterList, filteroptionDialingCode, formatDate, getBusinessUni
 import { getPurchaseGrp } from "../../../utils/workflow";  
 import AddComLibrary from "../CommercialTerms/AddComLibrary";
 import {  uploadFilesOnAzure,} from "../../../utils/documentlibrary";
-import { downloadFilesOnAzure, findObjByValueFromArray, getCountry, getTimeZone, removeNonNumeric, removeSpecialCharactersAndNumbers } from "../../../utils/common";
+import { downloadFilesOnAzure, findObjByValueFromArray, getApiErrorMessage, getCountry, getTimeZone, removeNonNumeric, removeSpecialCharactersAndNumbers } from "../../../utils/common";
 import PurchaseOrgGrp from "../../../utils/common/PurchaseOrgGrp";
 
 import AddUpdateRole from "../RoleManagement/AddUpdateRole";
@@ -109,6 +109,7 @@ const AddUpdateUser = ({
   const CloseBusinessModal = () => setBusinessModal(false);
   const [purchaseOrgModal, setPurchaseOrgModal] = useState(false);
   const [orggroups, setorggroups] = useState([]);
+  const [selectedGroupOptions, setSelectedGroupOptions] = useState([]);
 
   const [userDepartments, setuserDepartments] = useState([]);  
   const [userAssignDepartment, setuserAssignDepartment] = useState([]);
@@ -256,21 +257,67 @@ const handleOpenDesignationModal = () => {
 
   const handleChangeGroup = (event, newValues) => {
     if (newValues) {
-      const updatedGroups = newValues?.map((newValue) => ({ 
-        id: 0,
-        userId: editRecordData?.id ? editRecordData?.id : 0,
+      setSelectedGroupOptions(newValues);
+      const updatedGroups = newValues?.map((newValue) => ({
+        id: newValue.id,
         orgGroupId: newValue.id,
-        orgGroupName: newValue.groupName
+        orgGroupName: newValue.groupName,
       }));
-      setorggroups(updatedGroups);
       setusergrpId(updatedGroups);
-     
       if (newValues.some((option) => option.id === "new")) {
         setPurchaseOrgGrpModal(true);
       }
     } else {
-      console.error("New value is undefined or null.");
+      setSelectedGroupOptions([]);
     }
+  };
+
+  const handleAddOrgGroups = () => {
+    if (!orgId) {
+      toast.error("Please select a Purchase Organization first.");
+      return;
+    }
+    const groupsToAdd = selectedGroupOptions && selectedGroupOptions.length > 0 ? selectedGroupOptions : [];
+    const newEntries = [];
+    if (groupsToAdd.length === 0) {
+      newEntries.push({
+        id: 0,
+        userId: editRecordData?.id ? editRecordData?.id : 0,
+        orgGroupId: 0,
+        orgGroupName: "",
+        orgId: orgId,
+        orgName: orgName,
+        CustomerId: customerid,
+      });
+    } else {
+      groupsToAdd.forEach((g) => {
+        newEntries.push({
+          id: 0,
+          userId: editRecordData?.id ? editRecordData?.id : 0,
+          orgGroupId: g.id,
+          orgGroupName: g.groupName,
+          orgId: orgId,
+          orgName: orgName,
+          CustomerId: customerid,
+        });
+      });
+    }
+    const merged = [...orggroups];
+    newEntries.forEach((ne) => {
+      const exists = merged.some((m) => m.orgId == ne.orgId && m.orgGroupId == ne.orgGroupId);
+      if (!exists) merged.push(ne);
+    });
+    setorggroups(merged);
+    setSelectedGroupOptions([]);
+    setusergrpId([]);
+    setUserUnsavedChanges(true);
+  };
+
+  const handleRemoveOrgGroup = (index) => {
+    const updated = [...orggroups];
+    updated.splice(index, 1);
+    setorggroups(updated);
+    setUserUnsavedChanges(true);
   };
   
   const handleChangeDepartment = (event, newValues) => {
@@ -307,24 +354,19 @@ const handleOpenDesignationModal = () => {
   };
 
   const [BusinessList, setBusinessList] = useState([]);
-  const PullBusinessUnit = (legalId) => {
-    
-    var data = {
-      CustomerId: customerid,
-      LegalEntityId: legalId,
-    };
-    
-getBusinessUnitList(data, atoken).then((res) => { 
-  
-      if (res != "" && res != undefined) {
-        
+  const PullBusinessUnit = async (legalId) => {
+    try {
+      const data = { CustomerId: customerid, LegalEntityId: legalId };
+      setLoading(true);
+      const res = await getBusinessUnitList(data, atoken);
+      if (res !== "" && res !== undefined) {
         setBusinessList(res);
-   
-     
       }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
       setLoading(false);
-      
-    });
+    }
   };
   const handleBusinessUnitList = (array) => {
     setBusinessList(array);
@@ -349,42 +391,33 @@ const handleRoleChange = (e) => {
  
     
 
-  const pullUsersList = () => {
-    var data = {
-      CustomerId: customerid,
-    };
-    
-    setLoading(true);
-    FindUser(data, atoken)
-      .then((res) => {
-        console.log(res); 
-        if (res && res?.length > 0) {
-          // Prepend "None" option to the user list
-          setUserList([{ id: "", name: "None" }, ...res]);
-        }
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error("Error fetching user list:", error);
-        setLoading(false);
-      });
-  };
-  const PullLegalEntity = () => {
-    var data = {
-      CustomerId: customerid,
-     
-    };
-
-     getUserDepartment(data, atoken).then((res) => { 
-      //setGridloading(true);
-      if (res != "" && res != undefined) {
-          setlegalEntityList(res);
-   
-       
+  const pullUsersList = async () => {
+    try {
+      const data = { CustomerId: customerid };
+      setLoading(true);
+      const res = await FindUser(data, atoken);
+      if (res && res?.length > 0) {
+        setUserList([{ id: "", name: "None" }, ...res]);
       }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
       setLoading(false);
-      //setGridloading(false);
-    });
+    }
+  };
+  const PullLegalEntity = async () => {
+    try {
+      const data = { CustomerId: customerid };
+      setLoading(true);
+      const res = await getUserDepartment(data, atoken);
+      if (res !== "" && res !== undefined) {
+        setlegalEntityList(res);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
   };
   // const pullUsersList = () => {
   //   var data = {
@@ -410,83 +443,55 @@ const handleRoleChange = (e) => {
   
   const [DialCodeList, setDialCodeList] = useState([]);
 
-  const pullDialCodeList = () => {
-  
-    setLoading(true);
-    getCountry(atoken)
-      .then((res) => {
-        if (res && res.length > 0) {
-          setDialCodeList(res);
-        }
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error("Error fetching user list:", error);
-        setLoading(false);
-      });
+  const pullDialCodeList = async () => {
+    try {
+      setLoading(true);
+      const res = await getCountry(atoken);
+      if (res && res.length > 0) {
+        setDialCodeList(res);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
   };
   const [UserDepartmentAll, setUserDepartmentAll] = useState([]);
   
   const [timezoneid, settimezoneid] = useState(0);
   const [UserDesignation, setUserDesignation] = useState([]);
-  const PullUserDesignation = (departmentId) => {
-    var data={ 
-      CustomerId:customerid,
-      DepartmentId:departmentId,
-      IsActive:true
+  const PullUserDesignation = async (departmentId) => {
+    try {
+      const data = { CustomerId: customerid, DepartmentId: departmentId, IsActive: true };
+      const res = await getUserDesignation(data, atoken);
+      setUserDesignation(res);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
     }
-     getUserDesignation(data, atoken).then((res) => {
-
-     setUserDesignation(res);
-    });
   };
 
   const [UserDepartment, setUserDepartment] = useState([]);
-  const PullUserDepartment = (BusinessUnitId) => {
-    var data={ 
-      CustomerId:customerid,
-      BusinessUnitId: BusinessUnitId
-      // BusinessUnitId: busUnitId, 
+  const PullUserDepartment = async (BusinessUnitId) => {
+    try {
+      const data = { CustomerId: customerid, BusinessUnitId: BusinessUnitId };
+      const res = await getUserDepartmentList(data, atoken);
+      if (res && Array.isArray(res)) {
+        const uniqueMap = {};
+        const uniqueArray = res.filter((item) => {
+          if (!uniqueMap[item?.name]) {
+            uniqueMap[item?.name] = true;
+            return true;
+          }
+          return false;
+        });
+        setUserDepartment(uniqueArray);
+      } else {
+        setUserDepartment([]);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+      setUserDepartment([]);
     }
-   
-    getUserDepartmentList(data, atoken).then((res) => { 
-      
-       const uniqueMap = {};
-			const uniqueArray = res?.filter((item) => {
-				if (!uniqueMap[item?.name]) {
-					uniqueMap[item?.name] = true;
-					return true;
-				}
-
-				return false;
-			});
-      // const uniqueBusinessUnitMap = {};
-      // const uniqueBusinessUnits = res?.filter((item) => {
-      //     if (!uniqueBusinessUnitMap[item?.businessUnitName]) {
-      //         uniqueBusinessUnitMap[item?.businessUnitName] = true;
-      //         return true;
-      //     }
-      //     return false;
-      // });
-      
-    
-      // setlegalEntityList(uniqueArray);
-      // if(uniqueArray?.length>0)
-      // {
-        
-      //   setlegalId(uniqueArray[0]?.id);
-      // }
-
-      // if (uniqueBusinessUnits?.length > 0) {
-      //   setBusinessUnitList(uniqueBusinessUnits);
-      //   setBusinessUnitName(uniqueBusinessUnits[0]?.businessUnitName);
-      // }
-
-// console.log("uniqueBusinessUnits",uniqueBusinessUnits);
-      
-      setUserDepartment(res);
-     
-    });
   };
  
   const handleDepartmentList = (array) => {
@@ -571,146 +576,86 @@ const handleRoleChange = (e) => {
       timezoneid:editRecordData?.timezoneid ? editRecordData?.timezoneid : 0,
     },
     //validationSchema: validationSchema,
-    onSubmit: (values) => {
-    
+    onSubmit: async (values) => {
       setLoading(true);
-      if (!values.name) {
-        setLoading(false);
-        toast.error("User Name is required.", { toastId: "nameRequired" });
-        return;
-    }
+      try {
+        if (!values.name) {
+          toast.error("User Name is required.", { toastId: "nameRequired" });
+          return;
+        }
+        if (!values.email) {
+          toast.error("Email Id is required.", { toastId: "emailRequired" });
+          return;
+        }
+        if (!values.phoneNumber) {
+          toast.error("Phone number is required.", { toastId: "phoneNumberRequired" });
+          return;
+        }
+        if (!values.legalId) {
+          toast.error("Legal entity is required.", { toastId: "legalEntityRequired" });
+          return;
+        }
+        if (!values.roleId) {
+          toast.error("Please select a role.", { toastId: "selectrole" });
+          return;
+        }
 
-    if (!values.email) {
-        setLoading(false);
-        toast.error("Email Id is required.", { toastId: "emailRequired" });
-        return;
-    }
-  
-      if (!values.phoneNumber) {
-        setLoading(false);
-        toast.error("Phone number is required.", { toastId: "phoneNumberRequired" });
-        return;
-      }
-      if (!values.legalId) {
-        setLoading(false);
-        toast.error("Legal entity is required.", { toastId: "legalEntityRequired" });
-        return;
-      }
-      // if (!values.businessUnitName) {
-      //   setLoading(false);
-      //   toast.error("Business Unit is required.", { toastId: "businessUnitRequired" });
-      //   return;
-      // }
-      // if (!values.departmentId) {
-      //   setLoading(false);
-      //   toast.error("Department is required.", { toastId: "departmentRequired" });
-      //   return;
-      // }
-      // if (!values.designationId) {
-      //   setLoading(false);
-      //   toast.error("Please select a designation.",{ toastId: "selectdesignation" });
-      //   return;
-      // }
-      if (!values.roleId) {
-        setLoading(false);
-        toast.error("Please select a role.",{ toastId: "selectrole" });
-        return;
-      }
-     
-    
-      var data = {
-        id: editRecordData?.id ? editRecordData?.id : 0,
-        name: formik.values?.name,
-        managerName:managerName,
-        dialingCode:formik.values?.dialingCode,
-        designationId: designationId,
-        designation: designation,
-        businessUnitName:businessUnitName,
-        busUnitId:busUnitId,
-       departmentId:departmentId,
-        departmentName:departmentName,
-        legalId:legalId,
-        legalEntity:legalEntity,
-        email: formik.values?.email,
-        timeZone:formik.values?.timeZone,
-        phoneNumber: formik.values?.phoneNumber,
-        managerId:managerId,
-        orgId:orgId,
-        orgName:orgName,
-       // userAssignDepartment : userAssignDepartment,
-        roleId:roleId,
-        roleName:roleName,
-      //  userOrgGroup:orggroups,
-      userOrgGroup: Array.isArray(orggroups)
-    ? JSON.stringify(orggroups) 
-    : orggroups,
-    
-        isActive: isActive,
-        datePattern:values?.datePattern?.options,
-        dateLocale:values?.datePattern?.locale,
-        timePattern:values?.timePattern?.options,
-        timeLocale:values?.timePattern?.locale,
-        languagePattern:values?.languagePattern?.options,
-        timezoneid:values?.timeZone?.id,
-      };
-    
-      console.log("values", values);
-      
+        const data = {
+          id: editRecordData?.id ? editRecordData?.id : 0,
+          name: formik.values?.name,
+          managerName: managerName,
+          dialingCode: formik.values?.dialingCode,
+          designationId: designationId,
+          designation: designation,
+          businessUnitName: businessUnitName,
+          busUnitId: busUnitId,
+          departmentId: departmentId,
+          departmentName: departmentName,
+          legalId: legalId,
+          legalEntity: legalEntity,
+          email: formik.values?.email,
+          timeZone: formik.values?.timeZone,
+          phoneNumber: formik.values?.phoneNumber,
+          managerId: managerId,
+          orgId: orgId,
+          orgName: orgName,
+          roleId: roleId,
+          roleName: roleName,
+          userOrgGroup: Array.isArray(orggroups) ? JSON.stringify(orggroups) : orggroups,
+          isActive: isActive,
+          datePattern: values?.datePattern?.options,
+          dateLocale: values?.datePattern?.locale,
+          timePattern: values?.timePattern?.options,
+          timeLocale: values?.timePattern?.locale,
+          languagePattern: values?.languagePattern?.options,
+          timezoneid: values?.timeZone?.id,
+        };
 
-      if (editRecordData?.id > 0) {
-        UpdateUser(data, editRecordData?.id, atoken).then((res) => {
-          setLoading(false);
+        if (editRecordData?.id > 0) {
+          await UpdateUser(data, editRecordData?.id, atoken);
           dispatch({ type: actionTypes.SET_MSGALERTTYPE, value: "success" });
-          dispatch({
-            type: actionTypes.SET_MSGALERTDATA,
-            value: res?.data?.message,
-          });
+          dispatch({ type: actionTypes.SET_MSGALERTDATA, value: "User updated successfully" });
           dispatch({ type: actionTypes.SET_MSGALERT, value: true });
           callbackstep("update");
           setUserUnsavedChanges(false);
           clearfilleduser();
-          toast.success("User updated successfully!", {
-            toastId: "selectsuccessfully" 
-          });
-          return true;
-        });
-      } else {
-        AddUser(data, atoken).then((res) => {
-          setLoading(false);
-    dispatch({ type: actionTypes.SET_MSGALERTTYPE, value: "success" });
-    dispatch({
-      type: actionTypes.SET_MSGALERTDATA,
-      value: res?.data?.message,
-    });
-    dispatch({ type: actionTypes.SET_MSGALERT, value: true });
-    callbackstep("add");
-    setUserUnsavedChanges(false);
-    clearfilleduser();
-
-    toast.success("User added successfully!", {
-      toastId: "selectUsersuccessfully" 
-    });
-
-    return true;
-  })
-  .catch((error) => {
-    setLoading(false);
-    console.error("Error adding user:", error);
-    if (error.message === "User already exists") {
-      toast.error("User already exists!", {
-          toastId: "alreadysuccessfully"
-      });
-    } else {
-      toast.error("User already exists.", {
-        toastId: "alreadyexists"
-      });
-    }
-    // Handle other errors if necessary
-  });
-
-        
+          toast.success("User updated successfully!", { toastId: "selectsuccessfully" });
+        } else {
+          await AddUser(data, atoken);
+          dispatch({ type: actionTypes.SET_MSGALERTTYPE, value: "success" });
+          dispatch({ type: actionTypes.SET_MSGALERTDATA, value: "User added successfully" });
+          dispatch({ type: actionTypes.SET_MSGALERT, value: true });
+          callbackstep("add");
+          setUserUnsavedChanges(false);
+          clearfilleduser();
+          toast.success("User added successfully!", { toastId: "selectUsersuccessfully" });
+        }
+      } catch (error) {
+        toast.error(getApiErrorMessage(error), { toastId: "userSaveError" });
+      } finally {
+        setLoading(false);
       }
-    }, 
+    },
   });
 
   const prefilleduser = () => {
