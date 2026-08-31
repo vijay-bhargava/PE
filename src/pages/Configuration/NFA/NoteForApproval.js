@@ -1,32 +1,31 @@
 // Backup copy created for reference
-import React, { useCallback, useEffect, useRef, useState, forwardRef, useMemo } from 'react'
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import {
   Box, Button, ButtonGroup, Tab, Tabs, TextField, InputAdornment, Typography, Autocomplete, FormHelperText, MenuItem, Menu, Grid, Badge, Tooltip, IconButton, Select, InputLabel, FormControl, Accordion, AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, FormControlLabel, RadioGroup, TableCell, Radio, TableBody, Alert, Card,
   CardHeader,
-  CardContent
+  CardContent,
+  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import { Expand, ExpandMore, PushPinOutlined } from '@mui/icons-material';
 import { BackButton, MemoizedEventStageFlow } from '../../../utils/common/component';
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { OrgGroupMasterList, UOMMasterList, getPurchaseOrgList } from '../../../utils/commerciallibrary';
-import { DecimalValueRegEx, getFileName, uploadFilesOnAzure2, getPayloadWithStage } from '../../../utils/common';
+import { OrgGroupMasterList, getPurchaseOrgList } from '../../../utils/commerciallibrary';
+import { DecimalValueRegEx, getPayloadWithStage, getApiErrorMessage, downloadNfaPdf } from '../../../utils/common';
 import { HiOutlineX, HiPlusSm, HiDotsVertical, HiPencilAlt, HiOutlineInformationCircle } from "react-icons/hi";
 import { toast } from 'react-toastify';
 import NFAGeneralPreview from './NFAGeneralPreview';
 import { buildQueryParams } from '../../../utils/purchaseRequest';
-import { api, ApiClient } from '../../../Apiclient';
+import { ApiClient } from '../../../Apiclient';
 // Permission Management Imports
 import { CKEditor } from 'ckeditor4-react';
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
 import GridSkeleton from '../../../components/Skeleton/gridSkeleton';
-import SOB from './SOB';
 import TextFieldCell from '../../BaseCells/TextFieldCell';
 // import ReactQuill from 'react-quill';
-import { checkFields, downloadFilesOnAzure, findObjByValueFromArray, findObjListByValueFromArray, findStringByValueFromArray, handleFileUpload, handlesaveAttachment } from '../../../utils/common';
-import { downloadSample, formatDateViaTimeZone, renderHtmlAsText, extractTextFromHTML, checkUTC, getEventDetails, getCurrency, getNFAProjectList, getNFAConditionList, getLibraryOrgEntityFind, getNFAManageFindById, getNFASpendList } from '../../../utils/common/utility';
-import NFADetail from './NFADetail';
+import { findObjByValueFromArray, findObjListByValueFromArray, findStringByValueFromArray, handleFileUpload, handlesaveAttachment } from '../../../utils/common';
+import { downloadSample, formatDateViaTimeZone, extractTextFromHTML, getEventDetails, getCurrency, getNFAProjectList, getNFAConditionList, getLibraryOrgEntityFind, getNFAManageFindById, getNFASpendList } from '../../../utils/common/utility';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import HistoryCell from '../../BaseCells/HistoryCell';
 import AttachmentWorkFlow from '../../BaseCells/attachmentworkflow';
@@ -37,7 +36,6 @@ import { DropdownButton, Modal } from 'react-bootstrap';
 import AddEditCurrency from '../../../utils/common/AddEditCurrency';
 import PurchaseOrgGrp from '../../../utils/common/PurchaseOrgGrp';
 import PurchaseOrg from '../../../utils/common/PurchaseOrg';
-import EventQuestionScreen from "../../../components/Event/EventQuestionScreen";
 import NFAQuestionScreen from "./NFAQuestionScreen";
 import EventApprovalBox from "../../BaseCells/eventapprovalbox";
 import Drawer from "@mui/material/Drawer";
@@ -47,12 +45,9 @@ import AddUpdateexception from './AddUpdateException';
 import AddUpdateProject from './AddUpdateProject';
 import QueryList from '../../CommunucationHub/QueryList';
 import NFASOBEventBoxRFQ from './NFASOBEventBoxRFQ';
-import NFASOBEventBoxAuction from './NFASOBEventBoxAuction';
-import NFASOBEventBoxPR from './NFASOBEventBoxPR';
 import AddUpdateSpend from './AddUpdateSpend';
 import LoadingButton from '@mui/lab/LoadingButton';
 import NFAReport from './NFAReport';
-import { current } from '@reduxjs/toolkit';
 import ERFQComparative from "../RequestForQuotation/ERFQComparative";
 import AuctionControl from "../Auctions/AuctionControl";
 
@@ -276,7 +271,6 @@ const NoteForApproval = () => {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const [preview, setPreview] = useState(true)
   const [state, setState] = useState({
     addProductDrawer: false,
     qusDrawer: false,
@@ -343,7 +337,6 @@ const NoteForApproval = () => {
   const [nfaEventDetails, setNfaEventDetails] = useState("");
   const [nfaEventIdSelected, setNfaEventIdSelected] = useState();
   const [nfaEventVersion, setNfaEventVersion] = useState();
-  const [searchQuery, setSearchQuery] = useState("");
   const [currencyList, setCurrencyList] = useState([]);
   const [OpenCurrencyModal, setOpenCurrencyModal] = useState(false);
   const [budgetStatus, setBudgetStatus] = useState("");
@@ -353,10 +346,7 @@ const NoteForApproval = () => {
   // const EventQuestionScreenRef = React.createRef();
   const NFAQuestionScreenRef = React.createRef();
   const NFASOBRFQRef = React.createRef();
-  const NFASOBPRRef = React.createRef();
-  const NFASOBAuctionRef = React.createRef();
   const [saving, setSaving] = useState(0);
-  const [showInputFieldText, setShowInputFieldText] = useState(true);
   const [eventAppList, setEventAppList] = useState([]);
   const [accessLevel, setAccessLevel] = useState([]);
   const [wfupdate, setwfUpdate] = useState([false]);
@@ -366,7 +356,6 @@ const NoteForApproval = () => {
   const [selectedQuesDll, setSelectedQuesDll] = useState();
   const [libraryId, setLibraryId] = useState();
   const [questionforedit, setQuestionForEdit] = useState(null);
-  const [EventHeaderDetails, setEventHeaderDetails] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [tabshow, setTabShow] = useState(true)
   // const [nfapreview, setNFAPreview] = useState(true);
@@ -795,7 +784,10 @@ const NoteForApproval = () => {
       }
       // Permissions finished loading
       setLoadingPermissions(false);
-    })
+    }).catch((error) => {
+      toast.error(getApiErrorMessage(error), { toastId: "nfa_find_error" });
+      setLoadingPermissions(false);
+    });
     setTimeout(() => {
 
       console.log("✅ Data fully loaded for CKEditor");
@@ -821,12 +813,15 @@ const NoteForApproval = () => {
   // const [actionType, setActionType] = useState("");
 
   const getEventStages = async (urlparams) => {
-    const queryParams = buildQueryParams(urlparams)
-    const res = await apiClient.getres(`api/EventStage/EventStageFind?${queryParams}`, atoken);
-    if (res?.data?.result.length > 0) {
-      const result = res?.data?.result?.filter((item) => item.stageSeq > 0)
-      setStageList(result);
-      const stagesarray = result?.map((item) => item.currentStage);
+    try {
+      const queryParams = buildQueryParams(urlparams);
+      const res = await apiClient.getres(`api/EventStage/EventStageFind?${queryParams}`, atoken);
+      if (res?.data?.result.length > 0) {
+        const result = res?.data?.result?.filter((item) => item.stageSeq > 0);
+        setStageList(result);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error), { toastId: "stage_fetch_error" });
     }
   }
 
@@ -1530,10 +1525,10 @@ const NoteForApproval = () => {
 
           setIdFromURL(data?.id)
           updateRequestCell(data?.id);
-          // pullgetAuctionManageFind(idFromURL)
+          if (value == 2) setValue(3);
+          else setValue(2);
         }
         setLoading(false)
-        //setValue(2);
         return data?.id;
       } else {
 
@@ -1607,13 +1602,15 @@ const NoteForApproval = () => {
       }
       
       // All validations passed, proceed with save and continue
+      // Tab advance happens inside handleWhatever callback after save completes
       formik.handleSubmit()
-      setValue(2);
     }
      if (value == 2) {
       const res = await NFASOBRFQRef?.current?.saveSOBDetails();
-      formik.handleSubmit()
-      setValue(3);
+      if (res == true) {
+        formik.handleSubmit()
+        setValue(3);
+      }
     }
     if (value == 3) {
       const res = await NFAQuestionScreenRef?.current?.saveEventQuestion();
@@ -1633,44 +1630,45 @@ const NoteForApproval = () => {
   }
 
   const handleRFQSubmit = async () => {
-    setLoading(true)
-    const isSubmit = handleErrorNFASubmit();
-    if (!isSubmit) {
+    setLoading(true);
+    try {
+      const isSubmit = handleErrorNFASubmit();
+      if (!isSubmit) {
+        setLoading(false);
+        return;
+      }
+      const isApprovers = checkApprovers();
+      if (!isApprovers) {
+        setLoading(false);
+        return;
+      }
+      const data = {
+        activityId: activityId,
+        NFAId: parseInt(idFromURL),
+        CustomerId: customerid,
+        Version: formik?.values?.Version
+      };
+      const orgId = formik.values.purchOrgId?.id || 0;
+      const orgGroupId = formik.values.purchGrpId?.id || 0;
+      const datapayload = getPayloadWithStage(
+        "currentStage",
+        currentStage,
+        stagelist,
+        data,
+        "currentStage",
+        orgId,
+        orgGroupId
+      );
+      const res = await apiClient.postres(`/api/NFAManage/NFASubmit`, datapayload, atoken);
+      if (res) {
+        toast.success("NFA Published Successfully", { toastId: "submit_published" });
+        navigate(`/configuration/manage-nfa`);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error), { toastId: "nfa_submit_error" });
+    } finally {
       setLoading(false);
-      return;
     }
-    const isApprovers = checkApprovers();
-    if (!isApprovers) {
-      setLoading(false);
-      return;
-    }
-    const data = {
-      activityId: activityId,
-      NFAId: parseInt(idFromURL),
-      CustomerId: customerid,
-      Version: formik?.values?.Version
-    };
-    const orgId = formik.values.purchOrgId?.id || 0;
-    const orgGroupId = formik.values.purchGrpId?.id || 0;
-    const datapayload = getPayloadWithStage(
-      "currentStage",
-      currentStage,
-      stagelist,
-      data,
-      "currentStage",
-      orgId,
-      orgGroupId
-    );
-
-    const res = await apiClient.postres(`/api/NFAManage/NFASubmit`, datapayload, atoken);
-
-    if (res) {
-      toast.success("NFA Published Successfully", {
-        toastId: "submit_published"
-      });
-      navigate(`/configuration/manage-nfa`);
-    }
-    setLoading(false);
   };
 
   //to handle param url query params based tab selection on initial loading
@@ -1702,6 +1700,42 @@ const NoteForApproval = () => {
     handleModalToggle('cancel', true);
   }, [handleModalToggle]);
 
+  const [open, setOpen] = React.useState(false);
+  const handleClose = () => setOpen(false);
+  const handleClickOpen = () => setOpen(true);
+  const [TemplateTitle, setTemplateTitle] = useState("");
+
+  const handleSaveTemplate = async () => {
+    try {
+      if (!TemplateTitle.trim()) {
+        toast.error("please enter valid name");
+        return;
+      }
+      if (!idFromURL) {
+        toast.error("NFA ID must be there to create template");
+        return;
+      }
+      const data = {
+        templateTitle: TemplateTitle.trim(),
+        subject: formik?.values?.nfaSubject?.trim(),
+        eventType: "NFA",
+        eventId: idFromURL,
+        customerId: customerid
+      };
+      const res = await apiClient.postres("/api/EventTemplate/Add", data, atoken);
+      if (res) {
+        toast.success("Template saved successfully");
+        setOpen(false);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error), { toastId: "save_template_error" });
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    downloadNfaPdf(idFromURL, atoken);
+  };
+
   // handleButtonGroup defined after all dependent functions
   const handleButtonGroup = useCallback(() => {
     switch (selectedMenuItem) {
@@ -1709,6 +1743,8 @@ const NoteForApproval = () => {
         return handleRFQSubmit()
       case "Save & Continue":
         return handleSaveContinue()
+      case "Save as Templates":
+        return handleClickOpen()
       case "Cancel":
         return handleCancel()
       default:
@@ -4262,6 +4298,29 @@ const NoteForApproval = () => {
           </Modal.Body>
         </Modal>
       </React.Fragment>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle className="pb-0 f14">Save As</DialogTitle>
+        <DialogContent className="pb-0">
+          <DialogContentText style={{ width: "320px" }}>&nbsp;</DialogContentText>
+          <TextFieldCell
+            id="password"
+            name="password"
+            label="NFA Template Title"
+            placeholder=""
+            value={TemplateTitle}
+            onChange={(e) => setTemplateTitle(e.target.value)}
+            maxLength={100}
+          />
+        </DialogContent>
+        <DialogActions className="pt-0">
+          <Button onClick={handleClose} className="text-muted text-capitalize" style={{ fontSize: "0.75rem" }}>
+            Cancel
+          </Button>
+          <Button onClick={handleSaveTemplate} className="text-capitalize" style={{ fontSize: "0.75rem" }} disabled={!idFromURL}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

@@ -23,7 +23,7 @@ import { actionTypes, useStateValue } from "../../../store";
 import { HiOutlineX, HiPencilAlt} from "react-icons/hi";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { findObjByValueFromArray, isTokenExpired } from "../../../utils/common";
+import { findObjByValueFromArray, isTokenExpired, getApiErrorMessage } from "../../../utils/common";
 import { ApiClient } from "../../../Apiclient";
 import TextFieldCell from "../../BaseCells/TextFieldCell";
 // import { getPurchaseOrgList, OrgGroupMasterList } from "../../../utils/common/utility";
@@ -343,25 +343,24 @@ const handleEdit = useCallback((data) => {
     const [projectList, setprojectList] = useState([]);
    
     const PullNfaProjectAll = async () => {
-        const isTokenExpired = await updateToken();
-        const SortingColumn = "Id";
-        
-        // Pass customerId as a query parameter
-        const res = await apiClient.get(
-            `/api/NFAProject/Find?CustomerId=${customerid}`,
-            atoken
-        );
-        
-        if (res) {
-            const projectData = res?.result;
-            setprojectList(projectData);
-            // Update parent component if handler exists
-            if (props.handleprojectList) {
-                props.handleprojectList(projectData);
+        try {
+            const isTokenExpired = await updateToken();
+            const res = await apiClient.get(
+                `/api/NFAProject/Find?CustomerId=${customerid}`,
+                atoken
+            );
+            if (res) {
+                const projectData = res?.result;
+                setprojectList(projectData);
+                if (props.handleprojectList) {
+                    props.handleprojectList(projectData);
+                }
             }
+        } catch (error) {
+            toast.error(getApiErrorMessage(error), { toastId: "project_fetch_error" });
+        } finally {
+            setGridloading(false);
         }
-        
-        setGridloading(false);
     };
     
 

@@ -6,15 +6,16 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { useStateValue } from "../../../store";
 import { ApiClient } from "../../../Apiclient";
 import { useFormik } from "formik";
-import * as yup from "yup";
 import TextFieldCell from "../../BaseCells/TextFieldCell";
 import { buildQueryParams } from "../../../utils/common/utility";
 import { OrgGroupMasterList, getPurchaseOrgList } from "../../../utils/commerciallibrary";
 import { getEventStage } from "../../../utils/common/utility";
+import { toast } from "react-toastify";
+import { getApiErrorMessage } from "../../../utils/common";
 
-const FilterNFACell = ({ handleFilterList, clearFilterList }) => {
+const FilterNFACell = ({ handleFilterList, clearFilterList, setFilterValues }) => {
 
-	const [{ atoken, customerid, customersuffix, userDetail }] = useStateValue();
+	const [{ atoken, customerid, customersuffix }] = useStateValue();
 	const [nfaLoading, setNfaLoading] = useState(false);
 
 	const apiClient = new ApiClient(customersuffix);
@@ -23,84 +24,64 @@ const FilterNFACell = ({ handleFilterList, clearFilterList }) => {
 		initialValues: {
 			CustomerId: customerid,
 			Id: "",
+			EventCode: "",
 			Subject: "",
 			stage: "",
-			StartDate: null,
-			EndDate: null,
 			purchOrgId: null,
 			purchGrpId: null
 		},
-		validationSchema: yup.object({
-			StartDate: yup.date().nullable(),
-			EndDate: yup
-				.date()
-				.nullable()
-				.typeError("End Date must be a valid date")
-				.test("enddate-after-startdate", "End Date cannot be before the Start Date.", function (value) {
-					const { StartDate } = this.parent;
-					if (StartDate && value && value < StartDate) {
-						return this.createError({
-							path: "EndDate",
-							message: " End Date cannot be before the Start Date.",
-						});
-					}
-					return true;
-				}),
-		}),
-
-		onSubmit: (values) => {
-            debugger
-			const PurchOrgId = values.purchOrgId?.id || 0;
-			const PurchGrpId = values.purchGrpId?.id || 0;
+		onSubmit: (values, { setSubmitting }) => {
+			const { StartDate, EndDate, purchOrgId, purchGrpId, ...otherValues } = values;
+			const hasDateRange = !!(StartDate || EndDate);
+			const PurchOrgId = purchOrgId?.id || 0;
+			const PurchGrpId = purchGrpId?.id || 0;
 			const data = {
 				CustomerId: customerid,
-				Id: values.Id,
-				Subject: values.Subject,
-				Stage: values.stage,
-				StartDate: values.StartDate ? values.StartDate.toISOString() : null,
-				EndDate: values.EndDate ? values.EndDate.toISOString() : null,
+				Id: otherValues.Id,
+				EventCode: otherValues.EventCode,
+				NfaSubject: otherValues.Subject,
+				Stage: otherValues.stage,
 				PurchOrgId,
 				PurchGrpId,
-			}
-			handleAdvancedSearch(data);
+			};
+			handleAdvancedSearch(data, values, hasDateRange);
+			setFilterValues(data);
+			setSubmitting(false);
 		},
 	});
 
-	const handleAdvancedSearch = async (values) => {
+	const handleAdvancedSearch = async (values, searchCriteria, hasDateRange = false) => {
 		const filteredValues = Object.entries(values)
-			.filter(([key, value]) => value !== null && value !== undefined && value !== '' && value !== 0)
-			.reduce((acc, [key, value]) => {
-				acc[key] = value;
-				return acc;
-			}, {});
+			.filter(([key, value]) => value !== null && value !== undefined && value !== "" && value !== 0)
+			.reduce((acc, [key, value]) => { acc[key] = value; return acc; }, {});
 
 		let queryParams = buildQueryParams(filteredValues);
+		const fetchSize = hasDateRange ? 10000 : 10;
 
 		setNfaLoading(true);
-
 		try {
 			const res = await apiClient.get(
-				`/api/NFAManage/FindAdvnceSearch?${queryParams}`,
+				`/api/NFAManage/Find?${queryParams}&pageNumber=1&pageSize=${fetchSize}`,
 				atoken
 			);
-
 			if (res) {
-				handleFilterList(res?.result);
+				handleFilterList(res?.result, searchCriteria, res?.pageMetadata, queryParams);
 			} else {
-				handleFilterList([]);
+				handleFilterList([], searchCriteria, null, queryParams);
 			}
 		} catch (error) {
-			console.error(error);
-			handleFilterList([]);
+			toast.error(getApiErrorMessage(error), { toastId: "advanced_search_error" });
+			handleFilterList([], searchCriteria, null, queryParams);
+		} finally {
+			setNfaLoading(false);
 		}
-
-		setNfaLoading(false);
 	};
 
 
 	const clear = () => {
 		formik.resetForm();
 		clearFilterList();
+		setFilterValues({});
 	};
 
 	const [purchaseAllList, setPurchaseAllList] = useState([]);
@@ -114,38 +95,38 @@ const FilterNFACell = ({ handleFilterList, clearFilterList }) => {
 		}
 	}, [nfaStatusLoaded]);
 
-	const PullPurchaseOrgAll = () => {
-		var data = {
-			CustomerId: customerid,
-			IsActive: 'true'
-		};
-		getPurchaseOrgList(data, atoken).then((resp) => {
-			if (resp) {
-				setPurchaseAllList(resp);
-			}
-		});
+	const PullPurchaseOrgAll = async () => {
+		const data = { CustomerId: customerid, IsActive: "true" };
+		try {
+			const resp = await getPurchaseOrgList(data, atoken);
+			if (resp) { setPurchaseAllList(resp); } else { setPurchaseAllList([]); }
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: "purchase_org_error" });
+			setPurchaseAllList([]);
+		}
 	};
 
-	const PullPurchaseGroupAll = (orgMstId) => {
-		var data = {
-			CustomerId: customerid,
-			OrgMstId: orgMstId,
-			IsActive: 'true'
-		};
-		OrgGroupMasterList(data, atoken).then((res) => {
-			if (res != "" && res != undefined) {
-				setPurchaseGroupAllList(res);
-			}
-		});
+	const PullPurchaseGroupAll = async (orgMstId) => {
+		const data = { CustomerId: customerid, OrgMstId: orgMstId, IsActive: "true" };
+		try {
+			const res = await OrgGroupMasterList(data, atoken);
+			if (res !== "" && res !== undefined) { setPurchaseGroupAllList(res); } else { setPurchaseGroupAllList([]); }
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: "purchase_group_error" });
+			setPurchaseGroupAllList([]);
+		}
 	};
 
 	const pullGetEventStage = async (EventTypeId, setList, setLoaded) => {
 		const data = { CustomerId: customerid, IsActive: true, EventType: EventTypeId };
 		try {
 			const res = await getEventStage(data, atoken);
-			setList(res || []);
-		} catch (err) {
-			console.error("Error fetching event stage:", err);
+			const filteredStages = (res || []).filter(
+				stage => stage.stageSeq !== 0 || stage.stageName === "Cancel"
+			);
+			setList(filteredStages);
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: "event_stage_error" });
 			setList([]);
 		} finally {
 			setLoaded(true);
@@ -167,6 +148,16 @@ const FilterNFACell = ({ handleFilterList, clearFilterList }) => {
 											label="NFA ID"
 											value={formik.values.Id}
 											onChange={(e) => formik.setFieldValue("Id", e.target.value)}
+										/>
+									</div>
+
+									<div className="col-12 mb-3">
+										<TextFieldCell
+											id="EventCode"
+											name="EventCode"
+											label="Event Code"
+											value={formik.values.EventCode}
+											onChange={(e) => formik.setFieldValue("EventCode", e.target.value)}
 										/>
 									</div>
 
@@ -216,7 +207,7 @@ const FilterNFACell = ({ handleFilterList, clearFilterList }) => {
 										</FormControl>
 									</div>
 
-									<LocalizationProvider dateAdapter={AdapterDateFns}>
+									{/* <LocalizationProvider dateAdapter={AdapterDateFns}>
 										<div className="col-12 mb-3">
 											<MobileDateTimePicker
 												label="Start Date/Time"
@@ -250,7 +241,7 @@ const FilterNFACell = ({ handleFilterList, clearFilterList }) => {
 												}}
 											/>
 										</div>
-									</LocalizationProvider>
+									</LocalizationProvider> */}
 
 									{/* Purchase Org */}
 									<div className="col-12 mb-3">

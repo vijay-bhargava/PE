@@ -23,7 +23,7 @@ import { actionTypes, useStateValue } from "../../../store";
 import { HiOutlineX, HiPencilAlt} from "react-icons/hi";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { findObjByValueFromArray, isTokenExpired } from "../../../utils/common";
+import { findObjByValueFromArray, isTokenExpired, getApiErrorMessage } from "../../../utils/common";
 import { ApiClient } from "../../../Apiclient";
 import TextFieldCell from "../../BaseCells/TextFieldCell";
 // import { getPurchaseOrgList, OrgGroupMasterList } from "../../../utils/common/utility";
@@ -343,25 +343,24 @@ const handleEdit = useCallback((data) => {
     const [spendList, setspendList] = useState([]);
    
     const pullNFAspend = async () => {
-        const isTokenExpired = await updateToken();
-        const SortingColumn = "Id";
-        
-        // Pass customerid as a query parameter
-        const res = await apiClient.get(
-            `/api/NFASpend/Find?CustomerId=${customerid}`,
-            atoken
-        );
-        
-        if (res) {
-            const spendData = res?.result;
-            setspendList(spendData);
-            // Update parent component if handler exists
-            if (props.handleSpendList) {
-                props.handleSpendList(spendData);
+        try {
+            const isTokenExpired = await updateToken();
+            const res = await apiClient.get(
+                `/api/NFASpend/Find?CustomerId=${customerid}`,
+                atoken
+            );
+            if (res) {
+                const spendData = res?.result;
+                setspendList(spendData);
+                if (props.handleSpendList) {
+                    props.handleSpendList(spendData);
+                }
             }
+        } catch (error) {
+            toast.error(getApiErrorMessage(error), { toastId: "spend_fetch_error" });
+        } finally {
+            setGridloading(false);
         }
-        
-        setGridloading(false);
     };
     
 

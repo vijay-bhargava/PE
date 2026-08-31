@@ -29,7 +29,7 @@ import { api, ApiClient } from "../../../Apiclient";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
 import { toast } from "react-toastify";
 import { RFQQuestionsModal, RFQQuestionsModalOBJ, RFQSupplierQuestionsModal, SQEQuestionsModal, NFAQuestionsModal, NFAQuestionsModalOBJ } from "../../../utils/modal";
-import { findObjByValueFromArray, SQEAddModal, downloadExcelTemplate } from "../../../utils/common";
+import { findObjByValueFromArray, SQEAddModal, downloadExcelTemplate, getApiErrorMessage } from "../../../utils/common";
 // Permission Management Imports
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
 // import EventQuestionScreenList from "../../../components/Event/EventQuestionScreenList";
@@ -122,15 +122,16 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
           })
           x.Version = props?.Version
         })
-        const res = await apiclient.postres(`/api/NFAQuestionLib/${props.eventid}/Add`, questionlist, atoken);
-        if (res) {
-          toast.success("Questions Saved Successfully", {
-            toastId: "QS"
-          })
-          return true
-        }
-        else {
-          return false
+        try {
+          const res = await apiclient.postres(`/api/NFAQuestionLib/${props.eventid}/Add`, questionlist, atoken);
+          if (res) {
+            toast.success("Questions Saved Successfully", { toastId: "QS" });
+            return true;
+          }
+          return false;
+        } catch (error) {
+          toast.error(getApiErrorMessage(error), { toastId: "q_save_error" });
+          return false;
         }
       }
     }
@@ -233,30 +234,24 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
 
   const getQuestionList = async () => {
     if (props.eventtype == "NFA") {
-
-      const params = {
-        // CustomerId: customerid,
-        NFAId: props.eventid,
-        Version: parseInt(props.Version)
-
-      };
-      const queryParams = buildQueryParams(params);
-      const res = await apiclient.getres(`/api/NFAQuestionLib/Find?${queryParams}`, atoken);
-      if (res) {
-
-        const data = res?.data?.result;
-
-
-
-        setQuestionList([...data])
-        const selectedLibrary = findObjByValueFromArray(librarylist, data[0]?.libraryId, 'id');
-        if (selectedLibrary) {
-
-          setSelectedLibrary(selectedLibrary)
+      try {
+        const params = {
+          NFAId: props.eventid,
+          Version: parseInt(props.Version)
+        };
+        const queryParams = buildQueryParams(params);
+        const res = await apiclient.getres(`/api/NFAQuestionLib/Find?${queryParams}`, atoken);
+        if (res) {
+          const data = res?.data || [];
+          setQuestionList([...data]);
+          const selectedLibrary = findObjByValueFromArray(librarylist, data[0]?.libraryId, 'id');
+          if (selectedLibrary) {
+            setSelectedLibrary(selectedLibrary);
+          }
         }
-
+      } catch (error) {
+        toast.error(getApiErrorMessage(error), { toastId: "q_fetch_error" });
       }
-
     }
   }
 

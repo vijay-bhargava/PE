@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import dayjs from 'dayjs';
 import { LoadingButton } from "@mui/lab";
 import {
   Autocomplete,
@@ -46,6 +47,7 @@ import {
   RFQModalFromPR,
   findObjListByValueFromArray,
   getPayloadWithStage,
+  getApiErrorMessage,
 } from "../../../utils/common";
 import NotFoundPage from "../../../components/NotAllowed";
 import {
@@ -75,6 +77,15 @@ const ManageNFA = ({ claimType }) => {
       }
   }, [userDetail, atoken])
 
+  const [searchMode, setSearchMode] = useState(false);
+  const [filterMode, setFilterMode] = useState(false);
+  const [filterQueryParams, setFilterQueryParams] = useState(null);
+  const [filterValues, setFilterValues] = useState({});
+  const [filterSearchCriteria, setFilterSearchCriteria] = useState(null);
+  const [filterFromDayjs, setFilterFromDayjs] = useState(null);
+  const [filterToDayjs, setFilterToDayjs] = useState(null);
+  const [columnFilterMode, setColumnFilterMode] = useState(false);
+  const [searchDataLoaded, setSearchDataLoaded] = useState(false);
   const [iscreateDisabled, setIsCreateDisabled] = useState(true);
   const [isreadDisabled, setIsReadDisabled] = useState(true);
   const [iseditDisabled, setIsEditDisabled] = useState(true);
@@ -196,29 +207,102 @@ const ManageNFA = ({ claimType }) => {
     setValue(event.target.value);
   };
 
+  const [templatelist, setTemplateList] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+
+  const getTemplateList = async () => {
+    const data = { CustomerId: customerid, EventType: "NFA" };
+    const queryParams = buildQueryParams(data);
+    try {
+      const res = await apiClient.getres(`/api/EventTemplate/Find?${queryParams}`, atoken);
+      if (res?.data?.result) {
+        setTemplateList(res.data.result);
+      } else {
+        setTemplateList([]);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error), { toastId: "template_list_error" });
+    }
+  };
+
+  const handleTemplateNavigation = useCallback(async () => {
+    try {
+      if (value !== "new") {
+        const data = { EventId: selectedTemplate?.eventId, EventType: selectedTemplate?.eventType };
+        const queryParams = buildQueryParams(data);
+        const res = await apiClient.postres(`/api/NFAManage/NFATemplateClone?${queryParams}`, null, atoken);
+        if (res?.data?.length > 0) {
+          navigate(`/configuration/manage-nfa/${res.data[0].id}`);
+        }
+      } else {
+        navigate(`/configuration/manage-nfa/add`);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error), { toastId: "template_nav_error" });
+    }
+  }, [selectedTemplate, value]);
+
   const [recorddata, setRecorddata] = useState([]);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
   const [quickFilterValue, setQuickFilterValue] = useState('');
   const [debouncedQuickFilterValue, setDebouncedQuickFilterValue] = useState('');
   console.log("recorddatarecorddata:", recorddata)
-  
+
   // Advanced search states and functions
   const [divVisible, setDivVisible] = useState(false);
   const toggleDivVisibility = () => {
     setDivVisible(!divVisible);
   };
-  
+
   const closeDivVisibility = () => {
     setDivVisible(false);
   };
-  
-  const handleFilterList = (res) => {
-    setRecorddata(res);
+
+  const applyDateRangeFilter = (result, fromDayjs, toDayjs) => {
+    if (!fromDayjs && !toDayjs) return result;
+    return result.filter((item) => {
+      if (fromDayjs) {
+        if (!item.createdOn) return false;
+        const dateStr = item.createdOn.endsWith('Z') ? item.createdOn : item.createdOn + 'Z';
+        if (dayjs(dateStr).isBefore(fromDayjs)) return false;
+      }
+      if (toDayjs) {
+        if (!item.createdOn) return false;
+        const dateStr = item.createdOn.endsWith('Z') ? item.createdOn : item.createdOn + 'Z';
+        if (dayjs(dateStr).isAfter(toDayjs)) return false;
+      }
+      return true;
+    });
   };
-  
+
+  const handleFilterList = (res, searchCriteria, pageMetadata, queryParams) => {
+    const fromDayjs = searchCriteria?.StartDate ? dayjs(searchCriteria.StartDate) : null;
+    const toDayjs = searchCriteria?.EndDate ? dayjs(searchCriteria.EndDate) : null;
+    const hasDateRange = !!(fromDayjs || toDayjs);
+    let filteredData = res || [];
+    if (hasDateRange) {
+      filteredData = applyDateRangeFilter(filteredData, fromDayjs, toDayjs);
+    }
+    setRecorddata(filteredData);
+    setTotalCount(hasDateRange ? filteredData.length : (pageMetadata?.totalCount || filteredData.length));
+    setPage(0);
+    setFilterMode(true);
+    setFilterQueryParams(queryParams);
+    setFilterSearchCriteria(searchCriteria);
+    setFilterFromDayjs(fromDayjs);
+    setFilterToDayjs(toDayjs);
+  };
+
   const clearFilterList = () => {
-    pullNFAManageFind();
+    setFilterMode(false);
+    setFilterQueryParams(null);
+    setFilterSearchCriteria(null);
+    setFilterFromDayjs(null);
+    setFilterToDayjs(null);
+    setPage(0);
+    pullNFAManageFind(1, pageSize);
   };
   
   const getRowId = (row) => {
@@ -469,25 +553,26 @@ const ManageNFA = ({ claimType }) => {
   const [gridloading, setGridloading] = useState(false);
   const [QuotesMessage, setQuotesMessage] = useState("You Are Not Authorized To View This");
 
-  const pullNFAManageFind = () => {
-    
+  const pullNFAManageFind = (pageNumber = 1, pageSizeVal = pageSize) => {
     var data = {
       CustomerId: customerid,
       AccessLevel: listaccessLevel,
       SortingColumn: "Id",
     };
-    
     setGridloading(true);
-    getNFAManageFind(data, atoken).then((res) => {
-      
+    getNFAManageFind(data, atoken, pageNumber, pageSizeVal).then((res) => {
       setGridloading(false);
-      if (res && res?.length > 0) {
-        setRecorddata(res);
+      if (res) {
+        setTotalCount(res?.pageMetadata?.totalCount || 0);
+        if (res?.result?.length > 0) {
+          setRecorddata(res.result);
+        } else {
+          setRecorddata([]);
+        }
       } else {
         setRecorddata([]);
       }
     });
-
   };
 
   const [selectedItems, setSelectedItems] = useState([]); // State to store selected items
@@ -928,7 +1013,7 @@ const ManageNFA = ({ claimType }) => {
                     size="large"
                     startIcon={<HiPlusSm />}
                     className="text-capitalize blue-text font-normal me-3"
-                    onClick={handleAddNewClick}
+                    onClick={OpenModal}
                   >
                     Add New
                   </Button>
@@ -1021,6 +1106,7 @@ const ManageNFA = ({ claimType }) => {
                     <FilterNFACell
                       handleFilterList={handleFilterList}
                       clearFilterList={clearFilterList}
+                      setFilterValues={setFilterValues}
                     />
                   </div>
                 </div>
@@ -1058,6 +1144,73 @@ const ManageNFA = ({ claimType }) => {
           </Box>
         </Drawer>
       </React.Fragment> */}
+      <Modal
+        size="lg"
+        show={modal}
+        backdrop="static"
+        keyboard={false}
+        className='zindex10002'
+        backdropClassName='zindex10002'
+        centered
+        contentClassName='border-0 rounded-default'
+        onHide={() => CloseModal()}
+      >
+        <Modal.Header className='pt-2 pb-2'>
+          <Modal.Title id="modal-heading">
+            <div className='d-flex align-items-center f14'>What would you like to do?</div>
+          </Modal.Title>
+          <IconButton onClick={() => CloseModal()} size="small" edge="start">
+            <HiOutlineX className='' />
+          </IconButton>
+        </Modal.Header>
+        <Modal.Body className="p-0">
+          <div className='p-3'>
+            <div className='row'>
+              <div className='col-12'>
+                <FormControl>
+                  <RadioGroup
+                    aria-labelledby=""
+                    defaultValue="new"
+                    name="new-nfa"
+                    value={value}
+                    onChange={handleChange}
+                  >
+                    <FormControlLabel value="new" control={<Radio />} label="Create a New NFA" />
+                    <FormControlLabel value="template" control={<Radio />} label="Select From Template" />
+                  </RadioGroup>
+                </FormControl>
+              </div>
+              {value === 'template' && (
+                <div className='col-12 mt-2'>
+                  <Autocomplete
+                    disablePortal
+                    id="combo-box-demo"
+                    size='small'
+                    options={templatelist ?? []}
+                    getOptionLabel={(option) => option.templateTitle ?? ""}
+                    fullWidth
+                    renderInput={(params) => <TextField {...params} InputLabelProps={{ shrink: true }} label="Select Template" />}
+                    onChange={(e, v) => setSelectedTemplate(v)}
+                    onOpen={() => { if (templatelist.length === 0) getTemplateList(); }}
+                  />
+                </div>
+              )}
+              <div className='col-12 mt-4 text-end'>
+                <LoadingButton
+                  variant='outlined'
+                  onClick={handleTemplateNavigation}
+                  color='primary'
+                  className='text-capitalize'
+                  size='small'
+                >
+                  Continue
+                </LoadingButton>
+              </div>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
       {/* <Modal
         size="xl"
         show={rfqprcartmodal}

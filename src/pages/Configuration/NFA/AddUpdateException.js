@@ -23,7 +23,7 @@ import { actionTypes, useStateValue } from "../../../store";
 import { HiOutlineX, HiPencilAlt} from "react-icons/hi";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { findObjByValueFromArray, isTokenExpired } from "../../../utils/common";
+import { findObjByValueFromArray, isTokenExpired, getApiErrorMessage } from "../../../utils/common";
 import { ApiClient } from "../../../Apiclient";
 import TextFieldCell from "../../BaseCells/TextFieldCell";
 // import { getPurchaseOrgList, OrgGroupMasterList } from "../../../utils/common/utility";
@@ -343,25 +343,24 @@ const handleEdit = useCallback((data) => {
     const [exceptionList, setexceptionList] = useState([]);
    
     const pullNFACondition = async () => {
-        const isTokenExpired = await updateToken();
-        const SortingColumn = "Id";
-        
-        // Pass customerid as a query parameter
-        const res = await apiClient.get(
-            `/api/NFACondition/Find?CustomerId=${customerid}`,
-            atoken
-        );
-        
-        if (res) {
-            const exceptionData = res?.result;
-            setexceptionList(exceptionData);
-            // Update parent component if handler exists
-            if (props.handleExceptionList) {
-                props.handleExceptionList(exceptionData);
+        try {
+            const isTokenExpired = await updateToken();
+            const res = await apiClient.get(
+                `/api/NFACondition/Find?CustomerId=${customerid}`,
+                atoken
+            );
+            if (res) {
+                const exceptionData = res?.result;
+                setexceptionList(exceptionData);
+                if (props.handleExceptionList) {
+                    props.handleExceptionList(exceptionData);
+                }
             }
+        } catch (error) {
+            toast.error(getApiErrorMessage(error), { toastId: "exception_fetch_error" });
+        } finally {
+            setGridloading(false);
         }
-        
-        setGridloading(false);
     };
     
 

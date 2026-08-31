@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { formatDateViaLocale, formatDateViaLocale2, formatDateViaLocalet, formatDateViaTime, formatDateViaTimeZone, formattimeoption, renderHtmlAsText } from '../../../utils/common/utility'
+import { formatDateViaLocale } from '../../../utils/common/utility'
 import { useNavigate } from 'react-router-dom';
 import { api, ApiClient } from '../../../Apiclient';
 import { useStateValue } from '../../../store';
@@ -60,9 +60,8 @@ import {
   AccordionSummary,
   AccordionDetails,
 } from "@mui/material";
-import { findStringByValueFromArray, downloadFilesOnAzure ,getFileName } from '../../../utils/common';
-import { getNFAManageFindById,buildQueryParams } from '../../../utils/common/utility';
-import { use } from 'react';
+import { downloadFilesOnAzure, getFileName } from '../../../utils/common';
+import { buildQueryParams } from '../../../utils/common/utility';
 import { HiDownload } from "react-icons/hi";
 // import { downloadFilesOnAzure ,getFileName} from '../../../utils/common';
 // Report tab for NFA
@@ -80,8 +79,7 @@ const NFAReport = ({props}) => {
   const [allocationErrors, setAllocationErrors] = useState({}); // Track allocation validation errors
   const [valueType, setValueType] = useState(""); // State for value type dropdown
   const [totalQuantity, setTotalQuantity] = useState(0); // Total quantity for validation
-  const [loading, setLoading] = useState(false); // Loading state for save operations
-  const [isLoading, setIsLoading] = useState(false); // Loading state for save button
+  const [isLoading, setIsLoading] = useState(false);
   const [hasAllocationChanges, setHasAllocationChanges] = useState(false); // Track if allocations have been modified
 
   // Fetch NFA General Details

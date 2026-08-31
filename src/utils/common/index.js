@@ -2325,3 +2325,36 @@ export const downloadEventExcelTemplate = async ({ eventType, eventId, customerI
 		return false;
 	}
 };
+
+export const downloadNfaPdf = async (nfaId, atoken) => {
+	try {
+		const url = `${domain}api/NFAManage/${nfaId}/generatePdf`;
+		const headers = {
+			Accept: "application/pdf",
+			Authorization: `Bearer ${atoken}`,
+		};
+		const response = await axios.post(url, null, {
+			headers,
+			responseType: "blob",
+		});
+		const blobUrl = window.URL.createObjectURL(response.data);
+		const a = document.createElement("a");
+		a.href = blobUrl;
+		a.download = `NFA_${nfaId}.pdf`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		window.URL.revokeObjectURL(blobUrl);
+	} catch (error) {
+		if (error?.response?.data) {
+			try {
+				const text = await error.response.data.text();
+				const errJson = JSON.parse(text);
+				toast.error(errJson?.Message || "Failed to download PDF", { hideProgressBar: true, autoClose: 1000 });
+			} catch {
+				toast.error("Failed to download PDF", { hideProgressBar: true, autoClose: 1000 });
+			}
+		}
+	}
+};
+

@@ -2449,7 +2449,7 @@ export const getNFASpendList = async (data, atoken) => {
 	}
 }
 
-export const getNFAManageFind = async (data, atoken) => {
+export const getNFAManageFind = async (data, atoken, pageNumber = 1, pageSize = 10) => {
 	const queryParams = Object.entries(data)
 		.filter(
 			([key, value]) => value !== null && value !== undefined && value !== ""
@@ -2457,7 +2457,7 @@ export const getNFAManageFind = async (data, atoken) => {
 		.map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
 		.join("&");
 	try {
-		const ENDPOINT = `${domain}api/NFAManage/Find?${queryParams}`;
+		const ENDPOINT = `${domain}api/NFAManage/Find?${queryParams}&pageNumber=${pageNumber}&pageSize=${pageSize}`;
 		const headers = {
 			accept: "application/json",
 			"Content-Type": "application/json",

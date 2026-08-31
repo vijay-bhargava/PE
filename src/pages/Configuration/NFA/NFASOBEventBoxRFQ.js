@@ -8,7 +8,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { buildQueryParams, VendorfilterOptions, getCurrency } from "../../../utils/common/utility";
 import { ApiClient } from '../../../Apiclient';
 import Drawer from "@mui/material/Drawer";
-import { DecimalValueRegEx } from '../../../utils/common';
+import { DecimalValueRegEx, getApiErrorMessage } from '../../../utils/common';
 import { HiOutlineX, HiPlusSm, HiOutlineUserAdd, HiPencilAlt, HiOutlineInformationCircle, HiOutlineTrash } from "react-icons/hi";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import { Badge, Modal } from "react-bootstrap";
@@ -101,6 +101,7 @@ const NFASOBEventBoxRFQ = forwardRef(({ props }, NFASOBRFQRef) => {
     const [budget, setBudget] = useState(props?.nfaBudget);
     const [totalAmount, setTotalAmount] = useState(props?.nfaAmount);
     const [OpenCurrencyModal, setOpenCurrencyModal] = useState(false);
+    const [currency, setCurrency] = useState(props?.nfaCurrency);
 
     const CloseCurrencyModal = () => {
         setOpenCurrencyModal(false);
@@ -135,55 +136,82 @@ const NFASOBEventBoxRFQ = forwardRef(({ props }, NFASOBRFQRef) => {
     //in order to handle event from parent component
     useImperativeHandle(NFASOBRFQRef, () => ({
         saveSOBDetails: async () => {
-            const data = vendorPackages.map((vendor, index) => ({
-                id: 0,
-                vendorId: vendor.vendorId,
-                companyName: vendor.companyName,
-                initialPrice: vendor.initialPrice ?? 0, // to be filled later
-                finalPrice: vendor.finalPrice != '' ? parseFloat(vendor.finalPrice) : 0,
-                nfaEventId: props.nfaEventId,
-                nfaEventType: props.nfaEventType,
-                packageRank: vendor.packageRank,
-                allocation: parseFloat(vendor.allocation || 0),
-                newVendor: vendor.newVendor || false,
-                nfaId: props.eventId,
-                // For item-wise view, use the actual itemId; for package-wise, use 0
-                itemId: basisOf === 'item' ? (vendor.itemId || 0) : 0,
-                customerId: customerid,
-                version: props.Version,
-                allocationOn: basisOf,
-                valueType: valueType,
-                totalPrice: parseFloat(vendor.totalPrice || 0)
-            }));
-            const res = await apiClient.postres(`/api/NFASOBDetails/${props.eventId}/Add?EventType=NFA`, data, atoken);
-            if (res) {
-                toast.success("Allocation Saved Successfully", {
-                    toastId: "QS"
-                })
-                return true
-            }
-            else {
-                return false
+            try {
+                const validItemIds = new Set(items.map(i => i.parentId ?? i.id));
+                const data = vendorPackages
+                    .filter(vendor => basisOf !== "item" || validItemIds.has(vendor.itemId))
+                    .map((vendor) => ({
+                        id: 0,
+                        vendorId: vendor.vendorId,
+                        companyName: vendor.companyName,
+                        initialPrice: vendor.initialPrice ?? 0,
+                        finalPrice: vendor.finalPrice !== "" ? parseFloat(vendor.finalPrice) : 0,
+                        nfaEventId: props.nfaEventId,
+                        nfaEventType: props.nfaEventType,
+                        packageRank: vendor.packageRank,
+                        allocation: parseFloat(vendor.allocation || 0),
+                        newVendor: vendor.newVendor || false,
+                        nfaId: props.eventId,
+                        itemId: basisOf === "item" ? (vendor.itemId || 0) : 0,
+                        customerId: customerid,
+                        version: props.Version,
+                        allocationOn: basisOf,
+                        valueType: valueType,
+                        totalPrice: parseFloat(vendor.totalPrice || 0),
+                        remarks: vendor.remarks || ""
+                    }));
+
+                if (basisOf === "item") {
+                    const itemAllocationMap = {};
+                    data.forEach((item) => {
+                        if (!itemAllocationMap[item.itemId]) {
+                            itemAllocationMap[item.itemId] = {
+                                itemName: items.find(i => i.itemId === item.itemId)?.itemName || `Item ${item.itemId}`,
+                                totalAllocation: 0
+                            };
+                        }
+                        itemAllocationMap[item.itemId].totalAllocation += item.allocation;
+                    });
+                    const invalidItems = Object.values(itemAllocationMap)
+                        .filter(item => item.totalAllocation <= 0)
+                        .map(item => item.itemName);
+                    if (invalidItems.length > 0) {
+                        toast.error(`Please allocate at least one supplier for all the item(s)`, { toastId: "allocation_validation_error" });
+                        return false;
+                    }
+                }
+
+                const res = await apiClient.postres(`/api/NFASOBDetails/${props.eventId}/Add?EventType=NFA`, data, atoken);
+                if (res) {
+                    toast.success("Allocation Saved Successfully", { toastId: "QS" });
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                toast.error(getApiErrorMessage(error), { toastId: "sob_save_error" });
+                return false;
             }
         }
     }));
 
     // Fetch existing SOB details if any
     const getSOBDetails = async (data) => {
-        const params = {
-            NFAId: props.eventId,
-            EventId: props.nfaEventId,
-            EventType: props.nfaEventType || '0',
-            BasisOf: data ? data : "",
-            Version: props.Version ?? 1,
-        };
-        const queryParams = buildQueryParams(params);
-        const res = await apiClient.getres(`/api/NFAManage/GetItemWiseData?${queryParams}`, atoken);
-        if (res) {
-            setItems(res?.data?.items || []);
-            // console.log(vendorPackages);
-            setVendorPackages(res?.data?.packageWiseData || []);
-
+        try {
+            const params = {
+                NFAId: props.eventId,
+                EventId: props.nfaEventId,
+                EventType: props.nfaEventType || '0',
+                BasisOf: data ? data : "",
+                Version: props.eventId != null && props.eventId != 0 ? props.Version : props.nfaEventVersion ?? 1,
+            };
+            const queryParams = buildQueryParams(params);
+            const res = await apiClient.getres(`/api/NFAManage/GetItemWiseData?${queryParams}`, atoken);
+            if (res) {
+                setItems(res?.data?.items || []);
+                setVendorPackages(res?.data?.packageWiseData || []);
+            }
+        } catch (error) {
+            toast.error(getApiErrorMessage(error), { toastId: "sob_fetch_error" });
         }
     };
 
@@ -343,27 +371,39 @@ const NFASOBEventBoxRFQ = forwardRef(({ props }, NFASOBRFQRef) => {
     const handleTotalAmount = () => {
         const total = vendorPackages.map(pkg => parseFloat(pkg.totalPrice) || 0).reduce((sum, val) => sum + val, 0);
         setTotalAmount(total);
+        if (props?.amount != total) {
+            props?.updateAmount(total);
+        }
     }
 
     const handleNewSupplierPrice = (vendorId, value, itemId = null) => {
-        // Allow only numbers and up to 4 decimal places
         if (value === '' || /^\d*\.?\d{0,4}$/.test(value)) {
             const updatedPackages = vendorPackages.map(pkg => {
-                // For item-wise view, match both vendorId and itemId
-                if (basisOf === 'item' && itemId !== null) {
-                    return (pkg.vendorId === vendorId && pkg.itemId === itemId)
-                        ? { ...pkg, finalPrice: value } // keep as string
-                        : pkg;
-                }
-                // For package-wise view, match only vendorId
-                else {
-                    return pkg.vendorId === vendorId
-                        ? { ...pkg, finalPrice: value } // keep as string
-                        : pkg;
-                }
-            });
+                const isMatched =
+                    basisOf === 'item' && itemId !== null
+                        ? (pkg.vendorId === vendorId && pkg.itemId === itemId)
+                        : (pkg.vendorId === vendorId);
 
-            // Set the updated allocations
+                if (!isMatched) return pkg;
+
+                const currentItem = items.find(item => (item.parentId ?? item.id) === pkg.itemId);
+                const itemQuantity = currentItem?.quantity || 0;
+                const finalPrice = (parseFloat(value) || 0) * itemQuantity;
+                const allocation = parseFloat(pkg.allocation) || 0;
+
+                return {
+                    ...pkg,
+                    finalPrice: value,
+                    totalPrice:
+                        value === '' || allocation === 0
+                            ? ''
+                            : (
+                                valueType === 'percentage'
+                                    ? ((allocation / 100) * finalPrice)
+                                    : ((finalPrice / itemQuantity) * allocation)
+                            ).toFixed(4)
+                };
+            });
             setVendorPackages(updatedPackages);
         }
     }
@@ -667,6 +707,12 @@ const NFASOBEventBoxRFQ = forwardRef(({ props }, NFASOBRFQRef) => {
         toggleDrawer("addsupplier", false)
     };
 
+    const handleRemoveSupplier = (vendorId) => {
+        const updatedPackages = vendorPackages.filter(pkg => pkg.vendorId !== vendorId);
+        setVendorPackages(updatedPackages);
+        setSelectedSupplier(prev => prev.filter(id => id !== vendorId));
+    };
+
     // Handle add item form field changes
     const handleItemFieldChange = (field, value) => {
         setNewItemData(prev => ({
@@ -760,7 +806,58 @@ const NFASOBEventBoxRFQ = forwardRef(({ props }, NFASOBRFQRef) => {
             }
         } catch (error) {
             console.error('Error saving item:', error);
-            toast.error('Failed to save item');
+            toast.error(getApiErrorMessage(error), { toastId: "save_item_error" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSaveUpdateItem = async () => {
+        if (!newItemData.itemName || !newItemData.quantity || !newItemData.uom || !newItemData.plant || !newItemData.itemType) {
+            toast.error('Please fill all required fields');
+            return;
+        }
+        if (!newItemData.id || newItemData.id === 0) {
+            await handleSaveNewItem();
+            return;
+        }
+        setLoading(true);
+        try {
+            const payload = {
+                id: newItemData.id,
+                nfaId: props.eventId || props.nfaEventId,
+                itemCode: newItemData.itemCode,
+                itemName: newItemData.itemName,
+                itemCategory: newItemData.itemCategory,
+                itemType: newItemData.itemType,
+                itemTypeId: newItemData.itemTypeId,
+                itemDesc: newItemData.itemDesc,
+                uom: newItemData.uom,
+                quantity: parseFloat(newItemData.quantity),
+                targetPrice: parseFloat(newItemData.targetPrice) || 0,
+                version: newItemData.version || 1,
+                plant: newItemData.plant,
+                deliveryDate: newItemData.deliveryDate || null,
+                remarks: newItemData.remarks,
+                customerId: customerid,
+                itemImage: newItemData.itemImage || '',
+                itemFile: newItemData.itemFile || ''
+            };
+            const response = await apiClient.postres(`/api/NFAItemService/Update`, payload, atoken);
+            if (response.status === 200 || response.status === 201) {
+                toast.success('Item updated successfully');
+                const updatedVendorPackages = vendorPackages.map(pkg =>
+                    pkg.itemId === newItemData.id
+                        ? { ...pkg, allocation: 0, totalPrice: 0 }
+                        : pkg
+                );
+                setVendorPackages(updatedVendorPackages);
+                await getSOBDetails(basisOf);
+                handleResetItemForm();
+                toggleDrawer("additem", false);
+            }
+        } catch (error) {
+            toast.error(getApiErrorMessage(error), { toastId: "update_item_error" });
         } finally {
             setLoading(false);
         }
@@ -798,21 +895,15 @@ const NFASOBEventBoxRFQ = forwardRef(({ props }, NFASOBRFQRef) => {
 
         setLoading(true);
         try {
-            const payload = {
-                id: itemId
-            };
-
-            // Call POST Delete endpoint with item id in body
             const response = await apiClient.postres(
-                `/api/NFAItemService/Delete`,
-                payload,
+                `/api/NFAItemService/${itemId}/DeleteAll`,
+                {},
                 atoken
             );
 
-            if (response.status === 200 || response.status === 204) {
+            if (response) {
                 toast.success('Item deleted successfully');
-                // Refresh the SOB details to get updated items
-                await getSOBDetails(basisOf);
+                setItems(prev => prev.filter(i => i.id !== itemId));
             }
         } catch (error) {
             console.error('Error deleting item:', error);
@@ -1047,6 +1138,13 @@ const NFASOBEventBoxRFQ = forwardRef(({ props }, NFASOBRFQRef) => {
             props?.updateAmount(totalAmount);
         }
     }, [totalAmount])
+
+    useEffect(() => {
+        if (currency && props?.nfaCurrency != currency) {
+            props?.updateCurrency(currency);
+        }
+    }, [currency])
+
     // Function to handle Excel file upload
     const handleUploadExcel = async (event) => {
         const file = event.target.files[0];
