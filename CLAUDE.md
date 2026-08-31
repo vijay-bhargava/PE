@@ -164,7 +164,9 @@ Each concern has its own file. They are imported in component files directly.
 | File | Covers |
 |---|---|
 | `base.css` | CSS variables (`--vz-*`), typography helpers, layout utilities |
-| `design-system.css` | CSS variables (`--pe-*`), shell/header/sidebar layout classes |
+| `design-system.css` | CSS variables (`--pe-*`), shell/header/sidebar layout classes, new UI buttons/icon-buttons/badges |
+| `manage-rfq-v2.css` | **New UI standard** — page shell, toolbar, table wrapper, drawer, tabs, empty state |
+| `rfq-detail-v2.css` | **New UI standard** — detail page layout, sections, field labels, status badges |
 | `header.css` | Header, user info, dropdown, marquee |
 | `sidebar.css` | Sidebar menu items, dropdown behavior |
 | `datagrid.css` | Table classes, data grid scrolling, bid table, responsive breakpoints |
@@ -252,17 +254,18 @@ Two parallel variable systems exist (both in use):
 - `.f14.fw500` — inline utility (font-size 14, font-weight 500)
 - `.orange-text` — `#f87100`
 
-### Tables
-- `.itemstable` — standard data table (sticky dark header)
-- `.thead-sticky` — sticky `#343a40` header
-- `.data-grid-scrollable` — scrollable MUI DataGrid wrapper (height responsive)
-- `.data-grid-wrapper` — `calc(100vh - 250px)` height container
-- `.custom-fix` — `55vh` scrollable area
-- `.custom-table-fix` — `45vh` scrollable area
-- `.table-fix` — `95vh` flex column layout
-- `.custom-manage-fix` — `75vh` manage page layout
-- `.productTd` / `.productTdDesc` — truncated text cells
-- `.headBidTable` / `.cellBidtable` — auction table header/cell styles
+### Tables (New UI — use these)
+- `.rfq-v2-card` — page card wrapper (border-radius 12px, border 1px #e5e7eb)
+- `.rfq-v2-table-wrapper` — table container (`height: calc(100vh - 260px)`)
+- `<PETable>` + `<PETableToolbar>` — canonical table + toolbar components
+
+### Tables (Legacy — old UI only, DO NOT use in new modules)
+- `.itemstable` — old sticky dark-header table
+- `.thead-sticky` — old `#343a40` sticky header
+- `.data-grid-scrollable` / `.data-grid-wrapper` — old DataGrid height wrappers
+- `.custom-fix` / `.custom-table-fix` / `.table-fix` / `.custom-manage-fix` — old vh-based scroll areas
+- `.productTd` / `.productTdDesc` — old truncated text cells
+- `.headBidTable` / `.cellBidtable` — old auction table styles
 
 ### Auction-specific
 - `.auction-table-fix` — `87vh` flex layout
@@ -343,20 +346,27 @@ Small cell components used inside data tables and forms:
 - `TextFieldCell`, `TableDCell` — editable text/table cells
 - `RulesCell` — configurable rules cell
 - `HistoryCell` — audit/history view cell
-- `FilterAuctionCell`, `FilterRFQCell` — filter cell components
+- `FilterAuctionCell`, `FilterRFQCell`, `FilterCustomerCell` — filter cell components (used in PETableToolbar `advFilterPanel`)
 - `approvalworkflow`, `attachmentworkflow` — workflow step components
 - `editortemplate` — rich text editor wrapper
 - `CkEditor` — CKEditor integration
 
+### New UI Components (`src/components/` — use in all revamped modules)
+- `PEModal.js` — standard modal/dialog (wraps MUI Dialog with `pe-modal-*` classes; props: `open`, `onClose`, `size`, `title`, `footer`, `hideCloseButton`)
+- `StatusBadge.js` — color-mapped status badge (`<StatusBadge status={row.stage} />`)
+- `CommonBottomDrawer.js` — bottom slide-up drawer (`open`, `onClose`, `title`, `actions`, `sectionStyle`, `bodyStyle`)
+- `RFQ/PETable.js` — standard data table wrapper (replaces raw DataGrid)
+- `RFQ/PETableToolbar.js` — toolbar with search/filter/columns/density/export flags
+
 ### Shared Components (`src/components/`)
 - `approvalflow.js` — multi-level approval chain UI
-- `alertpopup.js` — confirmation/alert dialog
-- `customTable.js` — reusable HTML table wrapper
+- `alertpopup.js` — legacy confirmation/alert dialog (use PEModal for new UI)
+- `customTable.js` — reusable HTML table wrapper (legacy)
 - `customerlogo.js` — tenant logo with fallback
 - `chatbot.js` / `chatbotfullscreen.js` — AI chatbot widget
 - `RichTextEditor.js` — rich text editor abstraction
 - `SQInvitationAll.js` — supplier quotation invitation
-- `backbutton.js` — back navigation button
+- `backbutton.js` — back navigation button (legacy; use `.rfq-v2-breadcrumb` in new UI)
 - `whitetooltip.js` — white-background MUI tooltip
 - `NoRecordCell.js` — empty state cell
 - `NotAllowed.js` — permission denied page
@@ -429,3 +439,65 @@ The `ApiClient` in `src/Apiclient.js` wraps Axios and attaches the JWT bearer to
 - Several commented-out route blocks for old auction types (FOA, RA, FA, CA, FFA, FRA) exist in `MainRoutes.js` — these were replaced by a unified `/configuration/manage-auction` route.
 - `console.log` statements present in `Header.js` and other files (development artifacts).
 - `useSleepDetector` and `useInternetChecker` hooks are imported but commented out in `App.js`.
+
+---
+
+## ⚠️ MANDATORY: UI Work Protocol
+
+**ANY task involving UI — new component, revamp, drawer, form, table, page — MUST follow this protocol exactly. No exceptions.**
+
+### Step 1 — Read UI_CONTEXT.md FIRST (non-negotiable)
+
+Before writing a single line of JSX for any UI task:
+
+1. Read `UI_CONTEXT.md` (project root) fully
+2. Identify which sections apply to the task (drawers? forms? tables? tabs?)
+3. Extract the exact classNames, patterns, and don'ts relevant to the task
+4. Only then start implementing
+
+### Step 2 — Use the correct reference module, not memory
+
+Do NOT rely on memory of what the UI "should look like." Always read the actual source of an already-correct module:
+
+| Task type | Read this file |
+|---|---|
+| Drawer with form | `src/pages/MasterData/CustomerSetup/SMTPDrawer.js` |
+| Page with table + toolbar | `src/pages/MasterData/CustomerSetup/CustomerListV2.js` |
+| Page with tabs + drawer | `src/pages/Configuration/RequestForQuotation/ManageRFQV2.js` |
+| Modal / Dialog | `src/components/PEModal.js` |
+| Status badge | `src/components/StatusBadge.js` |
+| Toolbar | `src/components/RFQ/PETableToolbar.js` |
+
+Copy the exact className patterns from these files — do not invent or paraphrase.
+
+### Step 3 — Known traps (confirmed mistakes from actual sessions)
+
+These specific patterns have been written incorrectly before. Check explicitly:
+
+| ❌ Wrong | ✅ Correct |
+|---|---|
+| `<TextFieldCell label="Host Name *" />` | `<label className="pe-field-label">Host Name *</label>` above `<TextFieldCell />` |
+| Reset/Submit buttons at bottom of form inside drawer | Reset/Submit in `actions` prop of `CommonBottomDrawer` |
+| `<button type="submit">` inside `<form>` in drawer body | `<button type="submit" form="form-id">` in `actions` + `<form id="form-id">` in body |
+| `rfq-dv2-workflow-tabs` without width override in drawer | Add `style={{ width: 'fit-content' }}` on container |
+| `rfq-dv2-workflow-tab` with default flex in drawer | Add `style={{ flex: 'none', padding: '0 20px' }}` on each tab |
+| `<MUI Drawer>` (right-slide) | `<CommonBottomDrawer>` (bottom slide-up) |
+| Raw `<Dialog>` + `<DialogTitle>` + `pe-modal-*` assembled manually | `<PEModal title="..." footer={...}>` component |
+| `pe-btn pe-btn--primary` in drawer header | `rfq-v2-event-btn rfq-v2-event-btn-primary` in drawer header |
+
+### Step 4 — Self-verify before finishing
+
+After implementation, read your own JSX and check each item:
+
+```
+□ Every input has <label className="pe-field-label"> above it — no label prop on TextFieldCell
+□ Drawer Reset/Submit are in actions prop — not inside form body
+□ Form has id="..." and submit button has form="..." if submit is outside form
+□ Tab container has style={{ width: 'fit-content' }} if inside drawer
+□ CommonBottomDrawer has sectionStyle with display:flex, flexDirection:column
+□ Modal/Dialog uses <PEModal> — not raw MUI Dialog assembled manually
+□ No MUI Drawer, no MUI Tabs, no MUI Button for page actions
+□ No Box wrappers inside drawer body
+```
+
+If any item fails — fix it before reporting task as complete.

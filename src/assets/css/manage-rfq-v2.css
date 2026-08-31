@@ -1177,7 +1177,7 @@
 }
 
 .rfq-v2-event-btn {
-  height: 28px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1235,6 +1235,14 @@
   background: #ffffff;
   padding: 18px;
 }
+
+.error {
+  margin-top: 4px !important;
+  color: #b91c1c !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+}
+
 
 .rfq-v2-event-form-row {
   display: grid;
