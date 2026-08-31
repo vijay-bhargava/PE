@@ -37,15 +37,15 @@ const DEFAULT_OPERATORS = ['contains', 'equals', 'startsWith', 'endsWith', 'isEm
  *    onColumnVisibilityChange — (newModel) => void
  *    onColumnVisibilityReset  — () => void
  *
- *  Density (needs showDensity=true):
- *    density, onDensityChange
- *
  *  Advance Filter (needs showAdvFilter=true):
  *    advFilterOpen      — bool (controlled by page)
  *    onAdvFilterToggle  — () => void
  *    advFilterCount     — number (badge, 0 = no badge)
  *    advFilterTitle     — string (panel header, default 'Advance Search')
  *    advFilterPanel     — JSX  (form content rendered inside the slide-in panel body)
+ *
+ *  Density (needs showDensity=true):
+ *    density, onDensityChange
  *
  *  Export (needs showExport=true):
  *    onExport, exportLoading, exportLabel
@@ -328,6 +328,20 @@ export function PETableToolbar({
             </div>
           )}
 
+          {/* ── Advance Filter button ── */}
+          {showAdvFilter && (
+            <button
+              className={advFilterCount > 0 ? 'rfq-v2-tbtn active' : 'rfq-v2-tbtn'}
+              onClick={onAdvFilterToggle}
+            >
+              <TuneOutlined />
+              Advance Filter
+              {advFilterCount > 0 && (
+                <span className="rfq-v2-filter-count">{advFilterCount}</span>
+              )}
+            </button>
+          )}
+
           {/* ── Density popover ── */}
           {showDensity && (
             <div style={{ position: 'relative' }}>
@@ -358,20 +372,6 @@ export function PETableToolbar({
                 </div>
               )}
             </div>
-          )}
-
-          {/* ── Advance Filter button ── */}
-          {showAdvFilter && (
-            <button
-              className={advFilterCount > 0 ? 'rfq-v2-tbtn active' : 'rfq-v2-tbtn'}
-              onClick={onAdvFilterToggle}
-            >
-              <TuneOutlined />
-              Advance Filter
-              {advFilterCount > 0 && (
-                <span className="rfq-v2-filter-count">{advFilterCount}</span>
-              )}
-            </button>
           )}
 
           {/* ── Export button ── */}

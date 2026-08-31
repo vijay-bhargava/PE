@@ -23,7 +23,7 @@ import PurchaseOrder from "../pages/POOrders/PurchaseOrder";
 import OrganisationProfile from "../pages/Settings/OrganisationSetup/OrganisationProfile";
 import ManageStageList from "../pages/Settings/ManageStage/ManageStageList";
 import UserManage from "../pages/Settings/OrganisationSetup/UserManage";
-import CustomerList from "../pages/MasterData/CustomerSetup/CustomerList";
+import CustomerList from "../pages/MasterData/CustomerSetup/CustomerListV2";
 import ManagePR from "../pages/Configuration/PurchaseRequest/ManagePR";
 import PurchaseRequest from "../pages/Configuration/PurchaseRequest/PurchaseRequest";
 
