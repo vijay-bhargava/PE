@@ -105,7 +105,7 @@ const RFQDrawers = ({
         bodyStyle={{ overflowY: 'auto' }}
         actions={
           <>
-            <button type="button" className="pe-btn pe-btn--ghost" onClick={toggleDrawer('addProductDrawer', false)}>Cancel</button>
+            <button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-ghost" onClick={toggleDrawer('addProductDrawer', false)}>Cancel</button>
             {stagearray.includes(currentStage) && (
               <>
                 <button type="reset" form="add-product-form" className="pe-btn pe-btn--secondary">Reset</button>

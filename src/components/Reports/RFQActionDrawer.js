@@ -36,9 +36,12 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const RFQActionDrawer = ({
-	rfqid,
-	enddate,
-	activityId, handleDraftEvent, rfqtype, EventHeaderDetails, Version, currentStage, downloadExcel, downloadpdf }) => {
+	rfqid, enddate,
+	activityId, handleDraftEvent,
+	rfqtype, EventHeaderDetails,
+	Version, currentStage,
+	downloadExcel, downloadpdf
+}) => {
 	const [locked, setLocked] = useState(false);
 	const [actiontext, setActionText] = useState('')
 	const [actionlocktype, setActionLockType] = useState(null)
@@ -818,7 +821,7 @@ const RFQActionDrawer = ({
 					title="Add New Supplier"
 					bodyStyle={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden', padding: '16px', gap: '12px' }}
 					actions={<>
-						<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => toggleDrawer("addsupplier", false)}>Close</button>
+						<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-ghost" onClick={() => toggleDrawer("addsupplier", false)}>Close</button>
 						<button type="button" className="pe-btn pe-btn--primary" onClick={handleSaveNewSupplier}>Update</button>
 					</>}
 				>
@@ -1629,7 +1632,7 @@ const RFQActionDrawer = ({
 					title="History"
 					bodyStyle={{ overflowY: 'auto', flex: 1, padding: '16px' }}
 					actions={<>
-						<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => toggleDrawer("HistoryEvent", false)}>Close</button>
+						<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-ghost" onClick={() => toggleDrawer("HistoryEvent", false)}>Close</button>
 					</>}
 				>
 					<Box sx={{ flexGrow: 1, p: 2 }} >
