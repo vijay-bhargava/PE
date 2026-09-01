@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 2px 20px 2px ;
+  padding: 20px 2px 20px 2px;
   gap: 12px;
 }
 
@@ -91,12 +91,13 @@
 .rfq-v2-create-btn {
   display: inline-flex;
   align-items: center;
+  height: 30px;
   gap: 6px;
-  padding: 9px 18px;
+  padding: 0px 16px;
   background: #2a68d3;
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -281,7 +282,11 @@
   background: #f9fafb;
   border-color: #d1d5db;
 }
-.rfq-v2-card .MuiDataGrid-toolbarContainer .MuiButton-root .MuiButton-startIcon svg {
+.rfq-v2-card
+  .MuiDataGrid-toolbarContainer
+  .MuiButton-root
+  .MuiButton-startIcon
+  svg {
   font-size: 15px;
   color: #6b7280;
 }
@@ -681,10 +686,10 @@
 
 /* Reset button — outlined */
 .rfq-v2-filter-btn-reset {
-  height: 34px;
+  height: 30px;
   padding: 0 16px;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #ffffff;
   color: #374151;
   font-size: 13px;
@@ -707,10 +712,10 @@
 
 /* Apply button — filled blue; LoadingButton resets most browser/MUI defaults */
 .rfq-v2-filter-btn-apply {
-  height: 34px !important;
-  padding: 0 20px !important;
+  height: 30px !important;
+  padding: 0 16px !important;
   border: none !important;
-  border-radius: 8px !important;
+  border-radius: 6px !important;
   background: #2a68d3 !important;
   color: #ffffff !important;
   font-size: 13px !important;
@@ -1242,7 +1247,6 @@
   font-size: 11px !important;
   font-weight: 500 !important;
 }
-
 
 .rfq-v2-event-form-row {
   display: grid;
