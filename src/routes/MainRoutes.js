@@ -44,6 +44,7 @@ import RFQSummaryDetailedReport from "../pages/Reports/RFQSummaryDetailedReport"
 import Delegation from "../utils/common/Delegation";
 import BidGraphs from "../pages/Configuration/Auctions/BidGraphs";
 import NoteForApproval from "../pages/Configuration/NFA/NoteForApproval";
+import NoteForApprovalV2 from "../pages/Configuration/NFA/NoteForApprovalV2";
 import BIDSummaryReport from "../pages/Reports/BIDSummaryReport";
 import BIDSavingSummaryReport from "../pages/Reports/BIDSavingSummaryReport";
 import BIDSummaryDetailedReport from "../pages/Reports/BIDSummaryDetailedReport";
@@ -252,13 +253,12 @@ const MainRoutes = {
 			element: <TATReport />,
 		},
 		{
-
 			path: "/configuration/manage-nfa/:pageSlug",
-			element: <NoteForApproval key={"editmanagenfa"} claimType={nfa_list} />,
+			element: <NoteForApprovalV2 key={"editmanagenfa"} claimType={nfa_list} />,
 		},
 		{
 			path: "/configuration/manage-nfa/add",
-			element: <NoteForApproval key={"addmanagenfa"} claimType={nfa_list} />,
+			element: <NoteForApprovalV2 key={"addmanagenfa"} claimType={nfa_list} />,
 		},
 		// {
 		// 	path: "/create-nfa",

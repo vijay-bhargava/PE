@@ -12,7 +12,8 @@ import { Expand, ExpandMore, PushPinOutlined } from '@mui/icons-material';
 import { BackButton, MemoizedEventStageFlow } from '../../../utils/common/component';
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { OrgGroupMasterList, getPurchaseOrgList } from '../../../utils/commerciallibrary';
-import { DecimalValueRegEx, getPayloadWithStage, getApiErrorMessage, downloadNfaPdf } from '../../../utils/common';
+import { DecimalValueRegEx, getPayloadWithStage, getApiErrorMessage, downloadNfaPdf, attachmentmodalforevent, eventattachmentmodal, filequeryparam, getPayloadWithFilePath, validateFileSize } from '../../../utils/common';
+import { uploadFilesOnAzure } from '../../../utils/documentlibrary';
 import { HiOutlineX, HiPlusSm, HiDotsVertical, HiPencilAlt, HiOutlineInformationCircle } from "react-icons/hi";
 import { toast } from 'react-toastify';
 import NFAGeneralPreview from './NFAGeneralPreview';
@@ -48,11 +49,12 @@ import NFASOBEventBoxRFQ from './NFASOBEventBoxRFQ';
 import AddUpdateSpend from './AddUpdateSpend';
 import LoadingButton from '@mui/lab/LoadingButton';
 import NFAReport from './NFAReport';
+import NFAWorkflowPanel from './NFAWorkflowPanel';
 import ERFQComparative from "../RequestForQuotation/ERFQComparative";
 import AuctionControl from "../Auctions/AuctionControl";
 
 
-const NoteForApproval = () => {
+const NoteForApproval = ({ claimType, breadcrumb }) => {
   const [{ atoken, customerid, eventId, customersuffix, userDetail, roleClaims }, dispatch] = useStateValue();
 
   // CKEditor 4 configuration to match the required interface
@@ -259,8 +261,15 @@ const NoteForApproval = () => {
   // console.log("User Details",userDetail);
   const navigate = useNavigate();
   const [value, setValue] = useState(1); // Tab value state
-  const [approvershow, setApproverShow] = useState(false); // To toggle approver visibility
+  const [approvershow, setApproverShow] = useState(true);
+  const [workflowPanelTab, setWorkflowPanelTabRaw] = useState('workflow');
+  const setWorkflowPanelTab = useCallback((tab) => {
+    setWorkflowPanelTabRaw(tab);
+  }, []);
   const [anchorEl, setAnchorEl] = useState(null); // For handling menu anchor
+  const [statusAnchorEl, setStatusAnchorEl] = useState(null);
+  const handleStatusMenuOpen = (e) => setStatusAnchorEl(e.currentTarget);
+  const handleStatusMenuClose = () => setStatusAnchorEl(null);
   const [selectedMenuItem, setSelectedMenuItem] = useState("Save & Continue"); // Placeholder for menu item selection
   const [currentStage, setCurrentStage] = useState(`Draft`);
   const [stagearray, setStagearray] = useState([`Draft`]);
@@ -344,8 +353,8 @@ const NoteForApproval = () => {
   // const [nfaProject, setNfaProject] = useState([]);
   // const [eventDetailsList , setEventDetailsList] = useState([]);
   // const EventQuestionScreenRef = React.createRef();
-  const NFAQuestionScreenRef = React.createRef();
-  const NFASOBRFQRef = React.createRef();
+  const NFAQuestionScreenRef = useRef(null);
+  const NFASOBRFQRef = useRef(null);
   const [saving, setSaving] = useState(0);
   const [eventAppList, setEventAppList] = useState([]);
   const [accessLevel, setAccessLevel] = useState([]);
@@ -927,13 +936,10 @@ const NoteForApproval = () => {
   }, [editorReady, dataLoaded, formik.values.nfaDescription]);
 
   useEffect(() => {
-    if (value == "1" && idFromURL == null) {
+    if (accessLevel?.find(x => x.claimType == "Work Flow")?.claimValue?.Read == "N") {
       setApproverShow(false);
     }
-    // else if (value !== "1" && value !== 6) {
-    //   setApproverShow(true);
-    // }
-  }, [value, idFromURL]);
+  }, [accessLevel]);
 
 
 
@@ -972,12 +978,7 @@ const NoteForApproval = () => {
       // getTotalSupplier();
     }
   }, [idFromURL, tempDataEditData, value]);
-  //Access Level
-  useEffect(() => {
-    if (accessLevel?.find(x => x.claimType == "Work Flow")?.claimValue?.Read == "N") {
-      setApproverShow(false)
-    }
-  }, [])
+  //Access Level - handled by the useEffect above
 
   //stage handling
   useEffect(() => {
@@ -1568,7 +1569,7 @@ const NoteForApproval = () => {
     }
   }
 
-  const handleSaveContinue = async () => {
+  const handleSaveContinue = useCallback(async () => {
 
     if (value == 1) {
       // Validate the form before proceeding
@@ -1622,8 +1623,7 @@ const NoteForApproval = () => {
       //saveRFQQuestionLibAdd();
     }
 
-
-  };
+  }, [value, formik]);
 
   const handleErrorNFASubmit = () => {
     return true;
@@ -1865,9 +1865,129 @@ const NoteForApproval = () => {
     }
   }, []);
 
+  // ── Right panel: History tab ─────────────────────────────────────────────
+  const [historyGraph, setHistoryGraph] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const fetchPanelHistory = async () => {
+    if (!idFromURL) return;
+    setHistoryLoading(true);
+    try {
+      const params = new URLSearchParams({ CustomerId: customerid, EventType: 'NFA', EventId: idFromURL }).toString();
+      const res = await apiClient.getres(`api/ReportConfig/AuditReport?${params}`, atoken);
+      if (res?.data) {
+        setHistoryGraph(res.data?.stategraph || []);
+      }
+    } catch (_) {}
+    setHistoryLoading(false);
+  };
+
+  // ── Right panel: Attachments tab ─────────────────────────────────────────
+  const [panelSavedAttach, setPanelSavedAttach] = useState([]);
+  const [panelAttachLoading, setPanelAttachLoading] = useState(false);
+  const [panelAttachDesc, setPanelAttachDesc] = useState('');
+  const [panelAttachFile, setPanelAttachFile] = useState(null);
+  const [panelAttachError, setPanelAttachError] = useState('');
+  const [panelAttachAdding, setPanelAttachAdding] = useState(false);
+  const [panelHasCheckboxChanged, setPanelHasCheckboxChanged] = useState(false);
+  const [panelIsUpdating, setPanelIsUpdating] = useState(false);
+  const panelFileInputRef = useRef(null);
+
+  const fetchPanelAttachments = async () => {
+    setPanelAttachLoading(true);
+    setPanelHasCheckboxChanged(false);
+    try {
+      if (idFromURL) {
+        const params = buildQueryParams({ EventType: 'NFA', EventId: idFromURL, VendorId: 0 });
+        const res = await apiClient.getres(`/api/eventattachment/Find?${params}`, atoken);
+        const resData = res?.data?.result || [];
+        if (resData.length > 0) {
+          const mapped = attachmentmodalforevent(resData, idFromURL, 'NFA');
+          setPanelSavedAttach(mapped);
+          handleattachmentforevent(mapped);
+        } else {
+          setPanelSavedAttach([]);
+          handleattachmentforevent([]);
+        }
+      } else {
+        const payload = buildQueryParams({ CustomerId: customerid, eventtype: 'NFA', isactive: 'true' });
+        const res = await apiClient.getres(`/api/Doclib/Find?${payload}`, atoken);
+        const resData = res?.data?.result || [];
+        if (resData.length > 0) {
+          const mapped = eventattachmentmodal(resData, 0, 'NFA');
+          setPanelSavedAttach(mapped);
+          handleattachmentforevent(mapped);
+        } else {
+          setPanelSavedAttach([]);
+          handleattachmentforevent([]);
+        }
+      }
+    } catch (_) {}
+    setPanelAttachLoading(false);
+  };
+
+  const addPanelAttachment = async () => {
+    const descToUse = panelAttachDesc.trim();
+    if (!descToUse) { setPanelAttachError('Please enter a description for the attachment.'); return; }
+    if (!panelAttachFile?.file) { setPanelAttachError('Please choose a file to upload.'); return; }
+    setPanelAttachError('');
+    setPanelAttachAdding(true);
+    try {
+      const filedata = filequeryparam({ EventType: 'NFA', EventId: idFromURL, Description: 'General', CustomerId: customerid });
+      const path = await uploadFilesOnAzure(filedata, panelAttachFile.file, atoken);
+      if (!path) return;
+      const payload = getPayloadWithFilePath('fileNamePath', path, {
+        eventId: idFromURL, eventType: 'NFA',
+        attachmentDescription: descToUse,
+        attachment: panelAttachFile.file.name,
+        docRefId: 0, createdById: userDetail?.id, createdByName: userDetail?.name,
+      });
+      const res = await apiClient.postres(`/api/eventattachment/${idFromURL}/AddMultiple`, { attachments: [payload] }, atoken);
+      if (res) {
+        setPanelAttachDesc('');
+        setPanelAttachFile(null);
+        if (panelFileInputRef.current) panelFileInputRef.current.value = '';
+        fetchPanelAttachments();
+      }
+    } catch (_) {
+      setPanelAttachError('Upload failed. Please try again.');
+    } finally {
+      setPanelAttachAdding(false);
+    }
+  };
+
+  const deletePanelAttachment = async (index, id) => {
+    try {
+      const res = await apiClient.postres(`/api/eventattachment/${id}/Delete`, null, atoken);
+      if (res) {
+        const updated = panelSavedAttach.filter((_, i) => i !== index);
+        setPanelSavedAttach(updated);
+        handleattachmentforevent(updated);
+      }
+    } catch (_) {}
+  };
+
+  const updatePanelAttachments = async () => {
+    if (!panelSavedAttach.length) return;
+    setPanelIsUpdating(true);
+    try {
+      await apiClient.postres(`/api/eventattachment/${idFromURL}/UpdateMultiple`, { attachments: panelSavedAttach }, atoken);
+      setPanelHasCheckboxChanged(false);
+    } catch (_) {}
+    setPanelIsUpdating(false);
+  };
+
   const handleApprover = useCallback((booleanvalue) => {
-    setApproverShow(booleanvalue)
-  }, []);
+    setApproverShow(booleanvalue);
+    if (booleanvalue && workflowPanelTab === 'history') fetchPanelHistory();
+    if (booleanvalue && workflowPanelTab === 'attachments') fetchPanelAttachments();
+  }, [workflowPanelTab]);
+
+  useEffect(() => {
+    if (!approvershow || !idFromURL) return;
+    if (workflowPanelTab === 'history') fetchPanelHistory();
+    if (workflowPanelTab === 'attachments') fetchPanelAttachments();
+  }, [workflowPanelTab, approvershow, idFromURL]);
 
   const handleMenuOpen = useCallback((event) => {
     setAnchorEl(event.currentTarget);
@@ -1934,125 +2054,120 @@ const NoteForApproval = () => {
 
   return (
     <>
-      {/* Main content container with left/right layout */}
-      <div className="mainContainer d-flex" style={{ gap: '1rem' }}>
+      <div className="mainContainer d-flex rfq-modern-shell">
         <div className={`leftContent ${approvershow ? "col-9" : "col-12"} d-flex flex-column`}>
-          <div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column main-scroll-container" style={{
-            height: 'calc(100vh - 100px)',
-            overflowY: 'auto'
-          }}>
-            {/* Header with BackButton, Stage Flow, and Action Buttons */}
-            <div className="d-flex justify-content-between align-items-center border-bottom mb-3">
-              <div className="d-flex align-items-center">
-                {/* <BackButton 
-                  title={
-                    activityType 
-                      ? <span className="page-heading">Note For Approval (NFA-{idFromURL})</span>
-                      : <span className="page-heading">Note For Approval (NFA)</span>
-                  } 
-                  modal={true}
-                /> */}
-                <BackButton
-                  title={
-                    tempDataEditData?.[0].eventCode
-                      ? <span className="page-heading">{tempDataEditData[0].eventCode}</span>
-                      : idFromURL
-                        ? <span className="page-heading">NFA ({idFromURL})</span>
-                        : <span className="page-heading">Note For Approval</span>
-                  }
-                  modal={true}
-                />
-              </div>
-
-              {/* Stage Flow - centered between title and buttons */}
-              <div className="d-flex justify-content-center flex-grow-1">
-                <MemoizedEventStageFlow
-                  stagelist={stagelist}
-                  currentStage={currentStage}
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="d-flex align-items-center gap-2">
-                {!loading ? (
-                  actionType && activityId ? (
-                    <Button
-                      type="button"
-                      size="small"
-                      className="button-text text-white"
-                      variant="contained"
-                      onClick={toggleDrawer("openInvoiceApproved", true)}
-                    >
-                      <span className="text-capitalize">Action</span>
-                    </Button>
+          <div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ overflow: 'hidden', minHeight: 0 }}>
+            {/* Page head: breadcrumb + actions + stage flow */}
+            <div className="rfq-dv2-page-head border-bottom mb-3" style={{ flexShrink: 0 }}>
+              <div className="rfq-dv2-head-top">
+                {breadcrumb}
+                <div className="rfq-dv2-actions">
+                  {!loading ? (
+                    actionType && activityId ? (
+                      <button type="button" className="pe-btn pe-btn--primary" onClick={toggleDrawer("openInvoiceApproved", true)}>
+                        Action
+                      </button>
+                    ) : (
+                      <>
+                        <button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost" onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
+                          Cancel
+                        </button>
+                        {idFromURL && currentStage === 'Draft' && (
+                          <button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Templates')}>
+                            Save as Templates
+                          </button>
+                        )}
+                        {idFromURL && currentStage !== 'Draft' && currentStage !== 'Approved' && (
+                          <button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleRecall()}>
+                            Recall NFA
+                          </button>
+                        )}
+                        {idFromURL && currentStage === 'Approved' && (
+                          <button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleCreatePO()}>
+                            Create PO
+                          </button>
+                        )}
+                        {value == 3 && currentStage === 'Draft' ? (
+                          <button type="button" className="pe-btn pe-btn--primary" onClick={handleButtonGroup} disabled={!stagearray.includes(currentStage)}>
+                            Submit
+                          </button>
+                        ) : currentStage === 'Draft' ? (
+                          <button type="button" className="pe-btn pe-btn--primary" onClick={handleButtonGroup} disabled={!stagearray.includes(currentStage)}>
+                            Save &amp; Continue
+                          </button>
+                        ) : null}
+                      </>
+                    )
                   ) : (
-                    <>
-                      <ButtonGroup variant="contained">
-                        <Button
-                          variant="contained"
-                          className="p-2 pt-1 pb-1"
-                          onClick={handleButtonGroup}
-                          disabled={currentStage != "Draft"}
-                        // disabled={(!isitemeditDisabled && value === 2) || (!isgrnreadDisabled && value===1) || (!iscreatedisable && value===1)|| (!isgeneditdisable && value ===1) || (!isitemreadDisabled && value===2)||
-                        // disabled={(!isitemeditDisabled && value === 2) || (!isgrnreadDisabled && value===1) || (!iscreatedisable && value===1)|| (!isgeneditdisable && value ===1) || (!isitemreadDisabled && value===2)||
-                        //   (!isitemeditDisabled && value === 2) ||(!isitemcreateDisabled && value ===2)  || (!isquestionreadDisabled && value === 3) || (!isquestioneditDisabled && value === 3)||  (!stagearray.includes(currentStage)) && (selectedMenuItem != "Cancel" && selectedMenuItem != "Save as Templates")}
-                        >
-                          <span className="text-capitalize">{selectedMenuItem}</span>
-                        </Button>
-                        <Button
-                          // disabled={(!isitemeditDisabled && value === 2) || (!isgrnreadDisabled && value===1) || (!iscreatedisable && value===1) || (!isgeneditdisable && value ===1)||(!isitemreadDisabled && value===2)
-                          //   || (!isitemeditDisabled && value === 2) ||(!isitemcreateDisabled && value ===2)|| (!isquestionreadDisabled && value === 3)|| (!isquestioneditDisabled && value === 3)
-                          // }
-                          variant="contained"
-                          className={`button-text text-white ${!stagearray.includes(currentStage) ? 'dropBtn' : ''}`}
-                          onClick={handleMenuOpen}
-                        >
-                          <ExpandMore />
-                        </Button>
-                        <Menu
-                          anchorEl={anchorEl}
-                          open={Boolean(anchorEl)}
-                          onClose={handleMenuClose}
-                        >
-                          {value == "3" && currentStage == 'Draft' && <MenuItem onClick={() => handleMenuClick('Submit')}>
-                            <div>
-                              <span className="text-capitalize" disabled={!stagearray.includes(currentStage)}>Submit</span>
-                            </div>
-                          </MenuItem>}
-                          {value != "3" && currentStage == 'Draft' && <MenuItem onClick={() => handleMenuClick('Save & Continue')}>
-                            <div>
-                              <span className="text-capitalize" disabled={!stagearray.includes(currentStage)}>{value == 3 ? "Submit" : "Save & Continue"}</span>
-                            </div>
-                          </MenuItem>}
-                          {idFromURL && <MenuItem onClick={() => handleMenuClick('Save as Templates')}>
-                            <div>
-                              <span className="text-capitalize">Save as Templates</span>
-                            </div>
-                          </MenuItem>}
-                          <MenuItem onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
-                            <div>
-                              <span className="text-capitalize">Cancel</span>
-                            </div>
-                          </MenuItem>
-                        </Menu>
-                      </ButtonGroup>
-                    </>
-                  )
-                ) : (
-                  <Button className="button-text text-white">
-                    {value == 3 ? "Submit..." : "Save & Continue..."}
-                  </Button>
-                )}
+                    <button type="button" className="pe-btn pe-btn--primary" disabled>
+                      {value == 3 ? 'Submitting...' : 'Saving...'}
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="rfq-dv2-stage-flow-wrap">
+                <MemoizedEventStageFlow stagelist={stagelist} currentStage={currentStage} />
+              </div>
+
+              {/* ── Row 2: meta info ── */}
+              <div className="rfq-dv2-head-bottom">
+                <div className="rfq-dv2-meta-row">
+                  <span className="rfq-dv2-meta-item">
+                    <span className="rfq-dv2-meta-label">Status</span>
+                    <button
+                      type="button"
+                      className={`rfq-dv2-status-pill ${currentStage?.toLowerCase() === "draft" ? "is-draft" : ""}`}
+                      onClick={handleStatusMenuOpen}
+                    >
+                      <span className="rfq-dv2-status-dot" />
+                      {currentStage || "Draft"}
+                    </button>
+                  </span>
+                  {formik?.values?.endDate && (
+                    <span className="rfq-dv2-meta-item">
+                      <span className="rfq-dv2-meta-label">End Date/Time:</span>{" "}
+                      <span className="rfq-dv2-meta-value">{formik?.values?.endDate}</span>
+                    </span>
+                  )}
+                  {formik?.values?.requisitioner && (
+                    <span className="rfq-dv2-meta-item">
+                      <span className="rfq-dv2-meta-label">Requisitioner:</span>{" "}
+                      <span className="rfq-dv2-meta-value">{formik?.values?.requisitioner}</span>
+                    </span>
+                  )}
+                </div>
+                <Menu
+                  anchorEl={statusAnchorEl}
+                  open={Boolean(statusAnchorEl)}
+                  onClose={handleStatusMenuClose}
+                  classes={{ paper: "rfq-dv2-status-menu-paper" }}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                  transformOrigin={{ vertical: "top", horizontal: "left" }}
+                  PaperProps={{ style: { width: 280, minWidth: 280, maxWidth: 280, overflow: "hidden" } }}
+                >
+                  <div className="rfq-dv2-status-menu">
+                    <div className="rfq-dv2-status-menu-title">NFA Status</div>
+                    <div className="rfq-dv2-status-menu-list">
+                      {(stagelist || [{ stageName: currentStage }]).map((stage, index) => {
+                        const stageNames = (stagelist || []).map(s => s.stageName);
+                        const currentIdx = stageNames.indexOf(currentStage);
+                        const stepClass = index < currentIdx ? "" : index === currentIdx ? "is-current" : "is-future";
+                        return (
+                          <div key={stage.stageName || index} className={`rfq-dv2-status-step ${stepClass}`}>
+                            <span className="rfq-dv2-status-step-icon" />
+                            <span>{stage.stageName}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </Menu>
               </div>
             </div>
 
             {/* Tab Navigation and Icons Header */}
-            <div className="d-flex justify-content-between align-items-center border-bottom mb-3">
-              {/* Tab Navigation */}
-              <Box sx={{
-                flexGrow: 1,
-                maxWidth: { xs: 280, sm: 480, md: '100%' },
-              }}>
+            <div className="d-flex justify-content-between align-items-center border-bottom mb-3" style={{ flexShrink: 0 }}>
+              <Box sx={{ flexGrow: 1, minWidth: 0, overflow: 'hidden' }}>
                 <Tabs
                   value={value}
                   onChange={handleChange}
@@ -2077,60 +2192,9 @@ const NoteForApproval = () => {
                   {idFromURL && currentStage.trim() != "Draft" && (
                     <Tab value={7} label={<span className="section-heading" style={{ color: '#1a2742' }}>Recent Queries</span>} disabled={!idFromURL} />
                   )}
-
-                  {/* {idFromURL && currentStage.trim() == "Draft" && <Tab value={3} label="Preview" disabled={!preview} />} */}
                 </Tabs>
               </Box>
-
-              {/* Top-right icons: History, Attachment, and Approval */}
-              <div className="d-flex align-items-center gap-2">
-
-                <DropdownButton
-                  as={"div"}
-                  key={"actionafterdraft"}
-                  id={`actionafterdraft`}
-                  className='border-primary bg-white'
-                  // className="supplieraccmenu"
-                  drop={"start"}
-                  variant="outlined"
-                  style={{
-                    // backgroundColor: "white",
-                    color: "#2182cde",
-                  }}
-                  title={
-                    <Tooltip title={"Action"}>
-                      <div
-                        style={{
-                          fontSize: "0.8125rem",
-                          color: "#2A68D3",
-                          fontWeight: "500",
-                        }}
-                      >
-                        <HiDotsVertical />{" "}
-                      </div>
-                    </Tooltip>
-                  }
-                >
-                  <div className="shadow rounded min-width-200px">
-                    {/* Menu item to open the Add New Supplier drawer */}
-                    {
-                      currentStage != "Approved" &&
-                      <MenuItem
-                      >
-                        <LoadingButton size={"small"} onClick={() => handleRecall()} color="btn" variant="text" className="f12 capitalize">Recall NFA</LoadingButton>
-                      </MenuItem>
-                    }
-                    {
-                      currentStage == "Approved" &&
-                      <MenuItem
-                      >
-                        <LoadingButton size={"small"} onClick={() => handleCreatePO()} color="btn" variant="text" className="f12 capitalize">Create PO</LoadingButton>
-                      </MenuItem>
-                      
-                    }
-                  </div>
-                </DropdownButton>
-
+              <div className="d-flex align-items-center gap-2 rfq-dv2-tab-actions">
                 {idFromURL && (<AttachmentWorkFlow
                   eventtype={`NFA`}
                   eventid={idFromURL}
@@ -2138,16 +2202,10 @@ const NoteForApproval = () => {
                   handleattachmentforevent={handleattachmentforevent}
                   permissionManager={permissionManager}
                 />)}
-                {idFromURL &&  <HistoryCell eventtype={`NFA`} eventId={pageSlug}  permissionManager={permissionManager} />}
-
+                {idFromURL && <HistoryCell eventtype={`NFA`} eventId={pageSlug} permissionManager={permissionManager} />}
                 {idFromURL && (
                   <Tooltip title="Show/Hide Approvers">
-                    <IconButton
-                      onClick={() => handleApprover(!approvershow)}
-                      size="small"
-                      edge="start"
-                      className="pointer"
-                    >
+                    <IconButton onClick={() => handleApprover(!approvershow)} size="small" edge="start" className="pointer">
                       <div className="approverCircle shadow-sm">
                         <PeopleAltIcon />
                       </div>
@@ -2158,33 +2216,7 @@ const NoteForApproval = () => {
             </div>
 
             {/* Tab Content */}
-            <div className="flex-grow-1" style={{
-              flex: 1,
-              position: 'relative',
-              paddingBottom: '24px'
-            }}>
-              <style jsx global>{`
-                .main-scroll-container {
-                  scrollbar-width: thin;
-                  
-                }
-                .main-scroll-container::-webkit-scrollbar {
-                  width: 8px;
-                  display: block;
-                }
-                .main-scroll-container::-webkit-scrollbar-track {
-                  background: #f1f1f1;
-                  border-radius: 4px;
-                }
-                .main-scroll-container::-webkit-scrollbar-thumb {
-                  background: #a5aaaeff;
-                  border-radius: 4px;
-                  min-height: 40px;
-                }
-                .main-scroll-container::-webkit-scrollbar-thumb:hover {
-                  background: #c4c8cbff;
-                }
-              `}</style>
+            <div className="flex-grow-1 p-1 hidden-scrollbar">
               {value == 1 && (
                 <>
                   {/* Permission Control for General Tab */}
@@ -3908,49 +3940,49 @@ const NoteForApproval = () => {
             </div>
           </div>
         </div>
-        {/* Right side - Approval Section */}
-
-        <div className={`rightContent ${approvershow ? "col-3" : "d-none"}`}>
-          <div className="bg-white rounded-default shadow-sm p-3 w-100" style={{
-            height: 'calc(100vh - 120px)',
-            overflow: 'auto',
-            /* Hide scrollbar for Chrome, Safari and Opera */
-            scrollbarWidth: 'none', /* Firefox*/
-            msOverflowStyle: 'none' /* IE and Edge */
-          }}>
-            <style jsx>{`
-                  div::-webkit-scrollbar {
-                    display: none;
-                  }
-                `}</style>
-            <div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2">
-              <div className="section-heading mb-0 pb-4">Approval Workflow</div>
-              <IconButton
-                onClick={() => handleApprover(false)}
-                size="small"
-                className="text-muted"
-              >
-                <HiOutlineX className="f16" />
-              </IconButton>
-            </div>
-            <div className="flex-grow-1">
-              {approvershow ? (
-                <EventApprovalBox
-                  requestCell={requestCell}
-                  handleEventAppList={handleEventAppList}
-                  wfupdate={wfupdate}
-                  action={stagearray.includes(currentStage)}
-                  stagelist={stagelist}
-                  accessLevel={accessLevel}
-                  Version={parseInt(formik?.values?.Version)}
-                  permissionManager={permissionManager}
-                />
-              ) : (
-                <NotFoundPage body1={`No Approver workflow rights`} />
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Right side - Workflow Panel */}
+        <NFAWorkflowPanel
+          approvershow={approvershow}
+          workflowPanelTab={workflowPanelTab}
+          setWorkflowPanelTab={setWorkflowPanelTab}
+          actionType={actionType}
+          currentStage={currentStage}
+          normalizedCurrentStage={currentStage}
+          stagearray={stagearray}
+          formik_ApproveReject={formik_NFAApproveReject}
+          toggleDrawer={toggleDrawer}
+          requestCell={requestCell}
+          handleEventAppList={handleEventAppList}
+          wfupdate={wfupdate}
+          stagelist={stagelist}
+          accessLevel={accessLevel}
+          permissionManager={permissionManager}
+          effectivePermissionManager={permissionManager}
+          tempDataEditData={tempDataEditData}
+          formik={formik}
+          userDetail={userDetail}
+          atoken={atoken}
+          historyLoading={historyLoading}
+          historyGraph={historyGraph}
+          panelAttachLoading={panelAttachLoading}
+          panelAttachDesc={panelAttachDesc}
+          setPanelAttachDesc={setPanelAttachDesc}
+          panelAttachError={panelAttachError}
+          setPanelAttachError={setPanelAttachError}
+          panelAttachFile={panelAttachFile}
+          setPanelAttachFile={setPanelAttachFile}
+          panelSavedAttach={panelSavedAttach}
+          setPanelSavedAttach={setPanelSavedAttach}
+          panelHasCheckboxChanged={panelHasCheckboxChanged}
+          setPanelHasCheckboxChanged={setPanelHasCheckboxChanged}
+          panelIsUpdating={panelIsUpdating}
+          panelAttachAdding={panelAttachAdding}
+          panelFileInputRef={panelFileInputRef}
+          addPanelAttachment={addPanelAttachment}
+          deletePanelAttachment={deletePanelAttachment}
+          updatePanelAttachments={updatePanelAttachments}
+          handleattachmentforevent={handleattachmentforevent}
+        />
       </div>
 
 
