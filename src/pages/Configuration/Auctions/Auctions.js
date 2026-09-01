@@ -3331,11 +3331,11 @@ const Auctions = ({ claimType, breadcrumb }) => {
 										["close", "running", "awarded", "paused", "open", "allocation"].includes(tempDataEditData[0]?.stage?.trim().toLowerCase()) ||
 										Number(value) === 6
 									) && (
-										<Tab
-											value={6}
-											label={<span className="section-heading" style={{ color: '#1a2742' }}>Manage Auction</span>}
-										/>
-									)}
+											<Tab
+												value={6}
+												label={<span className="section-heading" style={{ color: '#1a2742' }}>Manage Auction</span>}
+											/>
+										)}
 									{bidtype && idFromURL && ["under pre approval", "close", "awarded", "paused", "open", "allocation"].includes(tempDataEditData[0]?.stage?.trim().toLowerCase()) && (
 										<Tab
 											value={7}
@@ -3613,7 +3613,7 @@ const Auctions = ({ claimType, breadcrumb }) => {
 				bodyStyle={{ overflowY: "auto" }}
 				actions={
 					<>
-						<button type="button" className="pe-btn pe-btn--ghost" onClick={toggleDrawer("addProductDrawer", false)}>Cancel</button>
+						<button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-ghost" onClick={toggleDrawer("addProductDrawer", false)}>Cancel</button>
 						{stagearray.includes(currentStage) && (
 							<>
 								<button type="reset" form="add-product-form" className="pe-btn pe-btn--secondary">Reset</button>

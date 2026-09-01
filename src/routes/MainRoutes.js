@@ -28,7 +28,6 @@ import ManagePR from "../pages/Configuration/PurchaseRequest/ManagePR";
 import PurchaseRequest from "../pages/Configuration/PurchaseRequest/PurchaseRequest";
 
 import { bid_list, managePR_list, manageParticipants_list, managerfi_list, managerfq_list, managenfa_list, purchaseRequest_list, registerParticipants_list, rfq_list, nfa_list } from "./claimlist";
-import ManageBid from "../pages/Configuration/Auctions/ManageBid";
 import ManageBidV2 from "../pages/Configuration/Auctions/ManageBidV2";
 import AuctionControl from "../pages/Configuration/Auctions/AuctionControl";
 import ERFQComparative from "../pages/Configuration/RequestForQuotation/ERFQComparative";
@@ -36,24 +35,20 @@ import PurchaseOrg from "../utils/common/PurchaseOrg";
 import PurchaseOrgGrp from "../utils/common/PurchaseOrgGrp";
 import RegisterSuppliers from "../pages/Manage/ManageParticipants/RegisterSuppliers";
 import Auctions from "../pages/Configuration/Auctions/AuctionsV2";
-import { bidlist } from "../utils/common/utility";
 import RolesTable from "../pages/Settings/Security/RoleTable";
 import PivotTableDashboard from "../components/Analytics/PivotTableDashboard";
 import QueryList from "../pages/CommunucationHub/QueryList";
-import CkEditorComponent from "../pages/BaseCells/CkEditor";
-import DetailsReport from "../pages/Configuration/RequestForQuotation/DetailsReport";
 import RFQSummaryReport from "../pages/Reports/RFQSummaryReport";
 import RFQSavingSummaryReport from "../pages/Reports/RFQSavingSummaryReport";
 import RFQSummaryDetailedReport from "../pages/Reports/RFQSummaryDetailedReport";
-import ManageDelegate from "../utils/common/Delegate";
 import Delegation from "../utils/common/Delegation";
 import BidGraphs from "../pages/Configuration/Auctions/BidGraphs";
 import NoteForApproval from "../pages/Configuration/NFA/NoteForApproval";
+import NoteForApprovalV2 from "../pages/Configuration/NFA/NoteForApprovalV2";
 import BIDSummaryReport from "../pages/Reports/BIDSummaryReport";
 import BIDSavingSummaryReport from "../pages/Reports/BIDSavingSummaryReport";
 import BIDSummaryDetailedReport from "../pages/Reports/BIDSummaryDetailedReport";
-import ManageNFA from "../pages/Configuration/NFA/ManageNFA";
-import ShowCommercialTerms from "../pages/Settings/CommercialTerms/ShowCommercialTerm";
+import ManageNFA from "../pages/Configuration/NFA/ManageNFAV2";
 import ShowCommercialTermsTest from "../pages/Settings/CommercialTerms/ShowCommercialTermTest";
 import ShowQuestionLibarary from "../pages/Settings/QuestionMaster/ShowQuestionLibrary";
 import ManageRFI from "../pages/Configuration/RequestForInformation/ManageRFI";
@@ -61,7 +56,6 @@ import RequestForInformation from "../pages/Configuration/RequestForInformation/
 import UserChangePassword from "../pages/Login/UserChangePassword";
 import ERFQIndividualReport from "../pages/Configuration/RequestForQuotation/ERFQIndividualReport";
 import NoInternet from "../components/NoInternet";
-import AddUpdateException from "../pages/Configuration/NFA/AddUpdateException";
 import AddUpdateProject from "../pages/Configuration/NFA/AddUpdateProject";
 import AddUpdateSpend from "../pages/Configuration/NFA/AddUpdateSpend";
 import EERFQComparative from "../pages/Configuration/RequestForQuotation/EERFQComparative";
@@ -76,10 +70,6 @@ import InvoiceReport from "../pages/Reports/InvoiceReport";
 import CyclicReport from "../pages/Reports/CyclicReport";
 import GrnReport from "../pages/Reports/GrnReport";
 import SESReport from "../pages/Reports/SESReport";
-
-
-
-
 
 const MainRoutes = {
 	path: "/",
@@ -263,13 +253,12 @@ const MainRoutes = {
 			element: <TATReport />,
 		},
 		{
-
 			path: "/configuration/manage-nfa/:pageSlug",
-			element: <NoteForApproval key={"editmanagenfa"} claimType={nfa_list} />,
+			element: <NoteForApprovalV2 key={"editmanagenfa"} claimType={nfa_list} />,
 		},
 		{
 			path: "/configuration/manage-nfa/add",
-			element: <NoteForApproval key={"addmanagenfa"} claimType={nfa_list} />,
+			element: <NoteForApprovalV2 key={"addmanagenfa"} claimType={nfa_list} />,
 		},
 		// {
 		// 	path: "/create-nfa",
@@ -279,8 +268,6 @@ const MainRoutes = {
 		// 	path: "configuration/nfa-list",
 		// 	element: <ManageNFA key={"managenfa"} claimType={managenfa_list} />,
 		// },
-
-
 		{
 			path: '/manage/manage-participants/invited-participants/:pageSlug/:supplierid',
 			element: <RegisterSuppliers key={"invitedparticipants"} />
@@ -447,9 +434,7 @@ const MainRoutes = {
 			path: "/reports/BIDSummaryDetailedReport",
 			element: <BIDSummaryDetailedReport />,
 		},
-
 		//#RFI
-
 		{
 			path: "/configuration/manage-rfi",
 			element: <ManageRFI key={"managerfi"} claimType={managerfi_list} />,
@@ -468,18 +453,10 @@ const MainRoutes = {
 			// element: <POOrderList />,
 			element: <UserChangePassword />,
 		},
-
-
-
 		{
-
-
-
 			path: '/no-internet',
 			element: <NoInternet />
-
 		}
-
 	],
 };
 
