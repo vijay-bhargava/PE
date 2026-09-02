@@ -11,7 +11,7 @@ import { GetPOHeaderList } from "../../utils/pOToAccept";
 import { useStateValue } from "../../store";
 import { getEventStage } from "../../utils/common/utility";
 
-const FilterCell = ({ handleFilterList, clearFilterList}) => {
+const FilterCell = ({ handleFilterList, clearFilterList, setExportFilters }) => {
   const formRef = useRef();
   const [cookies] = useCookies(["patkn", "prtkn"]);
   const [{ atoken, customerid }] = useStateValue();
@@ -23,36 +23,56 @@ const FilterCell = ({ handleFilterList, clearFilterList}) => {
 
   const validationSchema = yup.object({});
   const formik = useFormik({
-  initialValues: {
-    POId: '',
-    ItemNo: '',
-    ItemName: '', // <-- added here
-    ItemType: '',
-    POStatus: '',
-    InvoiceStatus: '',
-    CreatedDate: null,
-    InvoiceNo: ''
-  },
-  validationSchema,
-  onSubmit: (values) => {
-    const queryParams = {};
-    if (values.POStatus) queryParams.POStage = values.POStatus;
-    if (values.POId) queryParams.POId = values.POId;
-    if (values.ItemNo) queryParams.ItemNo = values.ItemNo;
-    if (values.ItemName) queryParams.ItemName = values.ItemName; // <-- added here
-    if (values.ItemType) queryParams.ItemType = values.ItemType;
-    if (values.InvoiceNo) queryParams.InvoiceNo = values.InvoiceNo;
-    if (values.InvoiceStatus) queryParams.InvoiceStage = values.InvoiceStatus;
-    if (values.CreatedDate) queryParams.CreatedDate = values.CreatedDate.toISOString();
+    initialValues: {
+      POId: '',
+      ItemNo: '',
+      ItemName: '', // <-- added here
+      ItemType: '',
+      POStatus: '',
+      InvoiceStatus: '',
+      CreatedDate: null,
+      InvoiceNo: ''
+    },
+    validationSchema,
+    onSubmit: (values) => {
+      const queryParams = {};
+      if (values.POStatus) queryParams.POStage = values.POStatus;
+      if (values.POId) queryParams.POId = values.POId;
+      if (values.ItemNo) queryParams.ItemNo = values.ItemNo;
+      if (values.ItemName) queryParams.ItemName = values.ItemName; // <-- added here
+      if (values.ItemType) queryParams.ItemType = values.ItemType;
+      if (values.InvoiceNo) queryParams.InvoiceNo = values.InvoiceNo;
+      if (values.InvoiceStatus) queryParams.InvoiceStage = values.InvoiceStatus;
+      if (values.CreatedDate) queryParams.CreatedDate = values.CreatedDate.toISOString();
 
-    GetPOHeaderList(queryParams, atoken)
-      .then(res => handleFilterList(res || []))
-      .catch(err => {
-        console.error("Error fetching PO list:", err);
-        handleFilterList([]);
-      });
-  }
-});
+      GetPOHeaderList(queryParams, atoken)
+        // .then(res => handleFilterList(res || []))
+        .then(res => {
+
+          const exportPayload = {
+            poId: values.POId || "",
+            itemNo: values.ItemNo || "",
+            itemName: values.ItemName || "",
+            itemType: values.ItemType || "",
+            poStage: values.POStatus || "",
+            invoiceStage: values.InvoiceStatus || "",
+            invoiceNo: values.InvoiceNo || "",
+            createdDate: values.CreatedDate
+              ? values.CreatedDate.toISOString()
+              : ""
+          };
+
+          setExportFilters(exportPayload);
+
+          handleFilterList(res || [], exportPayload);
+
+        })
+        .catch(err => {
+          console.error("Error fetching PO list:", err);
+          handleFilterList([]);
+        });
+    }
+  });
 
 
   // const formik = useFormik({
@@ -94,7 +114,7 @@ const FilterCell = ({ handleFilterList, clearFilterList}) => {
     const data = { CustomerId: customerid, IsActive: true, EventType: EventTypeId };
     try {
       const res = await getEventStage(data, atoken);
-      
+
       // const resultArray = Array.isArray(res?.data)
       //   ? res.data
       //   : Array.isArray(res?.data?.result)
@@ -143,20 +163,20 @@ const FilterCell = ({ handleFilterList, clearFilterList}) => {
                 InputLabelProps={{ shrink: true }}
               />
             </div>
-{/* Item Name */}
-<div className="col-12 mb-2">
-  <TextField
-    id="ItemName"
-    name="ItemName"
-    label="Item Name"
-    fullWidth
-    size="small"
-    variant="outlined"
-    value={formik.values.ItemName}
-    onChange={formik.handleChange}
-    InputLabelProps={{ shrink: true }}
-  />
-</div>
+            {/* Item Name */}
+            <div className="col-12 mb-2">
+              <TextField
+                id="ItemName"
+                name="ItemName"
+                label="Item Name"
+                fullWidth
+                size="small"
+                variant="outlined"
+                value={formik.values.ItemName}
+                onChange={formik.handleChange}
+                InputLabelProps={{ shrink: true }}
+              />
+            </div>
 
             {/* Item Type */}
             <div className="col-12 mb-2">
@@ -198,10 +218,10 @@ const FilterCell = ({ handleFilterList, clearFilterList}) => {
               >
                 {poStatusList.length
                   ? poStatusList.map(item => (
-                      <MenuItem key={item.id} value={item.stageName}>
-                        {item.stageName}
-                      </MenuItem>
-                    ))
+                    <MenuItem key={item.id} value={item.stageName}>
+                      {item.stageName}
+                    </MenuItem>
+                  ))
                   : <MenuItem disabled>No options available</MenuItem>}
               </TextField>
             </div>
@@ -221,17 +241,17 @@ const FilterCell = ({ handleFilterList, clearFilterList}) => {
                 InputLabelProps={{ shrink: true }}
                 SelectProps={{
                   onOpen: () => {
-                    
+
                     if (!invoiceStatusLoaded) pullGetEventStage("INV", setInvoiceStatusList, setInvoiceStatusLoaded);
                   }
                 }}
               >
                 {invoiceStatusList.length
                   ? invoiceStatusList.map(item => (
-                      <MenuItem key={item.id} value={item.stageName}>
-                        {item.stageName}
-                      </MenuItem>
-                    ))
+                    <MenuItem key={item.id} value={item.stageName}>
+                      {item.stageName}
+                    </MenuItem>
+                  ))
                   : <MenuItem disabled>No options available</MenuItem>}
               </TextField>
             </div>
