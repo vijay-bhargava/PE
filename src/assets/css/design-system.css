@@ -409,3 +409,153 @@
   justify-content: space-between;
   flex-shrink: 0;
 }
+
+/* ── pe-icon-btn variants (view) ── */
+.pe-icon-btn--view {
+  color: #2a68d3;
+  border-color: #e5e7eb;
+  background: #fff;
+}
+.pe-icon-btn--view:hover:not(:disabled) {
+  background: #eff4ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+/* ── pe-btn additional variants ── */
+.pe-btn--outline {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+.pe-btn--outline:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #374151;
+}
+.pe-btn--link {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--pe-btn-blue);
+  height: auto;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+.pe-btn--link:hover:not(:disabled) {
+  background: transparent;
+  color: var(--pe-btn-blue-hover);
+}
+.pe-btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: pe-btn-spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes pe-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Plain form input/textarea (label-above pattern, pairs with .pe-field-label) ── */
+.pe-detail-form-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #101828;
+  background: #fff;
+}
+.pe-detail-form-input:disabled,
+.pe-detail-form-input[readonly] {
+  background: #f8fafc;
+  border-color: #e5e7eb;
+  color: #6b7280;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.pe-detail-form-input:focus {
+  outline: none;
+  border-color: #2082db;
+  box-shadow: 0 0 0 2px rgba(32, 130, 219, 0.12);
+}
+.pe-detail-form-input::placeholder {
+  color: #98a2b3;
+}
+textarea.pe-detail-form-input {
+  min-height: 64px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+/* ── Info card — section card used in dialogs/drawers ── */
+.pe-info-card {
+  height: 100%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+}
+.pe-info-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #101828;
+  margin-bottom: 14px;
+  margin-right: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.pe-info-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 14px;
+  column-gap: 16px;
+}
+.pe-info-card-grid--single {
+  grid-template-columns: 1fr;
+}
+
+/* ── Status badge ── */
+.pe-status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: #f3f4f6;
+  color: #374151;
+}
+.pe-status-badge--active,
+.pe-status-badge--approved,
+.pe-status-badge--completed {
+  background: #dcfce7;
+  color: #166534;
+}
+.pe-status-badge--pending,
+.pe-status-badge--under-approval {
+  background: #fef9c3;
+  color: #854d0e;
+}
+.pe-status-badge--rejected,
+.pe-status-badge--cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.pe-status-badge--draft {
+  background: #f3f4f6;
+  color: #6b7280;
+}
