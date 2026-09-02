@@ -1,8 +1,7 @@
 import React, { useRef, useState } from "react";
 import * as yup from "yup";
 import { useFormik } from "formik";
-import { LoadingButton } from "@mui/lab";
-import { TextField, MenuItem } from '@mui/material';
+import { FormControl, MenuItem, Select, TextField } from '@mui/material';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -11,7 +10,7 @@ import { GetPOHeaderList } from "../../utils/pOToAccept";
 import { useStateValue } from "../../store";
 import { getEventStage } from "../../utils/common/utility";
 
-const FilterCell = ({ handleFilterList, clearFilterList}) => {
+const FilterCell = ({ handleFilterList, clearFilterList, setExportFilters }) => {
   const formRef = useRef();
   const [cookies] = useCookies(["patkn", "prtkn"]);
   const [{ atoken, customerid }] = useStateValue();
@@ -20,70 +19,56 @@ const FilterCell = ({ handleFilterList, clearFilterList}) => {
   const [invoiceStatusList, setInvoiceStatusList] = useState([]);
   const [poStatusLoaded, setPoStatusLoaded] = useState(false);
   const [invoiceStatusLoaded, setInvoiceStatusLoaded] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const validationSchema = yup.object({});
   const formik = useFormik({
-  initialValues: {
-    POId: '',
-    ItemNo: '',
-    ItemName: '', // <-- added here
-    ItemType: '',
-    POStatus: '',
-    InvoiceStatus: '',
-    CreatedDate: null,
-    InvoiceNo: ''
-  },
-  validationSchema,
-  onSubmit: (values) => {
-    const queryParams = {};
-    if (values.POStatus) queryParams.POStage = values.POStatus;
-    if (values.POId) queryParams.POId = values.POId;
-    if (values.ItemNo) queryParams.ItemNo = values.ItemNo;
-    if (values.ItemName) queryParams.ItemName = values.ItemName; // <-- added here
-    if (values.ItemType) queryParams.ItemType = values.ItemType;
-    if (values.InvoiceNo) queryParams.InvoiceNo = values.InvoiceNo;
-    if (values.InvoiceStatus) queryParams.InvoiceStage = values.InvoiceStatus;
-    if (values.CreatedDate) queryParams.CreatedDate = values.CreatedDate.toISOString();
+    initialValues: {
+      POId: '',
+      ItemNo: '',
+      ItemName: '',
+      ItemType: '',
+      POStatus: '',
+      InvoiceStatus: '',
+      CreatedDate: null,
+      InvoiceNo: ''
+    },
+    validationSchema: yup.object({}),
+    onSubmit: async (values) => {
+      setSubmitting(true);
+      try {
+        const queryParams = {};
+        if (values.POStatus) queryParams.POStage = values.POStatus;
+        if (values.POId) queryParams.POId = values.POId;
+        if (values.ItemNo) queryParams.ItemNo = values.ItemNo;
+        if (values.ItemName) queryParams.ItemName = values.ItemName;
+        if (values.ItemType) queryParams.ItemType = values.ItemType;
+        if (values.InvoiceNo) queryParams.InvoiceNo = values.InvoiceNo;
+        if (values.InvoiceStatus) queryParams.InvoiceStage = values.InvoiceStatus;
+        if (values.CreatedDate) queryParams.CreatedDate = values.CreatedDate.toISOString();
 
-    GetPOHeaderList(queryParams, atoken)
-      .then(res => handleFilterList(res || []))
-      .catch(err => {
+        const res = await GetPOHeaderList(queryParams, atoken);
+
+        const exportPayload = {
+          poId: values.POId || "",
+          itemNo: values.ItemNo || "",
+          itemName: values.ItemName || "",
+          itemType: values.ItemType || "",
+          poStage: values.POStatus || "",
+          invoiceStage: values.InvoiceStatus || "",
+          invoiceNo: values.InvoiceNo || "",
+          createdDate: values.CreatedDate ? values.CreatedDate.toISOString() : ""
+        };
+
+        setExportFilters(exportPayload);
+        handleFilterList(res || [], exportPayload);
+      } catch (err) {
         console.error("Error fetching PO list:", err);
         handleFilterList([]);
-      });
-  }
-});
-
-
-  // const formik = useFormik({
-  //   initialValues: {
-  //     POId: '',
-  //     ItemNo: '',
-  //     ItemType: '',
-  //     POStatus: '',
-  //     InvoiceStatus: '',
-  //     CreatedDate: null,
-  //     InvoiceNo: ''
-  //   },
-  //   validationSchema,
-  //   onSubmit: (values) => {
-  //     const queryParams = {};
-  //     if (values.POStatus) queryParams.POStage = values.POStatus;
-  //     if (values.POId) queryParams.POId = values.POId;
-  //     if (values.ItemNo) queryParams.ItemNo = values.ItemNo;
-  //     if (values.ItemType) queryParams.ItemType = values.ItemType;
-  //     if (values.InvoiceNo) queryParams.InvoiceNo = values.InvoiceNo;
-  //     if (values.InvoiceStatus) queryParams.InvoiceStage = values.InvoiceStatus;
-  //     if (values.CreatedDate) queryParams.CreatedDate = values.CreatedDate.toISOString();
-
-  //     GetPOHeaderList(queryParams, atoken)
-  //       .then(res => handleFilterList(res || []))
-  //       .catch(err => {
-  //         console.error("Error fetching PO list:", err);
-  //         handleFilterList([]);
-  //       });
-  //   }
-  // });
+      } finally {
+        setSubmitting(false);
+      }
+    }
+  });
 
   const handleResetClick = () => {
     formik.resetForm();
@@ -91,15 +76,8 @@ const FilterCell = ({ handleFilterList, clearFilterList}) => {
   };
 
   const pullGetEventStage = async (EventTypeId, setList, setLoaded) => {
-    const data = { CustomerId: customerid, IsActive: true, EventType: EventTypeId };
     try {
-      const res = await getEventStage(data, atoken);
-      
-      // const resultArray = Array.isArray(res?.data)
-      //   ? res.data
-      //   : Array.isArray(res?.data?.result)
-      //   ? res.data.result
-      //   : [];
+      const res = await getEventStage({ CustomerId: customerid, IsActive: true, EventType: EventTypeId }, atoken);
       setList(res || []);
     } catch (err) {
       console.error("Error fetching event stage:", err);
@@ -110,178 +88,181 @@ const FilterCell = ({ handleFilterList, clearFilterList}) => {
   };
 
   return (
-    <div className="rightContent">
-      <div className="bg-white p-3" style={{ border: "none" }}>
-        <form onSubmit={formik.handleSubmit} ref={formRef} autoComplete="off">
-          <div className="row">
-            {/* PO ID */}
-            <div className="col-12 mb-3">
-              <TextField
-                id="POId"
-                name="POId"
-                label="PO ID"
-                fullWidth
-                size="small"
-                variant="outlined"
-                value={formik.values.POId}
-                onChange={formik.handleChange}
-                InputLabelProps={{ shrink: true }}
-              />
-            </div>
+    <form
+      onSubmit={formik.handleSubmit}
+      ref={formRef}
+      autoComplete="off"
+      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+    >
+      {/* Scrollable fields area */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', paddingBottom: '8px' }}>
+        <div className="row">
 
-            {/* Item No */}
-            <div className="col-12 mb-3">
-              <TextField
-                id="ItemNo"
-                name="ItemNo"
-                label="Item No"
-                fullWidth
-                size="small"
-                variant="outlined"
-                value={formik.values.ItemNo}
-                onChange={formik.handleChange}
-                InputLabelProps={{ shrink: true }}
-              />
-            </div>
-{/* Item Name */}
-<div className="col-12 mb-2">
-  <TextField
-    id="ItemName"
-    name="ItemName"
-    label="Item Name"
-    fullWidth
-    size="small"
-    variant="outlined"
-    value={formik.values.ItemName}
-    onChange={formik.handleChange}
-    InputLabelProps={{ shrink: true }}
-  />
-</div>
+          {/* PO ID */}
+          <div className="col-12 mb-3">
+            <label className="pe-field-label">PO ID</label>
+            <TextField
+              id="POId"
+              name="POId"
+              fullWidth
+              size="small"
+              variant="outlined"
+              placeholder="Enter PO ID"
+              value={formik.values.POId}
+              onChange={formik.handleChange}
+            />
+          </div>
 
-            {/* Item Type */}
-            <div className="col-12 mb-2">
-              <TextField
+          {/* Item No */}
+          <div className="col-12 mb-3">
+            <label className="pe-field-label">Item No</label>
+            <TextField
+              id="ItemNo"
+              name="ItemNo"
+              fullWidth
+              size="small"
+              variant="outlined"
+              placeholder="Enter Item No"
+              value={formik.values.ItemNo}
+              onChange={formik.handleChange}
+            />
+          </div>
+
+          {/* Item Name */}
+          <div className="col-12 mb-3">
+            <label className="pe-field-label">Item Name</label>
+            <TextField
+              id="ItemName"
+              name="ItemName"
+              fullWidth
+              size="small"
+              variant="outlined"
+              placeholder="Enter Item Name"
+              value={formik.values.ItemName}
+              onChange={formik.handleChange}
+            />
+          </div>
+
+          {/* Item Type */}
+          <div className="col-12 mb-3">
+            <label className="pe-field-label">Item Type</label>
+            <FormControl fullWidth size="small">
+              <Select
                 id="ItemType"
                 name="ItemType"
-                select
-                fullWidth
-                size="small"
-                label="Item Type"
-                variant="outlined"
+                displayEmpty
                 value={formik.values.ItemType}
                 onChange={formik.handleChange}
-                InputLabelProps={{ shrink: true }}
               >
+                <MenuItem value=""><em style={{ color: '#9ca3af', fontStyle: 'normal' }}>Select Item Type</em></MenuItem>
                 <MenuItem value="Material">Material</MenuItem>
                 <MenuItem value="Service">Service</MenuItem>
-              </TextField>
-            </div>
+              </Select>
+            </FormControl>
+          </div>
 
-            {/* PO Status */}
-            <div className="col-12 mb-2">
-              <TextField
+          {/* PO Status */}
+          <div className="col-12 mb-3">
+            <label className="pe-field-label">PO Status</label>
+            <FormControl fullWidth size="small">
+              <Select
                 id="POStatus"
                 name="POStatus"
-                select
-                fullWidth
-                size="small"
-                label="PO Status"
-                variant="outlined"
+                displayEmpty
                 value={formik.values.POStatus}
                 onChange={formik.handleChange}
-                InputLabelProps={{ shrink: true }}
-                SelectProps={{
-                  onOpen: () => {
-                    if (!poStatusLoaded) pullGetEventStage("PO", setPoStatusList, setPoStatusLoaded);
-                  }
+                onOpen={() => {
+                  if (!poStatusLoaded) pullGetEventStage("PO", setPoStatusList, setPoStatusLoaded);
                 }}
               >
-                {poStatusList.length
-                  ? poStatusList.map(item => (
-                      <MenuItem key={item.id} value={item.stageName}>
-                        {item.stageName}
-                      </MenuItem>
-                    ))
-                  : <MenuItem disabled>No options available</MenuItem>}
-              </TextField>
-            </div>
+                <MenuItem value=""><em style={{ color: '#9ca3af', fontStyle: 'normal' }}>Select PO Status</em></MenuItem>
+                {poStatusList.map(item => (
+                  <MenuItem key={item.id} value={item.stageName}>{item.stageName}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
 
-            {/* Invoice Status */}
-            <div className="col-12 mb-2">
-              <TextField
+          {/* Invoice Status */}
+          <div className="col-12 mb-3">
+            <label className="pe-field-label">Invoice Status</label>
+            <FormControl fullWidth size="small">
+              <Select
                 id="InvoiceStatus"
                 name="InvoiceStatus"
-                select
-                fullWidth
-                size="small"
-                label="Invoice Status"
-                variant="outlined"
+                displayEmpty
                 value={formik.values.InvoiceStatus}
                 onChange={formik.handleChange}
-                InputLabelProps={{ shrink: true }}
-                SelectProps={{
-                  onOpen: () => {
-                    
-                    if (!invoiceStatusLoaded) pullGetEventStage("INV", setInvoiceStatusList, setInvoiceStatusLoaded);
-                  }
+                onOpen={() => {
+                  if (!invoiceStatusLoaded) pullGetEventStage("INV", setInvoiceStatusList, setInvoiceStatusLoaded);
                 }}
               >
-                {invoiceStatusList.length
-                  ? invoiceStatusList.map(item => (
-                      <MenuItem key={item.id} value={item.stageName}>
-                        {item.stageName}
-                      </MenuItem>
-                    ))
-                  : <MenuItem disabled>No options available</MenuItem>}
-              </TextField>
-            </div>
-
-            {/* Created Date */}
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <div className="col-12 mb-3">
-                <MobileDatePicker
-                  label="Created Date"
-                  value={formik.values.CreatedDate}
-                  onChange={(newValue) => formik.setFieldValue("CreatedDate", newValue)}
-                  slotProps={{
-                    textField: { variant: "outlined", size: "small", fullWidth: true, InputLabelProps: { shrink: true } },
-                  }}
-                />
-              </div>
-            </LocalizationProvider>
-
-            {/* Invoice No */}
-            <div className="col-12 mb-2">
-              <TextField
-                id="InvoiceNo"
-                name="InvoiceNo"
-                label="Invoice No"
-                fullWidth
-                size="small"
-                variant="outlined"
-                value={formik.values.InvoiceNo}
-                onChange={formik.handleChange}
-                InputLabelProps={{ shrink: true }}
-              />
-            </div>
-
-            {/* Buttons */}
-            <div className="col-12 text-end">
-              <LoadingButton variant="contained" color="primary" className="me-3" onClick={handleResetClick}>
-                Clear
-              </LoadingButton>
-              <LoadingButton
-                variant="outlined"
-                color="primary"
-                onClick={(e) => { e.preventDefault(); formik.handleSubmit(); }}
-              >
-                Submit
-              </LoadingButton>
-            </div>
+                <MenuItem value=""><em style={{ color: '#9ca3af', fontStyle: 'normal' }}>Select Invoice Status</em></MenuItem>
+                {invoiceStatusList.map(item => (
+                  <MenuItem key={item.id} value={item.stageName}>{item.stageName}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </div>
-        </form>
+
+          {/* Created Date */}
+          <div className="col-12 mb-3">
+            <label className="pe-field-label">Created Date</label>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <MobileDatePicker
+                value={formik.values.CreatedDate}
+                onChange={(val) => formik.setFieldValue("CreatedDate", val)}
+                slotProps={{
+                  textField: { variant: "outlined", size: "small", fullWidth: true, placeholder: "Select date" },
+                }}
+              />
+            </LocalizationProvider>
+          </div>
+
+          {/* Invoice No */}
+          <div className="col-12 mb-3">
+            <label className="pe-field-label">Invoice No</label>
+            <TextField
+              id="InvoiceNo"
+              name="InvoiceNo"
+              fullWidth
+              size="small"
+              variant="outlined"
+              placeholder="Enter Invoice No"
+              value={formik.values.InvoiceNo}
+              onChange={formik.handleChange}
+            />
+          </div>
+
+        </div>
       </div>
-    </div>
+
+      {/* Fixed footer with action buttons */}
+      <div style={{
+        padding: '12px 16px',
+        borderTop: '1px solid #e5e7eb',
+        display: 'flex',
+        justifyContent: 'flex-end',
+        gap: '8px',
+        background: '#fff',
+        flexShrink: 0,
+      }}>
+        <button
+          type="button"
+          className="pe-btn pe-btn--ghost"
+          onClick={handleResetClick}
+        >
+          Reset
+        </button>
+        <button
+          type="submit"
+          className="pe-btn pe-btn--primary"
+          disabled={submitting}
+        >
+          {submitting ? 'Searching...' : 'Apply'}
+        </button>
+      </div>
+    </form>
   );
 };
 

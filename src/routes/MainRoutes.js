@@ -15,7 +15,7 @@ import ManageEmailTemplate from "../pages/Settings/ManageEmailTemplate/ManageEma
 import QuestionLibrary from "../pages/Settings/QuestionMaster/QuestionLibrary";
 import InviteVendor from "../pages/Manage/ManageParticipants/InviteVendor";
 
-import POOrderList from "../pages/POOrders/POOrderList";
+import POOrderList from "../pages/POOrders/POOrderListV2";
 import PurchaseOrder from "../pages/POOrders/PurchaseOrder";
 //import PurchaseOrder from "../pages/PurchaseOrder/PurchaseOrder";
 //import POToAccept from "../pages/POToAccept/POToAccept";

@@ -170,19 +170,19 @@ export function PETableSimple({
 
   // In controlled mode the caller provides their own expand column; only add the auto column in uncontrolled mode.
   const allColumns = (getExpandContent && !isControlled)
-    ? [...columns, {
+    ? [{
       key: '__expand__', label: '', width: 48,
       renderCell: (_, row, index) => {
         const key = getRowKey ? getRowKey(row, index) : index;
         return (
           <IconButton size="small" onClick={() => toggleExpand(key)}
-            sx={{ transition: 'transform 0.3s', transform: expandedKeys.has(key) ? 'rotate(180deg)' : 'none' }}
+            sx={{ transition: 'transform 0.3s', transform: expandedKeys.has(key) ? 'rotate(90deg)' : 'none' }}
           >
             <ExpandMoreIcon sx={{ fontSize: 18 }} />
           </IconButton>
         );
       },
-    }]
+    }, ...columns]
     : columns;
 
   return (
