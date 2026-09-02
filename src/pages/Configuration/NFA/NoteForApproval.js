@@ -34,16 +34,19 @@ import {
   getLibraryOrgEntityFind, getNFAManageFindById, getNFASpendList
 } from '../../../utils/common/utility';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import HistoryCell from '../../BaseCells/HistoryCell';
 import AttachmentWorkFlow from '../../BaseCells/attachmentworkflow';
 import { StageFindAll } from "../../../utils/stagemaster";
 import { actionTypes, useStateValue } from '../../../store';
 import PEModal from '../../../components/PEModal';
+import ApprovalConfirmDialog from '../../../components/RFQ/ApprovalConfirmDialog';
 import AddEditCurrency from '../../../utils/common/AddEditCurrency';
 import PurchaseOrgGrp from '../../../utils/common/PurchaseOrgGrp';
 import PurchaseOrg from '../../../utils/common/PurchaseOrg';
 import NFAQuestionScreen from "./NFAQuestionScreen";
-import Drawer from "@mui/material/Drawer";
+import CommonBottomDrawer from '../../../components/CommonBottomDrawer';
 import AddNFAQuestionFormCell from "./AddNFAQuestionFromCell";
 import AddUpdateexception from './AddUpdateException';
 
@@ -1583,11 +1586,7 @@ const NoteForApproval = ({ claimType, breadcrumb }) => {
                 {breadcrumb}
                 <div className="rfq-dv2-actions">
                   {!loading ? (
-                    actionType && activityId ? (
-                      <button type="button" className="pe-btn pe-btn--primary" onClick={toggleDrawer("openInvoiceApproved", true)}>
-                        Action
-                      </button>
-                    ) : (
+                    actionType && activityId ? null : (
                       <>
                         <button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost" onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
                           Cancel
@@ -1828,40 +1827,51 @@ const NoteForApproval = ({ claimType, breadcrumb }) => {
               {idFromURL && value === 4 && (() => {
                 const canReadP = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? true;
                 const canEditP = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? true;
+                const canReadQ = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? true;
+                const canEditQ = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) ?? true;
                 if (!canReadP) return (
                   <div className="p-4"><Alert severity="error"><div className="d-flex align-items-center"><HiOutlineX className="me-2 f18" />Access Denied: You don't have permission to view Preview.</div></Alert></div>
                 );
                 return (
-                  <>
-                    <div className="custom-fix">
-                      {(accessLevel?.find(x => x.claimType === "General")?.claimValue?.Read !== "N" && canReadP) && <>
-                        <Box id="generaldetails" sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, pl: 2 }}>
-                          <Typography sx={{ color: "#1976d2", fontWeight: 400, fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>📝 NFA General Details</Typography>
-                          {stagearray.includes(currentStage) && canEditP && (
-                            <IconButton size="small" sx={{ backgroundColor: "#fff", "&:hover": { backgroundColor: "#f0f0f0" } }}><HiPencilAlt className="f17 text-primary" /></IconButton>
-                          )}
-                        </Box>
-                        <NFAGeneralPreview formik={formik} purchaseAllList={purchaseAllList} purchaseGroupAllList={purchaseGroupAllList} customClassName="none" />
-                      </>}
-                      {(accessLevel?.find(x => x.claimType === "Questions")?.claimValue?.Read !== "N" && (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) || true)) && (
-                        <Card variant="outlined" sx={{ borderRadius: 2, mb: 3, boxShadow: 1 }}>
-                          <CardHeader
-                            title={<Typography sx={{ color: "#1976d2", fontWeight: 400, fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>❓ NFA Questions</Typography>}
-                            action={stagearray.includes(currentStage) && (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) || true) ? (
-                              <IconButton size="small" sx={{ backgroundColor: "#fff", "&:hover": { backgroundColor: "#f5f5f5" } }}><HiPencilAlt className="f17 text-primary" /></IconButton>
-                            ) : null}
-                            sx={{ pb: 0 }}
+                  <div className="rfq-preview-scroll-area">
+                    {accessLevel?.find(x => x.claimType === "General")?.claimValue?.Read !== "N" && (
+                      <div className="rfq-preview-section-card mb-3">
+                        <div className="rfq-preview-card-body">
+                          <div className="d-flex justify-content-between align-items-center mb-3" id="generaldetails">
+                            <div className="rfq-preview-section-title">
+                              <ArticleOutlinedIcon className="rfq-preview-section-icon" />NFA General Details
+                            </div>
+                            {stagearray.includes(currentStage) && canEditP && (
+                              <button type="button" className="pe-icon-btn pe-icon-btn--edit" onClick={() => setValue(1)}>
+                                <HiPencilAlt />
+                              </button>
+                            )}
+                          </div>
+                          <NFAGeneralPreview formik={formik} purchaseAllList={purchaseAllList} purchaseGroupAllList={purchaseGroupAllList} customClassName="none" />
+                        </div>
+                      </div>
+                    )}
+                    {accessLevel?.find(x => x.claimType === "Questions")?.claimValue?.Read !== "N" && canReadQ && (
+                      <div className="rfq-preview-section-card mb-3">
+                        <div className="rfq-preview-card-body">
+                          <div className="d-flex justify-content-between align-items-center mb-3" id="nfaquestions">
+                            <div className="rfq-preview-section-title">
+                              <HelpOutlineOutlinedIcon className="rfq-preview-section-icon" />NFA Questions
+                            </div>
+                            {stagearray.includes(currentStage) && canEditQ && (
+                              <button type="button" className="pe-icon-btn pe-icon-btn--edit" onClick={() => setValue(3)}>
+                                <HiPencilAlt />
+                              </button>
+                            )}
+                          </div>
+                          <NFAQuestionScreen
+                            props={{ eventid: idFromURL, eventtype: "NFA", librarytype: "QuestionLibrary", action: false, Version: formik?.values?.Version, editquestion: isquestioneditDisabled, permissionManager: permissionManager }}
+                            ref={NFAQuestionScreenRef}
                           />
-                          <CardContent>
-                            <NFAQuestionScreen
-                              props={{ eventid: idFromURL, eventtype: "NFA", librarytype: "QuestionLibrary", action: false, Version: formik?.values?.Version, editquestion: isquestioneditDisabled, permissionManager: permissionManager }}
-                              ref={NFAQuestionScreenRef}
-                            />
-                          </CardContent>
-                        </Card>
-                      )}
-                    </div>
-                  </>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 );
               })()}
               {idFromURL && value === 5 && (
@@ -1997,168 +2007,65 @@ const NoteForApproval = ({ claimType, breadcrumb }) => {
         <AddUpdateSpend isModal handleSpendList={handleSpendList} />
       </PEModal>
 
-      {/* Quesiton Drawer */}
-      <React.Fragment key="qusDrawertr">
-        <Drawer
-          anchor="right"
-          open={state["qusDrawer"]}
-        >
-          <Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-            <div className="flex flex-col">
-              <Box className="bgheaderCards">
-                <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                  <div className="ms-3 text-white">Add Question</div>
-                  <div>
-                    <IconButton
-                      onClick={toggleDrawer("qusDrawer", false)}
-                      size="small"
-                      edge="start"
-                      sx={{ mr: 1 }}
-                    >
-                      <HiOutlineX className="f20 text-white" />
-                    </IconButton>
-                  </div>
-                </div>
-              </Box>
-              <div className="h50px"></div>
-              <Box sx={{ flexGrow: 1, p: 2, mt: 2 }}>
-                <AddNFAQuestionFormCell
-                  idFromURL={idFromURL}
-                  callbackQuesAddCustom={callbackQuesAddCustom}
-                  libraryId={libraryId}
-                  questionforedit={questionforedit}
-                />
-              </Box>
-            </div>
-          </Box>
-        </Drawer>
-      </React.Fragment>
-      {/* Approver Drawer */}
-      <React.Fragment key="approveNFA">
-        <Drawer anchor="right" open={state["openInvoiceApproved"]}>
-          <form onSubmit={formik_NFAApproveReject.handleSubmit} autoComplete="off">
-            <Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-              <div className="flex flex-col">
-                <Box className="bgheaderCards">
-                  <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                    <div className="ms-3 text-white">
-                      Approval Action
-                    </div>
-                    <div>
-                      <IconButton
-                        onClick={toggleDrawer("openInvoiceApproved", false, [])}
-                        size="small"
-                        edge="start"
-                        sx={{ mr: 1 }}
-                      >
-                        <HiOutlineX className="f20 text-white" />
-                      </IconButton>
-                    </div>
-                  </div>
-                </Box>
-                <div className="h50px"></div>
-                <div className="p-3">
-                  <div className="row ">
-                    <div className="col-12 col-md-12 col-lg-12">
-                      <div className="mb-4 textblue f14"></div>
-                      <div className="row">
-                        <div className="col-12 col-md-4 col-lg-12 mb-4">
-                          <TextField
-                            id="IsApproved"
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                            name="IsApproved"
-                            select
-                            className="mb-2"
-                            fullWidth
-                            size="small"
-                            label="Status"
-                            variant="outlined"
-                            value={formik_NFAApproveReject.values.IsApproved}
-                            onChange={(e) =>
-                              formik_NFAApproveReject.setFieldValue(
-                                "IsApproved",
-                                e.target.value
-                              )
-                            }
-                          >
-                            <MenuItem value={true}>Approve</MenuItem>
-                            <MenuItem value={false}>Reject</MenuItem>
-                          </TextField>
-                        </div>
+      {/* Question Drawer */}
+      <CommonBottomDrawer
+        open={state["qusDrawer"]}
+        onClose={toggleDrawer("qusDrawer", false)}
+        title="Add Question"
+        actions={
+          <>
+            <button
+              type="button"
+              className="rfq-v2-event-btn rfq-v2-event-btn-ghost"
+              onClick={toggleDrawer("qusDrawer", false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="add-question-form"
+              className="rfq-v2-event-btn rfq-v2-event-btn-primary"
+            >
+              Add
+            </button>
+          </>
+        }
+        sectionStyle={{ display: "flex", flexDirection: "column" }}
+        bodyStyle={{ padding: "16px", overflowY: "auto", flex: 1 }}
+      >
+        <AddNFAQuestionFormCell
+          idFromURL={idFromURL}
+          callbackQuesAddCustom={callbackQuesAddCustom}
+          libraryId={libraryId}
+          questionforedit={questionforedit}
+        />
+      </CommonBottomDrawer>
 
-                        <div className="col-12 col-md-4 col-lg-12 mb-4">
-                          <TextField
-                            id="remarks"
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                            multiline
-                            rows={3}
-                            name="remarks"
-                            className="w-100 f14"
-                            size="small"
-                            label="Comment "
-                            variant="outlined"
-                            inputProps={{ maxLength: 200 }}
-                            value={formik_NFAApproveReject?.values?.remarks}
-                            error={formik_NFAApproveReject.touched.remarks && Boolean(formik_NFAApproveReject.errors.remarks)}
-                            helperText={formik_NFAApproveReject.touched.remarks && formik_NFAApproveReject.errors.remarks}
-                            onChange={(e) =>
-                              formik_NFAApproveReject.setFieldValue(
-                                "remarks",
-                                e.target.value
-                              )
-                            }
-                            InputProps={{
-                              endAdornment: formik_NFAApproveReject?.values?.remarks && (
-                                <InputAdornment position="end">
-                                  <Typography variant="body2" color="textSecondary">
-                                    {formik_NFAApproveReject?.values?.remarks?.length}/200
-                                  </Typography>
-                                </InputAdornment>
-                              ),
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-12 text-end">
-                      <LoadingButton
-                        loading={loading}
-                        color="primary"
-                        size="medium"
-                        className="text-white text-capitalize mb-3 mr-3"
-                        variant="contained"
-                        type="submit"
-                      >
-                        <span>Save</span>
-                      </LoadingButton>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Box>
-          </form>
-        </Drawer>
+      {/* Approval Confirmation Modal */}
+      <ApprovalConfirmDialog
+        open={state["openInvoiceApproved"]}
+        onClose={toggleDrawer("openInvoiceApproved", false, [])}
+        onSubmit={formik_NFAApproveReject.handleSubmit}
+        status={actionType === 'Forward' ? 'Forward' : formik_NFAApproveReject.values.IsApproved ? 'Approved' : 'Rejected'}
+        stageName={currentStage}
+        comment={formik_NFAApproveReject.values.remarks}
+        onCommentChange={(val) => formik_NFAApproveReject.setFieldValue("remarks", val)}
+        entityLabel="NFA"
+      />
 
-        {/* Currency Modal */}
-        <PEModal
-          open={OpenCurrencyModal}
-          onClose={CloseCurrencyModal}
-          size="lg"
-          title="Manage Currency"
-          bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
-          bodyClassName="d-flex flex-column"
-        >
-          <div className="p-3">
-            <AddEditCurrency handleCurrencyList={handleCurrencyList} />
-          </div>
-        </PEModal>
-      </React.Fragment>
+      {/* Currency Modal */}
+      <PEModal
+        open={OpenCurrencyModal}
+        onClose={CloseCurrencyModal}
+        size="lg"
+        title="Manage Currency"
+        bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+        bodyClassName="d-flex flex-column"
+      >
+        <div className="p-3">
+          <AddEditCurrency handleCurrencyList={handleCurrencyList} />
+        </div>
+      </PEModal>
       <PEModal
         open={open}
         onClose={handleClose}

@@ -1,4 +1,12 @@
 {
-    "prettier.vueIndentScriptAndStyle": true,
-    "prettier.useTabs": true
+  "prettier.vueIndentScriptAndStyle": true,
+  "prettier.useTabs": true,
+
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": false
+  },
+
+  "editor.suggestOnTriggerCharacters": true
 }

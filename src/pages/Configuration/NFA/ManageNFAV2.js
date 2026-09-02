@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import dayjs from 'dayjs';
 import {
   Autocomplete, FormControl, FormControlLabel,
-  Radio, RadioGroup, TextField, Tooltip,
+  Radio, RadioGroup, TextField,
 } from "@mui/material";
 import { AddOutlined } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ import { PETable } from "../../../components/RFQ/PETable";
 import PEModal from "../../../components/PEModal";
 import StatusBadge from "../../../components/StatusBadge";
 import FilterNFACell from './FilterNFACell';
+import CommonTooltip from '../../../components/commonTooltip';
 import GridSkeleton from "../../../components/Skeleton/gridSkeleton";
 import { buildQueryParams, formatDateViaLocale } from "../../../utils/common/utility";
 import { findObjListByValueFromArray, getApiErrorMessage, } from "../../../utils/common";
@@ -374,16 +375,16 @@ const ManageNFAV2 = ({ claimType }) => {
       minWidth: 200,
       valueGetter: (params) => `${params?.row?.nfaSubject || ""} ${params?.row?.id || ""} ${params?.row?.nfaNumber || ""}`,
       renderCell: (params) => (
-        <Tooltip title="Click to view/edit NFA" arrow>
-          <div style={{ cursor: iseditDisabled ? 'pointer' : 'not-allowed' }}
-            onClick={() => iseditDisabled && navigate(`/configuration/manage-nfa/${params?.row.id}`)}>
-            <div className="f12 fw500" style={{ color: '#1f2937' }}>{params?.row?.nfaSubject}</div>
-            <div className="f11 mt-1" style={{ color: '#6b7280' }}>
-              <span>Event Code: </span>
-              <span className="text-primary">{params?.row?.eventCode || "-"}</span>
-            </div>
-          </div>
-        </Tooltip>
+        <div className="rfq-v2-cell" onClick={() => iseditDisabled && navigate(`/configuration/manage-nfa/${params?.row.id}`)}>
+          <CommonTooltip title={params?.row?.nfaSubject || ''} placement="bottom">
+            <span className="rfq-v2-cell-subject" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+              {params?.row?.nfaSubject}
+            </span>
+          </CommonTooltip>
+          <span className="rfq-v2-cell-code">
+            <span>Event Code: {params?.row?.eventCode || '-'}</span>
+          </span>
+        </div>
       ),
     },
     {
