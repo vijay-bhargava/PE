@@ -408,7 +408,7 @@ const AddGRNDialog = ({ open, onClose, poDetails, lineItems = [], onSubmit, exis
 			label: 'Rejected Qty',
 			width: 130,
 			renderCell: (_, row) => {
-				if (!row._sel) return <span style={{ fontSize: 12, color: '#999' }}>—</span>;
+				if (!row._sel) return <span style={{ fontSize: 12, color: '#999' }}></span>;
 				const err = errors[`rejected_${row._item.id}`];
 				return (
 					<div>
@@ -435,7 +435,7 @@ const AddGRNDialog = ({ open, onClose, poDetails, lineItems = [], onSubmit, exis
 			label: 'Accepted Qty',
 			width: 130,
 			renderCell: (_, row) => {
-				if (!row._sel) return <span style={{ fontSize: 12, color: '#999' }}>—</span>;
+				if (!row._sel) return <span style={{ fontSize: 12, color: '#999' }}></span>;
 				const err = errors[`accepted_${row._item.id}`];
 				return (
 					<div>
@@ -462,7 +462,7 @@ const AddGRNDialog = ({ open, onClose, poDetails, lineItems = [], onSubmit, exis
 			label: 'Delivery Date',
 			width: 155,
 			renderCell: (_, row) => {
-				if (!row._sel) return <span style={{ fontSize: 12, color: '#999' }}>—</span>;
+				if (!row._sel) return <span style={{ fontSize: 12, color: '#999' }}></span>;
 				const err = errors[`delivery_${row._item.id}`];
 				return (
 					<div>

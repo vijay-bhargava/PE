@@ -1,23 +1,9 @@
 import React from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { CircularProgress } from "@mui/material";
 import { HiOutlineEye, HiPlusSm } from "react-icons/hi";
 import { formatDateViaTimeZone } from "../../../utils/common/utility";
+import { PETableSimple } from "../../../components/RFQ/PETable";
+import StatusBadge from "../../../components/StatusBadge";
 
 const PaymentsTab = ({
   isShippedHistoryCreateDisabled,
@@ -41,16 +27,70 @@ const PaymentsTab = ({
   setPaymentDetails,
   setState,
 }) => {
+  const columns = [
+    {
+      key: 'invoiceNo',
+      label: 'SAP Doc Number',
+      renderCell: (v) => <span style={{ fontWeight: 600 }}>{v || ''}</span>,
+    },
+    {
+      key: 'paymentDate',
+      label: 'Payment Date',
+      renderCell: (v) => v ? formatDateViaTimeZone(v, 'en-GB', formatoption) : '',
+    },
+    {
+      key: 'paymentMethod',
+      label: 'Payment Method',
+      renderCell: (v) => v || '',
+    },
+    {
+      key: 'utrNumber',
+      label: 'UTR Number',
+      renderCell: (v) => v || '',
+    },
+    {
+      key: 'bankReference',
+      label: 'Bank Reference',
+      renderCell: (v) => v || '',
+    },
+    {
+      key: 'paymentAmount',
+      label: 'Amount',
+      renderCell: (v) => v ?? '',
+    },
+    {
+      key: 'paymentStatus',
+      label: 'Status',
+      renderCell: (v) => <StatusBadge status={v || 'Pending'} />,
+    },
+    {
+      key: '__actions__',
+      label: 'Actions',
+      renderCell: (_, row) => (
+        <button
+          type="button"
+          className="pe-icon-btn pe-icon-btn--view"
+          title="View Payment"
+          onClick={() => {
+            setPaymentDetails({ ...row, __source: 'paymentheader' });
+            setState(prevState => ({ ...prevState, openPaymentDetails: true }));
+          }}
+        >
+          <HiOutlineEye />
+        </button>
+      ),
+    },
+  ];
+
   return (
-    <div className="p-3">
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>Payments</Typography>
+    <div style={{ padding: '20px' }}>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#333' }}>Payments</div>
         {!isShippedHistoryCreateDisabled && canCreatePayment && (
-          <Button
-            size="small"
-            variant="text"
-            startIcon={<HiPlusSm />}
-            sx={{ textTransform: 'none', fontSize: 12, color: '#1976d2' }}
+          <button
+            type="button"
+            className="pe-btn pe-btn--link"
+            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13 }}
             onClick={async () => {
               setPaymentTargetItem(null);
               resetPaymentForm();
@@ -69,88 +109,43 @@ const PaymentsTab = ({
               setOpenAddPaymentDrawer(true);
             }}
           >
-            Add Payment
-          </Button>
+            <HiPlusSm style={{ fontSize: 16 }} /> Add Payment
+          </button>
         )}
-      </Box>
+      </div>
+
       {loadingPayments ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 5 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
           <CircularProgress size={28} />
-        </Box>
+        </div>
       ) : paymentError ? (
-        <Alert
-          severity="error"
-          action={
-            <Button
-              color="inherit"
-              size="small"
-              onClick={() => { paymentLoadedRef.current = false; fetchPayments(); }}
-            >
-              Retry
-            </Button>
-          }
-        >
-          {paymentError}
-        </Alert>
-      ) : poPaymentList?.length > 0 ? (
-
-        <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>SAP Doc Number</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Payment Date</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Payment Method</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>UTR Number</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Bank Reference</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Amount</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: 12 }} align="center"></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {poPaymentList.map((payment, idx) => (
-
-                <TableRow key={payment.id || idx} hover>
-                  <TableCell sx={{ fontSize: 12 }}>{payment.invoiceNo || ' '}</TableCell>
-                  <TableCell sx={{ fontSize: 12 }}>{payment.paymentDate ? formatDateViaTimeZone(payment.paymentDate, 'en-GB', formatoption) : ' '}</TableCell>
-                  <TableCell sx={{ fontSize: 12 }}>{payment.paymentMethod || ' '}</TableCell>
-                  <TableCell sx={{ fontSize: 12 }}>{payment.utrNumber || ' '}</TableCell>
-                  <TableCell sx={{ fontSize: 12 }}>{payment.bankReference || ' '}</TableCell>
-                  <TableCell sx={{ fontSize: 12 }}>{payment.paymentAmount ?? ' '}</TableCell>
-                  <TableCell sx={{ fontSize: 12 }}>
-                    <Chip
-                      label={payment.paymentStatus || 'Pending'}
-                      size="small"
-                      sx={{
-                        bgcolor: payment.paymentStatus?.toLowerCase() === 'completed' ? '#e8f5e9' : '#f5f5f5',
-                        color: payment.paymentStatus?.toLowerCase() === 'completed' ? '#2e7d32' : '#666',
-                        fontWeight: 600,
-                        fontSize: 11
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <Tooltip title="View">
-                      <IconButton
-                        size="small"
-                        sx={{ color: '#1976d2' }}
-                        onClick={() => {
-                          setPaymentDetails({ ...payment, __source: 'paymentheader' });
-                          setState(prevState => ({ ...prevState, openPaymentDetails: true }));
-                        }}
-                      >
-                        <HiOutlineEye />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <div style={{ padding: '12px 16px', background: '#fee2e2', color: '#991b1b', borderRadius: 8, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>{paymentError}</span>
+          <button
+            type="button"
+            className="pe-btn pe-btn--outline"
+            style={{ fontSize: 12, padding: '3px 10px' }}
+            onClick={() => { paymentLoadedRef.current = false; fetchPayments(); }}
+          >
+            Retry
+          </button>
+        </div>
+      ) : (poPaymentList?.length > 0) ? (
+        <PETableSimple
+          columns={columns}
+          rows={poPaymentList}
+          getRowKey={(row, idx) => row.id ?? idx}
+          wrapperStyle={{
+            flex: 'none',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            overflow: 'hidden',
+          }}
+        />
       ) : (
-        <Alert severity="info">No Payment records found for this PO.</Alert>
+        <div style={{ padding: '32px 16px', textAlign: 'center', color: '#6b7280', fontSize: 13, background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+          No Payment records found for this PO.
+        </div>
       )}
     </div>
   );

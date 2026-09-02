@@ -39,6 +39,8 @@ import SESDialog from '../SESDialog';
 import AddASNDialog from '../AddASNDialog';
 import AddInvoiceDialog from '../AddInvoiceDialog';
 import AddUpdatePaymentterms from '../AddUpdatePaymentterms';
+import AddPaymentDrawer from '../AddPaymentDrawer';
+import PEModal from '../../../components/PEModal';
 import { MemoizedEventStageFlow } from "../../../utils/common/component";
 
 const PODrawers = ({
@@ -1774,280 +1776,114 @@ const PODrawers = ({
         </Drawer>
       </React.Fragment>
 
-      {/* Payment Details Drawer */}
-      <Drawer
-        anchor="right"
+      {/* Payment Details Modal */}
+      <PEModal
         open={state.openPaymentDetails}
-        onClose={() => {
-          setState(prevState => ({ ...prevState, openPaymentDetails: false }));
-          setPaymentDetails(null);
-        }}
+        onClose={() => { setState(prevState => ({ ...prevState, openPaymentDetails: false })); setPaymentDetails(null); }}
+        title="Payment Details"
+        size="lg"
+        footer={
+          <button
+            type="button"
+            className="pe-btn pe-btn--outline"
+            onClick={() => { setState(prevState => ({ ...prevState, openPaymentDetails: false })); setPaymentDetails(null); }}
+          >
+            Close
+          </button>
+        }
       >
-        <Box sx={{ width: { xs: 320, sm: 400, md: 480 } }}>
-          <div className="flex flex-col">
-            <Box className="bgheaderCards">
-              <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                <div className="ms-3 text-white">Payment Details</div>
+        {loadingPayment ? (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
+            <div className="spinner-border text-primary" role="status" />
+            <div style={{ marginTop: 8, fontSize: 13 }}>Loading payment details...</div>
+          </div>
+        ) : paymentDetails ? (
+          <div className="pe-info-card" style={{ height: 'auto', marginBottom: 0 }}>
+            <div className="pe-info-card-title" style={{ marginBottom: 16 }}>
+              <MdReceipt style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              Payment Information
+            </div>
+            {paymentDetails.__source === 'paymentheader' ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
                 <div>
-                  <IconButton
-                    onClick={() => {
-                      setState(prevState => ({ ...prevState, openPaymentDetails: false }));
-                      setPaymentDetails(null);
-                    }}
-                    size="small"
-                    edge="start"
-                    sx={{ mr: 1 }}
-                  >
-                    <HiOutlineX className="f20 text-white" />
-                  </IconButton>
+                  <label className="pe-field-label">SAP Doc Number</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.invoiceNo || '—'}</div>
+                </div>
+                <div>
+                  <label className="pe-field-label">Payment Method</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentMethod || '—'}</div>
+                </div>
+                <div>
+                  <label className="pe-field-label">UTR Number</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.utrNumber || '—'}</div>
+                </div>
+                <div>
+                  <label className="pe-field-label">Bank Reference</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.bankReference || '—'}</div>
+                </div>
+                <div>
+                  <label className="pe-field-label">Payment Category</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentCategory || '—'}</div>
+                </div>
+                <div>
+                  <label className="pe-field-label">Amount</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentAmount ?? '—'}</div>
+                </div>
+                <div>
+                  <label className="pe-field-label">Status</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentStatus || '—'}</div>
+                </div>
+                <div>
+                  <label className="pe-field-label">Payment Date</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentDate ? formatDateViaTimeZone(paymentDetails.paymentDate, 'en-GB', formatoption) : '—'}</div>
+                </div>
+                {paymentDetails.sapPaymentDoc && (
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label className="pe-field-label">SAP Payment Doc</label>
+                    <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.sapPaymentDoc}</div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
+                <div>
+                  <label className="pe-field-label">Bank Name</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.bankName || paymentDetails.BankName || '—'}</div>
+                </div>
+                <div>
+                  <label className="pe-field-label">Transaction ID</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.transactionID || paymentDetails.TransactionID || paymentDetails.transactionId || paymentDetails.TransactionId || '—'}</div>
+                </div>
+                <div>
+                  <label className="pe-field-label">Amount</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.amount || paymentDetails.Amount || '—'}</div>
+                </div>
+                <div>
+                  <label className="pe-field-label">Payment Date</label>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{(paymentDetails.paymentDate || paymentDetails.PaymentDate) ? formatDateViaTimeZone(paymentDetails.paymentDate || paymentDetails.PaymentDate, 'en-GB', formatoption) : '—'}</div>
                 </div>
               </div>
-            </Box>
-
-            <div className="p-4">
-              {loadingPayment ? (
-                <div className="text-center py-5">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                  <div className="mt-2">Loading payment details...</div>
-                </div>
-              ) : paymentDetails ? (
-                <div className="row">
-                  <div className="col-12 mb-4">
-                    <div className="mb-4 text-primary f14 fw-bold d-flex align-items-center">
-                      <MdReceipt className="me-2" size={20} />
-                      Payment Information
-                    </div>
-
-                    {paymentDetails.__source === 'paymentheader' ? (
-                      <div className="row">
-                        <div className="col-12 mb-3">
-                          <TextField id="invoiceNo" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="invoiceNo" className="w-100 f14" size="small" label="SAP Doc Number" variant="outlined" value={paymentDetails.invoiceNo || 'N/A'} />
-                        </div>
-                        <div className="col-12 mb-3">
-                          <TextField id="paymentMethod" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="paymentMethod" className="w-100 f14" size="small" label="Payment Method" variant="outlined" value={paymentDetails.paymentMethod || 'N/A'} />
-                        </div>
-                        <div className="col-12 mb-3">
-                          <TextField id="utrNumber" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="utrNumber" className="w-100 f14" size="small" label="UTR Number" variant="outlined" value={paymentDetails.utrNumber || 'N/A'} />
-                        </div>
-                        <div className="col-12 mb-3">
-                          <TextField id="bankReference" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="bankReference" className="w-100 f14" size="small" label="Bank Reference" variant="outlined" value={paymentDetails.bankReference || 'N/A'} />
-                        </div>
-                        <div className="col-12 mb-3">
-                          <TextField id="paymentCategory" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="paymentCategory" className="w-100 f14" size="small" label="Payment Category" variant="outlined" value={paymentDetails.paymentCategory || 'N/A'} />
-                        </div>
-                        <div className="col-12 mb-3">
-                          <TextField id="paymentAmount" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="paymentAmount" className="w-100 f14" size="small" label="Amount" variant="outlined" value={paymentDetails.paymentAmount ?? 'N/A'} />
-                        </div>
-                        <div className="col-12 mb-3">
-                          <TextField id="paymentStatus" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="paymentStatus" className="w-100 f14" size="small" label="Status" variant="outlined" value={paymentDetails.paymentStatus || 'N/A'} />
-                        </div>
-                        <div className="col-12 mb-3">
-                          <TextField id="ph_paymentDate" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="ph_paymentDate" className="w-100 f14" size="small" label="Payment Date" variant="outlined" value={paymentDetails.paymentDate ? formatDateViaTimeZone(paymentDetails.paymentDate, "en-GB", formatoption) : 'N/A'} />
-                        </div>
-                        {paymentDetails.sapPaymentDoc ? (
-                          <div className="col-12 mb-3">
-                            <TextField id="sapPaymentDoc" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="sapPaymentDoc" className="w-100 f14" size="small" label="SAP Payment Doc" variant="outlined" value={paymentDetails.sapPaymentDoc || 'N/A'} />
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <div className="row">
-                        <div className="col-12 mb-3">
-                          <TextField id="bankName" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="bankName" className="w-100 f14" size="small" label="Bank Name" variant="outlined" value={paymentDetails.bankName || paymentDetails.BankName || 'N/A'} />
-                        </div>
-                        <div className="col-12 mb-3">
-                          <TextField id="transactionID" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="transactionID" className="w-100 f14" size="small" label="Transaction ID" variant="outlined" value={paymentDetails.transactionID || paymentDetails.TransactionID || paymentDetails.transactionId || paymentDetails.TransactionId || 'N/A'} />
-                        </div>
-                        <div className="col-12 mb-3">
-                          <TextField id="amount" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="amount" className="w-100 f14" size="small" label="Amount" variant="outlined" value={paymentDetails.amount || paymentDetails.Amount || 'N/A'} />
-                        </div>
-                        <div className="col-12 mb-3">
-                          <TextField id="paymentDate" InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} name="paymentDate" className="w-100 f14" size="small" label="Payment Date" variant="outlined" value={(paymentDetails.paymentDate || paymentDetails.PaymentDate) ? formatDateViaTimeZone(paymentDetails.paymentDate || paymentDetails.PaymentDate, "en-GB", formatoption) : 'N/A'} />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-5 text-muted">
-                  No payment details available
-                </div>
-              )}
-            </div>
+            )}
           </div>
-        </Box>
-      </Drawer>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280', fontSize: 13 }}>
+            No payment details available
+          </div>
+        )}
+      </PEModal>
 
       {/* Add Payment Drawer */}
-      <Drawer
-        anchor="right"
+      <AddPaymentDrawer
         open={openAddPaymentDrawer}
-        onClose={() => {
-          setOpenAddPaymentDrawer(false);
-          resetPaymentForm();
-        }}
-      >
-        <Box sx={{ width: { xs: 320, sm: 420, md: 480 } }}>
-          <div className="flex flex-col">
-            <Box className="bgheaderCards">
-              <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                <div className="ms-3 text-white">
-                  Add Payment
-                  {paymentTargetItem && (
-                    <span className="ms-2" style={{ fontSize: 12, opacity: 0.85 }}>
-                      — Item {paymentTargetItem.itemNo || paymentTargetItem.id}
-                    </span>
-                  )}
-                </div>
-                <div>
-                  <IconButton
-                    onClick={() => {
-                      setOpenAddPaymentDrawer(false);
-                      resetPaymentForm();
-                    }}
-                    size="small"
-                    edge="start"
-                    sx={{ mr: 1 }}
-                  >
-                    <HiOutlineX className="f20 text-white" />
-                  </IconButton>
-                </div>
-              </div>
-            </Box>
-
-            <div className="p-4">
-              <div className="row">
-                {/* Linked Invoice */}
-                <div className="col-12 mb-3">
-                  <TextField
-                    select
-                    label="Linked Invoice"
-                    size="small"
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    value={paymentForm.invoiceId}
-                    onChange={(e) => handlePaymentFormChange('invoiceId', e.target.value)}
-                  >
-                    <MenuItem value="">— None —</MenuItem>
-                    {(poInvoiceList?.length > 0
-                      ? poInvoiceList
-                      : allPOShipHeader.filter(s => s.invoiceNo && (s.invoiceHId || s.invoiceId))
-                    ).map((s, idx) => {
-                      const invId = s.id ?? s.invoiceHId ?? s.invoiceId;
-                      return (
-                        <MenuItem key={invId || idx} value={invId}>
-                          {s.invoiceNo} {s.invoiceAmount || s.totaLInvoiceAmount ? `(${s.invoiceAmount || s.totaLInvoiceAmount})` : ''}
-                        </MenuItem>
-                      );
-                    })}
-                  </TextField>
-                </div>
-
-                {/* Payment Method */}
-                <div className="col-12 mb-3">
-                  <TextField select label="Payment Method" size="small" fullWidth InputLabelProps={{ shrink: true }} value={paymentForm.paymentMethod} onChange={(e) => handlePaymentFormChange('paymentMethod', e.target.value)}>
-                    <MenuItem value="">— Select —</MenuItem>
-                    <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
-                    <MenuItem value="NEFT">NEFT</MenuItem>
-                    <MenuItem value="RTGS">RTGS</MenuItem>
-                    <MenuItem value="IMPS">IMPS</MenuItem>
-                    <MenuItem value="UPI">UPI</MenuItem>
-                    <MenuItem value="Cheque">Cheque</MenuItem>
-                    <MenuItem value="Cash">Cash</MenuItem>
-                    <MenuItem value="Other">Other</MenuItem>
-                  </TextField>
-                </div>
-
-                {/* Payment Status */}
-                <div className="col-12 mb-3">
-                  <TextField select label="Payment Status" size="small" fullWidth InputLabelProps={{ shrink: true }} value={paymentForm.paymentStatus} onChange={(e) => handlePaymentFormChange('paymentStatus', e.target.value)}>
-                    <MenuItem value="Pending">Pending</MenuItem>
-                    <MenuItem value="Completed">Completed</MenuItem>
-                    <MenuItem value="Failed">Failed</MenuItem>
-                    <MenuItem value="Cancelled">Cancelled</MenuItem>
-                  </TextField>
-                </div>
-
-                {/* Payment Category */}
-                <div className="col-12 mb-3">
-                  <TextField label="Payment Category" size="small" fullWidth InputLabelProps={{ shrink: true }} value={paymentForm.paymentCategory} onChange={(e) => handlePaymentFormChange('paymentCategory', e.target.value)} inputProps={{ maxLength: 100 }} />
-                </div>
-
-                {/* UTR Number */}
-                <div className="col-12 mb-3">
-                  <TextField label="UTR Number" size="small" fullWidth InputLabelProps={{ shrink: true }} value={paymentForm.utrNumber} onChange={(e) => handlePaymentFormChange('utrNumber', e.target.value)} inputProps={{ maxLength: 100 }} />
-                </div>
-
-                {/* Bank Reference */}
-                <div className="col-12 mb-3">
-                  <TextField label="Bank Reference" size="small" fullWidth InputLabelProps={{ shrink: true }} value={paymentForm.bankReference} onChange={(e) => handlePaymentFormChange('bankReference', e.target.value)} inputProps={{ maxLength: 100 }} />
-                </div>
-
-                {/* SAP Payment Doc */}
-                <div className="col-12 mb-3">
-                  <TextField label="SAP Payment Doc" size="small" fullWidth InputLabelProps={{ shrink: true }} value={paymentForm.sapPaymentDoc} onChange={(e) => handlePaymentFormChange('sapPaymentDoc', e.target.value)} inputProps={{ maxLength: 100 }} />
-                </div>
-
-                {/* Amount */}
-                <div className="col-12 mb-3">
-                  <TextField label="Payment Amount *" size="small" fullWidth type="number" InputLabelProps={{ shrink: true }} value={paymentForm.paymentAmount} onChange={(e) => handlePaymentFormChange('paymentAmount', e.target.value)} inputProps={{ min: 0, step: '0.01' }} />
-                </div>
-
-                {/* Retention Amount */}
-                <div className="col-12 mb-3">
-                  <TextField label="Retention Amount" size="small" fullWidth type="number" InputLabelProps={{ shrink: true }} value={paymentForm.retentionAmount} onChange={(e) => handlePaymentFormChange('retentionAmount', e.target.value)} inputProps={{ min: 0, step: '0.01' }} />
-                </div>
-
-                {/* Payment Date */}
-                <div className="col-12 mb-3">
-                  <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <MobileDatePicker
-                      label="Payment Date *"
-                      value={paymentForm.paymentDate}
-                      onChange={(date) => handlePaymentFormChange('paymentDate', date)}
-                      slotProps={{
-                        textField: {
-                          size: 'small',
-                          fullWidth: true,
-                          InputLabelProps: { shrink: true },
-                        },
-                      }}
-                    />
-                  </LocalizationProvider>
-                </div>
-
-                {/* Save Button */}
-                <div className="col-12">
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      sx={{ textTransform: 'none' }}
-                      onClick={() => {
-                        setOpenAddPaymentDrawer(false);
-                        resetPaymentForm();
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <LoadingButton
-                      loading={savingPayment}
-                      variant="contained"
-                      size="small"
-                      sx={{ textTransform: 'none' }}
-                      onClick={handleSubmitPayment}
-                    >
-                      Save Payment
-                    </LoadingButton>
-                  </Box>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Box>
-      </Drawer>
+        onClose={() => { setOpenAddPaymentDrawer(false); resetPaymentForm(); }}
+        paymentTargetItem={paymentTargetItem}
+        paymentForm={paymentForm}
+        handlePaymentFormChange={handlePaymentFormChange}
+        savingPayment={savingPayment}
+        handleSubmitPayment={handleSubmitPayment}
+        poInvoiceList={poInvoiceList}
+        allPOShipHeader={allPOShipHeader}
+      />
 
       {/* Payment Terms - Add New Modal */}
       <Modal

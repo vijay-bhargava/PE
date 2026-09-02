@@ -1,19 +1,8 @@
 import React from "react";
-import {
-  Alert,
-  Box,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
 import { HiOutlineEye } from "react-icons/hi";
 import { formatDateViaTimeZone } from "../../../utils/common/utility";
+import { PETableSimple } from "../../../components/RFQ/PETable";
+import StatusBadge from "../../../components/StatusBadge";
 
 const InvoicesTab = ({
   isShippedHistoryCreateDisabled,
@@ -24,82 +13,66 @@ const InvoicesTab = ({
   formatoption,
   handlePreviewInvoice,
 }) => {
+
+  const columns = [
+    {
+      key: 'invoiceNo',
+      label: 'Invoice Number',
+      renderCell: (v) => <span style={{ fontWeight: 600 }}>{v ?? ''}</span>,
+    },
+    {
+      key: 'invoiceDate',
+      label: 'Invoice Date',
+      renderCell: (v) => v ? formatDateViaTimeZone(v, 'en-GB', formatoption) : '',
+    },
+    {
+      key: 'invoiceAmount',
+      label: 'Invoice Amount',
+      renderCell: (v) => v ?? '',
+    },
+    {
+      key: 'stage',
+      label: 'Status',
+      renderCell: (v) => <StatusBadge status={v} />,
+    },
+    {
+      key: '__actions__',
+      label: 'Actions',
+      renderCell: (_, row) => (
+        <button
+          type="button"
+          className="pe-icon-btn pe-icon-btn--view"
+          onClick={() => handlePreviewInvoice(row)}
+          title="View Invoice"
+        >
+          <HiOutlineEye />
+        </button>
+      ),
+    },
+  ];
+
+  const rows = poInvoiceList ?? [];
+
   return (
-    <div className="p-3">
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: 2,
-        }}
-      >
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          Invoices
-        </Typography>
+    <div style={{ padding: '20px' }}>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#333' }}>Invoices</div>
+        {!isShippedHistoryCreateDisabled && canCreateInvoice && renderAddFlowButton('INVOICE', 'Add Invoice')}
+      </div>
 
-        {!isShippedHistoryCreateDisabled && canCreateInvoice && (
-          renderAddFlowButton("INVOICE", "Add Invoice")
-        )}
-      </Box>
-
-      <Box>
-        {canReadInvoice ? (
-          poInvoiceList?.length > 0 ? (
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Invoice Number</TableCell>
-                    <TableCell>Invoice Date</TableCell>
-                    <TableCell>Invoice Amount</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell align="center"></TableCell>
-                  </TableRow>
-                </TableHead>
-
-                <TableBody>
-                  {poInvoiceList.map((row, idx) => (
-                    <TableRow key={idx} hover>
-                      <TableCell>{row.invoiceNo ?? "—"}</TableCell>
-                      <TableCell>
-                        {row.invoiceDate
-                          ? formatDateViaTimeZone(
-                            row.invoiceDate,
-                            "en-GB",
-                            formatoption
-                          )
-                          : "—"}
-                      </TableCell>
-                      <TableCell>{row.invoiceAmount ?? "—"}</TableCell>
-                      <TableCell>
-                        <Typography
-                          sx={{
-                            color: row.stage?.trim().toLowerCase() === "rejected" ? "red" : "inherit",
-                          }}
-                        >
-                          {row.stage ?? "—"}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton
-                          size="small"
-                          sx={{ color: "#1976d2" }}
-                          onClick={() => handlePreviewInvoice(row)}
-                        >
-                          <HiOutlineEye />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          ) : (
-            <Alert severity="info">No Invoice records found.</Alert>
-          )
-        ) : null}
-      </Box>
+      {canReadInvoice && (
+        <PETableSimple
+          columns={columns}
+          rows={rows}
+          getRowKey={(row, idx) => row.id ?? row.invoiceNo ?? idx}
+          wrapperStyle={{
+            flex: 'none',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }}
+        />
+      )}
     </div>
   );
 };
