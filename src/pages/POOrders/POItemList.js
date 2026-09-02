@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
-	Box, Typography, Chip, Tab, Tabs, Table, TableBody, TableCell,
-	TableContainer, TableHead, TableRow, IconButton, Button, Divider,
-	Collapse, Tooltip, Paper, Checkbox, TextField, MenuItem
+	Box, Typography, Chip, Table, TableBody, TableCell,
+	TableContainer, TableHead, TableRow, IconButton, Button,
+	Collapse, Tooltip, Paper, Checkbox, TextField
 } from '@mui/material';
 import {
-	HiChevronDown, HiOutlineChevronUp, HiOutlineChevronDown, HiPlusSm,
+	HiOutlineChevronUp, HiOutlineChevronDown, HiPlusSm,
 	HiOutlineEye, HiPencilAlt, HiDownload
 } from 'react-icons/hi';
 import { formatDateViaTimeZone, formatoption } from '../../utils/common/utility';
+import StatusBadge from '../../components/StatusBadge';
+import '../../assets/css/manage-rfq-v2.css';
+import '../../assets/css/design-system.css';
 import { toast } from 'react-toastify';
-
 
 const fmtDate = (d) => (d ? formatDateViaTimeZone(d, 'en-GB', formatoption) : '');
 
@@ -44,7 +46,7 @@ const getGrnAcceptedQtyForItem = (itemGrns = []) => {
 				: [];
 		return grnItems;
 	})
-	.reduce((sum, gi) => sum + Number(gi?.acceptedQty ?? gi?.receivedQty ?? 0), 0);
+		.reduce((sum, gi) => sum + Number(gi?.acceptedQty ?? gi?.receivedQty ?? 0), 0);
 };
 
 const getAvailableGrnQty = (item, itemGrns = []) => {
@@ -69,30 +71,7 @@ const fmtQty = (q, uom) => {
 
 const pct = (part, total) => (total > 0 ? Math.round((Number(part) / Number(total)) * 100) : 0);
 
-const STATUS_COLORS = {
-	'fully invoiced':    { bg: '#e8f5e9', color: '#2e7d32', border: '#4caf50' },
-	'partially invoiced':{ bg: '#fff3e0', color: '#e65100', border: '#ff9800' },
-	'not invoiced':      { bg: '#fce4ec', color: '#c62828', border: '#ef9a9a' },
-	'in transit':        { bg: '#e3f2fd', color: '#1565c0', border: '#90caf9' },
-	delivered:           { bg: '#e8f5e9', color: '#2e7d32', border: '#4caf50' },
-	'partially received':{ bg: '#fff3e0', color: '#e65100', border: '#ff9800' },
-	paid:                { bg: '#e8f5e9', color: '#2e7d32', border: '#4caf50' },
-	rejected:            { bg: '#ffebee', color: '#d32f2f', border: '#f44336' },
-	draft:               { bg: '#f5f5f5', color: '#616161', border: '#bdbdbd' },
-};
-
-const StatusChip = ({ label }) => {
-	const style = getStatusChipStyle(label);
-	return (
-		<Box component="span" sx={{
-			px: 1, py: 0.25, borderRadius: 1, fontSize: 11, fontWeight: 600,
-			backgroundColor: style.backgroundColor, color: style.color,
-			border: style.border, whiteSpace: 'nowrap',
-		}}>
-			{label ?? ''}
-		</Box>
-	);
-};
+const StatusChip = ({ label }) => <StatusBadge status={label} />;
 
 /** Thin coloured progress bar */
 const QtyBar = ({ value, color }) => (
@@ -111,27 +90,27 @@ const SectionHeader = ({ title, count, onAdd, addLabel, disabled, extra }) => (
 			{extra && extra}
 		</Box>
 		{onAdd && (
-<Button
-  variant="text"
-  size="Medium"
-  startIcon={<HiPlusSm />}
-  onClick={onAdd}
-  disabled={disabled}
-  sx={{
-    textTransform: 'capitalize',
-    fontWeight: 400,
-    color: '#1976d2 !important',
-    fontSize: 12,
-    padding: 0,
-    minWidth: 'auto',
-    '&:hover': {
-      backgroundColor: 'transparent',
-      color: '#0d47a1 !important',
-    },
-  }}
->
-  {addLabel}
-</Button>
+			<Button
+				variant="text"
+				size="Medium"
+				startIcon={<HiPlusSm />}
+				onClick={onAdd}
+				disabled={disabled}
+				sx={{
+					textTransform: 'capitalize',
+					fontWeight: 400,
+					color: '#1976d2 !important',
+					fontSize: 12,
+					padding: 0,
+					minWidth: 'auto',
+					'&:hover': {
+						backgroundColor: 'transparent',
+						color: '#0d47a1 !important',
+					},
+				}}
+			>
+				{addLabel}
+			</Button>
 		)}
 	</Box>
 );
@@ -145,15 +124,15 @@ const EmptyRow = ({ colSpan, msg }) => (
 );
 
 const TH = ({ children, sx = {} }) => (
-  <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#555', py: 0.75, px: 1, bgcolor: '#f8f8f8', whiteSpace: 'nowrap', ...sx }}>
-    {children}
-  </TableCell>
+	<TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#555', py: 0.75, px: 1, bgcolor: '#f8f8f8', whiteSpace: 'nowrap', ...sx }}>
+		{children}
+	</TableCell>
 );
 
 const TD = ({ children, sx = {} }) => (
-  <TableCell sx={{ fontSize: 11, py: 0.75, px: 1, color: '#333', ...sx }}>
-    {children}
-  </TableCell>
+	<TableCell sx={{ fontSize: 11, py: 0.75, px: 1, color: '#333', ...sx }}>
+		{children}
+	</TableCell>
 );
 
 /* ──── data helpers ────────────────────────────────────────────────────────────────── */
@@ -258,80 +237,80 @@ const normalizeAsnsForItem = (asns) => {
 
 /* ──── Detail section renderers ──────────────────────────────────────────────────── */
 const ASNTable = ({ asns = [], asnStatus, onAdd, onViewASN, disabled }) => {
-  if ((!Array.isArray(asns) || asns.length === 0) && !onAdd) return null;
+	if ((!Array.isArray(asns) || asns.length === 0) && !onAdd) return null;
 
-  const rows = (asns ?? []).flatMap((asn, asnIndex) => {
-    const details = Array.isArray(asn.shipmentDetails) ? asn.shipmentDetails : [];
-    if (details.length === 0) {
-      return [{ asn, detail: null, key: asn.id ?? asnIndex }];
-    }
-    return details.map((detail, detailIndex) => ({
-      asn,
-      detail,
-      key: `${asn.id ?? asnIndex}-${detail.id ?? detailIndex}`,
-    }));
-  });
+	const rows = (asns ?? []).flatMap((asn, asnIndex) => {
+		const details = Array.isArray(asn.shipmentDetails) ? asn.shipmentDetails : [];
+		if (details.length === 0) {
+			return [{ asn, detail: null, key: asn.id ?? asnIndex }];
+		}
+		return details.map((detail, detailIndex) => ({
+			asn,
+			detail,
+			key: `${asn.id ?? asnIndex}-${detail.id ?? detailIndex}`,
+		}));
+	});
 
-  return (
-    <Box mb={3}>
-      <SectionHeader
-        title="ASN Details"
-        count={rows.length}
-        onAdd={onAdd}
-        addLabel="Add ASN"
-        disabled={disabled}
-        extra={asnStatus && <StatusChip label={asnStatus} />}
-      />
+	return (
+		<Box mb={3}>
+			<SectionHeader
+				title="ASN Details"
+				count={rows.length}
+				onAdd={onAdd}
+				addLabel="Add ASN"
+				disabled={disabled}
+				extra={asnStatus && <StatusChip label={asnStatus} />}
+			/>
 
-      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TH>ASN Number</TH>
-              <TH>ASN Date</TH>
-              <TH>Expected Delivery</TH>
-              <TH>Shipped Qty</TH>
-              <TH>Batch</TH>
-              <TH align="center"></TH>
-            </TableRow>
-          </TableHead>
+			<TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
+				<Table size="small">
+					<TableHead>
+						<TableRow>
+							<TH>ASN Number</TH>
+							<TH>ASN Date</TH>
+							<TH>Expected Delivery</TH>
+							<TH>Shipped Qty</TH>
+							<TH>Batch</TH>
+							<TH align="center"></TH>
+						</TableRow>
+					</TableHead>
 
-         <TableBody>
-            {rows.length === 0 ? (
-              <EmptyRow colSpan={6} msg="No ASN records found for this line item." />
-            ) : (
-              rows.map(({ asn, detail, key }) => (
-                <TableRow key={key} hover>
-                  <TD>
-                    <Typography sx={{ color: '#1976d2', fontSize: 12 }}>
-                      {asn.shipSlipId ?? ''}
-                    </Typography>
-                  </TD>
+					<TableBody>
+						{rows.length === 0 ? (
+							<EmptyRow colSpan={6} msg="No ASN records found for this line item." />
+						) : (
+							rows.map(({ asn, detail, key }) => (
+								<TableRow key={key} hover>
+									<TD>
+										<Typography sx={{ color: '#1976d2', fontSize: 12 }}>
+											{asn.shipSlipId ?? ''}
+										</Typography>
+									</TD>
 
-                  <TD>{fmtDate(asn.shippingDate)}</TD>
-                  <TD>{fmtDate(asn.deliveryDate)}</TD>
-                  <TD>{detail?.shipQty ?? ''}</TD>
-                  <TD>{detail?.batchId ?? asn.batchId ?? ''}</TD>
+									<TD>{fmtDate(asn.shippingDate)}</TD>
+									<TD>{fmtDate(asn.deliveryDate)}</TD>
+									<TD>{detail?.shipQty ?? ''}</TD>
+									<TD>{detail?.batchId ?? asn.batchId ?? ''}</TD>
 
-                  <TD align="center">
-                    <Tooltip title="View">
-                      <IconButton
-                        size="small"
-                        sx={{ color: '#1976d2' }}
-                        onClick={() => onViewASN?.(asn)}
-                      >
-                        <HiOutlineEye />
-                      </IconButton>
-                    </Tooltip>
-                  </TD>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
-  );
+									<TD align="center">
+										<Tooltip title="View">
+											<IconButton
+												size="small"
+												sx={{ color: '#1976d2' }}
+												onClick={() => onViewASN?.(asn)}
+											>
+												<HiOutlineEye />
+											</IconButton>
+										</Tooltip>
+									</TD>
+								</TableRow>
+							))
+						)}
+					</TableBody>
+				</Table>
+			</TableContainer>
+		</Box>
+	);
 };
 
 const GRNTable = ({ grns = [], asns = [], grnsesStatus, onAdd, disabled }) => {
@@ -613,13 +592,13 @@ const InvoiceTable = ({ invoices, onAdd, onView, onDownload, disabled }) => (
 			</Table>
 		</TableContainer>
 	</Box>
-  );
+);
 
 
 const ConditionsAccordion = ({ conditions = [] }) => {
-    const [expanded, setExpanded] = useState(false);
+	const [expanded, setExpanded] = useState(false);
 
-    if (!Array.isArray(conditions) || conditions.length === 0) return null;
+	if (!Array.isArray(conditions) || conditions.length === 0) return null;
 
 	return (
 		<Box mb={3}>
@@ -673,7 +652,6 @@ const ConditionsAccordion = ({ conditions = [] }) => {
 	);
 };
 
-const getStatusChipStyle = (status) => { const s = String(status ?? '').trim().toLowerCase(); if (s.includes('partial') || s.includes('partially')) { return { backgroundColor: '#fff8e1', color: '#f57c00', border: '1px solid #ffcc80', }; } return { backgroundColor: '#e8f5e9', color: '#2e7d32', border: '1px solid #a5d6a7', }; };
 /* ──── Main Component ────────────────────────────────────────────────────────────── */
 
 const POItemList = ({
@@ -827,45 +805,45 @@ const POItemList = ({
 			{/* Main Table */}
 			<Box sx={{ mb: 3 }}>
 				{/* <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}> */}
-					<TableContainer
-  component={Paper}
-  variant="outlined"
-  sx={{
-    borderRadius: 1,
-    overflowX: "auto",
-  }}
->
+				<TableContainer
+					component={Paper}
+					variant="outlined"
+					sx={{
+						borderRadius: 1,
+						overflowX: "auto",
+					}}
+				>
 					<Table size="small">
 						<TableHead>
-  <TableRow>
-    {selectionMode && (
-      <TH sx={{ width: 40 }}>
-        <Checkbox
-          size="small"
-          indeterminate={selectedSelectableCount > 0 && selectedSelectableCount < selectableItemIds.length}
-          checked={selectableItemIds.length > 0 && selectedSelectableCount === selectableItemIds.length}
-          disabled={selectableItemIds.length === 0}
-          onChange={(e) => onToggleSelectAll && onToggleSelectAll(e.target.checked)}
-        />
-      </TH>
-    )}
-    <TH sx={{ width: 40 }}></TH>
-    <TH sx={{ minWidth: 90 }}>Item Code</TH>
-	<TH sx={{ minWidth: 70 }}>Item No</TH>
-    <TH sx={{ minWidth: 100 }}>Item Name</TH>
-    <TH sx={{ minWidth: 140 }}>Description</TH>
-    <TH sx={{ minWidth: 65 }}>Ordered Qty</TH>
-    <TH sx={{ minWidth: 65 }}>Received Qty</TH>
-    <TH sx={{ minWidth: 65 }}>Invoiced Qty</TH>
-    <TH sx={{ minWidth: 75 }}>Remaining Qty</TH>
-    <TH sx={{ minWidth: 90, whiteSpace: 'nowrap' }}>Delivery Date</TH>
-    <TH sx={{ minWidth: 75, whiteSpace: 'nowrap' }}>Unit Price</TH>
-    <TH sx={{ minWidth: 70, whiteSpace: 'nowrap' }}>Item Type</TH>
-    <TH sx={{ minWidth: 70, whiteSpace: 'nowrap' }}>Total Value</TH>
-    {/* <TH sx={{ minWidth: 70, whiteSpace: 'nowrap' }}>Status</TH> */}
-	{/* <TH sx={{ width: 120, minWidth: 120, whiteSpace: "nowrap" }}>Status</TH> */}
-  </TableRow>
-</TableHead>
+							<TableRow>
+								{selectionMode && (
+									<TH sx={{ width: 40 }}>
+										<Checkbox
+											size="small"
+											indeterminate={selectedSelectableCount > 0 && selectedSelectableCount < selectableItemIds.length}
+											checked={selectableItemIds.length > 0 && selectedSelectableCount === selectableItemIds.length}
+											disabled={selectableItemIds.length === 0}
+											onChange={(e) => onToggleSelectAll && onToggleSelectAll(e.target.checked)}
+										/>
+									</TH>
+								)}
+								<TH sx={{ width: 40 }}></TH>
+								<TH sx={{ minWidth: 90 }}>Item Code</TH>
+								<TH sx={{ minWidth: 70 }}>Item No</TH>
+								<TH sx={{ minWidth: 100 }}>Item Name</TH>
+								<TH sx={{ minWidth: 140 }}>Description</TH>
+								<TH sx={{ minWidth: 65 }}>Ordered Qty</TH>
+								<TH sx={{ minWidth: 65 }}>Received Qty</TH>
+								<TH sx={{ minWidth: 65 }}>Invoiced Qty</TH>
+								<TH sx={{ minWidth: 75 }}>Remaining Qty</TH>
+								<TH sx={{ minWidth: 90, whiteSpace: 'nowrap' }}>Delivery Date</TH>
+								<TH sx={{ minWidth: 75, whiteSpace: 'nowrap' }}>Unit Price</TH>
+								<TH sx={{ minWidth: 70, whiteSpace: 'nowrap' }}>Item Type</TH>
+								<TH sx={{ minWidth: 70, whiteSpace: 'nowrap' }}>Total Value</TH>
+								{/* <TH sx={{ minWidth: 70, whiteSpace: 'nowrap' }}>Status</TH> */}
+								{/* <TH sx={{ width: 120, minWidth: 120, whiteSpace: "nowrap" }}>Status</TH> */}
+							</TableRow>
+						</TableHead>
 
 						<TableBody>
 							{items.map((item, idx) => {
@@ -911,9 +889,9 @@ const POItemList = ({
 											<TD sx={{ fontWeight: 600, color: '#1976d2' }}>
 												{item.itemCode ?? ''}
 											</TD>
-												<TD sx={{ fontWeight: 600, color: '#1976d2' }}>
-  {item.lineItemNo ?? ''}
-</TD>
+											<TD sx={{ fontWeight: 600, color: '#1976d2' }}>
+												{item.lineItemNo ?? ''}
+											</TD>
 											<TD>
 												<Typography sx={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a' }}>
 													{item.itemName ?? ''}
@@ -980,11 +958,11 @@ const POItemList = ({
 													</Tooltip>
 												)}
 											</TD>
-			<TD sx={{ whiteSpace: 'nowrap' }}>
-  {item.materialPOUnitPrice != null
-    ? item.materialPOUnitPrice.toString().replace(/\.0+$/, '')
-    : ''}
-</TD>
+											<TD sx={{ whiteSpace: 'nowrap' }}>
+												{item.materialPOUnitPrice != null
+													? item.materialPOUnitPrice.toString().replace(/\.0+$/, '')
+													: ''}
+											</TD>
 											{/* Item Type Column - READ-ONLY DISPLAY ONLY */}
 											<TD sx={{ whiteSpace: 'nowrap' }}>
 												<Chip
@@ -1007,7 +985,7 @@ const POItemList = ({
 
 										{/* Inline expand row for full detail */}
 										<TableRow>
-												<TableCell colSpan={selectionMode ? 15 : 14} sx={{ p: 0, borderBottom: 'none' }}>
+											<TableCell colSpan={selectionMode ? 15 : 14} sx={{ p: 0, borderBottom: 'none' }}>
 												<Collapse in={isExpanded} timeout="auto" unmountOnExit>
 													<Box sx={{ p: 3, maxHeight: '55vh', overflowY: 'auto', bgcolor: '#f9fafb', borderLeft: '4px solid #1976d2' }}>
 														{/* Header info */}
@@ -1060,22 +1038,22 @@ const POItemList = ({
 																	{!isDraft && (
 																		<GRNTable
 																			grns={itemGrns}
-																			 grnsesStatus={item.grnsesStatus}
+																			grnsesStatus={item.grnsesStatus}
 																			asns={getItemASNs(shipments, item)}
-onAdd={
-  !isDraft && onAddGRN && itemAsns.length > 0
-    ? () => {
-        if (getAvailableGrnQty(item, itemGrns) <= 0) {
-          toast.warning(
-            "Cannot create GRN. Accepted quantity is equal to the ordered quantity."
-          );
-          return;
-        }
+																			onAdd={
+																				!isDraft && onAddGRN && itemAsns.length > 0
+																					? () => {
+																						if (getAvailableGrnQty(item, itemGrns) <= 0) {
+																							toast.warning(
+																								"Cannot create GRN. Accepted quantity is equal to the ordered quantity."
+																							);
+																							return;
+																						}
 
-        onAddGRN(item);
-      }
-    : undefined
-}																			disabled={isDraft || getAvailableGrnQty(item, itemGrns) === 0}
+																						onAddGRN(item);
+																					}
+																					: undefined
+																			} disabled={isDraft || getAvailableGrnQty(item, itemGrns) === 0}
 																		/>
 																	)}
 																</>
@@ -1084,7 +1062,7 @@ onAdd={
 															{isServiceItem(item) && !isDraft && (
 																<SESDetailsSection
 																	sesDetails={itemSesDetails}
-																	 grnsesStatus={item.grnsesStatus}
+																	grnsesStatus={item.grnsesStatus}
 																	onAdd={!isDraft && onAddSES ? () => onAddSES(item) : undefined}
 																	onPreview={onPreviewSES}
 																	disabled={isDraft}

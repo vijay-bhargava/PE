@@ -27,6 +27,23 @@ const STATUS_MAP = {
 	closed: { bg: '#e5e7eb', color: '#374151', dot: '#6b7280' },
 	close: { bg: '#e5e7eb', color: '#374151', dot: '#6b7280' },
 	pending: { bg: '#fef3c7', color: '#92400e', dot: '#d97706' },
+	// PO-specific
+	'po confirmed': { bg: '#dcfce7', color: '#166534', dot: '#22c55e' }, // green — confirmed/done
+	'under approval': { bg: '#fef3c7', color: '#92400e', dot: '#d97706' }, // amber — waiting
+	'under po approval': { bg: '#fef3c7', color: '#92400e', dot: '#d97706' }, // amber — waiting
+	'pending approval': { bg: '#fef3c7', color: '#92400e', dot: '#d97706' }, // amber — waiting
+	'in process': { bg: '#fef3c7', color: '#92400e', dot: '#d97706' }, // amber — WIP
+	'po sent to supplier': { bg: '#e0e7ff', color: '#3730a3', dot: '#6366f1' }, // indigo — dispatched
+	'sent to supplier': { bg: '#e0e7ff', color: '#3730a3', dot: '#6366f1' }, // indigo — dispatched
+	'partially received': { bg: '#ffedd5', color: '#9a3412', dot: '#f97316' }, // orange — partial
+	'fully received': { bg: '#dcfce7', color: '#166534', dot: '#22c55e' }, // green — complete
+	'partially invoiced': { bg: '#ffedd5', color: '#9a3412', dot: '#f97316' }, // orange — partial
+	'fully invoiced': { bg: '#dcfce7', color: '#166534', dot: '#22c55e' }, // green — complete
+	'not invoiced': { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' }, // red — missing/overdue
+	paid: { bg: '#dcfce7', color: '#166534', dot: '#22c55e' }, // green — done
+	'partially paid': { bg: '#ffedd5', color: '#9a3412', dot: '#f97316' }, // orange — partial
+	'in transit': { bg: '#dff2ff', color: '#075985', dot: '#0284c7' }, // blue — moving
+	delivered: { bg: '#dcfce7', color: '#166534', dot: '#22c55e' }, // green — done
 };
 
 const StatusBadge = ({ status }) => {
