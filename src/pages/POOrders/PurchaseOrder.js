@@ -1,147 +1,86 @@
 import {
-	Alert,
-	Autocomplete,
-	Badge,
-	Box,
-	Button,
-	Checkbox,
-	Chip,
-	CircularProgress,
-	Collapse,
-	Drawer,
-	IconButton,
-	Menu,
-	MenuItem,
-	Paper,
-	Tab,
-	Table,
-	TableBody,
-	TableCell,
-	TableContainer,
-	TableHead,
-	TableRow,
-	Tabs,
-	TextField,
-	ButtonGroup,
-	InputAdornment,
-	Typography,
-	Stack,
-	Tooltip,
-	FormControlLabel,
-	CardContent,
-	Card,
-	Divider,
-	Dialog,
-	DialogTitle,
-	DialogContent,
-	DialogActions,
-	Grid
+	Box, Button, CircularProgress,
+	Drawer, IconButton, Menu, MenuItem,
+	Tab, Tabs, TextField, InputAdornment,
+	Typography, Tooltip, Dialog,
+	DialogTitle, DialogContent, DialogActions,
 } from "@mui/material";
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
-import { DateField, LocalizationProvider } from "@mui/x-date-pickers";
+import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
-import SelectApprovalsCell from "../BaseCells/SelectApprovalsCell";
 import HistoryCell from "../BaseCells/HistoryCell";
 import EventApprovalBox from "../BaseCells/eventapprovalbox";
-import { Form, Modal } from "react-bootstrap";
+import { Modal } from "react-bootstrap";
 import AddUpdatePaymentterms from "./AddUpdatePaymentterms";
-import {
-	HiOutlineCollection,
-	HiOutlineLink,
-	HiOutlineX,
-	HiPencilAlt,
-	HiChevronDown,
-	HiOutlineChevronUp,
-	HiOutlineChevronDown,
-	HiOutlinePencilAlt,
-	HiPlusSm,
-	HiOutlineTrash,
-	HiOutlineEye,
-} from "react-icons/hi";
-import DownloadIcon from "@mui/icons-material/Download";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { HiOutlineLink, HiOutlineX, HiPlusSm, } from "react-icons/hi";
 import { MdReceipt } from "react-icons/md";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-
 import {
-	Link,
-	useLocation,
-	useNavigate,
-	useParams,
-	useSearchParams,
+	useLocation, useNavigate,
+	useParams, useSearchParams,
 } from "react-router-dom";
 import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
 import {
-	POShipInvoiceGRN,
-	GetPOAttachments,
-	GetPOVersion,
-	GetPOCondition,
-	GetPOCreationDetails,
-	POAttachments,
-	POConfirmOrder,
-	PORejectOrder,
-	GetPOHeaderList_Slug,
-	POShipInvoiceHeader,
-	POShipOrdrItem,
-	UpdatePOAddresses,
-	POCommercialFind,
+	POShipInvoiceGRN, GetPOAttachments, GetPOVersion,
+	GetPOCondition, GetPOCreationDetails, POConfirmOrder,
+	PORejectOrder, GetPOHeaderList_Slug, POShipInvoiceHeader,
+	POShipOrdrItem, POCommercialFind,
 } from "../../utils/purchaseOrder";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import POItemList from "./POItemList";
-import POPreview from './POPreview';
 import AddGRNDialog from './AddGRNDialog';
 import SESDialog from './SESDialog';
 import AddASNDialog from './AddASNDialog';
 import AddInvoiceDialog from './AddInvoiceDialog';
-import useFormikOC, {
-	useFormik_InvoiceAccepted,
-	useFormik_GRNAccepted,
-	useFormik_POConfirmOrder,
-	useFormik_PORejectOrder,
-	useFormik_POShipInvoiceHeader,
+import {
+	useFormik_GRNAccepted, useFormik_POConfirmOrder,
+	useFormik_PORejectOrder, useFormik_POShipInvoiceHeader,
 	useFormik_POShipOrdrItem,
 } from "../../utils/pOToAccept/formik";
 import { useCookies } from "react-cookie";
-import ReceiptIcon from "@mui/icons-material/Receipt"; // Icon for "GRN"
 import * as yup from 'yup';
-
-
 import {
-	onlyNumbers,
-	downloadFilesOnAzure,
-	uploadFilesOnAzure,
-	onlyNumberdec,
-	getFileName,
-	getPayloadWithStage,
-	fetchMasters,
-	fetchStates,
-	fetchCities,
-	segregatedEventapprover,
-	getApiErrorMessage,
+	downloadFilesOnAzure, getPayloadWithStage,
+	fetchMasters, getApiErrorMessage,
 } from "../../utils/common";
 import { StageFindAll } from "../../utils/stagemaster";
-import { actionTypes, useStateValue } from "../../store";
+import { useStateValue } from "../../store";
 import {
-	formatDateViaTimeZone,
-	formatoption,
-	getOnlyDateFormatPatternLocale,
-	getCurrency,
-	checkUTC,
-	getEventApproversFind,
+	formatDateViaTimeZone, formatoption,
+	getCurrency, getEventApproversFind,
 } from "../../utils/common/utility";
-import { BackButton, MemoizedEventStageFlow } from "../../utils/common/component";
 import GridSkeleton from "../../components/Skeleton/gridSkeleton";
 import { ApiClient, api } from "../../Apiclient";
 import { toast } from "react-toastify";
-import EditIcon from '@mui/icons-material/Edit';
-
 
 import { buildQueryParams } from "../../utils/purchaseRequest";
-import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../utils/permissionManager';
+import { PermissionManager, ACTIONS } from '../../utils/permissionManager';
 import { LoadingButton } from "@mui/lab";
 import { UOMMasterList } from "../../utils/commerciallibrary";
+import PODetailsTab from './tabs/PODetailsTab';
+import LineItemsTab from './tabs/LineItemsTab';
+import PreviewTab from './tabs/PreviewTab';
+import ASNTab from './tabs/ASNTab';
+import GRNTab from './tabs/GRNTab';
+import ServiceEntryTab from './tabs/ServiceEntryTab';
+import InvoicesTab from './tabs/InvoicesTab';
+import PaymentsTab from './tabs/PaymentsTab';
+import PODetailsDialogs from './tabs/PODetailsDialogs';
+import PODrawers from './tabs/PODrawers';
+import {
+	getOrderedQty, matchesPOItem, isRejectedInvoiceRecord,
+	isRejectedInvoiceDetail, getStageInfo, getAsnCompletedQty,
+	getGrnCompletedQty, getSesCompletedQty, getInvoiceCompletedQty,
+	getCompletedQtyForAddMode, getRemainingQtyForAddMode,
+	isItemEligibleForAddMode, getItemWithStageQuantity,
+	getEligibleItemsForAddMode, hasRemainingItemsForAddMode,
+	isItemShipped, isServiceRow, isServiceItem,
+} from '../../utils/purchaseOrder/poHelpers';
+import { getLineItemColumns, getInvoiceColumns } from './poColumns';
+import '../../assets/css/manage-rfq-v2.css';
+import '../../assets/css/rfq-detail-v2.css';
+import '../../assets/css/rfq-modern.css';
+import '../../assets/css/design-system.css';
 
 const PurchaseOrder = () => {
 	const [cookies] = useCookies(["patkn", "prtkn"]);
@@ -169,10 +108,13 @@ const PurchaseOrder = () => {
 	const [poCancelSubmitting, setPoCancelSubmitting] = useState(false);
 	const [poCancelError, setPoCancelError] = useState(null);
 
+	// Status pill → stage flow popup
+	const [statusAnchorEl, setStatusAnchorEl] = React.useState(null);
+	const handleStatusMenuOpen = (event) => setStatusAnchorEl(event.currentTarget);
+	const handleStatusMenuClose = () => setStatusAnchorEl(null);
+
 	// Anchor for the Save & Continue split-button dropdown (separate from anchorElAction)
 	const [anchorElSaveContinue, setAnchorElSaveContinue] = useState(null);
-	const openSaveContinueMenu = Boolean(anchorElSaveContinue);
-	const handleOpenSaveContinueMenu = (e) => setAnchorElSaveContinue(e.currentTarget);
 	const handleCloseSaveContinueMenu = () => setAnchorElSaveContinue(null);
 
 	// PO Condition edit modal state
@@ -315,7 +257,7 @@ const PurchaseOrder = () => {
 	// hidden and unusable while the PO is in this stage.
 	const isUnderApprovalStage = String(currentStage ?? "").toLowerCase().includes("under approval");
 	const [currentInvStage, setCurrentInvStage] = useState("");
-	const [approvershow, setApproverShow] = useState(false);
+	const [approvershow, setApproverShow] = useState(true);
 
 	// Debug: Track approvershow visibility
 	useEffect(() => {
@@ -505,202 +447,31 @@ const PurchaseOrder = () => {
 		return NO_REMAINING_ITEM_MSG;
 	};
 
-	const isServiceLineItem = (item) => String(item?.itemType ?? '').toLowerCase() === 'service';
-
-	const getOrderedQty = (item) => Number(item?.orderedQuantity ?? item?.quantity ?? 0);
-
-	const normalizeMatchKeys = (values) =>
-		values.filter(v => v !== null && v !== undefined && v !== '').map(v => String(v));
-
-	const getPOItemMatchKeys = (source) => normalizeMatchKeys([
-		source?.id,
-		source?.poCreationDetailId,
-		source?.poItemId,
-		source?.itemId,
-		source?.poCreationId,
-		source?.itemNo,
-		source?.lineItemNo,
-		source?.itemCode,
-		source?.materialCode,
-	]);
-
-	const getDetailMatchKeys = (source) => normalizeMatchKeys([
-		// creationDetailId is the primary/correct key linking an invoice (or other
-		// event) detail row back to its originating PO line item's `id`. It is
-		// checked first so it always wins over the weaker legacy fallback keys below.
-		source?.creationDetailId,
-		source?.poCreationDetailId,
-		source?.poItemId,
-		source?.itemId,
-		source?.poCreationId,
-		source?.itemNo,
-		source?.lineItemNo,
-		source?.itemCode,
-		source?.materialCode,
-	]);
-
-	const matchesPOItem = (detail, item) => {
-		const detailKeys = getDetailMatchKeys(detail);
-		const itemKeys = getPOItemMatchKeys(item);
-		return detailKeys.some(key => itemKeys.includes(key));
-	};
-
-	/** Strict primary-key match: an invoice detail belongs to a PO line item
-	 *  only when detail.creationDetailId === item.id. Used for Invoice Preview. */
-	const matchesByCreationDetailId = (detail, item) =>
-		detail?.creationDetailId != null &&
-		item?.id != null &&
-		String(detail.creationDetailId) === String(item.id);
-
-	const getDetailPoLineId = (detail) =>
-		detail?.creationDetailId ?? detail?.poCreationDetailId ?? detail?.poItemId ?? null;
-
-	const matchesByPoLineId = (detail, item) =>
-		item?.id != null &&
-		getDetailPoLineId(detail) != null &&
-		String(getDetailPoLineId(detail)) === String(item.id);
-
-	const sumMatchingDetails = (records, item, detailKeys, qtyKeys) =>
-		(records ?? []).reduce((total, record) => {
-			const details = detailKeys.flatMap(key => Array.isArray(record?.[key]) ? record[key] : []);
-			return total + details.reduce((detailTotal, detail) => {
-				if (!matchesPOItem(detail, item)) return detailTotal;
-				const qty = qtyKeys.reduce((value, key) => value ?? detail?.[key], null);
-				return detailTotal + Number(qty ?? 0);
-			}, 0);
-		}, 0);
-
-	// IMPORTANT: `receivedQty` is the field the backend actually populates with
-	// the cumulative already-ASN'd quantity for this PO item (same field the
-	// "Received Qty" column in the Line Items table reads directly). It must be
-	// included in this fallback chain — without it, whenever the shipmentDetails
-	// match against allPOShipHeader fails to line up (e.g. dialog opened before
-	// asnHeaders finished loading) AND the raw item object's own totalShipQty is
-	// stale/zero, this evaluates to 0 and Remaining Qty is wrongly shown as the
-	// full Ordered Qty instead of the true remainder (the ASN "Remaining Qty" bug).
-	const getAsnCompletedQty = (item) => Math.max(
-		sumMatchingDetails(allPOShipHeader, item, ['shipmentDetails'], ['shipQty', 'quantity']),
-		Number(item?.receivedQty ?? item?.totalShipQty ?? item?.shippedQuantity ?? item?.asnQuantity ?? 0)
-	);
-
-	const getGrnCompletedQty = (item) => {
-		const matchedQty = (poGrnList ?? []).reduce((total, header) => {
-			const details = ['grnItem', 'grnItems']
-				.flatMap(key => Array.isArray(header?.[key]) ? header[key] : []);
-			return total + details.reduce((detailTotal, detail) => {
-				const isMatch = item?.id != null && getDetailPoLineId(detail) != null
-					? matchesByPoLineId(detail, item)
-					: matchesPOItem(detail, item);
-				if (!isMatch) return detailTotal;
-				const qty = ['acceptedQty', 'receivedQty', 'quantity']
-					.reduce((value, key) => value ?? detail?.[key], null);
-				return detailTotal + Number(qty ?? 0);
-			}, 0);
-		}, 0);
-
-		const fallbackQty = Number(
-			item?.receivedQty ?? item?.acceptedQty ?? item?.totalGrnQty ?? item?.grnQuantity ?? 0
-		);
-		if ((poGrnList ?? []).length === 0) return fallbackQty;
-		return matchedQty > 0 ? matchedQty : fallbackQty;
-	};
-
-	const getSesCompletedQty = (item) => Math.max(
-		sumMatchingDetails(poSesList, item, ['sesItem', 'sesItems'], ['serviceQty', 'acceptedQty', 'quantity']),
-		Number(item?.totalSesQty ?? item?.serviceQty ?? item?.acceptedQty ?? 0)
-	);
-
-	const isRejectedInvoiceRecord = (invoice) => {
-		const stage = String(invoice?.stage ?? '').toLowerCase().trim();
-		const status = String(invoice?.status ?? '').toLowerCase().trim();
-		return stage === 'rejected' || stage === 'reject' || status === 'rejected' || status === 'reject';
-	};
-
-	const isRejectedInvoiceDetail = (detail) => {
-		const stage = String(detail?.stage ?? '').toLowerCase().trim();
-		const status = String(detail?.status ?? '').toLowerCase().trim();
-		return stage === 'rejected' || stage === 'reject' || status === 'rejected' || status === 'reject';
-	};
-
-	const getInvoiceCompletedQty = (item) => {
-		const matchedQty = (poInvoiceList ?? []).reduce((total, invoice) => {
-			if (isRejectedInvoiceRecord(invoice)) return total;
-			const details = ['invoiceDetails', 'invoiceItem', 'invoiceItems']
-				.flatMap(key => Array.isArray(invoice?.[key]) ? invoice[key] : []);
-			return total + details.reduce((detailTotal, detail) => {
-				const isMatch = item?.id != null && detail?.creationDetailId != null
-					? matchesByCreationDetailId(detail, item)
-					: matchesPOItem(detail, item);
-				if (!isMatch) return detailTotal;
-				if (isRejectedInvoiceDetail(detail)) return detailTotal;
-				const qty = ['invoiceQuantity', 'quantity', 'invoicedQty']
-					.reduce((value, key) => value ?? detail?.[key], null);
-				return detailTotal + Number(qty ?? 0);
-			}, 0);
-		}, 0);
-
-		const fallbackQty = Number(
-			item?.invoicedQty ?? item?.invoicedQuantity ?? item?.totalInvoiceQty ?? item?.invoiceQuantity ?? 0
-		);
-		if ((poInvoiceList ?? []).length === 0) return fallbackQty;
-		return matchedQty > 0 ? matchedQty : fallbackQty;
-	};
-
-	const getCompletedQtyForAddMode = (mode, item) => {
-		if (mode === 'ASN') return getAsnCompletedQty(item);
-		if (mode === 'GRN') return getGrnCompletedQty(item);
-		if (mode === 'SES') return getSesCompletedQty(item);
-		if (mode === 'INVOICE') return getInvoiceCompletedQty(item);
-		return 0;
-	};
-
-	const getRemainingQtyForAddMode = (mode, item) =>
-		Math.max(getOrderedQty(item) - getCompletedQtyForAddMode(mode, item), 0);
-
-	const isItemEligibleForAddMode = (mode, item) => {
-		if (!mode || !item) return true;
-		if ((mode === 'ASN' || mode === 'GRN') && isServiceLineItem(item)) return false;
-		if (mode === 'SES' && !isServiceLineItem(item)) return false;
-		return getRemainingQtyForAddMode(mode, item) > 0;
-	};
-
-	const getItemWithStageQuantity = (mode, item) => {
-		const remainingQty = getRemainingQtyForAddMode(mode, item);
-		if (mode === 'ASN') return { ...item, totalShipQty: getAsnCompletedQty(item) };
-		if (mode === 'GRN') return { ...item, totalShipQty: getGrnCompletedQty(item) };
-		if (mode === 'SES') return { ...item, totalSesQty: getSesCompletedQty(item) };
-		if (mode === 'INVOICE') {
-			const orderedQty = getOrderedQty(item);
-			const invoicedQty = getInvoiceCompletedQty(item);
-			return {
-				...item,
-				quantity: remainingQty,
-				orderedQuantity: orderedQty,
-				invoicedQty,
-			};
-		}
-		return item;
-	};
-
-	const getEligibleItemsForAddMode = (mode, sourceItems = allPOItems) =>
-		(sourceItems ?? [])
-			.filter(item => isItemEligibleForAddMode(mode, item))
-			.map(item => getItemWithStageQuantity(mode, item));
-
-	const hasRemainingItemsForAddMode = (mode) =>
-		allPOItems.length === 0 || getEligibleItemsForAddMode(mode).length > 0;
+	// Thin wrappers that bind the imported pure helpers to local state
+	const _state = () => ({ allPOShipHeader, poGrnList, poSesList, poInvoiceList });
+	const _getAsnCompletedQty = (item) => getAsnCompletedQty(item, allPOShipHeader);
+	const _getGrnCompletedQty = (item) => getGrnCompletedQty(item, poGrnList);
+	const _getSesCompletedQty = (item) => getSesCompletedQty(item, poSesList);
+	const _getInvoiceCompletedQty = (item) => getInvoiceCompletedQty(item, poInvoiceList);
+	const _getCompletedQtyForAddMode = (mode, item) => getCompletedQtyForAddMode(mode, item, _state());
+	const _getRemainingQtyForAddMode = (mode, item) => getRemainingQtyForAddMode(mode, item, _state());
+	const _isItemEligibleForAddMode = (mode, item) => isItemEligibleForAddMode(mode, item, _state());
+	const _getItemWithStageQuantity = (mode, item) => getItemWithStageQuantity(mode, item, _state());
+	const _getEligibleItemsForAddMode = (mode, sourceItems = allPOItems) =>
+		getEligibleItemsForAddMode(mode, sourceItems, _state());
+	const _hasRemainingItemsForAddMode = (mode) => hasRemainingItemsForAddMode(mode, allPOItems, _state());
+	const _isItemShipped = (item) => isItemShipped(item, allPOShipHeader);
+	const _isServiceRow = (row) => isServiceRow(row, allPOItems);
+	const _isServiceItem = (item) => isServiceItem(item, allPOItems);
 
 	const displayPOItems = useMemo(
 		() => (allPOItems ?? []).map(item => ({
 			...item,
 			orderedQuantity: getOrderedQty(item),
-			invoicedQty: getInvoiceCompletedQty(item),
+			invoicedQty: getInvoiceCompletedQty(item, poInvoiceList),
 		})),
 		[allPOItems, poInvoiceList]
 	);
-
-	// Returns true if the given PO item appears in any shipment header marked as 'Shipped'.
-	const isItemShipped = (item) => getAsnCompletedQty(item) >= getOrderedQty(item);
 
 	// Delivery date edit state
 	const [deliveryDialogOpen, setDeliveryDialogOpen] = useState(false);
@@ -892,7 +663,7 @@ const PurchaseOrder = () => {
 			toast.warning('Not allowed while the PO is Under Approval.');
 			return;
 		}
-		if (!hasRemainingItemsForAddMode(mode)) {
+		if (!_hasRemainingItemsForAddMode(mode)) {
 			toast.warning(getNoRemainingItemMsg(mode));
 			return;
 		}
@@ -914,7 +685,7 @@ const PurchaseOrder = () => {
 
 	// Toggle a single line item's selection during the Add flow.
 	const handleAddFlowToggleItem = (item, checked) => {
-		if (checked && !isItemEligibleForAddMode(addFlowMode, item)) {
+		if (checked && !_isItemEligibleForAddMode(addFlowMode, item)) {
 			toast.warning(getNoRemainingItemMsg(addFlowMode));
 			return;
 		}
@@ -928,7 +699,7 @@ const PurchaseOrder = () => {
 
 	// Select/deselect all line items during the Add flow.
 	const handleAddFlowToggleAll = (checked) => {
-		setAddFlowSelectedItems(checked ? getEligibleItemsForAddMode(addFlowMode, allPOItems) : []);
+		setAddFlowSelectedItems(checked ? _getEligibleItemsForAddMode(addFlowMode, allPOItems) : []);
 	};
 
 	// Next: validate the selection, then open the relevant existing
@@ -938,7 +709,7 @@ const PurchaseOrder = () => {
 			toast.warning('Please select at least one line item.');
 			return;
 		}
-		const eligibleSelectedItems = getEligibleItemsForAddMode(addFlowMode, addFlowSelectedItems);
+		const eligibleSelectedItems = _getEligibleItemsForAddMode(addFlowMode, addFlowSelectedItems);
 		if (eligibleSelectedItems.length === 0) {
 			toast.warning(getNoRemainingItemMsg(addFlowMode));
 			return;
@@ -964,7 +735,7 @@ const PurchaseOrder = () => {
 	const renderAddFlowButton = (mode, label) => {
 		// Under Approval: Add ASN / Add GRN / Add SES / Add Invoice must not be visible.
 		if (isUnderApprovalStage) return null;
-		const disabled = !hasRemainingItemsForAddMode(mode);
+		const disabled = !_hasRemainingItemsForAddMode(mode);
 		const noRemainingMsg = getNoRemainingItemMsg(mode);
 		const handleDisabledClick = () => {
 			if (disabled) toast.warning(noRemainingMsg);
@@ -1184,7 +955,7 @@ const PurchaseOrder = () => {
 	// Handle select all GRN items
 	const handleSelectAllGrnItems = (event) => {
 		if (event.target.checked) {
-			setSelectedGrnItems(getEligibleItemsForAddMode('GRN'));
+			setSelectedGrnItems(_getEligibleItemsForAddMode('GRN'));
 		} else {
 			setSelectedGrnItems([]);
 		}
@@ -1316,7 +1087,7 @@ const PurchaseOrder = () => {
 	// Handle select all SES items
 	const handleSelectAllSesItems = (event) => {
 		if (event.target.checked) {
-			setSelectedSesItems(getEligibleItemsForAddMode('SES'));
+			setSelectedSesItems(_getEligibleItemsForAddMode('SES'));
 		} else {
 			setSelectedSesItems([]);
 		}
@@ -1727,13 +1498,10 @@ const PurchaseOrder = () => {
 					.split(".")[0];
 
 				link.download = `GRN_PO${pageSlug}_${timestamp}.pdf`;
-
 				document.body.appendChild(link);
 				link.click();
 				document.body.removeChild(link);
-
 				window.URL.revokeObjectURL(url);
-
 				toast.success("GRN report downloaded successfully");
 			}
 		} catch (error) {
@@ -1808,12 +1576,9 @@ const PurchaseOrder = () => {
 		try {
 			setLoadingSesReport(true);
 
-			const response = await apiClient.api.get(
-				`/api/sesheader/downloadSES/${poId}`,
+			const response = await apiClient.api.get(`/api/sesheader/downloadSES/${poId}`,
 				{
-					headers: {
-						Authorization: `Bearer ${atoken}`,
-					},
+					headers: { Authorization: `Bearer ${atoken}`, },
 					responseType: "blob",
 				}
 			);
@@ -1834,13 +1599,10 @@ const PurchaseOrder = () => {
 					.split(".")[0];
 
 				link.download = `SES_PO${poId}_${timestamp}.pdf`;
-
 				document.body.appendChild(link);
 				link.click();
 				document.body.removeChild(link);
-
 				window.URL.revokeObjectURL(url);
-
 				toast.success("SES report downloaded successfully");
 			}
 		} catch (error) {
@@ -1852,9 +1614,7 @@ const PurchaseOrder = () => {
 	};
 
 	const [stagelist, setStageList] = useState([]);
-
 	const [allInvStageList, setAllInvStageList] = useState(null);
-
 	const [invStagelist, setInvStageList] = useState(null);
 	const [GRNIsActive, setGRNIsActive] = useState([]);
 
@@ -2106,8 +1866,6 @@ const PurchaseOrder = () => {
 					toast.error('Failed to submit PO - No response from server.');
 				}
 			} catch (err) {
-
-
 				toast.error('Failed to submit PO.');
 			} finally {
 				setSavingPaymentTerm(false);
@@ -2180,11 +1938,8 @@ const PurchaseOrder = () => {
 		setVersionError(null);
 
 		try {
-
 			const res = await GetPOVersion(
-				poId,
-				ver,
-				atoken,
+				poId, ver, atoken,
 				{ signal: versionControllerRef.current.signal }
 			);
 
@@ -2192,7 +1947,6 @@ const PurchaseOrder = () => {
 
 			if (!res) {
 				// No response case
-
 				setPoSpecificDetails(null);
 				setAllPOItems([]);
 				setSelectedItems([]);
@@ -2222,7 +1976,6 @@ const PurchaseOrder = () => {
 				});
 
 				// Before GetPOCondition API
-
 				const conditions = await GetPOCondition(
 					poId,
 					ver,
@@ -2231,7 +1984,6 @@ const PurchaseOrder = () => {
 				);
 
 				// After GetPOCondition response
-
 				if (conditions && conditions.__cancelled) return;
 
 				const mapped = {
@@ -2243,9 +1995,7 @@ const PurchaseOrder = () => {
 						c => c.isHeaderCondition === false
 					),
 				};
-
 				// Before state updates
-
 				setPoSpecificDetails(mapped);
 
 				setEventId(poData?.id ?? poId);
@@ -2260,20 +2010,10 @@ const PurchaseOrder = () => {
 			}
 		} catch (err) {
 			// Error handling
-
-			console.error("loadPOVersionData Error:", err);
-
-			if (
-				err?.name === 'CanceledError' ||
-				err?.code === 'ERR_CANCELED'
-			) {
-				return;
-			}
-
+			if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') { return; }
 			setVersionError(err?.message || 'Failed to load PO data.');
 		} finally {
 			// Finally block
-
 			setLoadingVersion(false);
 		}
 	}, [atoken]);
@@ -2436,10 +2176,7 @@ const PurchaseOrder = () => {
 		};
 		const queryParams = buildQueryParams(obj);
 		try {
-			const res = await apiClient.getres(
-				`/api/rolemanagement/GetUserRoleRights?${queryParams}`,
-				atoken
-			);
+			const res = await apiClient.getres(`/api/rolemanagement/GetUserRoleRights?${queryParams}`, atoken);
 			if (res) {
 				const permManager = new PermissionManager(res?.data);
 				setPoPermissionManager(permManager);
@@ -2460,10 +2197,7 @@ const PurchaseOrder = () => {
 		};
 		const queryParams = buildQueryParams(obj);
 		try {
-			const res = await apiClient.getres(
-				`/api/rolemanagement/GetUserRoleRights?${queryParams}`,
-				atoken
-			);
+			const res = await apiClient.getres(`/api/rolemanagement/GetUserRoleRights?${queryParams}`, atoken);
 			if (res) {
 				const permManager = new PermissionManager(res?.data);
 				setInvPermissionManager(permManager);
@@ -2542,8 +2276,6 @@ const PurchaseOrder = () => {
 		getUserRoleRightsForInvoice();
 	}, [userDetail?.id]);
 
-
-
 	useEffect(() => {
 		StageFindAll(
 			{ EventType: "INV", CustomerId: customerid, EventId: eventId },
@@ -2553,9 +2285,7 @@ const PurchaseOrder = () => {
 			setAllInvStageList(res);
 			const result = res?.filter((item) => item.stageSeq > 0)
 			setInvStageList(result);
-
 			const filteredGRN = res?.filter((rowData) => {
-
 				return rowData.isActive == true && rowData.stageName == "GRN";
 			});
 			setGRNIsActive(filteredGRN);
@@ -2585,15 +2315,6 @@ const PurchaseOrder = () => {
 			setInvStageList(result);
 		}).catch(() => { /* keep existing inv stage list on failure */ });
 	}, [addInvoiceDialogOpen, invoiceDialogMode, invoicePreviewData?.header?.id, selectedInvoiceId, customerid, atoken]);
-	const [requestApprover, setRequestApprover] = useState({
-		// EventId: allPOShipHeader[0]?.InvoiceDetails[0]?.id ?? 0,
-		EventId: allPOShipHeader[0]?.id ?? 0,
-		EventType: "INV",
-	});
-	// const [requestApprover, setRequestApprover] = useState({
-	// 	EventId: pageSlug,
-	// 	EventType: "INV",
-	// });
 
 	const [stagearray, setStagearray] = useState([`Draft`, `PO Sent to Supplier`]);
 	const [requestCell, setRequestCell] = useState({
@@ -2604,13 +2325,6 @@ const PurchaseOrder = () => {
 		//IsAscending:"True"
 	});
 
-	const updateRequestCell = (newEventId) => {
-
-		setRequestCell((prevState) => ({
-			...prevState,
-			EventId: newEventId,
-		}));
-	};
 	const [eventAppList, setEventAppList] = useState([]);
 	const [wfupdate, setwfUpdate] = useState([false]);
 
@@ -2619,21 +2333,14 @@ const PurchaseOrder = () => {
 
 	// Debug: Track eventAppList changes
 	useEffect(() => {
-
-
 		// 🔥 CRITICAL: Update ref whenever state changes to avoid stale closures
 		eventAppListRef.current = eventAppList;
 	}, [eventAppList]);
 
 	const handleEventAppList = useCallback((arr) => {
-
-
 		// 🔥 CRITICAL: Update both state AND ref immediately
 		eventAppListRef.current = arr;
-
 		setEventAppList(arr);
-
-
 	}, [eventAppList]); // ⚠️ Including eventAppList in deps to track previous state
 
 	// Fetch approvers on mount to ensure they're loaded even if drawer isn't opened
@@ -2645,9 +2352,6 @@ const PurchaseOrder = () => {
 					const res = await getEventApproversFind(dataRequest, atoken);
 
 					if (res && res.length > 0) {
-						const stagelistworkflow = stagelist.filter(x => x.isActive).filter(x => x.wfname).map(x => x.wfname);
-						const updatedvalue = segregatedEventapprover(res, stagelistworkflow);
-
 						// Update both ref and state
 						eventAppListRef.current = res;
 						setEventAppList(res);
@@ -2671,105 +2375,14 @@ const PurchaseOrder = () => {
 		CustomerId: customerid
 	}), [shipConfirmDetails, selectedInvoiceId, customerid]);
 
-	const getNextStage = (dataSelect) => {
-
-		// const filteredStage = invStagelist?.filter((rowData) => {
-		// 	return rowData.isActive == true && rowData.stageName == dataSelect[0]?.stage;
-		// });
-		// const filterednextStage = invStagelist?.filter((rowData) => {
-		// 	return rowData.isActive == true && rowData.stageSeq == filteredStage[0]?.stageSeq + 1;
-		// });
-		// setNextEventStage(filterednextStage[0]?.stageName);
-		// return filterednextStage[0]?.stageName;
-
-		const orderedStages = allInvStageList
-			.filter(stage => stage.isActive)
-			.sort((a, b) => {
-				return a.stageSeq - b.stageSeq || a.id - b.id;
-			});
-
-		const currentStageName = dataSelect[0]?.stage?.trim().toLowerCase();
-
-		const currentIndex = orderedStages.findIndex(
-			stage => stage.stageName.trim().toLowerCase() === currentStageName
-		);
-
-		const nextStageName = orderedStages[currentIndex + 1]?.stageName;
-
-		setNextEventStage(nextStageName || "");
-		return nextStageName || "";
-	};
-
-	// const requestApprover = {
-	//   EventId: eventId ? eventId: pageSlug,
-	//   EventType:eventType
-
-	// };
-
-
-
-
 	const [poOrderItems, setPOOrderItems] = useState([]);
 	//checkbox to handle selection of items
 	const [selectedItems, setSelectedItems] = useState([]);
 	const [isAllItemChecked, setIsAllItemChecked] = useState(true);
-	const handleAllItemChecked = (event) => {
-		const checked = event.target.checked;
-		setIsAllItemChecked(checked);
-		setSelectedItems(checked ? allPOItems : []);
-	};
-	const onItemCheckboxChange = (item, isChecked) => {
-		setSelectedItems((prevSelectedItems) => {
-			if (isChecked) {
-				return prevSelectedItems.some((selectedItem) => selectedItem.id === item.id)
-					? prevSelectedItems
-					: [...prevSelectedItems, item];
-			}
-
-			return prevSelectedItems.filter(
-				(selectedItem) => selectedItem.id !== item.id
-			);
-		});
-	};
 
 	useEffect(() => {
 		setIsAllItemChecked(allPOItems.length > 0 && selectedItems.length === allPOItems.length);
 	}, [allPOItems, selectedItems]);
-
-	const buildAsnDrawerPayload = (items) => {
-		const normalizedItems = (items ?? []).filter(Boolean);
-		const firstItem = normalizedItems[0];
-
-		if (!firstItem) {
-			return null;
-		}
-
-		if (normalizedItems.length === 1) {
-			return firstItem;
-		}
-
-		return {
-			...firstItem,
-			id: 0,
-			shipSlipId: '',
-			shipNoticeType: '',
-			carrierName: '',
-			lrShipBillNumber: '',
-			ewayBillNumber: '',
-			shipMethod: '',
-			serviceLevel: '',
-			remarks: '',
-			shippingDate: null,
-			deliveryDate: null,
-			invoiceAmount: null,
-			invoiceDate: null,
-			invoiceFile: '',
-			invoiceId: 0,
-			invoiceNo: '',
-			invoicePath: '',
-			shipmentDetails: normalizedItems,
-		};
-	};
 
 	// Opens the Add ASN Dialog (POST /api/shipment/Add) for the given (possibly
 	// multiple) selected line items. Mirrors handleOpenAddGrnDialog/handleOpenAddSesDialog —
@@ -2779,16 +2392,12 @@ const PurchaseOrder = () => {
 		// 	toast.warning('Shipment is not allowed until the PO reaches the Confirmed stage.');
 		// 	return;
 		// }
-		const normalizedItems = getEligibleItemsForAddMode(
-			'ASN',
-			Array.isArray(itemsToOpen) ? itemsToOpen : [itemsToOpen]
-		);
+		const normalizedItems = _getEligibleItemsForAddMode('ASN', Array.isArray(itemsToOpen) ? itemsToOpen : [itemsToOpen]);
 
 		if (normalizedItems.length === 0) {
 			toast.warning(NO_REMAINING_ITEM_MSG);
 			return;
 		}
-
 		setAsnDialogMode('add');
 		setAsnPreviewData(null);
 		setSelectedAsnItems(normalizedItems);
@@ -2799,7 +2408,7 @@ const PurchaseOrder = () => {
 	// selected line items that still have uninvoiced quantity.
 	const handleOpenAddInvoiceDrawer = (itemsToOpen = []) => {
 		const itemsForSelection = Array.isArray(itemsToOpen) ? itemsToOpen : [itemsToOpen];
-		const normalizedItems = getEligibleItemsForAddMode('INVOICE', itemsForSelection);
+		const normalizedItems = _getEligibleItemsForAddMode('INVOICE', itemsForSelection);
 
 		// Check if there are any rejected invoices/items
 		const hasRejectedInvoices = (poInvoiceList || []).some(invoice => {
@@ -2822,13 +2431,11 @@ const PurchaseOrder = () => {
 			toast.warning(NO_REMAINING_ITEM_MSG);
 			return;
 		}
-
 		setInvoiceDialogMode('add');
 		setInvoicePreviewData(null);
 		setSelectedInvoiceItems(itemsToOpenFinal);
 		setAddInvoiceDialogOpen(true);
 	};
-
 
 	const [selectAttachedFile, setSelectAttachedFile] = useState([]);
 	const [selectPOAttachedFile, setSelectPoAttachedFile] = useState([]);
@@ -2869,6 +2476,7 @@ const PurchaseOrder = () => {
 		poAttachment: "",
 		fileType: "po_confirm_tab",
 	});
+
 	const handleAttachfileChange = (field) => (event) => {
 		setAttachmentFilters((prevFilters) => ({
 			...prevFilters,
@@ -2879,13 +2487,6 @@ const PurchaseOrder = () => {
 	const [showAttach, setShowAttach] = useState(false);
 	const [loading, setLoading] = useState(false);
 
-	const handleAttachinputChange = (field) => (event) => {
-		setAttachmentFilters((prevFilters) => ({
-			...prevFilters,
-			[field]: event.target.value,
-		}));
-	};
-
 	//Formik Hooks
 	const formik_PORejectOrder = useFormik_PORejectOrder(
 		(values) => {
@@ -2893,9 +2494,7 @@ const PurchaseOrder = () => {
 				setState({ ...state, openOrderReject: false });
 			});
 		},
-		{
-			poId: pageSlug,
-		}
+		{ poId: pageSlug, }
 	);
 
 	const formik_GRNAccepted = useFormik_GRNAccepted((values) => {
@@ -2907,41 +2506,18 @@ const PurchaseOrder = () => {
 			allInvStageList,
 			atoken
 		).then(() => {
-
 			setGrnSaveDisable(false);
 			fetchPOHeaderList_Slug(pageSlug, selectedVersion);
 			loadPOVersionData(pageSlug, selectedVersion);
 			setState({ ...state, openOrderGRNSubmit: false });
-
 		});
 	}, {});
-
-	// const formik_InvoiceAccepted = useFormik_InvoiceAccepted((values) => {
-
-	// 	POShipInvoiceApproval(
-	// 		pageSlug,
-	// 		selectedInvoiceRows,
-	// 		values,
-	// 		invStagelist,
-	// 		activityId,
-	// 		atoken
-	// 	).then(() => {
-
-	// 		setapproveSaveDisable(false);
-	// 		FetchPOShipHeaderList(initialValues_fetchPOShipHeader);
-	// 		fetchPOHeaderList_Slug(pageSlug);
-	// 		fetchPODetails(initialValues_fetchPODetails);
-	// 		setState({ ...state, openInvoiceApproved: false });
-	// 		setActionTypeFromURL('');
-
-	// 	});
-	// }, {});
-
 
 	const validationSchemaApprover = Yup.object().shape({
 		// approveComment: yup.string().required("reason is required"),
 		approveComment: Yup.string().required("reason is required")
 	});
+
 	const formik_InvoiceAccepted = useFormik({
 		enableReinitialize: true,
 		initialValues: {
@@ -2971,11 +2547,7 @@ const PurchaseOrder = () => {
 				RecordCreatorId: POShipInvoiceHeader?.createdById ?? 0,
 			}
 
-			const res = await apiClient.postres(
-				`/api/ApprovalAction/ApprovalAction`,
-				actionData,
-				atoken
-			);
+			const res = await apiClient.postres(`/api/ApprovalAction/ApprovalAction`, actionData, atoken);
 
 			if (res) {
 				toast.success(`Invoice Approve Successfully.`);
@@ -3034,6 +2606,7 @@ const PurchaseOrder = () => {
 			fetchInvoices();
 		}
 	}, [value, pageSlug, atoken, poCustomerId]);
+
 	const handleChange = (event, newValue) => {
 		// In draft mode, prevent navigation away from Tab 0 until payment terms are saved
 		const isDraft = String(currentStage ?? "").toLowerCase().includes("draft");
@@ -3093,12 +2666,10 @@ const PurchaseOrder = () => {
 
 		} else if (newValue >= 6 && newValue <= 9) {
 			// Tabs 6-9 – Payments, Documents, History, etc.
-
 		} else if (newValue == 10) {
 			// Preview tab
 			loadPOVersionData(pageSlug, selectedVersion);
 		}
-
 		setValue(newValue);
 	};
 
@@ -3106,16 +2677,11 @@ const PurchaseOrder = () => {
 	const handleTabShipsNotice = (event, newValue) => {
 		setTabShipsNotice(newValue);
 	};
-	const handleNextTabShipsNotice = (value) => {
-		setTabShipsNotice(value);
-	};
 
 	const [grnSaveDisable, setGrnSaveDisable] = React.useState(false);
-
 	const [approveSaveDisable, setapproveSaveDisable] = React.useState(false);
 
 	useEffect(() => {
-
 		getStageInfo(currentInvStage, allInvStageList)
 	}, [currentInvStage, allInvStageList]);
 
@@ -3141,33 +2707,10 @@ const PurchaseOrder = () => {
 			}
 		}
 	}, [userDetail, atoken, eventType, eventId, dispatch]);
-	const getStageInfo = (currentStage, stageList) => {
 
-		if (!stageList || stageList.length === 0) return null;
-
-		const currentStageObj = stageList.find(stage => stage.stageName === currentStage);
-		if (!currentStageObj) return null; // If current stage is not found
-
-		const currentIndex = stageList.findIndex(item => item.stageName === currentStageObj.stageName);
-
-		const nextStageObj = currentIndex !== -1 ? stageList[currentIndex + 1] : undefined;
-		const prevStageObj = currentIndex > 0 ? stageList[currentIndex - 1] : undefined;
-
-		return {
-			prevStage: prevStageObj ? prevStageObj.stageName : null,
-			prevStageId: prevStageObj ? prevStageObj.stageId : null,
-			currentStage: currentStageObj.stageName,
-			currentStageId: currentStageObj.stageId,
-			nextStage: nextStageObj ? nextStageObj.stageName : null,
-			nextStageId: nextStageObj ? nextStageObj.stageId : null
-		};
-	};
 	const nstagevalue = getStageInfo(currentInvStage, allInvStageList);
 
 	const toggleDrawer = (anchor, open, dataSelect) => (event) => {
-
-		//var nstagevalue = getNextStage(dataSelect);
-		// const nstagevalue = getStageInfo(currentInvStage, allInvStageList);
 
 		if (
 			event?.type === "keydown" &&
@@ -3180,94 +2723,17 @@ const PurchaseOrder = () => {
 		}
 		setState({ ...state, [anchor]: open });
 		if (anchor === "openCreateSheet") {
-
 			setShipConfirmDetails(dataSelect);
-
-		}
-		;
-
+		};
 
 		if (anchor == "openInvoiceApproved") {
-
 			if (nstagevalue?.nextStage == 'Under Approval') {
 				setGrnSaveDisable(false);
 				setapproveSaveDisable(false);
 			}
-			// const allowedINVStages = [
-			// 	undefined,
-			// 	"",
-			// 	"Partialy Shipped",
-			// 	"Shipped",
-			// 	"GRN",
-			// 	"Invoice Raised",
-			// 	"Under Approval",
-			// 	"Pending for Payment",
-			// 	"Paid"
-			// ];
-
-			// if (nstagevalue == 'Invoice Raised') {
-			// if (nstagevalue?.nextStage == 'Invoice Raised') {
-			// 	setGrnSaveDisable(false);
-			// }
-			// else {
-			// 	
-			// 	setapproveSaveDisable(true);
-			// 	// if (!allowedINVStages.includes(nstagevalue)) {
-			// 	if (!allowedINVStages.includes(nstagevalue?.nextStage)) {
-			// 		toast("Stage of Event is not valid for Invoice Approval!", {
-			// 			hideProgressBar: true,
-			// 			autoClose: 1000,
-			// 			type: "success",
-			// 		});
-			// 	}
-			// }
-
-			// if (dataSelect[0]?.stage == 'Invoice Raised') {
-			// 	setapproveSaveDisable(false);
-			// }
-			// else {
-			// 	setapproveSaveDisable(true);
-			// 	toast("Stage of Event is not valid for Invoice Approval!", {
-			// 		hideProgressBar: true,
-			// 		autoClose: 1000,
-			// 		type: "success",
-			// 	});
-			// }
 		}
 
 		if (anchor == "openOrderGRNSubmit") {
-
-
-			// const allowedStages = [
-			// 	undefined,
-			// 	"",
-			// 	"Partialy Shipped",
-			// 	"Shipped",
-			// 	"GRN",
-			// 	"Invoice Raised",
-			// 	"Under Approval",
-			// 	"Pending for Payment",
-			// 	"Paid"
-			// ];
-			// 
-			// // if (nstagevalue == 'GRN') {
-			// if (nstagevalue?.nextStage == 'GRN') {
-			// 	setGrnSaveDisable(false);
-			// }
-			// else {
-
-			// 	setGrnSaveDisable(true);
-			// 	// if (!allowedStages.includes(nstagevalue)) {
-			// 	if (!allowedStages.includes(nstagevalue?.nextStage)) {
-			// 		toast("Stage of Event is not valid for GRN!", {
-			// 			hideProgressBar: true,
-			// 			autoClose: 1000,
-			// 			type: "success",
-			// 		});
-			// 	}
-			// }
-
-			// if (nstagevalue?.currentStage == 'GRN') {
 			if (nstagevalue?.currentStage == 'Shipped') {
 				setGrnSaveDisable(false);
 				setapproveSaveDisable(false);
@@ -3296,13 +2762,6 @@ const PurchaseOrder = () => {
 	};
 
 	const [returnfileName, setReturnfileName] = useState("");
-	const handleAddClick = async (attachmentfilters) => {
-		let retunvalue = await POAttachments(attachmentfilters, cookies);
-
-		setReturnfileName(retunvalue.data);
-		retunvalue ? setShowAttach(true) : setShowAttach(false);
-		//setInputList([...inputList, { id: "", name: "", deleteFlag: false }]);
-	};
 
 	const [state, setState] = useState({
 		openCreateSheet: false,
@@ -3310,7 +2769,6 @@ const PurchaseOrder = () => {
 		openOrderReject: false,
 		openPaymentDetails: false,
 	});
-	const [selectedRows, setSelectedRows] = React.useState([]);
 	const [selectedInvoiceRows, setSelectedInvoiceRows] = React.useState([]);
 	const [paymentDetails, setPaymentDetails] = useState(null);
 	const [loadingPayment, setLoadingPayment] = useState(false);
@@ -3330,9 +2788,11 @@ const PurchaseOrder = () => {
 		sapPaymentDoc: '',
 		retentionAmount: '',
 	});
+
 	const handlePaymentFormChange = (field, value) => {
 		setPaymentForm(prev => ({ ...prev, [field]: value }));
 	};
+
 	const resetPaymentForm = () => {
 		setPaymentForm({
 			invoiceId: '',
@@ -3355,56 +2815,6 @@ const PurchaseOrder = () => {
 	const [disableGrnBtn, setDisableGrnBtn] = useState(false);
 	const expandedRowRefs = useRef({});
 
-
-
-	// const handleToggleRow = (rowId) => {
-	// 	setOpenRows((prev) => ({
-	// 		...prev,
-	// 		[rowId]: !prev[rowId],
-	// 	}));
-	// };
-
-	// const handleToggleRow = (rowId) => {
-	// 	setOpenRows((prev) => {
-	// 		const isCurrentlyOpen = !!prev[rowId];
-	// 		const next = { ...prev, [rowId]: !isCurrentlyOpen };
-
-	// 		// If closing the row → reset inputs + checkboxes
-	// 		if (isCurrentlyOpen) {
-	// 			// 1. Find all shipment items for that row
-	// 			const row = allPOShipHeader.find(r => r.id === rowId);
-	// 			if (row?.shipmentDetails?.length) {
-	// 				const itemIds = row.shipmentDetails.map(item => item.id);
-
-	// 				// 2. Clear itemInputs for those items
-	// 				setItemInputs(prevInputs => {
-	// 					const nextInputs = { ...prevInputs };
-	// 					itemIds.forEach(id => {
-	// 						delete nextInputs[id]; // remove saved values
-	// 					});
-	// 					return nextInputs;
-	// 				});
-
-	// 				// 3. Uncheck checkboxes for those items
-	// 				setSelectedItemIds(prevSet => {
-	// 					const nextSet = new Set(prevSet);
-	// 					itemIds.forEach(id => nextSet.delete(id));
-	// 					return nextSet;
-	// 				});
-
-	// 				// 4. Also clear validation errors for those items
-	// 				setValidationErrors(prevErrors => {
-	// 					const nextErrors = { ...prevErrors };
-	// 					itemIds.forEach(id => {
-	// 						delete nextErrors[id];
-	// 					});
-	// 					return nextErrors;
-	// 				});
-	// 			}
-	// 		}
-	// 		return next;
-	// 	});
-	// };
 	const getValidationStyle = (isValid) => {
 		// null / undefined → normal text
 		if (isValid === null || isValid === undefined) {
@@ -3428,46 +2838,13 @@ const PurchaseOrder = () => {
 		};
 	};
 
-	// const getValidationStyle = (isValid) => {
-	// 	// null or undefined → no color
-	// 	if (isValid === null || isValid === undefined) {
-	// 		return {
-	// 			backgroundColor: 'transparent',
-	// 			border: '1px solid transparent',
-	// 			color: 'inherit',
-	// 		};
-	// 	}
-
-	// 	// true → green
-	// 	if (isValid === true) {
-	// 		return {
-	// 			backgroundColor: '#e8f5e9', // light green
-	// 			border: '1px solid #4caf50',
-	// 			color: '#4caf50',
-	// 		};
-	// 	}
-
-	// 	// false → red
-	// 	return {
-	// 		backgroundColor: '#ffebee', // light red
-	// 		border: '1px solid #f44336',
-	// 		color: '#f44336',
-	// 	};
-	// };
-
-
-
 	const handleToggleRow = (rowId) => {
 
 		setOpenRows((prev) => {
 			const isCurrentlyOpen = !!prev[rowId];
-
-
 			const next = {};
 
 			if (!isCurrentlyOpen) {
-
-
 				// 👉 Close all other rows and clear their data
 				allPOShipHeader.forEach(r => {
 					if (prev[r.uniqueRowId]) {
@@ -3535,7 +2912,6 @@ const PurchaseOrder = () => {
 					});
 				}
 			}
-
 			return next;
 		});
 
@@ -3554,7 +2930,6 @@ const PurchaseOrder = () => {
 		}
 	};
 
-
 	const handleSelectAllRow = (rowId, checked) => {
 		const row = allPOShipHeader.find(r => r.uniqueRowId === rowId || r.id === rowId);
 		if (!row?.shipmentDetails) return;
@@ -3572,92 +2947,13 @@ const PurchaseOrder = () => {
 		});
 	};
 
-
 	const handleCheckboxChange = (itemId, checked) => {
-
 		setSelectedItemIds((prev) => {
 			const updated = new Set(prev);
 			checked ? updated.add(itemId) : updated.delete(itemId);
 			return updated;
 		});
 	};
-
-	// const handleItemInputChange = (itemId, field, value) => {
-	// 	setItemInputs((prev) => ({
-	// 		...prev,
-	// 		[itemId]: {
-	// 			...prev[itemId],
-	// 			[field]: value,
-	// 		},
-	// 	}));
-	// };
-
-	// const handleItemInputChange = (itemId, field, value) => {
-
-	// 	setItemInputs((prev) => {
-	// 		const updatedItem = {
-	// 			...prev[itemId],
-	// 			[field]: value,
-	// 		};
-
-	// 		// if the user changes the `qty`, update the qtyQcFailed
-	// 		if (field === 'qty') {
-	// 			// const shipQty = allPOShipHeader
-	// 			// 	.flatMap((row) =>
-	// 			// 		// row.InvoiceDetails?.flatMap((detail) => detail.shipmentDetails ?? []) ?? []
-	// 			// 		row.shipmentDetails?.flatMap((detail) => detail.shipmentDetails ?? []) ?? []
-	// 			// 	)
-	// 			// 	.find((item) => item.id === itemId)?.shipQty;
-	// 			const shipQty = allPOShipHeader
-	// 				.flatMap(row => row.shipmentDetails ?? [])
-	// 				.find(item => item.id === itemId)?.shipQty;
-	// 			if (shipQty !== undefined) {
-	// 				updatedItem.qtyQcFailed = Number(shipQty) > Number(value) ? Number(shipQty) - Number(value) : 0;
-	// 			}
-	// 		}
-
-	// 		return {
-	// 			...prev,
-	// 			[itemId]: updatedItem,
-	// 		};
-	// 	});
-	// };
-
-	// const handleItemInputChange = (itemId, field, value) => {
-	// 	setItemInputs((prev) => {
-	// 		let updatedValue = value;
-
-	// 		const updatedItem = {
-	// 			...prev[itemId],
-	// 			[field]: updatedValue,
-	// 		};
-
-	// 		if (field === 'qty') {
-	// 			const shipQty = allPOShipHeader
-	// 				.flatMap(row => row.shipmentDetails ?? [])
-	// 				.find(item => item.id === itemId)?.shipQty;
-
-	// 			if (shipQty !== undefined) {
-	// 				if (Number(updatedValue) > Number(shipQty)) {
-	// 					updatedValue = shipQty;
-	// 					updatedItem[field] = shipQty;
-	// 				}
-
-	// 				// update QC Failed
-	// 				updatedItem.qtyQcFailed =
-	// 					Number(shipQty) > Number(updatedValue)
-	// 						? Number(shipQty) - Number(updatedValue)
-	// 						: 0;
-	// 			}
-	// 		}
-
-	// 		return {
-	// 			...prev,
-	// 			[itemId]: updatedItem,
-	// 		};
-	// 	});
-	// };
-
 
 	const fieldToErrorKey = {
 		grnno: "grnNumber",
@@ -3733,7 +3029,6 @@ const PurchaseOrder = () => {
 		});
 	};
 
-
 	const validationSchema_GRNAccepted = Yup.object().shape({
 		grnNumber: Yup.string().nullable().optional(),
 		grnAmount: Yup.number()
@@ -3765,7 +3060,6 @@ const PurchaseOrder = () => {
 			.required("Date is required"),
 	});
 
-
 	const handleSubmitGRN = async (rowId) => {
 
 		// Find the specific row's shipment details
@@ -3776,7 +3070,7 @@ const PurchaseOrder = () => {
 		}
 
 		// Check if this row is for service items
-		const isServiceRow = currentRow.shipmentDetails.some(item => isServiceItem(item));
+		const isServiceRow = currentRow.shipmentDetails.some(item => _isServiceItem(item));
 
 		// Get item IDs only from this row
 		const rowItemIds = currentRow.shipmentDetails.map(item => item.id);
@@ -3893,14 +3187,9 @@ const PurchaseOrder = () => {
 			}
 		});
 
-
 		const data = getPayloadWithStage('currentStage', currentInvStage, allInvStageList, payload, 'currentStage');
 
-		const res = await apiClient.postres(
-			`/api/poinvoice/GRN`,
-			data,
-			atoken
-		);
+		const res = await apiClient.postres(`/api/poinvoice/GRN`, data, atoken);
 		if (res) {
 			toast.success(`${isServiceRow ? 'Service approved' : 'GRN submitted'} successfully.`);
 			setDisableGrnBtn(true);
@@ -3996,173 +3285,6 @@ const PurchaseOrder = () => {
 		}
 	};
 
-	const columns = [
-		{
-			field: "itemNo",
-			headerName: "Item Number",
-			width: 100,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer' }}
-					onClick={() => handleRowClick(params)}
-					className="textLigblue"
-				>
-					{params?.formattedValue}
-				</div>
-			)
-		},
-		{
-			field: "itemType",
-			headerName: "Item Type",
-			width: 100,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer', color: '#1976d2' }}
-					onClick={() => handleRowClick(params)}
-				>
-					{params?.formattedValue}
-				</div>
-			),
-		},
-		{
-			field: "itemDesc",
-			headerName: "Item Desc",
-			width: 300,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer', color: '#1976d2' }}
-					onClick={() => handleRowClick(params)}
-				>
-					{params?.formattedValue}
-				</div>
-			),
-		},
-		{
-			field: "poDeliveryDate",
-			headerName: "PO Delivery Date",
-			flex: 1.3,
-			minWidth: 150,
-			renderCell: (params) => {
-				const formattedDate = params?.value
-					? formatDateViaTimeZone(params.value, "en-GB", formatoption)
-					: "Not Confirmed";
-				const itemId = params.row?.id;
-				const stagedDate = deliveryUpdates[itemId];
-				const display = stagedDate ? formatDateViaTimeZone(stagedDate, "en-GB", formatoption) : formattedDate;
-				return (
-					<div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', justifyContent: 'space-between' }}>
-						<div style={{ cursor: 'pointer' }} onClick={() => { /* no-op click */ }}>
-							{display}
-						</div>
-						<IconButton size="small" onClick={(e) => { e.stopPropagation(); setDeliveryDialogRow(params.row); setDeliveryDialogDate(params.value ? new Date(params.value) : null); setDeliveryDialogOpen(true); }}>
-							<HiPencilAlt className="f17 text-primary" />
-						</IconButton>
-					</div>
-				);
-			}
-		}
-		,
-
-		{
-			field: "quantity",
-			headerName: "Quantity",
-			width: 100,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer', color: '#1976d2' }}
-					onClick={() => handleRowClick(params)}
-				>
-					{params?.formattedValue}
-				</div>
-			),
-		},
-		{
-			field: "uom",
-			headerName: "UOM",
-			width: 100,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer', color: '#1976d2' }}
-					onClick={() => handleRowClick(params)}
-				>
-					{params?.formattedValue}
-				</div>
-			),
-		},
-		{
-			field: "materialPOUnitPrice",
-			headerName: "PO Unit Price",
-			width: 100,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer', color: '#1976d2' }}
-					onClick={() => handleRowClick(params)}
-				>
-					{params?.formattedValue}
-				</div>
-			),
-		},
-		{
-			field: "totalAmount",
-			headerName: "Total Amount",
-			width: 100,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer', color: '#1976d2' }}
-					onClick={() => handleRowClick(params)}
-
-				>
-					{params?.formattedValue}
-				</div>
-			)
-		},
-		{
-			field: "totalShipQty",
-			headerName: "Total Ship Quantity",
-			width: 150,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer', color: '#1976d2' }}
-					onClick={() => handleRowClick(params)}
-				>
-					{params?.formattedValue ?? 0}
-				</div>
-			)
-		},
-		{
-			field: "status",
-			headerName: "Status",
-			width: 150,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer', color: '#1976d2' }}
-					onClick={() => handleRowClick(params)}
-				>
-					{params?.formattedValue ?? "Not Confirmed"}
-				</div>
-			)
-		},
-		{
-			field: "plantName",
-			headerName: "Plant",
-			width: 250,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer', color: '#1976d2' }}
-					onClick={() => handleRowClick(params)}
-				>
-					{params?.formattedValue}
-				</div>
-			),
-		},
-
-	];
-	const getRowId = (row) => {
-		return row.id;
-	};
-
-	const [selectedRow, setSelectedRow] = useState(null);
-
 	const handleRowClick = (rows) => {
 		// Prevent navigation to shipped history in draft mode
 		if (String(currentStage ?? "").toLowerCase().includes("draft")) {
@@ -4174,331 +3296,17 @@ const PurchaseOrder = () => {
 		setValue(2);
 	};
 
-	// Helper function to check if a row contains service items
-	const isServiceRow = (row) => {
-		return row?.shipmentDetails?.some(shipItem => {
-			const poItem = allPOItems?.find(po => po.itemNo === shipItem.itemNo);
-			return poItem?.itemType?.toLowerCase() === 'service';
-		});
-	};
+	const getRowId = (row) => row.id;
 
-	// Helper function to check if an individual item is a service
-	const isServiceItem = (item) => {
-		// Return false if item is null/undefined
-		if (!item) {
-			return false;
-		}
-		// First check if itemType is directly on the item
-		if (item?.itemType) {
-			return item.itemType.toLowerCase() === 'service';
-		}
-		// Otherwise, look it up from allPOItems by itemNo
-		if (!item.itemNo || !allPOItems || allPOItems.length === 0) {
-			return false;
-		}
-		const poItem = allPOItems.find(po => po.itemNo === item.itemNo);
-		return poItem?.itemType?.toLowerCase() === 'service';
-	};
-
-	const renderMappingIcon = (value, reason = '') => {
-		if (value === null || value === undefined) {
-			return null;
-		}
-
-		const icon = value === true ? (
-			<svg width="30" height="30" viewBox="0 0 40 40">
-				<circle cx="20" cy="20" r="15" fill="#4caf50" />
-				<path d="M14 20 L18 24 L26 16" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-			</svg>
-		) : (
-			<svg width="30" height="30" viewBox="0 0 40 40">
-				<circle cx="20" cy="20" r="15" fill="#f44336" />
-				<path d="M15 15 L25 25 M25 15 L15 25" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-			</svg>
-		);
-
-		// If no reason provided, just show the icon
-		if (!reason) {
-			return icon;
-		}
-
-		// Wrap icon in tooltip with reason
-		return (
-			<Tooltip
-				title={reason}
-				arrow
-				placement="top"
-				sx={{
-					'& .MuiTooltip-tooltip': {
-						fontSize: '0.875rem',
-						maxWidth: 300,
-						backgroundColor: value ? '#4caf50' : '#f44336',
-					},
-					'& .MuiTooltip-arrow': {
-						color: value ? '#4caf50' : '#f44336',
-					}
-				}}
-			>
-				<div style={{ display: 'inline-flex', cursor: 'help' }}>
-					{icon}
-				</div>
-			</Tooltip>
-		);
-	};
-
-	const POInvoiicecolumns = [
-		{
-			field: "shippingDate",
-			headerName: "Shipping Date",
-			width: 150,
-			renderCell: (params) => (
-				<div
-					className="textLigblue"
-					style={{ cursor: 'pointer' }}
-					onClick={(e) => {
-						e.stopPropagation();
-						handleInvoiceRowClick({ row: params.row, field: "shippingDate" });
-
-					}}
-				>
-					{params?.formattedValue
-						? formatDateViaTimeZone(
-							params?.formattedValue,
-							"en-GB",
-							formatoption
-						)
-						: "NA"}
-				</div>
-			),
-		},
-		{
-			field: "deliveryDate",
-			headerName: "Delivery Date",
-			width: 150,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer' }}
-					onClick={(e) => {
-						e.stopPropagation();
-						handleInvoiceRowClick({ row: params.row, field: "deliveryDate" });
-					}}
-				>
-					{params?.formattedValue
-						? formatDateViaTimeZone(
-							params?.formattedValue,
-							"en-GB",
-							formatoption
-						)
-						: "NA"}
-				</div>
-			),
-		},
-		{
-			field: "status",
-			headerName: "Status",
-			width: 150,
-			renderCell: (params) => {
-				const isRejected = isRejectedInvoiceRecord(params.row);
-				return (
-					<div
-						style={{
-							cursor: 'pointer',
-							color: isRejected ? '#d32f2f' : 'inherit',
-							fontWeight: isRejected ? 600 : 'normal',
-							backgroundColor: isRejected ? '#ffebee' : 'transparent',
-							padding: isRejected ? '2px 8px' : '0px',
-							borderRadius: isRejected ? '4px' : '0px',
-						}}
-						onClick={(e) => {
-							e.stopPropagation();
-							handleInvoiceRowClick({ row: params.row, field: "status" });
-						}}
-					>
-						{params?.formattedValue}
-					</div>
-				);
-			},
-		},
-		{
-			field: "invoiceNo",
-			headerName: "Invoice Number",
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer' }}
-					onClick={(e) => {
-						e.stopPropagation();
-						handleInvoiceRowClick({ row: params.row, field: "invoiceNo" });
-					}}
-				>
-					{params?.formattedValue}
-				</div>
-			),
-			width: 150,
-		},
-		{
-			field: "invoiceAmount",
-			headerName: "Invoice Amount",
-			width: 150,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer' }}
-					onClick={(e) => {
-						e.stopPropagation();
-						handleInvoiceRowClick({ row: params.row, field: "invoiceAmount" });
-					}}
-				>
-					{params?.formattedValue}
-				</div>
-			),
-		},
-		{
-			field: "invoiceDate",
-			headerName: "Invoice Date",
-			width: 150,
-			renderCell: (params) => (
-				<div
-					style={{ cursor: 'pointer' }}
-					onClick={(e) => {
-						e.stopPropagation();
-						handleInvoiceRowClick({ row: params.row, field: "invoiceDate" });
-					}}
-				>
-					{params?.formattedValue
-						? formatDateViaTimeZone(
-							params?.formattedValue,
-							"en-GB",
-							formatoption
-						)
-						: ""}
-				</div>
-			),
-		},
-		{
-			field: "stage",
-			headerName: "Invoice Status",
-			width: 150,
-			renderCell: (params) => {
-				const isRejected = isRejectedInvoiceRecord(params.row);
-				return (
-					<div
-						style={{
-							cursor: 'pointer',
-							color: isRejected ? '#d32f2f' : 'inherit',
-							fontWeight: isRejected ? 600 : 'normal',
-							backgroundColor: isRejected ? '#ffebee' : 'transparent',
-							padding: isRejected ? '2px 8px' : '0px',
-							borderRadius: isRejected ? '4px' : '0px',
-						}}
-						onClick={(e) => {
-							e.stopPropagation();
-							handleInvoiceRowClick({ row: params.row, field: "stage" });
-						}}
-					>
-						{params?.formattedValue}
-					</div>
-				);
-			},
-		},
-		{
-			field: "payment",
-			headerName: "Payment",
-			width: 100,
-			sortable: false,
-			disableColumnMenu: true,
-			renderCell: (params) => (
-				params.row.stage === "Paid" && params.row.invoiceHId ? (
-					<IconButton
-						size="small"
-						color="primary"
-						onClick={(e) => {
-							e.stopPropagation();
-							fetchPaymentDetails(params.row.invoiceHId);
-						}}
-						disabled={loadingPayment}
-					>
-						<MdReceipt size={20} />
-					</IconButton>
-				) : null
-			),
-		},
-		// {
-		// 	field: "viewItem",
-		// 	headerName: "Invoice Detail",
-		// 	width: 100,
-		// 	renderCell: (params) => (
-		// 		// <Chip
-		// 		// 	icon={<HiOutlineLink />}
-		// 		// 	size="small"
-		// 		// 	color="primary"
-		// 		// 	className="ps-1"
-		// 		// 	variant="outlined"
-		// 		// 	label="View"
-		// 		// 	as={Link}
-		// 		// >
-		// 		// 	<Link to={handleInvoiceRowClick} state={params?.row} className="textLigblue">
-		// 		// 		{params?.formattedValue}
-		// 		// 	</Link>
-		// 		// </Chip>
-		// 		<Chip
-		// 			icon={<HiOutlineLink />}
-		// 			size="small"
-		// 			color="primary"
-		// 			className="ps-1"
-		// 			variant="outlined"
-		// 			label="View"
-		// 			onClick={(e) => {
-		// 				e.stopPropagation(); // don't trigger row selection
-		// 				handleInvoiceRowClick({ row: params.row, field: "viewItem" });
-		// 			}}
-		// 		/>
-		// 	),
-		// },
-		{
-			field: "invoiceFile",
-			headerName: "Invoice Attachment",
-			width: 150,
-			renderCell: (params) => (
-				params.formattedValue ? <Chip
-					icon={<HiOutlineLink />}
-					size="small"
-					color="primary"
-					className="ps-1"
-					variant="outlined"
-					label="Download"
-					as={Link}
-				></Chip> : <>No attachments</>
-			),
-		},
-		{
-			field: "manageGRN",
-			headerName: "Manage GRN",
-			width: 120,
-			sortable: false,
-			disableColumnMenu: true,
-			renderCell: (params) => (
-				<Button
-					variant="outlined"
-					size="small"
-					color="primary"
-					disabled={isShippedHistoryEditDisabled}
-					startIcon={openRows[params.row.uniqueRowId] ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
-					onClick={(e) => {
-
-						e.stopPropagation();
-						setInvStatus(params.row.status);
-						handleToggleRow(params.row.uniqueRowId);
-						setSelectedInvoiceRows([params.row]);
-						setDisableGrnBtn(false);
-
-					}}
-				>
-					{openRows[params.row.uniqueRowId] ? "" : ""}
-				</Button>
-			),
-		},
-
-	];
-
+	const columns = getLineItemColumns({
+		handleRowClick,
+		deliveryUpdates,
+		setDeliveryDialogRow,
+		setDeliveryDialogDate,
+		setDeliveryDialogOpen,
+		formatoption,
+		formatDateViaTimeZone,
+	});
 
 	const [shipCreatedById, setShipCreatedById] = useState(0);
 
@@ -4522,8 +3330,6 @@ const PurchaseOrder = () => {
 			rows.field == "stage" ||
 			rows.field == "viewItem"
 		) {
-
-
 			setSelectedInvoiceId(rows?.row?.invoiceId);
 			setShipCreatedById(rows?.row?.createdById);
 			setCurrentInvStage(rows?.row?.stage);
@@ -4538,6 +3344,20 @@ const PurchaseOrder = () => {
 			// downloadFilesOnAzure(rows.row.invoicePath + "/" + rows.row.invoiceFile, atoken);
 		}
 	};
+
+	const POInvoiicecolumns = getInvoiceColumns({
+		handleInvoiceRowClick,
+		fetchPaymentDetails,
+		loadingPayment,
+		isShippedHistoryEditDisabled,
+		openRows,
+		setInvStatus,
+		handleToggleRow,
+		setSelectedInvoiceRows,
+		setDisableGrnBtn,
+		formatoption,
+		formatDateViaTimeZone,
+	});
 
 	const stageInfo = getStageInfo(currentStage, stagelist);
 
@@ -4720,7 +3540,6 @@ const PurchaseOrder = () => {
 				} catch (condError) {
 					conditions = [];
 				}
-
 				setInvoiceDialogMode("preview");
 				setInvoicePreviewData({ header, detail, conditions });
 				setSelectedInvoiceItems(itemsForPreview);
@@ -4731,7 +3550,6 @@ const PurchaseOrder = () => {
 			}
 		})();
 	}, [isInvoiceApprovalUrl, atoken, poCustomerId, customerid]);
-
 
 	const requestCellInvoiceApproval = useMemo(() => ({
 		EventId: previewedInvoiceId ? parseInt(previewedInvoiceId) : 0,
@@ -4896,5231 +3714,607 @@ const PurchaseOrder = () => {
 	const hasServiceLineItems = Array.isArray(allPOItems) &&
 		allPOItems.some(item => item?.itemType?.toLowerCase() === 'service');
 
+	const poStatusSteps = Array.isArray(stagelist) && stagelist.length > 0
+		? stagelist.map(s => s.stageName || s.currentStage).filter(Boolean)
+		: ["Draft"];
+	const normalizedCurrentStage = (currentStage || "Draft").trim();
+	const currentStatusIndex = Math.max(
+		0,
+		poStatusSteps.findIndex(s => s.toLowerCase() === normalizedCurrentStage.toLowerCase())
+	);
+
 	return (
 		<>
-			<div className="mainContainer d-flex" style={{ overflow: 'hidden' }}>
-				<div className={`leftContent ${approvershow ? "col-9" : "col-12"} d-flex flex-column`}>
-					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ height: 'calc(100vh - 120px)', overflow: 'hidden' }}>
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2" style={{ flexShrink: 0 }}>
-							<div className="d-flex flex-column">
-								<div className="d-flex align-items-center gap-2 mb-1">
-									<BackButton
-										title={
-											<span className="page-heading">
-												<span className="page-heading">
-													Purchase Order :{" "}
-													<span style={{ color: "#1976d2" }}>
-														{poSpecificDetails?.externalSourcePONumber ||
-															poSpecificDetails?.poNumber ||
-															poSpecificDetails?.id}
-													</span>
-												</span>
-											</span>
-										}
-										modal={true}
-									/>
+			<div style={{ display: 'flex', flexDirection: 'row', gap: 16, height: 'calc(100vh - 104px)', overflow: 'hidden', alignItems: 'stretch' }}>
+				<div style={{ flex: '1 1 0', minWidth: 0, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ overflow: 'hidden', minHeight: 0 }}>
+
+						{/* ── Page header ── */}
+						<div className="rfq-dv2-page-head border-bottom mb-3" style={{ flexShrink: 0 }}>
+
+							{/* Row 1: breadcrumb + action buttons */}
+							<div className="rfq-dv2-head-top">
+								<div className="rfq-v2-breadcrumb">
+									<span style={{ cursor: 'pointer', color: '#6b7280' }} onClick={() => navigate('/PO/POlist')}>
+										Purchase Orders
+									</span>
+									<span className="rfq-v2-breadcrumb-sep">/</span>
+									<span style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>
+										{poSpecificDetails?.externalSourcePONumber || poSpecificDetails?.poNumber || poSpecificDetails?.id || 'PO Detail'}
+									</span>
 								</div>
-								<div className="d-flex align-items-center gap-2 ms-5">
-									{/* <Chip
-										label={poSpecificDetails?.stage}
-										color="success"
-										size="small"
-										sx={{ fontWeight: 500 }}
-									/> */}
-									<Typography variant="body2" sx={{ color: '#666', display: 'flex', alignItems: 'center', gap: 1 }}>
-										{/* PO Date: {formatDateViaTimeZone(
-											stagedPODate ?? poSpecificDetails?.pO_Date ?? poSpecificDetails?.createdOn,
-											"en-GB",
-											formatoption
-										)} */}
-										{/* Supplier: {poSpecificDetails?.vendorName || ""} */}
-										<br />
-										{/* Company: {poSpecificDetails?.company || ""} */}
-										{/* Company: {poSpecificDetails?.company ? <Tooltip title={poSpecificDetails?.company}><span style={{cursor: 'help'}}>{poSpecificDetails.company.length > 20 ? poSpecificDetails.company.substring(0, 20) + "....." : poSpecificDetails.company}</span></Tooltip> : ""} */}
-										{/* {String(currentStage ?? "").toLowerCase().includes("draft") && (
-											<IconButton 
-												size="small" 
-												onClick={() => {
-													setPoDateDialogValue(stagedPODate ?? (poSpecificDetails?.pO_Date ? new Date(poSpecificDetails.pO_Date) : new Date(poSpecificDetails?.createdOn)));
-													setPoDateDialogOpen(true);
-												}}
-											>
-												<HiPencilAlt className="f17 text-primary" />
-											</IconButton>
-										)} */}
-									</Typography>
-								</div>
-							</div>
-							{/* Stage Flow - centered */}
-							<div className="d-flex justify-content-center flex-grow-1">
-								<MemoizedEventStageFlow
-									stagelist={stagelist}
-									currentStage={currentStage}
-								/>
-							</div>
-							{/* Save & Continue - right side, Draft only, tab-aware */}
-							{/* {String(currentStage ?? "").toLowerCase().includes("draft") && (value === 0 || value === 1 || value === 3) && (
-								// <div style={{ display: 'flex', alignItems: 'center' }}>
-								// 	<LoadingButton
-								// 		loading={savingPaymentTerm}
-								// 		variant="contained"
-								// 		size="small"
-								// 		className="text-capitalize"
-								// 		onClick={handleSaveAndContinue}
-								// 		disabled={savingPaymentTerm}
-								// 	>
-								// 		{value === 3 ? 'PO Sent to Supplier' : 'Save & Continue'}
-								// 	</LoadingButton>
-								// </div>
-								<div style={{ display: 'flex', alignItems: 'center' }}>
+
+								<div className="rfq-dv2-actions">
 									{!loading && (
-										(actionType != null && activityId !=null)  && String(currentStage ?? "").toLowerCase().includes("under approval") ? (
-											<Button
-
-												type="button"
-												size="small"
-												className="button-text text-white"
-												variant="contained"
-												onClick={toggleDrawer("openInvoiceApproved", true)}
-											>
+										String(currentStage ?? "").toLowerCase().includes("under approval") &&
+											actionType !== "" && activityId !== "" ? (
+											<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
+												onClick={toggleDrawer("openInvoiceApproved", true)}>
 												Action
-											</Button>
+											</button>
 										) : (
-											<LoadingButton
-												loading={savingPaymentTerm}
-												variant="contained"
-												size="small"
-												className="text-capitalize"
-												onClick={handleSaveAndContinue}
-												disabled={savingPaymentTerm}
-											>
-												{value === 3 ? 'PO Sent to Supplier' : 'Save & Continue'}
-											</LoadingButton>
-										)
-									)}
-								</div>
-							)} */}
-
-							<div style={{ display: 'flex', alignItems: 'center' }}>
-								{!loading && (
-									String(currentStage ?? "").toLowerCase().includes("under approval") &&
-										actionType != "" &&
-										activityId != "" ? (
-										<Button
-											type="button"
-											size="small"
-											className="button-text text-white"
-											variant="contained"
-											onClick={toggleDrawer("openInvoiceApproved", true)}
-										>
-											Action
-										</Button>
-									) : (
-										String(currentStage ?? "").toLowerCase().includes("draft") &&
-										(value === 0 || value === 1 || value === 10) && (
-											<div style={{ display: 'flex', alignItems: 'center' }}>
-												<ButtonGroup variant="contained" size="small" disabled={savingPaymentTerm}>
-													<LoadingButton
-														loading={savingPaymentTerm}
-														variant="contained"
-														size="small"
-														className="text-capitalize"
-														onClick={() => {
-															handleSaveAndContinue();
-														}}
-														disabled={savingPaymentTerm}
-													>
-														{value === 10 ? 'Submit' : 'Save & Continue'}
-													</LoadingButton>
-													<Button
-														size="small"
-														className="text-capitalize"
-														onClick={handleOpenSaveContinueMenu}
-														disabled={savingPaymentTerm}
-														sx={{ px: 0.5, minWidth: 'auto' }}
-													>
-														<HiChevronDown />
-													</Button>
-												</ButtonGroup>
-												<Menu
-													anchorEl={anchorElSaveContinue}
-													open={openSaveContinueMenu}
-													onClose={handleCloseSaveContinueMenu}
-												>
-													<MenuItem onClick={openPOCancelDialog}>PO Cancel</MenuItem>
-												</Menu>
-											</div>
-										)
-									)
-								)}
-							</div>
-
-
-
-
-						</div>
-						{/* Content Area with Tabs */}
-						<div className="flex-grow-1" style={{ overflow: 'hidden', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-							<Box
-								sx={{
-									flexGrow: 0,
-									flexShrink: 0,
-									display: 'flex',
-									justifyContent: 'space-between',
-									alignItems: 'center',
-									maxWidth: "100%",
-									mb: 2,
-									gap: 2
-								}}
-							>
-								{/* Tabs on the left */}
-								<Box sx={{ flexGrow: 1, minWidth: 0 }}>
-									<Tabs
-										value={value}
-										onChange={handleChange}
-										textColor="primary"
-										className="tabstheme"
-										indicatorColor="primary"
-										variant="scrollable"
-										allowScrollButtonsMobile
-									>
-										{/* PO Details Tab - visibility gated by Roles/permissions (Buyer PO-specific) */}
-										{(loadingPermissions || poPermissionManager?.hasPermission('PO Details', ACTIONS.READ)) && (
-											<Tab
-												value={0}
-												label="PO Details"
-												disabled={isPoDetailsReadDisabled}
-											/>
-										)}
-										{/* Line Items Tab - now visible in Draft as well (per updated Draft-stage flow:
-										    PO Details -> Line Items -> Preview, all as top-level tabs).
-										    Still gated by Roles/permissions (Buyer PO-specific); count from dashboardCounts, matching Matrix PO */}
-										{(loadingPermissions || poPermissionManager?.hasPermission('Items/Services', ACTIONS.READ)) && (
-											<Tab
-												value={1}
-												label={`Line Items (${dashboardCounts.itemCount})`}
-												disabled={isItemServicesReadDisabled}
-											/>
-										)}
-										{/* ASN Tab - Only for Material line items (PO Line Item Type driven, not count-driven).
-										    Tab stays visible even when asnCount is 0; the "(n)" suffix is only appended
-										    once records exist, per dashboard display rule (no "ASN (0)"). */}
-										{!String(currentStage ?? "").toLowerCase().includes("draft") &&
-											hasMaterialLineItems &&
-											Number(poCustomerId ?? customerid) !== 78 && (
-												<Tab
-													value={2}
-													label={dashboardCounts.asnCount > 0 ? `ASN (${dashboardCounts.asnCount})` : 'ASN'}
-												/>
-											)}
-										{/* GRN Tab - Only for Material line items (PO Line Item Type driven, not count-driven) */}
-										{!String(currentStage ?? "").toLowerCase().includes("draft") &&
-											hasMaterialLineItems && (
-												<Tab
-													value={3}
-													label={dashboardCounts.grnCount > 0 ? `GRN (${dashboardCounts.grnCount})` : 'GRN'}
-												/>
-											)}
-										{/* Service Entry Tab - Only for Service line items (PO Line Item Type driven, not count-driven) */}
-										{!String(currentStage ?? "").toLowerCase().includes("draft") &&
-											hasServiceLineItems && (
-												<Tab
-													value={4}
-													label={dashboardCounts.sesCount > 0 ? `Service Entry (${dashboardCounts.sesCount})` : 'Service Entry'}
-												/>
-											)}
-										{/* Invoices Tab - always available once not in draft; "(n)" suffix only when invoices exist */}
-										{!String(currentStage ?? "").toLowerCase().includes("draft") && (
-											<Tab
-												value={5}
-												label={dashboardCounts.invoiceCount > 0 ? `Invoices (${dashboardCounts.invoiceCount})` : 'Invoices'}
-											/>
-										)}
-										{/* Advance Invoices Tab */}
-
-										{/* Payments Tab (dashboardCounts-driven, matching Matrix PO) */}
-										{!String(currentStage ?? "").toLowerCase().includes("draft") &&
-											(
-												<Tab
-													value={7}
-													label={`Payments (${dashboardCounts.paymentCount ?? 0})`}
-												/>
-											)}
-										{/* Documents Tab */}
-										{/* {!String(currentStage ?? "").toLowerCase().includes("draft") && (
-											<Tab
-												value={8}
-												label="Documents (0)"
-											/>
-										)} */}
-										{/* History Tab */}
-										{/* {!String(currentStage ?? "").toLowerCase().includes("draft") && (
-											<Tab
-												value={9}
-												label="History"
-											/>
-										)} */}
-										{/* Preview tab - always available */}
-										<Tab
-											value={10}
-											label="Preview"
-										/>
-									</Tabs>
-								</Box>
-
-								{/* PO Document Attachment on the right */}
-								{poSpecificDetails?.poDocumentFileName && (
-									<Box
-										sx={{
-											display: 'flex',
-											alignItems: 'center',
-											gap: 1,
-											px: 2,
-											py: 1,
-
-											borderRadius: 1,
-
-											cursor: 'pointer',
-											transition: 'all 0.2s',
-											// '&:hover': {
-											// 	backgroundColor: '#e3f2fd',
-											// 	borderColor: '#1976d2',
-											// }
-										}}
-										onClick={() => {
-											if (poSpecificDetails?.poDocumentFilePath) {
-												downloadFilesOnAzure(
-													poSpecificDetails.poDocumentFilePath,
-													poSpecificDetails.poDocumentFileName,
-													atoken
-												);
-											}
-										}}
-									>
-										<Chip
-											icon={<HiOutlineLink />}
-											label={poSpecificDetails.poDocumentFileName}
-											size="small"
-											color="primary"
-											variant="outlined"
-											sx={{
-												maxWidth: '200px',
-												'& .MuiChip-label': {
-													overflow: 'hidden',
-													textOverflow: 'ellipsis',
-													whiteSpace: 'nowrap'
-												}
-											}}
-										/>
-										<Tooltip title="Download PO Document">
-											<IconButton size="small" color="primary">
-												<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-													<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-													<polyline points="7 10 12 15 17 10"></polyline>
-													<line x1="12" y1="15" x2="12" y2="3"></line>
-												</svg>
-											</IconButton>
-										</Tooltip>
-									</Box>
-								)}
-
-								{/* History cell and Approver icons - aligned on the same row */}
-								<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-									<HistoryCell eventtype="PO" eventId={pageSlug} permissionManager={poPermissionManager} />
-									{pageSlug && (
-										<Tooltip title="Show/Hide Approvers">
-											<IconButton
-												onClick={() => handleApprover(!approvershow)}
-												size="small"
-												edge="start"
-												className="pointer"
-											>
-												<div className="approverCircle shadow-sm">
-													<PeopleAltIcon />
-												</div>
-											</IconButton>
-										</Tooltip>
-									)}
-								</Box>
-							</Box>
-
-							{/* Removed separate row for icons - now integrated above */}
-							<Menu
-								anchorEl={anchorElAction}
-								open={openAction}
-								onClose={handleCloseActionMenu}
-							>
-								{/* Menu items can go here if needed */}
-							</Menu>
-
-							{/* <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}> */}
-							<div style={{
-								flex: 1,
-								minHeight: 0,        // important for flex containers
-								overflowY: 'auto',   // vertical scroll
-								overflowX: 'hidden',   // horizontal scroll only if absolutely necessary
-							}}>
-
-								{value == 0 ? (
-									<>
-										<div className="p-2">
-											{/* PO Header Details - Editable in Draft */}
-											<Grid container spacing={2}>
-												<Grid item xs={12}>
-													<Card variant="outlined" sx={{ borderRadius: 2, bgcolor: 'white' }}>
-														<CardContent>
-															{versionError && (
-																<Box mb={2}>
-																	<Alert severity="error" action={
-																		<Button color="inherit" size="small" onClick={() => loadPOVersionData(pageSlug, selectedVersion)}>Retry</Button>
-																	}>
-																		{versionError}
-																	</Alert>
-																</Box>
-															)}
-
-															<Grid container spacing={2}>
-
-																{/* LEFT SIDE */}
-																<Grid item xs={12} md={6}>
-																	<Box>
-
-																		<Box display="flex" alignItems="center" justifyContent="space-between" mb={0.5}>
-																			<Box display="flex" alignItems="center">
-
-																				<Typography sx={{ color: '#666', width: 100 }}>
-																					PO Number
-																				</Typography>
-
-																				{isDraft ? (
-																					<TextField
-																						size="small"
-																						value={poNumberInput}
-																						onChange={(e) => setPoNumberInput(e.target.value)}
-																						placeholder="Enter PO Number"
-																						sx={{ width: 200, '& .MuiOutlinedInput-input': { padding: '4px 8px', fontSize: 14 } }}
-																					/>
-																				) : (
-																					<Typography sx={{ fontWeight: 400, color: '#1976d2' }}>
-																						{poNumberInput ||
-																							poSpecificDetails?.externalSourcePONumber ||
-																							poSpecificDetails?.poNumber ||
-																							'N/A'}
-																					</Typography>
-																				)}
-
-																				{/* GAP added here */}
-																				<Typography sx={{ color: '#666', fontSize: 12, ml: 2 }}>
-																					Version
-																				</Typography>
-
-																				<TextField
-																					select
-																					size="small"
-																					value={selectedVersion}
-																					onChange={(e) => {
-																						const v = Number(e.target.value);
-																						if (!v || v <= 0) return; // ignore invalid
-																						if (v === selectedVersion) return; // ignore same selection
-																						setSelectedVersion(v);
-																						loadPOVersionData(pageSlug, v);
-																					}}
-																					disabled={loadingVersion}
-																					sx={{
-																						width: 60,
-																						ml: 0.5,
-																						'& .MuiOutlinedInput-input': {
-																							padding: '4px 6px',
-																							fontSize: 12,
-																						},
-																						'& .MuiSelect-select': {
-																							padding: '4px 24px 4px 6px !important',
-																							fontSize: 12,
-																						},
-																					}}
-																				>
-																					{(Array.from({ length: (Number(latestVersion) > 0 ? Number(latestVersion) : 1) }, (_, i) => i + 1)).map(v => (
-																						<MenuItem key={v} value={v}>{v}</MenuItem>
-																					))}
-																				</TextField>
-
-																			</Box>
-																		</Box>
-
-																		<Box display="flex" mb={0.5}>
-																			<Typography sx={{ color: '#666', width: 100 }}>
-																				PO Date
-																			</Typography>
-																			<Typography>
-																				{formatDateViaTimeZone(
-																					stagedPODate ?? poSpecificDetails?.pO_Date ?? poSpecificDetails?.createdOn,
-																					"en-GB",
-																					formatoption
-																				)}
-																			</Typography>
-																		</Box>
-																		<Box display="flex" alignItems="center" mb={0.5}>
-																			<Typography sx={{ color: '#666', width: 100 }}>
-																				PO Amount
-																			</Typography>
-
-																			<Typography>
-																				{Number(poSpecificDetails?.poAmount || 0).toLocaleString("en-IN")}
-																			</Typography>
-
-																			{poSpecificDetails?.currency && (
-																				<>
-																					<Typography sx={{ color: '#666', ml: 3 }}>
-																						Currency
-																					</Typography>
-
-																					<Typography sx={{ ml: 1 }}>
-																						{poSpecificDetails.currency}
-																					</Typography>
-																				</>
-																			)}
-																		</Box>
-																		<Box display="flex" alignItems="center">
-																			<Typography sx={{ color: '#666', width: 100 }}>
-																				Expiry Date
-																			</Typography>
-																			{isDraft ? (
-																				<TextField
-																					type="date"
-																					size="small"
-																					value={expiryDate ? new Date(expiryDate).toISOString().slice(0, 10) : ''}
-																					onChange={(e) => setExpiryDate(e.target.value ? new Date(e.target.value) : null)}
-																					InputLabelProps={{ shrink: true }}
-																					sx={{ width: 200, '& .MuiOutlinedInput-input': { padding: '4px 8px', fontSize: 14 } }}
-																				/>
-																			) : (
-																				<Typography>
-																					{expiryDate || poSpecificDetails?.expiryDate
-																						? formatDateViaTimeZone(
-																							expiryDate ?? poSpecificDetails?.expiryDate,
-																							"en-GB",
-																							formatoption
-																						)
-																						: ''}
-																				</Typography>
-																			)}
-																		</Box>
-
-																	</Box>
-																</Grid>
-
-																{/* RIGHT SIDE */}
-																{/* RIGHT SIDE */}
-																<Grid item xs={12} md={6}>
-																	<Box>
-
-																		<Box display="flex" mb={0.5}>
-																			<Typography sx={{ color: '#666', width: 140 }}>
-																				Supplier Company
-																			</Typography>
-																			<Typography>
-																				{poSpecificDetails?.company || ''}
-																			</Typography>
-																		</Box>
-
-																		<Box display="flex" mb={0.5}>
-																			<Typography sx={{ color: '#666', width: 140 }}>
-																				GST
-																			</Typography>
-																			<Typography>
-																				{poSpecificDetails?.supplierGST || ''}
-																			</Typography>
-																		</Box>
-
-																		<Box display="flex" mb={0.5}>
-																			<Typography sx={{ color: '#666', width: 140 }}>
-																				PAN
-																			</Typography>
-																			<Typography>
-																				{poSpecificDetails?.panNumber || ''}
-																			</Typography>
-																		</Box>
-
-																		{poSpecificDetails?.supplierAddress && (
-																			<Box display="flex" mb={0.5}>
-																				<Typography
-																					sx={{
-																						color: '#666',
-																						width: 140,
-																						flexShrink: 0
-																					}}
-																				>
-																					Supplier Address
-																				</Typography>
-
-																				<Typography
-																					sx={{
-																						flex: 1,
-																						minWidth: 0
-																					}}
-																				>
-																					{(() => {
-																						const address = poSpecificDetails.supplierAddress;
-																						const commaIndex = address.indexOf(',');
-
-																						if (commaIndex === -1) {
-																							return address;
-																						}
-
-																						const firstLine = address.substring(0, commaIndex + 1).trim();
-																						const secondLine = address.substring(commaIndex + 1).trim();
-
-																						return (
-																							<>
-																								<span style={{ whiteSpace: 'nowrap' }}>
-																									{firstLine}
-																								</span>
-																								<br />
-																								<span>
-																									{secondLine}
-																								</span>
-																							</>
-																						);
-																					})()}
-																				</Typography>
-																			</Box>
-																		)}
-
-
-
-
-																	</Box>
-																</Grid>
-
-
-															</Grid>
-
-														</CardContent>
-													</Card>
-												</Grid>
-											</Grid>
-										</div>
-										{!isPoDetailsReadDisabled ? (
-											<>
-												<div className="p-2">
-													<div className="row g-3">
-
-														<div className={poSpecificDetails?.poConditions && poSpecificDetails.poConditions.length > 0 ? "col-12 col-md-6" : "col-12 col-md-6"}>
-															<Card variant="outlined" sx={{ height: '100%', borderRadius: 2 }}>
-																<CardContent>
-																	<Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-																		<Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-																			<Box component="span" sx={{ width: 4, height: 24, bgcolor: '#1976d2', borderRadius: 1 }}></Box>
-																			Bill To:
-																		</Typography>
-																		{String(currentStage ?? "").toLowerCase().includes("draft") && (
-																			<Box>
-																				<Tooltip title="Edit Bill To">
-																					<IconButton size="small" onClick={() => {
-																						setbillToAddress(poSpecificDetails?.billToAddress || "");
-																						setbillToCity(poSpecificDetails?.billToCity || "");
-																						setbillToState(poSpecificDetails?.billToState || "");
-																						setBillToCountry(poSpecificDetails?.billToCountry || "");
-																						// Pre-fill country/state/city objects for cascading dropdowns
-																						const cObj = addressCountryOptions.find(o => o.countryName === poSpecificDetails?.billToCountry) ?? null;
-																						setBillToCountryObj(cObj);
-																						setBillToStateObj(null); setBillToCityObj(null); setBillStateOptions([]); setBillCityOptions([]);
-																						if (cObj?.id) fetchStates(cObj.id, atoken).then(res => {
-																							if (res) {
-																								setBillStateOptions(res);
-																								const sObj = res.find(o => o.stateName === poSpecificDetails?.billToState) ?? null;
-																								setBillToStateObj(sObj);
-																								if (sObj?.id) fetchCities(sObj.id, atoken).then(cr => {
-																									if (cr) { setBillCityOptions(cr); setBillToCityObj(cr.find(o => o.cityName === poSpecificDetails?.billToCity) ?? null); }
-																								});
-																							}
-																						});
-																						setOpenEditBill(true);
-																					}}>
-																						<HiPencilAlt className="f17 text-primary" />
-																					</IconButton>
-																				</Tooltip>
-																			</Box>
-																		)}
-																	</Box>
-
-																	{poSpecificDetails?.billToAddress && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-																			{poSpecificDetails.billToAddress}
-																		</Typography>
-																	)}
-																	{(poSpecificDetails?.billToCity || poSpecificDetails?.billToState) && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-																			{poSpecificDetails?.billToCity}
-																			{poSpecificDetails?.billToState ? `, ${poSpecificDetails.billToState}` : ''}
-																		</Typography>
-																	)}
-																	{poSpecificDetails?.billToCountry && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-																			{poSpecificDetails.billToCountry}
-																		</Typography>
-																	)}
-																	{poSpecificDetails?.billToPhone && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-																			<strong>Phone:</strong> {poSpecificDetails.billToPhone}
-																		</Typography>
-																	)}
-																	{poSpecificDetails?.billToEmail && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-																			<strong>E-Mail:</strong> {poSpecificDetails.billToEmail}
-																		</Typography>
-																	)}
-																	{poSpecificDetails?.billToPAN && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-																			<strong>PAN:</strong> {poSpecificDetails.billToPAN}
-																		</Typography>
-																	)}
-																	{poSpecificDetails?.billToGST && (
-																		<Typography variant="body2" sx={{ color: '#666' }}>
-																			<strong>GST:</strong> {poSpecificDetails.billToGST}
-																		</Typography>
-																	)}
-																</CardContent>
-															</Card>
-														</div>
-
-														<div className={poSpecificDetails?.poConditions && poSpecificDetails.poConditions.length > 0 ? "col-12 col-md-6" : "col-12 col-md-6"}>
-															<Card variant="outlined" sx={{ height: '100%', borderRadius: 2 }}>
-																<CardContent>
-																	<Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-																		<Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-																			<Box component="span" sx={{ width: 4, height: 24, bgcolor: '#1976d2', borderRadius: 1 }}></Box>
-																			Ship To:
-																		</Typography>
-																		{String(currentStage ?? "").toLowerCase().includes("draft") && (
-																			<Box>
-																				<Tooltip title="Edit Ship To">
-																					<IconButton size="small" onClick={() => {
-																						setshipToAddress(poSpecificDetails?.shipToAddress || "");
-																						setshipToCity(poSpecificDetails?.shipToCity || "");
-																						setshipToState(poSpecificDetails?.shipToState || "");
-																						setShipToCountry(poSpecificDetails?.shipToCountry || "");
-																						// Pre-fill country/state/city objects for cascading dropdowns
-																						const cObjS = addressCountryOptions.find(o => o.countryName === poSpecificDetails?.shipToCountry) ?? null;
-																						setShipToCountryObj(cObjS);
-																						setShipToStateObj(null); setShipToCityObj(null); setShipStateOptions([]); setShipCityOptions([]);
-																						if (cObjS?.id) fetchStates(cObjS.id, atoken).then(res => {
-																							if (res) {
-																								setShipStateOptions(res);
-																								const sObjS = res.find(o => o.stateName === poSpecificDetails?.shipToState) ?? null;
-																								setShipToStateObj(sObjS);
-																								if (sObjS?.id) fetchCities(sObjS.id, atoken).then(cr => {
-																									if (cr) { setShipCityOptions(cr); setShipToCityObj(cr.find(o => o.cityName === poSpecificDetails?.shipToCity) ?? null); }
-																								});
-																							}
-																						});
-																						setOpenEditShip(true);
-																					}}>
-																						<HiPencilAlt className="f17 text-primary" />
-																					</IconButton>
-																				</Tooltip>
-																			</Box>
-																		)}
-																	</Box>
-
-																	{poSpecificDetails?.shipToAddress && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-																			{poSpecificDetails.shipToAddress}
-																		</Typography>
-																	)}
-																	{(poSpecificDetails?.shipToCity || poSpecificDetails?.shipToState) && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-																			{poSpecificDetails?.shipToCity}
-																			{poSpecificDetails?.shipToState ? `, ${poSpecificDetails.shipToState}` : ''}
-																		</Typography>
-																	)}
-																	{poSpecificDetails?.shipToCountry && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-																			{poSpecificDetails.shipToCountry}
-																		</Typography>
-																	)}
-																	{poSpecificDetails?.shipToPhone && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-																			<strong>Phone:</strong> {poSpecificDetails.shipToPhone}
-																		</Typography>
-																	)}
-																	{poSpecificDetails?.shipToEmail && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-																			<strong>Email:</strong> {poSpecificDetails.shipToEmail}
-																		</Typography>
-																	)}
-																	{poSpecificDetails?.shipToPAN && (
-																		<Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-																			<strong>PAN:</strong> {poSpecificDetails.shipToPAN}
-																		</Typography>
-																	)}
-																	{poSpecificDetails?.shipToGST && (
-																		<Typography variant="body2" sx={{ color: '#666' }}>
-																			<strong>GST:</strong> {poSpecificDetails.shipToGST}
-																		</Typography>
-																	)}
-																</CardContent>
-															</Card>
-														</div>
-
-
-
-
-
-														<div className="col-12 col-md-6">
-															<Card variant="outlined" sx={{ height: '100%', borderRadius: 2 }}>
-																<CardContent>
-																	<Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-																		<Box component="span" sx={{ width: 4, height: 24, bgcolor: '#1976d2', borderRadius: 1 }}></Box>
-																		Payment Terms:
-																	</Typography>
-																	<Box>
-																		<TextField
-																			select
-																			fullWidth
-																			size="small"
-																			label="Payment Terms"
-																			value={selectedPaymentTermId ?? ""}
-																			inputRef={paymentTermsFieldRef}
-																			onChange={(e) => {
-																				if (e.target.value === "__add_new__") {
-																					setPaymentTermModal(true);
-																					return;
-																				}
-																				setSelectedPaymentTermId(e.target.value);
-																			}}
-																			disabled={!poSpecificDetails || paymentTermsLoading || !String(currentStage ?? "").toLowerCase().includes("draft")}
-																		>
-																			<MenuItem value="">-- Select --</MenuItem>
-																			{paymentTermsOptions.map((opt) => (
-																				<MenuItem key={opt.id ?? opt.paymentTermsId ?? opt.paymentTermId} value={opt.id ?? opt.paymentTermsId ?? opt.paymentTermId}>
-																					{opt.paymentTerms || opt.termsOfPayment || opt.paymentTerm || opt.paymentTermsName}
-																				</MenuItem>
-																			))}
-																			<MenuItem
-																				value="__add_new__"
-																				sx={{
-																					color: 'primary.main',
-																					fontStyle: 'italic',
-																					textDecoration: 'underline',
-																					cursor: 'pointer',
-																					'&.Mui-selected, &.Mui-selected:hover': {
-																						backgroundColor: 'transparent',
-																					},
-																				}}
-																			>
-																				ADD NEW
-																			</MenuItem>
-																		</TextField>
-
-																		{/* Save & Continue moved to top-right action menu */}
-																	</Box>
-																</CardContent>
-															</Card>
-														</div>
-														<div className="col-12 col-md-6">
-															<Card variant="outlined" sx={{ height: '100%', borderRadius: 2 }}>
-																<CardContent>
-																	<Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-																		<Box component="span" sx={{ width: 4, height: 24, bgcolor: '#1976d2', borderRadius: 1 }}></Box>
-																		Confirmation Details:
-																	</Typography>
-																	<Stack spacing={1.5}>
-																		{poSpecificDetails?.confirmationNo && (
-																			<Typography variant="body2" sx={{ color: '#666' }}>
-																				<strong>Confirmation No:</strong> {poSpecificDetails?.confirmationNo}
-																			</Typography>
-																		)}
-																		{poSpecificDetails?.confirmedDelDate && (
-																			<Typography variant="body2" sx={{ color: '#666' }}>
-																				<strong>Confirmed Date:</strong>{" "}
-																				{formatDateViaTimeZone(
-																					poSpecificDetails?.confirmedDelDate,
-																					"en-GB",
-																					formatoption
-																				)}
-																			</Typography>
-																		)}
-
-																		{poSpecificDetails?.supplierRef && (
-																			<Typography variant="body2" sx={{ color: '#666' }}>
-																				<strong>Supplier Ref:</strong> {poSpecificDetails?.supplierRef}
-																			</Typography>
-																		)}
-																		{poSpecificDetails?.shippingCost && (
-																			<Typography variant="body2" sx={{ color: '#666' }}>
-																				<strong>Shipping Cost:</strong> {poSpecificDetails?.shippingCost}
-																			</Typography>
-																		)}
-																		{poSpecificDetails?.confirmedShipDate && (
-																			<Typography variant="body2" sx={{ color: '#666' }}>
-																				<strong>Shipping Date:</strong>{" "}
-																				{formatDateViaTimeZone(
-																					poSpecificDetails?.confirmedShipDate,
-																					"en-GB",
-																					formatoption
-																				)}
-																			</Typography>
-																		)}
-																		{poSpecificDetails?.reqDeliveryDate && (
-																			<Typography variant="body2" sx={{ color: '#666' }}>
-																				<strong>Requested Delivery Date:</strong>{" "}
-																				{formatDateViaTimeZone(
-																					poSpecificDetails?.reqDeliveryDate,
-																					"en-GB",
-																					formatoption
-																				)}
-																			</Typography>
-																		)}
-																		{/* {poSpecificDetails?.confirmedDelDate && (
-																	<Typography variant="body2" sx={{ color: '#666' }}>
-																		<strong>Delivery Date:</strong>{" "}
-																		{formatDateViaTimeZone(
-																			poSpecificDetails?.confirmedDelDate,
-																			"en-GB",
-																			formatoption
-																		)}
-																	</Typography>
-																)} */}
-
-																		{selectPOAttachedFile?.map(
-																			(SingleRowComponent, index) => (
-																				<>
-																					{SingleRowComponent.filePath ? (
-																						<span className="fw600 textLigblue" key={index}>
-																							<Button
-																								variant="text"
-																								size="small"
-																								className="text-capitalize font-normal textLigblue"
-																								as={Link}
-																								onClick={() =>
-																									downloadFilesOnAzure(
-																										SingleRowComponent?.filePath,
-																										getFileName(SingleRowComponent?.filePath),
-																										atoken
-																									)
-																								}
-																							>
-																								{SingleRowComponent?.poAttachment}
-																							</Button>
-																							<br />
-																						</span>
-																					) : (
-																						<></>
-																					)}
-
-																				</>
-																			)
-																		)}
-																	</Stack>
-																</CardContent>
-															</Card>
-														</div>
-													</div>
-												</div>
-
-												{/* PO Header Conditions Grid */}
-												<div className="p-3">
-													<Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-														<Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-															<Box component="span" sx={{ width: 4, height: 24, bgcolor: '#1976d2', borderRadius: 1 }} />
-															PO Conditions
-														</Typography>
-														{String(currentStage ?? "").toLowerCase().includes("draft") && (
-															<Button
-																variant="contained"
-																size="small"
-																startIcon={<span style={{ fontSize: '1.1rem', lineHeight: 1 }}>+</span>}
-																onClick={handleOpenAddCondition}
-															>
-																Add New Condition
-															</Button>
-														)}
-													</Box>
-													<Box sx={{ width: '100%' }}>
-														<DataGrid
-															rows={(poSpecificDetails?.poConditions ?? []).filter(c => c.isHeaderCondition).map((c, i) => ({ ...c, _gridId: c.id ?? i }))}
-															getRowId={(row) => row._gridId}
-															columns={[
-																{ field: 'conditionCategory', headerName: 'Condition Category', flex: 1, minWidth: 150 },
-																{
-																	field: 'conditionValue',
-																	headerName: 'Value',
-																	flex: 1,
-																	minWidth: 200,
-																	renderCell: (params) => {
-																		const { conditionText, conditionValue } = params.row;
-																		// Priority: conditionText (if non-empty) > conditionValue (including 0) > '-'
-																		if (conditionText && conditionText.trim()) {
-																			return conditionText;
-																		}
-																		if (conditionValue !== null && conditionValue !== undefined && conditionValue !== '') {
-																			return conditionValue;
-																		}
-																		return '-';
-																	}
-																},
-																...(String(currentStage ?? "").toLowerCase().includes("draft") ? [{
-
-																	field: '_actions',
-																	headerName: 'Actions',
-																	width: 120,
-																	sortable: false,
-																	disableColumnMenu: true,
-																	renderCell: (params) => (
-																		<Box sx={{ display: 'flex', gap: 0.5 }}>
-																			<Tooltip title="Edit Condition">
-																				<IconButton
-																					size="small"
-																					onClick={() => {
-																						const condition = params.row;
-																						setIsAddingCondition(false);
-																						setEditingCondition(condition);
-																						setConditionForm({
-																							conditionType: condition.conditionType || "",
-																							conditionCategory: condition.conditionCategory || "",
-																							conditionRate: condition.conditionRate ?? "",
-																							conditionValue: condition.conditionValue ?? "",
-																							currency: condition.currency || "",
-																							calculationType: condition.calculationType || "",
-																							conditionText: condition.conditionText || "",
-																						});
-																						setOpenEditCondition(true);
-																					}}
-																				>
-																					<HiPencilAlt className="f17 text-primary" />
-																				</IconButton>
-																			</Tooltip>
-																			<Tooltip title="Delete Condition">
-																				<IconButton
-																					size="small"
-																					onClick={() => {
-																						setConditionToDelete(params.row);
-																						setDeleteConditionDialogOpen(true);
-																					}}
-																				>
-																					<HiOutlineTrash className="f17 text-danger" />
-																				</IconButton>
-																			</Tooltip>
-																		</Box>
-																	),
-																}] : []),
-															]}
-															autoHeight
-															disableRowSelectionOnClick
-															rowHeight={48}
-															columnHeaderHeight={48}
-															sx={{
-																border: '1px solid #e0e0e0',
-																borderRadius: 2,
-																'& .MuiDataGrid-columnHeaders': {
-																	backgroundColor: '#f5f5f5',
-																	fontSize: '0.875rem',
-																	fontWeight: 600,
-																	color: '#333',
-																},
-																'& .MuiDataGrid-cell': {
-																	fontSize: '0.875rem',
-																	borderBottom: '1px solid #f0f0f0',
-																},
-															}}
-														/>
-													</Box>
-												</div>
-
-											</>
-										) : (
-											<div className="p-4">
-												<Alert severity="error">
-													<div className="d-flex align-items-center">
-														<HiOutlineX className="me-2 f18" />
-														Access Denied: You don't have permission to view PO Details.
-													</div>
-												</Alert>
-											</div>
-										)
-										}
-									</>
-								) : null}
-								{value == 1 ? (
-									!isItemServicesReadDisabled ? (
-										<div className="p-3">
-											{addFlowMode && (
-												<Box sx={{
-													mb: 2, p: 1.5, borderRadius: 1,
-													bgcolor: '#eef4ff', border: '1px solid #c7dcfb',
-													display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-													flexWrap: 'wrap', gap: 1
-												}}>
-													<Typography sx={{ fontSize: 13, fontWeight: 600, color: '#1976d2' }}>
-														Select line items for {ADD_FLOW_LABEL[addFlowMode]}
-														{addFlowSelectedItems.length > 0 ? ` — ${addFlowSelectedItems.length} selected` : ''}
-													</Typography>
-													{addFlowSelectedItems.length > 0 && (
-														<Box sx={{ display: 'flex', gap: 1 }}>
-															<Button
-																size="small"
-																variant="outlined"
-																onClick={cancelAddFlow}
-																sx={{ textTransform: 'none' }}
-															>
-																Back
-															</Button>
-															<Button
-																size="small"
-																variant="contained"
-																onClick={handleAddFlowNext}
-																sx={{ textTransform: 'none' }}
-															>
-																Next
-															</Button>
-														</Box>
-													)}
-												</Box>
-											)}
-											<POItemList
-												items={displayPOItems}
-												shipments={allPOShipHeader}
-												currentStage={currentStage}
-												poId={pageSlug}
-												customerId={poCustomerId ?? customerid}
-												apiClient={apiClient}
-												atoken={atoken}
-												itemConditions={poSpecificDetails?.poItemConditions ?? []}
-												selectionMode={!!addFlowMode}
-												selectedItemIds={addFlowSelectedItems.map(i => i.id)}
-												onToggleSelectItem={handleAddFlowToggleItem}
-												onToggleSelectAll={handleAddFlowToggleAll}
-												isItemSelectable={(item) => !addFlowMode || isItemEligibleForAddMode(addFlowMode, item)}
-												isItemGrnAddAllowed={(item) => isItemEligibleForAddMode('GRN', item)}
-												deliveryUpdates={deliveryUpdates}
-												onEditDeliveryDate={(item, newDate) => {
-													setDeliveryDialogRow(item);
-													// Seed the confirm dialog with the date just picked inline
-													// (fall back to the staged/saved date when not provided).
-													setDeliveryDialogDate(
-														newDate
-															? new Date(newDate)
-															: (deliveryUpdates[item.id] ?? (item.poDeliveryDate ? new Date(item.poDeliveryDate) : null))
-													);
-													setDeliveryDialogOpen(true);
-												}}
-												onAddASN={(canCreateAsn && !isUnderApprovalStage) ? ((item) => {
-													handleOpenAddAsnDrawer([item]);
-												}) : undefined}
-												onAddGRN={(canCreateGrn && !isUnderApprovalStage) ? ((item) => {
-													const eligibleItems = getEligibleItemsForAddMode('GRN', [item]);
-													if (eligibleItems.length === 0) {
-														toast.warning(NO_REMAINING_ITEM_MSG_GRN);
-														return;
-													}
-													setPOOrderItems(item);
-													SetRef_ItemId(item.id);
-													setSelectedGrnItems(eligibleItems);
-													setAddGrnDialogOpen(true);
-												}) : undefined}
-												// onAddInvoice={(item) => {
-												// 	handleOpenAddInvoiceDrawer([item]);
-												// }}
-												onAddInvoice={
-													(canCreateInvoice && !isUnderApprovalStage)
-														? (item) => {
-															handleOpenAddInvoiceDrawer([item]);
-														}
-														: undefined
-												}
-												onAddSES={(canCreateSes && !isUnderApprovalStage) ? ((item) => {
-													const eligibleItems = getEligibleItemsForAddMode('SES', [item]);
-													if (eligibleItems.length === 0) {
-														toast.warning(NO_REMAINING_ITEM_MSG_SES);
-														return;
-													}
-													setPOOrderItems(item);
-													SetRef_ItemId(item.id);
-													setSelectedSesItems(eligibleItems);
-													setAddSesDialogOpen(true);
-												}) : undefined}
-												onPreviewSES={(ses) => {
-													const matchedItem = allPOItems.find(it => String(it.id) === String(ses.poItemId));
-													setSesDialogMode('preview');
-													setSesPreviewData(ses);
-													setSelectedSesItems(matchedItem ? [matchedItem] : allPOItems.filter(item => item.itemType?.toLowerCase() === 'service'));
-													setAddSesDialogOpen(true);
-												}}
-												onAddAdvanceInvoice={(item) => {
-													setPOOrderItems(item);
-													SetRef_ItemId(item.id);
-													toggleDrawer("openCreateSheet", true, item)();
-												}}
-												onAddPayment={canCreatePayment ? ((item) => {
-													setPOOrderItems(item);
-													SetRef_ItemId(item.id);
-													setPaymentTargetItem(item);
-													resetPaymentForm();
-													setOpenAddPaymentDrawer(true);
-												}) : undefined}
-												onViewInvoice={(invoice) => {
-													handlePreviewInvoice(invoice);
-												}}
-												onViewASN={(asn) => {
-													handlePreviewAsn(asn);
-												}}
-												onViewPayment={(payment) => {
-													if (payment.invoiceHId || payment.invoiceHid) {
-														fetchPaymentDetails(payment.invoiceHId || payment.invoiceHid);
-													} else {
-														toast.warning('No invoice associated with this payment.');
-													}
-												}}
-												onDownloadInvoice={(invoice) => {
-													if (invoice.invoicePath && invoice.invoiceFile) {
-														downloadFilesOnAzure(
-															invoice.invoicePath,
-															getFileName(invoice.invoiceFile),
-															atoken
-														);
-													} else {
-														toast.warning('Invoice document not available for download.');
-													}
-												}}
-											/>
-										</div>
-									) : (
-										<div className="p-4">
-											<Alert severity="error">
-												<div className="d-flex align-items-center">
-													<HiOutlineX className="me-2 f18" />
-													Access Denied: You don't have permission to view Line Items.
-												</div>
-											</Alert>
-										</div>
-									)
-								) : null}
-								{value == 10 ? (
-									// Preview content
-									<div className="p-3">
-										<POPreview
-											poDetails={poSpecificDetails}
-											poItems={allPOItems}
-											atoken={atoken}
-											requestCell={requestCell}
-											stagelist={stagelist}
-											customerid={customerid}
-											customersuffix={customersuffix}
-										/>
-									</div>
-								) : null}
-								{/* ASN Tab Content */}
-								{/* ASN Tab Content - Only for Material Items. Hidden entirely for customerId === 78. */}
-								{value == 2 && Number(poCustomerId ?? customerid) !== 78 && allPOItems?.some(item => item.itemType?.toLowerCase() !== 'service') ? (
-									<div className="p-3">
-										<Box sx={{ mb: 4 }}>
-											<Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-												<Typography variant="h6" sx={{ fontWeight: 600 }}>ASN (Advanced Shipping Notice)</Typography>
-												{!isShippedHistoryCreateDisabled && canCreateAsn && (
-													renderAddFlowButton('ASN', 'Add ASN')
-												)}
-											</Box>
-											<Box>
-												{(poAsnList ?? allPOShipHeader)?.length > 0 ? (
-													<TableContainer component={Paper} variant="outlined">
-														<Table size="small">
-															<TableHead>
-																<TableRow>
-																	<TableCell>ASN Number</TableCell>
-																	<TableCell>Shipping Date</TableCell>
-																	{/* <TableCell>Total Shipped Qty</TableCell> */}
-																	<TableCell>Status</TableCell>
-																	<TableCell align="center"></TableCell>
-																</TableRow>
-															</TableHead>
-															<TableBody>
-																{(poAsnList ?? allPOShipHeader).map((row, idx) => (
-																	<TableRow key={row.id ?? idx} hover>
-																		<TableCell>{row.shipSlipId ?? row.asnNumber ?? row.id ?? '—'}</TableCell>
-																		<TableCell>{row.shippingDate ? formatDateViaTimeZone(row.shippingDate, 'en-GB', formatoption) : '—'}</TableCell>
-																		{/* <TableCell>{row.quantity ?? '—'}</TableCell> */}
-																		<TableCell>{row.status ?? '—'}</TableCell>
-																		<TableCell align="center">
-																			<IconButton
-																				size="small"
-																				sx={{ color: '#1976d2' }}
-																				onClick={() => handlePreviewAsn(row)}
-																			>
-																				<HiOutlineEye />
-																			</IconButton>
-																		</TableCell>
-																	</TableRow>
-																))}
-															</TableBody>
-														</Table>
-													</TableContainer>
-												) : (
-													<Alert severity="info">No ASN records found.</Alert>
-												)}
-											</Box>
-										</Box>
-
-
-									</div>
-								) : null}
-								{/* GRN Tab Content - Only for Material Items */}
-								{value == 3 && allPOItems?.some(item => item.itemType?.toLowerCase() !== 'service') ? (
-									<div className="p-3">
-										{/* Existing GRNs Section */}
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												justifyContent: "space-between",
-												mb: 2,
-											}}
-										>
-											<Typography variant="h6" sx={{ fontWeight: 600 }}>
-												GRN (Goods Receipt Note)
-											</Typography>
-
-											<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-												{/* {!isShippedHistoryCreateDisabled && canCreateGrn && (poAsnList?.length > 0) && (
-            renderAddFlowButton("GRN", "Add GRN")
-        )} */}
-												{!isShippedHistoryCreateDisabled && canCreateGrn && (
-													renderAddFlowButton("GRN", "Add GRN")
-												)}
-
-												<Tooltip title="Download GRN Report">
-													{/* {poGrnList?.length > 0 && (
-        <Tooltip title="Download GRN Report">
-            <IconButton
-                onClick={() => handleDownloadGrnReport(pageSlug)}
-                disabled={loadingGrnReport}
-            >
-                <DownloadIcon sx={{ color: "#000" }} />
-            </IconButton>
-        </Tooltip>
-    )} */}
-												</Tooltip>
-											</Box>
-										</Box>
-										<Box sx={{ mb: 4 }}>
-											{/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-												<Typography variant="h6" sx={{ fontWeight: 600 }}>GRN (Goods Receipt Note)</Typography>
-												{!isShippedHistoryCreateDisabled && canCreateGrn && (
-													renderAddFlowButton('GRN', 'Add GRN')
-												)}
-											</Box> */}
-											<Box>
-												{poGrnList?.length > 0 ? (
-													<TableContainer component={Paper} variant="outlined">
-														<Table size="small">
-															<TableHead>
-																<TableRow>
-																	<TableCell sx={{ width: 40 }} />
-																	<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>GRN Number</TableCell>
-																	<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>GRN Date</TableCell>
-																	<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Invoice No.</TableCell>
-																	<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Invoice Date</TableCell>
-																	{/* <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Received Qty</TableCell> */}
-																	<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>GRN Status</TableCell>
-																	<TableCell sx={{ fontWeight: 600, fontSize: 12, width: 80 }}></TableCell>
-																</TableRow>
-															</TableHead>
-															<TableBody>
-																{poGrnList.flatMap((hdr, hIdx) => {
-																	const items = Array.isArray(hdr.grnItem)
-																		? hdr.grnItem
-																		: (Array.isArray(hdr.grnItems) ? hdr.grnItems : []);
-
-																	const headerKey = hdr.id ?? hdr.grnNumber ?? hIdx;
-
-																	if (items.length === 0) {
-																		return [
-																			<TableRow key={`${headerKey}-empty`} hover>
-																				<TableCell />
-																				<TableCell sx={{ fontWeight: 600, color: '#1976d2' }}>
-																					{hdr.grnNumber ?? '—'}
-																				</TableCell>
-																				<TableCell>
-																					{hdr.grnDate ? formatDateViaTimeZone(hdr.grnDate, 'en-GB', formatoption) : '—'}
-																				</TableCell>
-																				<TableCell>{hdr.invoiceNo ?? '—'}</TableCell>
-																				<TableCell>
-																					{hdr.invoiceDate ? formatDateViaTimeZone(hdr.invoiceDate, 'en-GB', formatoption) : '—'}
-																				</TableCell>
-																				<TableCell colSpan={2} align="center" sx={{ color: '#999', fontSize: 12 }}>
-																					No line items found for this GRN
-																				</TableCell>
-																				<TableCell>
-																					<Tooltip title="Download GRN Report">
-																						<IconButton
-																							size="small"
-																							onClick={() => handleDownloadIndividualGrnReport(hdr)}
-																							disabled={downloadingGrnId === (hdr.id ?? hdr.grnId ?? hdr.grnHId)}
-																						>
-																							{downloadingGrnId === (hdr.id ?? hdr.grnId ?? hdr.grnHId) ? (
-																								<CircularProgress size={18} />
-																							) : (
-																								<DownloadIcon sx={{ color: '#000' }} />
-																							)}
-																						</IconButton>
-																					</Tooltip>
-																				</TableCell>
-																			</TableRow>
-																		];
-																	}
-
-																	const rowKey = `${headerKey}`;
-																	const isExpanded = expandedGrnHeaderIds.has(rowKey);
-
-																	const receivedQty = items.reduce(
-																		(sum, x) => sum + Number(x.receivedQty ?? 0),
-																		0
-																	);
-
-																	const acceptedQty = items.reduce(
-																		(sum, x) => sum + Number(x.acceptedQty ?? 0),
-																		0
-																	);
-
-																	const rejectedQty = items.reduce(
-																		(sum, x) => sum + Number(x.rejectedQty ?? 0),
-																		0
-																	);
-
-																	return [
-																		<React.Fragment key={rowKey}>
-																			<TableRow hover>
-																				<TableCell>
-																					<IconButton
-																						size="small"
-																						onClick={() => toggleGrnHeaderExpand(rowKey)}
-																					>
-																						{isExpanded ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
-																					</IconButton>
-																				</TableCell>
-
-																				<TableCell sx={{ fontWeight: 600, color: '#1976d2' }}>
-																					{hdr.grnNumber ?? '—'}
-																				</TableCell>
-
-																				<TableCell>
-																					{hdr.grnDate
-																						? formatDateViaTimeZone(hdr.grnDate, 'en-GB', formatoption)
-																						: '—'}
-																				</TableCell>
-
-																				<TableCell>{hdr.invoiceNo ?? '—'}</TableCell>
-																				<TableCell>
-																					{hdr.invoiceDate
-																						? formatDateViaTimeZone(hdr.invoiceDate, 'en-GB', formatoption)
-																						: '—'}
-																				</TableCell>
-
-																				{/* <TableCell>{receivedQty}</TableCell> */}
-																				<TableCell>{hdr.grnStatus ?? '—'}</TableCell>
-																				<TableCell>
-																					<Tooltip title="Download GRN Report">
-																						<IconButton
-																							size="small"
-																							onClick={() => handleDownloadIndividualGrnReport(hdr)}
-																							disabled={downloadingGrnId === (hdr.id ?? hdr.grnId ?? hdr.grnHId)}
-																						>
-																							{downloadingGrnId === (hdr.id ?? hdr.grnId ?? hdr.grnHId) ? (
-																								<CircularProgress size={18} />
-																							) : (
-																								<DownloadIcon sx={{ color: '#000' }} />
-																							)}
-																						</IconButton>
-																					</Tooltip>
-																				</TableCell>
-																				{/* <TableCell>{rejectedQty}</TableCell> */}
-																			</TableRow>
-
-																			<TableRow>
-																				<TableCell
-																					style={{ paddingBottom: 0, paddingTop: 0 }}
-																					colSpan={7}
-																				>
-																					<Collapse in={isExpanded} timeout="auto" unmountOnExit>
-																						<Box sx={{ m: 1, ml: 5 }}>
-																							<Table size="small">
-																								<TableHead>
-																									<TableRow>
-																										<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Item Code</TableCell>
-																										<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Item No</TableCell>
-																										<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Item Name</TableCell>
-																										<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Item Description</TableCell>
-																										<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Ordered Qty</TableCell>
-																										<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Received Qty</TableCell>
-																										<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Accepted Qty</TableCell>
-																										<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Rejected Qty</TableCell>
-																										<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Remaining Qty</TableCell>
-																										<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>UOM</TableCell>
-																										{/* <TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Status</TableCell> */}
-																									</TableRow>
-																								</TableHead>
-
-																								<TableBody>
-																									{items.map((gi, idx) => {
-																										const poItem =
-																											allPOItems.find(p => p.id === gi.poItemId) || {};
-
-																										const orderedQty = Number(
-																											gi.orderedQty ?? poItem.quantity ?? 0
-																										);
-
-																										// const receivedItemQty = Number(gi.receivedQty ?? 0);
-																										const receivedItemQty = poItem.receivedQty ?? 0;
-																										const acceptedItemQty = Number(gi.acceptedQty ?? 0);
-																										const rejectedItemQty = Number(gi.rejectedQty ?? 0);
-																										const remainingQty = Math.max(
-																											receivedItemQty - acceptedItemQty,
-																											0
-																										);
-
-																										const uom = gi.uom ?? poItem.uom ?? 'NOS';
-
-																										return (
-																											<TableRow key={gi.id ?? idx} hover>
-
-																												<TableCell sx={{ color: '#1976d2', fontWeight: 600 }}>
-																													{gi.itemCode ?? poItem.itemCode ?? '—'}
-																												</TableCell>
-
-																												<TableCell sx={{ color: '#1976d2', fontWeight: 600 }}>
-																													{gi.lineItemNo ?? '—'}
-																												</TableCell>
-
-																												<TableCell>
-																													{gi.itemName ?? poItem.itemName ?? '—'}
-																												</TableCell>
-
-																												<TableCell>
-																													{gi.itemDescription ?? poItem.itemDesc ?? '—'}
-																												</TableCell>
-
-																												<TableCell>
-																													{orderedQty} {uom}
-																												</TableCell>
-
-																												<TableCell>
-																													{receivedItemQty} {uom}
-																												</TableCell>
-
-																												<TableCell>
-																													{acceptedItemQty} {uom}
-																												</TableCell>
-
-																												<TableCell>
-																													{rejectedItemQty} {uom}
-																												</TableCell>
-
-																												<TableCell>
-																													<Chip
-																														label={`${remainingQty} ${uom}`}
-																														size="small"
-																														sx={{
-																															bgcolor: remainingQty > 0 ? '#e3f2fd' : '#f5f5f5',
-																															color: remainingQty > 0 ? '#1976d2' : '#999',
-																															fontWeight: 600,
-																															fontSize: 11,
-																														}}
-																													/>
-																												</TableCell>
-
-																												<TableCell>
-																													{uom}
-																												</TableCell>
-
-																												{/* <TableCell>
-										<Chip
-											label={hdr.grnStatus ?? gi.qcResult ?? 'Shipped'}
-											size="small"
-											sx={{
-												bgcolor: '#f5f5f5',
-												color: '#666',
-												fontSize: 11
-											}}
-										/>
-									</TableCell> */}
-
-																											</TableRow>
-																										);
-																									})}
-																								</TableBody>
-																							</Table>
-																						</Box>
-																					</Collapse>
-																				</TableCell>
-																			</TableRow>
-																		</React.Fragment>
-																	];
-																})}
-															</TableBody>
-														</Table>
-													</TableContainer>
-												) : (
-													<Alert severity="info">No GRN records found for this PO.</Alert>
-												)}
-											</Box>
-										</Box>
-
-
-									</div>
-								) : null}
-								{/* Service Entry Tab Content - Only for Service Items */}
-								{value == 4 && allPOItems?.some(item => item.itemType?.toLowerCase() === 'service') ? (
-									<div className="p-3">
-										<Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-											<Typography variant="h6" sx={{ fontWeight: 600 }}>SES Details</Typography>
-											<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-												{!isShippedHistoryCreateDisabled && canCreateSes && (
-													renderAddFlowButton('SES', 'Add SES')
-												)}
-												{poSesList?.length > 0 && (
-													<Tooltip title="Download SES Report">
-														<IconButton
-															onClick={() => handleDownloadSesReport(pageSlug)}
-															disabled={loadingGrnReport}
-														>
-															<DownloadIcon sx={{ color: '#000' }} />
-														</IconButton>
-													</Tooltip>
-												)}
-											</Box>
-										</Box>
-										{poSesList?.length > 0 ? (
-											<TableContainer component={Paper} variant="outlined">
-												<Table size="small">
-													<TableHead>
-														<TableRow>
-															<TableCell sx={{ width: 40 }} />
-															<TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#555', bgcolor: '#f8f8f8' }}>SES Number</TableCell>
-															<TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#555', bgcolor: '#f8f8f8' }}>Service Start Date</TableCell>
-															<TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#555', bgcolor: '#f8f8f8' }}>Service End Date</TableCell>
-															{/* <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#555', bgcolor: '#f8f8f8' }}>Approval Status</TableCell> */}
-															{/* <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#555', bgcolor: '#f8f8f8' }}>Quantity</TableCell> */}
-															{/* <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#555', bgcolor: '#f8f8f8' }}>Accepted Quantity</TableCell> */}
-															<TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#555', bgcolor: '#f8f8f8' }}>Service Amount</TableCell>
-															<TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#555', bgcolor: '#f8f8f8', textAlign: 'center' }}></TableCell>
-														</TableRow>
-													</TableHead>
-													<TableBody>
-														{poSesList.flatMap((s, i) => {
-															// The item-level breakdown is expected under `sesItem` (singular).
-															const items = Array.isArray(s.sesItem)
-																? s.sesItem
-																: (Array.isArray(s.sesItems) ? s.sesItems : []);
-															const headerKey = s.id ?? s.sesNumber ?? i;
-
-															// If a header somehow has no items, still show it as a single row
-															// rather than silently dropping it.
-															if (items.length === 0) {
-																return [
-																	<TableRow key={`${headerKey}-empty`} hover>
-																		<TableCell />
-																		<TableCell sx={{ fontSize: 12 }}>
-																			<Typography sx={{ color: '#1976d2', fontSize: 12 }}>{s.sesNumber ?? '—'}</Typography>
-																		</TableCell>
-																		<TableCell sx={{ fontSize: 12 }}>{s.servicePeriodFrom ? formatDateViaTimeZone(s.servicePeriodFrom, 'en-GB', formatoption) : '—'}</TableCell>
-																		<TableCell sx={{ fontSize: 12 }}>{s.servicePeriodTo ? formatDateViaTimeZone(s.servicePeriodTo, 'en-GB', formatoption) : '—'}</TableCell>
-																		{/* <TableCell sx={{ fontSize: 12 }}>
-																				<Chip
-																					label={s.approvalStatus ?? s.status ?? '—'}
-																					size="small"
-																					sx={{ fontSize: 11, fontWeight: 600, bgcolor: '#f5f5f5', color: '#616161' }}
-																				/>
-																			</TableCell> */}
-																		<TableCell colSpan={4} align="center" sx={{ color: '#999', fontSize: 12 }}>
-																			No line items found for this SES
-																		</TableCell>
-																	</TableRow>
-																];
-															}
-
-															// One sesItem = one expandable parent row. Header info repeats per row.
-															return items.map((si, idx) => {
-																const rowKey = `${headerKey}-${si.id ?? idx}`;
-																const isExpanded = expandedSesHeaderIds.has(rowKey);
-																const poItem = allPOItems.find(p => p.id === si.poItemId) || {};
-																const uom = si.uom ?? poItem.uom ?? '—';
-																// Quantity tracking for the expanded line item view.
-																const orderedQtyRaw = si.orderedQty ?? poItem.orderedQuantity ?? poItem.quantity;
-																const orderedQty = orderedQtyRaw != null ? Number(orderedQtyRaw) : null;
-																const receivedQty = poItem.receivedQty != null
-																	? Number(poItem.receivedQty)
-																	: null;
-																// const receivedQty = si.serviceQty != null ? Number(si.serviceQty) : (si.quantity != null ? Number(si.quantity) : null);
-																const acceptedQty = si.acceptedQty != null ? Number(si.acceptedQty) : null;
-																const remainingQty = orderedQty != null ? Math.max(orderedQty - (acceptedQty ?? 0), 0) : null;
-
-																return (
-																	<React.Fragment key={rowKey}>
-																		<TableRow hover>
-																			<TableCell>
-																				<IconButton
-																					size="small"
-																					onClick={() => toggleSesHeaderExpand(rowKey)}
-																				>
-																					{isExpanded ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
-																				</IconButton>
-																			</TableCell>
-																			<TableCell sx={{ fontSize: 12 }}>
-																				<Typography sx={{ color: '#1976d2', fontSize: 12 }}>{s.sesNumber ?? '—'}</Typography>
-																			</TableCell>
-																			<TableCell sx={{ fontSize: 12 }}>{s.servicePeriodFrom ? formatDateViaTimeZone(s.servicePeriodFrom, 'en-GB', formatoption) : '—'}</TableCell>
-																			<TableCell sx={{ fontSize: 12 }}>{s.servicePeriodTo ? formatDateViaTimeZone(s.servicePeriodTo, 'en-GB', formatoption) : '—'}</TableCell>
-																			{/* <TableCell sx={{ fontSize: 12 }}>
-																					<Chip
-																						label={s.approvalStatus ?? s.status ?? '—'}
-																						size="small"
-																						sx={{ fontSize: 11, fontWeight: 600, bgcolor: '#f5f5f5', color: '#616161' }}
-																					/>
-																				</TableCell> */}
-																			{/* <TableCell sx={{ fontSize: 12 }}>{si.serviceQty ?? '—'}</TableCell> */}
-																			{/* <TableCell sx={{ fontSize: 12 }}>{si.acceptedQty ?? '—'}</TableCell> */}
-																			<TableCell sx={{ fontSize: 12 }}>{si.serviceAmount != null ? Number(si.serviceAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '—'}</TableCell>
-																			<TableCell sx={{ textAlign: 'center' }}>
-																				<Button
-																					size="small"
-
-																					sx={{ textTransform: 'none', fontSize: 11, py: 0.25, px: 1 }}
-																					onClick={() => {
-																						// Header (s) must win for servicePeriodFrom/To, sesNumber, sesDate —
-																						// those are null on the item (si), so spreading si last would blank
-																						// them out. Item-only fields (poItemId, acceptedQty, serviceQty, ...)
-																						// still come through since the header object has no such keys.
-																						const sesPayload = { ...si, ...s };
-																						const matchedItem = allPOItems.find(p => p.id === si.poItemId);
-																						setSesDialogMode('preview');
-																						setSesPreviewData(sesPayload);
-																						setSelectedSesItems(matchedItem ? [matchedItem] : allPOItems.filter(item => item.itemType?.toLowerCase() === 'service'));
-																						setAddSesDialogOpen(true);
-																					}}
-																				>
-
-																					<HiOutlineEye
-																						size={14}
-																						style={{ color: '#1976d2' }}
-																					/>
-																				</Button>
-																			</TableCell>
-																		</TableRow>
-																		<TableRow>
-																			<TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
-																				<Collapse in={isExpanded} timeout="auto" unmountOnExit>
-																					<Box sx={{ m: 1, ml: 5 }}>
-																						<Table size="small">
-																							<TableHead>
-																								<TableRow>
-																									<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Item Code</TableCell>
-																									<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Item No</TableCell>
-																									<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Item Name</TableCell>
-																									<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Item Description</TableCell>
-																									<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Ordered Qty</TableCell>
-																									<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Received Qty</TableCell>
-																									<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Accepted Qty</TableCell>
-																									<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Remaining Qty</TableCell>
-																									<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>UOM</TableCell>
-																									<TableCell sx={{ fontWeight: 600, fontSize: 11 }}>Status</TableCell>
-																								</TableRow>
-																							</TableHead>
-
-																							<TableBody>
-																								<TableRow hover>
-																									<TableCell sx={{ color: '#1976d2', fontWeight: 600 }}>
-																										{poItem.itemCode ?? '—'}
-																									</TableCell>
-
-																									<TableCell sx={{ color: '#1976d2', fontWeight: 600 }}>
-																										{si.lineItemNo ?? si.itemNo ?? poItem.itemNo ?? '—'}
-																									</TableCell>
-
-																									<TableCell>
-																										{si.itemName ?? poItem.itemName ?? '—'}
-																									</TableCell>
-
-																									<TableCell>
-																										{si.itemDescription ?? poItem.itemDesc ?? poItem.materialDescription ?? '—'}
-																									</TableCell>
-
-																									<TableCell>
-																										{orderedQty != null ? orderedQty : '—'}
-																									</TableCell>
-
-																									<TableCell>
-																										{receivedQty != null ? receivedQty : '—'}
-																									</TableCell>
-
-																									<TableCell>
-																										{acceptedQty != null ? acceptedQty : '—'}
-																									</TableCell>
-
-																									<TableCell>
-																										{remainingQty != null ? remainingQty : '—'}
-																									</TableCell>
-
-																									<TableCell>
-																										{uom}
-																									</TableCell>
-
-																									<TableCell>
-																										<Chip
-																											label={si.acceptanceStatus ?? s.approvalStatus ?? '—'}
-																											size="small"
-																											sx={{
-																												fontSize: 11,
-																												fontWeight: 600,
-																												bgcolor:
-																													String(si.acceptanceStatus ?? '').toLowerCase() === 'accepted'
-																														? '#e8f5e9'
-																														: '#f5f5f5',
-																												color:
-																													String(si.acceptanceStatus ?? '').toLowerCase() === 'accepted'
-																														? '#2e7d32'
-																														: '#616161',
-																											}}
-																										/>
-																									</TableCell>
-																								</TableRow>
-																							</TableBody>
-																						</Table>
-																					</Box>
-																				</Collapse>
-																			</TableCell>
-																		</TableRow>
-																	</React.Fragment>
-																);
-															});
-														})}
-													</TableBody>
-												</Table>
-											</TableContainer>
-										) : (
-											<Alert severity="info">No SES records found for this PO.</Alert>
-										)}
-
-										{/* Line Items Section - reference list; selecting items for a new SES now
-										    happens on the PO Line Items tab (unified Add ASN/GRN/SES/Invoice flow). */}
-
-									</div>
-								) : null}
-								{/* Invoices Tab Content */}
-								{value == 5 ? (
-									<div className="p-3">
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												justifyContent: "space-between",
-												mb: 2,
-											}}
-										>
-											<Typography variant="h6" sx={{ fontWeight: 600 }}>
-												Invoices
-											</Typography>
-
-											{!isShippedHistoryCreateDisabled && canCreateInvoice && (
-												renderAddFlowButton("INVOICE", "Add Invoice")
-											)}
-										</Box>
-
-										<Box>
-											{canReadInvoice ? (
-												poInvoiceList?.length > 0 ? (
-													<TableContainer component={Paper} variant="outlined">
-														<Table size="small">
-															<TableHead>
-																<TableRow>
-																	<TableCell>Invoice Number</TableCell>
-																	<TableCell>Invoice Date</TableCell>
-																	<TableCell>Invoice Amount</TableCell>
-																	<TableCell>Status</TableCell>
-																	<TableCell align="center"></TableCell>
-																</TableRow>
-															</TableHead>
-
-															<TableBody>
-																{poInvoiceList.map((row, idx) => (
-																	<TableRow key={idx} hover>
-																		<TableCell>{row.invoiceNo ?? "—"}</TableCell>
-																		<TableCell>
-																			{row.invoiceDate
-																				? formatDateViaTimeZone(
-																					row.invoiceDate,
-																					"en-GB",
-																					formatoption
-																				)
-																				: "—"}
-																		</TableCell>
-																		<TableCell>{row.invoiceAmount ?? "—"}</TableCell>
-																		<TableCell>
-																			<Typography
-																				sx={{
-																					color: row.stage?.trim().toLowerCase() === "rejected" ? "red" : "inherit",
-																					// fontWeight: row.stage?.trim().toLowerCase() === "rejected" ? 400 : 400
-																				}}
-																			>
-																				{row.stage ?? "—"}
-																			</Typography>
-																		</TableCell>
-																		{/* <TableCell>{row.stage ?? "—"}</TableCell> */}
-																		<TableCell align="center">
-																			<IconButton
-																				size="small"
-																				sx={{ color: "#1976d2" }}
-																				onClick={() => handlePreviewInvoice(row)}
-																			>
-																				<HiOutlineEye />
-																			</IconButton>
-																		</TableCell>
-																	</TableRow>
-																))}
-															</TableBody>
-														</Table>
-													</TableContainer>
-												) : (
-													<Alert severity="info">No Invoice records found.</Alert>
-												)
-											) : null}
-										</Box>
-									</div>
-								) : null}
-								{/* Advance Invoices Tab Content */}
-								{/* {value == 6 ? (
-									<div className="p-3">
-										<Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-											<Typography variant="h6" sx={{ fontWeight: 600 }}>Advance Invoices</Typography>
-											{!isShippedHistoryCreateDisabled && (
-												<Button size="small" variant="text" startIcon={<HiPlusSm />} sx={{ textTransform: 'none', fontSize: 12, color: '#1976d2' }}>
-													Add Advance Invoice
-												</Button>
-											)}
-										</Box>
-										<Alert severity="info">No Advance Invoice records found.</Alert>
-									</div>
-								) : null} */}
-								{/* Payments Tab Content */}
-								{value == 7 ? (
-									<div className="p-3">
-										<Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-											<Typography variant="h6" sx={{ fontWeight: 600 }}>Payments</Typography>
-											{!isShippedHistoryCreateDisabled && canCreatePayment && (
-												<Button
-													size="small"
-													variant="text"
-													startIcon={<HiPlusSm />}
-													sx={{ textTransform: 'none', fontSize: 12, color: '#1976d2' }}
-													onClick={async () => {
-														setPaymentTargetItem(null);
-														resetPaymentForm();
-														// Ensure invoice list is available for the Linked Invoice dropdown
-														if ((!poInvoiceList || poInvoiceList.length === 0) && pageSlug) {
-															try {
-																const cid = poCustomerId ?? customerid;
-																const res = await apiClient.get(
-																	`/api/poinvoice/Find?poId=${pageSlug}&customerId=${cid}`,
-																	atoken
-																);
-																if (Array.isArray(res)) setPoInvoiceList(res);
-															} catch (e) {
-																console.error('Failed to fetch invoices for payment', e);
-															}
-														}
-														setOpenAddPaymentDrawer(true);
-													}}
-												>
-													Add Payment
-												</Button>
-											)}
-										</Box>
-										{loadingPayments ? (
-											<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 5 }}>
-												<CircularProgress size={28} />
-											</Box>
-										) : paymentError ? (
-											<Alert
-												severity="error"
-												action={
-													<Button
-														color="inherit"
-														size="small"
-														onClick={() => { paymentLoadedRef.current = false; fetchPayments(); }}
-													>
-														Retry
-													</Button>
-												}
-											>
-												{paymentError}
-											</Alert>
-										) : poPaymentList?.length > 0 ? (
-
-											<TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
-												<Table size="small">
-													<TableHead>
-														<TableRow>
-															<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>SAP Doc Number</TableCell>
-															<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Payment Date</TableCell>
-															<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Payment Method</TableCell>
-															<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>UTR Number</TableCell>
-															<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Bank Reference</TableCell>
-															<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Amount</TableCell>
-															<TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Status</TableCell>
-															<TableCell sx={{ fontWeight: 600, fontSize: 12 }} align="center"></TableCell>
-														</TableRow>
-													</TableHead>
-													<TableBody>
-														{poPaymentList.map((payment, idx) => (
-
-															<TableRow key={payment.id || idx} hover>
-																<TableCell sx={{ fontSize: 12 }}>{payment.invoiceNo || ' '}</TableCell>
-																<TableCell sx={{ fontSize: 12 }}>{payment.paymentDate ? formatDateViaTimeZone(payment.paymentDate, 'en-GB', formatoption) : ' '}</TableCell>
-																<TableCell sx={{ fontSize: 12 }}>{payment.paymentMethod || ' '}</TableCell>
-																<TableCell sx={{ fontSize: 12 }}>{payment.utrNumber || ' '}</TableCell>
-																<TableCell sx={{ fontSize: 12 }}>{payment.bankReference || ' '}</TableCell>
-																<TableCell sx={{ fontSize: 12 }}>{payment.paymentAmount ?? ' '}</TableCell>
-																<TableCell sx={{ fontSize: 12 }}>
-																	<Chip
-																		label={payment.paymentStatus || 'Pending'}
-																		size="small"
-																		sx={{
-																			bgcolor: payment.paymentStatus?.toLowerCase() === 'completed' ? '#e8f5e9' : '#f5f5f5',
-																			color: payment.paymentStatus?.toLowerCase() === 'completed' ? '#2e7d32' : '#666',
-																			fontWeight: 600,
-																			fontSize: 11
-																		}}
-																	/>
-																</TableCell>
-																<TableCell align="center">
-																	<Tooltip title="View">
-																		<IconButton
-																			size="small"
-																			sx={{ color: '#1976d2' }}
-																			onClick={() => {
-																				setPaymentDetails({ ...payment, __source: 'paymentheader' });
-																				setState(prevState => ({ ...prevState, openPaymentDetails: true }));
-																			}}
-																		>
-																			<HiOutlineEye />
-																		</IconButton>
-																	</Tooltip>
-																</TableCell>
-															</TableRow>
-														))}
-													</TableBody>
-												</Table>
-											</TableContainer>
-										) : (
-											<Alert severity="info">No Payment records found for this PO.</Alert>
-										)}
-									</div>
-								) : null}
-								{/* Documents Tab Content */}
-								{/* {value == 8 ? (
-									<div className="p-3">
-										<Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Documents</Typography>
-										<Alert severity="info">No documents available.</Alert>
-									</div>
-								) : null} */}
-								{/* History Tab Content */}
-								{/* {value == 9 ? (
-									<div className="p-3">
-										<Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>History</Typography>
-										<Alert severity="info">No history available.</Alert>
-									</div>
-								) : null} */}
-								{/* Original Shipped History - now removed, content split into tabs above */}
-								{false && value == 2 ? (
-									!isShippedHistoryReadDisabled ? (
-										<>
-											<div className="row">
-												<div className=" pe-4">
-													<div className="">
-														<div className="text-end">
-															{/* Stack used for consistent spacing and alignment */}
-															<Stack direction="row" spacing={2} justifyContent="flex-end">
-																{/* <Tooltip title="Approve or take action on selected invoice">
-																<span>
-																	<Button
-																		variant="contained"
-																		color="primary"
-																		size="small"
-																		startIcon={<CheckCircleIcon />}
-																		className="text-capitalize font-normal"
-																		onClick={toggleDrawer("openInvoiceApproved", true, selectedInvoiceRows)}
-																	>
-																		Action
-																	</Button>
-																</span>
-															</Tooltip> */}
-															</Stack>
-														</div>
-													</div>
-												</div>
-												<div className="p-3">
-													{/* Custom expandable table structure */}
-													<Box sx={{ width: '100%', overflow: 'hidden' }}>
-														{/* Table Header */}
-														<Box sx={{
-															display: 'flex',
-
-															backgroundColor: '#f5f5f5',
-															borderBottom: '2px solid #e0e0e0',
-															fontWeight: 600,
-															fontSize: '0.875rem',
-															color: '#666',
-															padding: '12px 8px'
-														}}>
-															<Box sx={{ flex: '0 0 13%', minWidth: '110px' }}>Shipping Date</Box>
-															<Box sx={{ flex: '0 0 13%', minWidth: '110px' }}>Delivery Date</Box>
-															<Box sx={{ flex: '0 0 10%', minWidth: '85px' }}>Status</Box>
-															<Box sx={{ flex: '0 0 15%', minWidth: '120px' }}>Invoice Number</Box>
-															<Box sx={{ flex: '0 0 13%', minWidth: '110px' }}>Invoice Amount</Box>
-															<Box sx={{ flex: '0 0 12%', minWidth: '100px' }}>Invoice Date</Box>
-															<Box sx={{ flex: '0 0 14%', minWidth: '110px' }}>Invoice Status</Box>
-															<Box sx={{ flex: '0 0 5%', minWidth: '50px', textAlign: 'center' }}>Show GRN/SES</Box>
-														</Box>													{/* Table Rows */}
-														{allPOShipHeader.map((row) => (
-															<Box key={row.uniqueRowId || row.id}>
-																{/* Main Row */}
-																<Box sx={{
-																	display: 'flex',
-																	backgroundColor: '#fff',
-																	borderBottom: '1px solid #e0e0e0',
-																	'&:hover': { backgroundColor: '#ffffff' },
-																	fontSize: '0.875rem',
-																	padding: '12px 8px',
-																	alignItems: 'center'
-																}}>
-																	<Box
-																		sx={{ flex: '0 0 13%', minWidth: '110px', color: '#1976d2', cursor: 'pointer' }}
-																		onClick={(e) => {
-																			e.stopPropagation();
-																			handleInvoiceRowClick({ row: row, field: "shippingDate" });
-																		}}
-																	>
-																		{row.shippingDate ? formatDateViaTimeZone(row.shippingDate, "en-GB", formatoption) : "NA"}
-																	</Box>
-																	<Box
-																		sx={{ flex: '0 0 13%', minWidth: '110px', color: '#1976d2', cursor: 'pointer' }}
-																		onClick={(e) => {
-																			e.stopPropagation();
-																			handleInvoiceRowClick({ row: row, field: "deliveryDate" });
-																		}}
-																	>
-																		{row.deliveryDate ? formatDateViaTimeZone(row.deliveryDate, "en-GB", formatoption) : "NA"}
-																	</Box>
-																	<Box
-																		sx={{ flex: '0 0 10%', minWidth: '85px', color: '#1976d2', cursor: 'pointer' }}
-																		onClick={(e) => {
-																			e.stopPropagation();
-																			handleInvoiceRowClick({ row: row, field: "status" });
-																		}}
-																	>
-																		{row.status}
-																	</Box>
-																	<Box
-																		sx={{ flex: '0 0 15%', minWidth: '120px', color: '#1976d2', cursor: 'pointer' }}
-																		onClick={(e) => {
-																			e.stopPropagation();
-																			handleInvoiceRowClick({ row: row, field: "invoiceNo" });
-																		}}
-																	>
-																		{row.invoiceNo}
-																	</Box>
-																	<Box
-																		sx={{ flex: '0 0 13%', minWidth: '110px', color: '#1976d2', cursor: 'pointer' }}
-																		onClick={(e) => {
-																			e.stopPropagation();
-																			handleInvoiceRowClick({ row: row, field: "invoiceAmount" });
-																		}}
-																	>
-																		{row.invoiceAmount}
-																	</Box>
-																	<Box
-																		sx={{ flex: '0 0 12%', minWidth: '100px', color: '#1976d2', cursor: 'pointer' }}
-																		onClick={(e) => {
-																			e.stopPropagation();
-																			handleInvoiceRowClick({ row: row, field: "invoiceDate" });
-																		}}
-																	>
-																		{row.invoiceDate ? formatDateViaTimeZone(row.invoiceDate, "en-GB", formatoption) : ""}
-																	</Box>
-																	<Box
-																		sx={{ flex: '0 0 14%', minWidth: '110px', color: '#1976d2', cursor: 'pointer' }}
-																		onClick={(e) => {
-																			e.stopPropagation();
-																			handleInvoiceRowClick({ row: row, field: "stage" });
-																		}}
-																	>
-																		{row.stage}
-																		{row.stage === "Paid" && row.invoiceHId && (
-																			<IconButton
-																				size="small"
-																				color="primary"
-																				onClick={(e) => {
-																					e.stopPropagation();
-																					fetchPaymentDetails(row.invoiceHId);
-																				}}
-																				disabled={loadingPayment}
-																			>
-																				<MdReceipt size={20} />
-																			</IconButton>
-																		)}
-																	</Box>
-
-																	<Box sx={{ flex: '0 0 5%', minWidth: '50px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-																		<IconButton
-																			size="small"
-																			color="primary"
-																			onClick={(e) => {
-																				e.stopPropagation();
-																				setInvStatus(row.status);
-																				handleToggleRow(row.uniqueRowId);
-																				setSelectedInvoiceRows([row]);
-																				setDisableGrnBtn(false);
-																			}}
-																		>
-																			{openRows[row.uniqueRowId] ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
-																		</IconButton>
-																	</Box>
-																</Box>
-
-																{/* Expanded GRN Details Row */}
-																{openRows[row.uniqueRowId] && (
-																	<Box sx={{
-																		backgroundColor: '#fafafa',
-																		borderBottom: '2px solid #e0e0e0',
-																		p: 3
-																	}}>
-																		{/* GRN/SEC Details Header with Submit/Approve Button */}
-																		<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-																			<Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '14px' }}>
-																				{isServiceRow(row) ? 'SES DETAILS' : 'GRN DETAILS'}
-																			</Typography>
-																			<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-																				<Tooltip title={isServiceRow(row) ? "Approve selected service items" : "Submit GRN for selected items in this row"}>
-																					<span>
-																						<Button
-																							variant="contained"
-																							color="primary"
-																							size="small"
-																							className="text-capitalize font-normal"
-																							onClick={(e) => {
-																								e.stopPropagation();
-																								handleSubmitGRN(row.uniqueRowId);
-																							}}
-																							disabled={
-																								!row.shipmentDetails?.some(item => selectedItemIds.has(item.id)) ||
-																								disableGrnBtn ||
-																								!["Shipped", "Partialy Shipped"].includes(invStatus)
-																							}
-																						>
-																							{isServiceRow(row) ? 'Approve' : 'Submit GRN'}
-																						</Button>
-																					</span>
-																				</Tooltip>
-																				{!isServiceRow(row) && row.shipmentDetails?.some(item => item.grnNumber) && (
-																					<>
-																						<IconButton
-																							size="small"
-																							onClick={(e) => handleGrnMenuOpen(e, row)}
-																							sx={{ color: '#1976d2' }}
-																						>
-																							<MoreVertIcon />
-																						</IconButton>
-																						<Menu
-																							anchorEl={grnMenuAnchor}
-																							open={Boolean(grnMenuAnchor)}
-																							onClose={handleGrnMenuClose}
-																						>
-																							<MenuItem onClick={handleViewGrnReport} disabled={loadingGrnReport}>
-
-																								View GRN Report
-																							</MenuItem>
-																							<MenuItem onClick={handleDownloadGrnReport} disabled={loadingGrnReport}>
-
-																								Download GRN Report
-																							</MenuItem>
-																						</Menu>
-																					</>
-																				)}
-																			</Box>
-																		</Box>																	{/* GRN Details Table */}
-																		<Box sx={{ width: '100%', overflow: 'hidden' }}>
-																			{/* Header Row */}
-																			<div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f5f5f5', padding: '8px 4px', borderRadius: '4px', fontWeight: 600, borderBottom: '2px solid #1976d2', marginBottom: '4px', fontSize: '0.75rem' }}>
-																				<div style={{ flex: '0 0 50px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-																					<Checkbox
-																						size="small"
-																						checked={row.shipmentDetails?.every(item => selectedItemIds.has(item.id)) || false}
-																						indeterminate={
-																							row.shipmentDetails?.some(item => selectedItemIds.has(item.id)) &&
-																							!row.shipmentDetails?.every(item => selectedItemIds.has(item.id))
-																						}
-																						onChange={(e) => {
-																							e.stopPropagation();
-																							handleSelectAllRow(row.uniqueRowId, e.target.checked);
-																						}}
-																					/>
-																				</div>
-																				<div style={{ flex: '0 0 7%', minWidth: '80px', textAlign: 'center' }}>Item No</div>
-																				{!isServiceRow(row) && <div style={{ flex: '0 0 6%', minWidth: '70px', textAlign: 'center' }}>Batch ID</div>}
-																				{/* {!isServiceRow(row) && <div style={{ flex: '0 0 5%', minWidth: '65px', textAlign: 'center' }}>PO Quantity</div>} */}
-																				<div style={{ flex: '0 0 5%', minWidth: '65px', textAlign: 'center' }}>PO Quantity</div>
-																				<div style={{ flex: '0 0 5%', minWidth: '65px', textAlign: 'center' }}>PO Rate</div>
-																				<div style={{ flex: '0 0 4%', minWidth: '50px', textAlign: 'center' }}>UOM</div>
-																				{/* {!isServiceRow(row) && <div style={{ flex: '0 0 5%', minWidth: '30px', textAlign: 'center' }}>Ship Qty</div>} */}
-																				<div style={{ flex: '0 0 5%', minWidth: '30px', textAlign: 'center' }}>Ship Qty</div>
-																				<div style={{ flex: '0 0 5%', minWidth: '30px', textAlign: 'center' }}>Invoice Qty</div>
-																				<div style={{ flex: '0 0 5%', minWidth: '30px', textAlign: 'center' }}>Invoice Amount</div>
-
-																				{!isServiceRow(row) && <div style={{ flex: '0 0 8%', minWidth: '100px', textAlign: 'center', paddingLeft: '4px', paddingRight: '4px' }}>GRN No</div>}
-																				{!isServiceRow(row) && <div style={{ flex: '0 0 5%', minWidth: '65px', textAlign: 'center', paddingLeft: '4px', paddingRight: '4px' }}>GRN Qty</div>}
-																				{!isServiceRow(row) && <div style={{ flex: '0 0 8%', minWidth: '95px', textAlign: 'center', paddingLeft: '4px', paddingRight: '4px' }}>GRN Date</div>}
-																				{!isServiceRow(row) && <div style={{ flex: '0 0 5%', minWidth: '65px', textAlign: 'center', paddingLeft: '4px', paddingRight: '4px' }}>QC Failed</div>}
-
-
-																				{isServiceRow(row) && <div style={{ flex: '0 0 10%', minWidth: '120px', textAlign: 'center', paddingLeft: '4px', paddingRight: '4px' }}>Service Start Date</div>}
-																				{isServiceRow(row) && <div style={{ flex: '0 0 10%', minWidth: '120px', textAlign: 'center', paddingLeft: '4px', paddingRight: '4px' }}>Service End Date</div>}
-																				{isServiceRow(row) && <div style={{ flex: '0 0 10%', minWidth: '120px', textAlign: 'center', paddingLeft: '4px', paddingRight: '4px' }}>Service Attachment</div>}
-																				<div style={{ flex: '0 0 12%', minWidth: '60px', textAlign: 'center' }}>Matching Status</div>
-
-																			</div>																		{/* Data Rows */}
-																			{row.shipmentDetails?.map((item) => {
-																				const itemId = item.id;
-																				const defaultInput = {
-																					grnno: item.grnNumber ?? '',
-																					qty: item.grnQuantity ?? '',
-																					amount: item.grnAmount ?? '',
-																					grnDate: item.grnDate ? item.grnDate.slice(0, 10) : '',
-																					qcFailed: 0,
-																				};
-
-																				const input = itemInputs[itemId] ?? defaultInput;
-
-
-																				// Auto-calculate QC Failed only if not manually set
-																				// const autoQcFailed = input.qty && item.shipQty && Number(item.shipQty) > Number(input.qty)
-																				// 		? Number(item.shipQty) - Number(input.qty)
-																				// 		: 0;
-																				// // If GRN submit is not disabled, show API value; else show manual or auto-calc
-																				// const isDisabled = !!(
-																				// 		item.grnNumber &&
-																				// 		item.grnQuantity &&
-																				// 		item.grnAmount &&
-																				// 		item.grnDate
-																				// );
-																				// let displayQcFailed;
-																				// Auto-calculate QC Failed only if not manually set
-																				const autoQcFailed = input.qty && item.shipQty && Number(item.shipQty) > Number(input.qty)
-																					? Number(item.shipQty) - Number(input.qty)
-																					: 0;
-																				// Use manually entered value if user has edited it, otherwise use auto-calculated
-																				const displayQcFailed = input.qcFailedManual ? input.qcFailed : (input.qcFailed !== undefined ? input.qcFailed : autoQcFailed); const isDisabled = !!(
-																					item.grnNumber &&
-																					item.grnQuantity &&
-																					item.grnAmount &&
-																					item.grnDate
-																				);
-																				const finalDisabled = isDisabled || !selectedItemIds.has(itemId);
-																				const isService = isServiceItem(item);
-
-																				return (
-																					<div key={itemId} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#fff', padding: '4px', borderRadius: '4px', marginBottom: '2px', border: '1px solid #e0e0e0', fontSize: '0.75rem' }}>
-																						<div style={{ flex: '0 0 50px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-																							<Checkbox
-																								size="small"
-																								checked={selectedItemIds.has(itemId)}
-																								onChange={(e) => {
-																									e.stopPropagation();
-																									handleCheckboxChange(itemId, e.target.checked);
-																								}}
-																								disabled={isDisabled}
-																							/>
-																						</div>
-																						{/* <div style={{ flex: '0 0 7%', minWidth: '80px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem' }}>{item.itemNo ?? ''}</div> */}
-																						<Tooltip title={item.invItemMatchResion || ''} arrow>
-																							<div
-																								style={{
-																									flex: '0 0 7%',
-																									minWidth: '80px',
-																									display: 'flex',
-																									justifyContent: 'center',
-																									alignItems: 'center',
-																									fontSize: '0.75rem',
-																									padding: '2px 4px',
-																									borderRadius: '4px',
-																									...getValidationStyle(item.isItemMapped),
-																								}}
-																							>
-																								{item.itemNo ?? ''}
-																							</div>
-																						</Tooltip>
-
-
-																						{!isService && <div style={{ flex: '0 0 6%', minWidth: '70px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem' }}>{item.batchId}</div>}
-																						{/* {!isService && <div style={{ flex: '0 0 5%', minWidth: '65px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem' }}>{item.poQuantity}</div>} */}
-																						<div style={{ flex: '0 0 5%', minWidth: '65px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem' }}>{item.poQuantity}</div>
-																						<div style={{ flex: '0 0 5%', minWidth: '65px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem' }}>{item.pOunitPrice}</div>
-																						<div style={{ flex: '0 0 4%', minWidth: '50px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem' }}>{item.uom}</div>
-																						{/* {!isService && <div style={{ flex: '0 0 5%', minWidth: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem' }}>{item.shipQty}</div>} */}
-																						<div style={{ flex: '0 0 5%', minWidth: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem' }}>{item.shipQty}</div>
-																						<Tooltip title={item.invQtyMatchResion || ''} arrow>
-																							<div style={{ flex: '0 0 5%', minWidth: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem', ...getValidationStyle(item.isQuantityMapped, item.invQtyMatchResion) }}>
-																								{item.invoiceItemQuantity}
-																							</div>
-																						</Tooltip>
-																						<div style={{ width: 8 }} />
-																						<Tooltip title={item.invAmountMatchResion || ''} arrow>
-																							<div style={{ flex: '0 0 5%', minWidth: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem', ...getValidationStyle(item.isInvoiceAmountMapped, item.invAmountMatchResion) }}>
-																								{item.invoiceAmount}
-																							</div>
-																						</Tooltip>
-																						{!isService && (
-																							<>
-																								<div style={{ flex: '0 0 8%', minWidth: '100px', paddingLeft: '4px', paddingRight: '4px' }}>
-																									<TextField
-																										placeholder="GRN No"
-																										fullWidth
-																										size="small"
-																										sx={{ '& .MuiInputBase-input': { fontSize: '0.75rem', padding: '6px 8px' }, '& .MuiInputLabel-root': { fontSize: '0.75rem' } }}
-																										value={input.grnno}
-																										onChange={(e) => handleItemInputChange(itemId, 'grnno', e.target.value)}
-																										error={!!validationErrors[itemId]?.grnNumber}
-																										helperText={validationErrors[itemId]?.grnNumber}
-																										InputProps={{ readOnly: isDisabled }}
-																										onClick={(e) => e.stopPropagation()}
-																									/>
-																								</div>
-																								<div style={{ flex: '0 0 5%', minWidth: '65px', paddingLeft: '4px', paddingRight: '4px' }}>
-																									<Tooltip title={item.grnQuantityMapResion || ''} arrow>
-																										<TextField
-																											placeholder="Qty *"
-																											type="number"
-																											fullWidth
-																											size="small"
-																											value={input.qty ?? ''}
-																											onChange={(e) => handleItemInputChange(itemId, 'qty', e.target.value)}
-																											error={!!validationErrors[itemId]?.grnQuantity}
-																											helperText={validationErrors[itemId]?.grnQuantity}
-																											InputProps={{ readOnly: finalDisabled }}
-																											onClick={(e) => e.stopPropagation()}
-																											sx={{
-																												'& .MuiInputBase-input': {
-																													fontSize: '0.75rem',
-																													padding: '6px 8px',
-																													...getValidationStyle(item.isGRNQuantityMapped, item.grnQuantityMapResion)
-																												},
-																												'& .MuiInputLabel-root': { fontSize: '0.75rem' }
-																											}}
-																										/>
-																									</Tooltip>
-																								</div>																							<div style={{ flex: '0 0 8%', minWidth: '95px', paddingLeft: '4px', paddingRight: '4px' }}>
-																									<TextField
-																										placeholder="Date *"
-																										type="date"
-																										fullWidth
-																										size="small"
-																										InputLabelProps={{ shrink: true }}
-																										value={input.grnDate}
-																										onChange={(e) => handleItemInputChange(itemId, 'grnDate', e.target.value)}
-																										error={!!validationErrors[itemId]?.grnDate}
-																										helperText={validationErrors[itemId]?.grnDate}
-																										InputProps={{ readOnly: finalDisabled }}
-																										onClick={(e) => e.stopPropagation()}
-																										sx={{ '& .MuiInputBase-input': { fontSize: '0.75rem', padding: '6px 8px' }, '& .MuiInputLabel-root': { fontSize: '0.75rem' } }}
-																									/>
-																								</div>
-																								{/* QC Failed Column */}
-																								{!isService && (
-																									<div
-																										style={{
-																											flex: '0 0 5%',
-																											minWidth: '80px',
-																											paddingLeft: '4px',
-																											paddingRight: '4px',
-																											display: 'flex',
-																											justifyContent: 'center',
-																											alignItems: 'center',
-																										}}
-																									>
-																										{(() => {
-																											// Check if item has qtyQcFailed from API
-																											if (item.qtyQcFailed > 0) {
-																												return (
-																													<div
-																														className="text-center"
-																														style={{
-																															width: '100%',
-																															color: '#d32f2f', // red if > 0
-																															fontWeight: 600,
-																															padding: '4px',
-																														}}
-																													>
-																														{item.qtyQcFailed}
-																													</div>
-																												);
-																											} else {
-																												return (
-																													<TextField
-																														placeholder="QC Failed"
-																														type="number"
-																														fullWidth
-																														size="small"
-																														value={displayQcFailed}
-																														onChange={(e) => handleItemInputChange(itemId, 'qcFailed', e.target.value)}
-																														error={!!validationErrors[itemId]?.qcFailed}
-																														helperText={validationErrors[itemId]?.qcFailed}
-																														InputProps={{ readOnly: finalDisabled }}
-																														onClick={(e) => e.stopPropagation()}
-																														sx={{
-																															'& .MuiInputBase-input': { fontSize: '0.75rem', padding: '6px 8px' },
-																															'& .MuiInputLabel-root': { fontSize: '0.75rem' },
-																														}}
-																													/>
-																												);
-																											}
-																										})()}
-																									</div>
-																								)}
-
-
-																								{/* <div style={{ flex: '0 0 5%', minWidth: '65px', paddingLeft: '4px', paddingRight: '4px' }}>
-																								<TextField
-																									placeholder="QC Failed"
-																									type="number"
-																									fullWidth
-																									size="small"
-																									value={displayQcFailed}
-																									onChange={(e) => handleItemInputChange(itemId, 'qcFailed', e.target.value)}
-																									error={!!validationErrors[itemId]?.qcFailed}
-																									helperText={validationErrors[itemId]?.qcFailed}
-																									InputProps={{ readOnly: finalDisabled }}
-																									onClick={(e) => e.stopPropagation()}
-																									sx={{ '& .MuiInputBase-input': { fontSize: '0.75rem', padding: '6px 8px' }, '& .MuiInputLabel-root': { fontSize: '0.75rem' } }}
-																								/>
-																							</div> */}
-																							</>
-																						)}																					{/* Service-specific fields */}
-
-																						{isService && (
-																							<>
-																								<div style={{ flex: '0 0 10%', minWidth: '120px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem', paddingLeft: '4px', paddingRight: '4px' }}>
-																									{item.serviceStartDate ? formatDateViaTimeZone(item.serviceStartDate, "en-GB", formatoption) : 'N/A'}
-																								</div>
-																								<div style={{ flex: '0 0 10%', minWidth: '120px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem', paddingLeft: '4px', paddingRight: '4px' }}>
-																									{item.serviceEndDate ? formatDateViaTimeZone(item.serviceEndDate, "en-GB", formatoption) : 'N/A'}
-																								</div>
-																								<div style={{ flex: '0 0 10%', minWidth: '100px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.75rem', paddingLeft: '4px', paddingRight: '4px' }}>
-																									{item.shipfile ? (
-																										<Button
-																											variant="text"
-																											size="small"
-																											className="text-capitalize font-normal"
-																											as={Link}
-																											onClick={() =>
-																												downloadFilesOnAzure(
-																													item.shipfilePath,
-																													item.shipfile,
-																													atoken
-																												)
-																											}
-																										>
-																											Download
-																										</Button>
-																									) : 'No attachment'}
-																								</div>
-																							</>
-																						)}
-																						<div style={{ flex: '0 0 15%', minWidth: '60px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', fontSize: '0.75rem', padding: '4px' }}>
-																							{item.matchingReason && item.matchingReason.split(',').map((reason, index) => {
-																								const trimmedReason = reason.trim();
-																								const lowerReason = trimmedReason.toLowerCase();
-																								const color = lowerReason.includes('inconsistent') ? 'red' : lowerReason.includes('consistent') ? 'green' : 'inherit';
-																								return (
-																									<div key={index} style={{ marginBottom: index < item.matchingReason.split(',').length - 1 ? '4px' : '0', color: color }}>
-																										{trimmedReason}
-																									</div>
-																								);
-																							})}
-																						</div>
-																					</div>
-																				);
-																			})}
-																		</Box>
-																	</Box>
-																)}
-															</Box>
-														))}
-													</Box>
-												</div>
-											</div>
-
-										</>
-									) : (
-										<div className="p-4">
-											<Alert severity="error">
-												<div className="d-flex align-items-center">
-													<HiOutlineX className="me-2 f18" />
-													Access Denied: You don't have permission to view Shipped History.
-												</div>
-											</Alert>
-										</div>
-									)
-								) : null}
-							</div>
-						</div>
-
-						{/* Edit Bill To dialog */}
-						<Dialog open={openEditBill} onClose={() => setOpenEditBill(false)} fullWidth maxWidth="sm">
-							<DialogTitle>Edit Bill To</DialogTitle>
-							<DialogContent>
-								<Box component="form" sx={{ mt: 1 }}>
-									{/* 1. Country */}
-									<Autocomplete
-										size="small"
-										fullWidth
-										sx={{ mt: 1 }}
-										options={addressCountryOptions}
-										getOptionLabel={(opt) => opt?.countryName ?? ""}
-										value={billToCountryObj}
-										isOptionEqualToValue={(opt, val) => opt?.id === val?.id}
-										onChange={async (e, val) => {
-											setBillToCountryObj(val);
-											setBillToCountry(val?.countryName ?? "");
-											setBillToStateObj(null);
-											setbillToState("");
-											setBillToCityObj(null);
-											setbillToCity("");
-											setBillStateOptions([]);
-											setBillCityOptions([]);
-											if (val?.id) {
-												const states = await fetchStates(val.id, atoken);
-												if (states) setBillStateOptions(states);
-											}
-										}}
-										renderInput={(params) => <TextField {...params} label="Country" />}
-									/>
-									{/* 2. State */}
-									<Autocomplete
-										size="small"
-										fullWidth
-										sx={{ mt: 1 }}
-										options={billStateOptions}
-										getOptionLabel={(opt) => opt?.stateName ?? ""}
-										value={billToStateObj}
-										isOptionEqualToValue={(opt, val) => opt?.id === val?.id}
-										onChange={async (e, val) => {
-											setBillToStateObj(val);
-											setbillToState(val?.stateName ?? "");
-											setBillToCityObj(null);
-											setbillToCity("");
-											setBillCityOptions([]);
-											if (val?.id) {
-												const cities = await fetchCities(val.id, atoken);
-												if (cities) setBillCityOptions(cities);
-											}
-										}}
-										renderInput={(params) => <TextField {...params} label="State" />}
-									/>
-									{/* 3. City */}
-									<Autocomplete
-										size="small"
-										fullWidth
-										sx={{ mt: 1 }}
-										options={billCityOptions}
-										getOptionLabel={(opt) => opt?.cityName ?? ""}
-										value={billToCityObj}
-										isOptionEqualToValue={(opt, val) => opt?.id === val?.id}
-										onChange={(e, val) => {
-											setBillToCityObj(val);
-											setbillToCity(val?.cityName ?? "");
-										}}
-										renderInput={(params) => <TextField {...params} label="City" />}
-									/>
-									{/* 4. Address */}
-									<TextField
-										label="Address"
-										fullWidth
-										size="small"
-										value={billToAddress}
-										onChange={(e) => setbillToAddress(e.target.value)}
-										margin="normal"
-									/>
-								</Box>
-							</DialogContent>
-							<DialogActions>
-								<Button onClick={() => setOpenEditBill(false)}>Cancel</Button>
-								<Button variant="contained" onClick={async () => {
-									const dataadd = {
-										poId: pageSlug,
-										billAddress: billToAddress,
-										billCity: billToCityObj?.cityName ?? billToCity,
-										billState: billToStateObj?.stateName ?? billToState,
-										billToCountry: billToCountry,
-										customerId: poSpecificDetails?.customerId,
-										// Ship To fields as empty strings when updating Bill To
-										shipAddress: "",
-										shipCity: "",
-										shipState: "",
-										shipToCountry: ""
-									};
-									try {
-										const res = await UpdatePOAddresses(dataadd, atoken);
-										if (res) {
-											// UpdatePOAddresses already toasts on success; update UI state
-											setPoSpecificDetails((prev) => ({ ...prev, billToAddress: billToAddress, billToCity: dataadd.billCity, billToState: dataadd.billState, billToCountry: billToCountry }));
-										}
-									} catch (err) {
-										if (err?.response?.data?.Message) toast(err.response.data.Message, { hideProgressBar: true, autoClose: 1200, type: 'error' });
-									}
-									setOpenEditBill(false);
-								}}>
-									Save
-								</Button>
-							</DialogActions>
-						</Dialog>
-
-						{/* Edit Ship To dialog */}
-						<Dialog open={openEditShip} onClose={() => setOpenEditShip(false)} fullWidth maxWidth="sm">
-							<DialogTitle>Edit Ship To</DialogTitle>
-							<DialogContent>
-								<Box component="form" sx={{ mt: 1 }}>
-									{/* 1. Country */}
-									<Autocomplete
-										size="small"
-										fullWidth
-										sx={{ mt: 1 }}
-										options={addressCountryOptions}
-										getOptionLabel={(opt) => opt?.countryName ?? ""}
-										value={shipToCountryObj}
-										isOptionEqualToValue={(opt, val) => opt?.id === val?.id}
-										onChange={async (e, val) => {
-											setShipToCountryObj(val);
-											setShipToCountry(val?.countryName ?? "");
-											setShipToStateObj(null);
-											setshipToState("");
-											setShipToCityObj(null);
-											setshipToCity("");
-											setShipStateOptions([]);
-											setShipCityOptions([]);
-											if (val?.id) {
-												const states = await fetchStates(val.id, atoken);
-												if (states) setShipStateOptions(states);
-											}
-										}}
-										renderInput={(params) => <TextField {...params} label="Country" />}
-									/>
-									{/* 2. State */}
-									<Autocomplete
-										size="small"
-										fullWidth
-										sx={{ mt: 1 }}
-										options={shipStateOptions}
-										getOptionLabel={(opt) => opt?.stateName ?? ""}
-										value={shipToStateObj}
-										isOptionEqualToValue={(opt, val) => opt?.id === val?.id}
-										onChange={async (e, val) => {
-											setShipToStateObj(val);
-											setshipToState(val?.stateName ?? "");
-											setShipToCityObj(null);
-											setshipToCity("");
-											setShipCityOptions([]);
-											if (val?.id) {
-												const cities = await fetchCities(val.id, atoken);
-												if (cities) setShipCityOptions(cities);
-											}
-										}}
-										renderInput={(params) => <TextField {...params} label="State" />}
-									/>
-									{/* 3. City */}
-									<Autocomplete
-										size="small"
-										fullWidth
-										sx={{ mt: 1 }}
-										options={shipCityOptions}
-										getOptionLabel={(opt) => opt?.cityName ?? ""}
-										value={shipToCityObj}
-										isOptionEqualToValue={(opt, val) => opt?.id === val?.id}
-										onChange={(e, val) => {
-											setShipToCityObj(val);
-											setshipToCity(val?.cityName ?? "");
-										}}
-										renderInput={(params) => <TextField {...params} label="City" />}
-									/>
-									{/* 4. Address */}
-									<TextField label="Address" fullWidth size="small" value={shipToAddress} onChange={(e) => setshipToAddress(e.target.value)} margin="normal" />
-								</Box>
-							</DialogContent>
-							<DialogActions>
-								<Button onClick={() => setOpenEditShip(false)}>Cancel</Button>
-								<Button variant="contained" onClick={async () => {
-									const dataadd = {
-										poId: pageSlug,
-										shipAddress: shipToAddress,
-										shipCity: shipToCityObj?.cityName ?? shipToCity,
-										shipState: shipToStateObj?.stateName ?? shipToState,
-										shipToCountry: shipToCountry,
-										customerId: poSpecificDetails?.customerId,
-										// Bill To fields as empty strings when updating Ship To
-										billAddress: "",
-										billCity: "",
-										billState: "",
-										billToCountry: ""
-									};
-									try {
-										const res = await UpdatePOAddresses(dataadd, atoken);
-										if (res) {
-											setPoSpecificDetails((prev) => ({ ...prev, shipToAddress: shipToAddress, shipToCity: dataadd.shipCity, shipToState: dataadd.shipState, shipToCountry: shipToCountry }));
-										}
-									} catch (err) {
-										if (err?.response?.data?.Message) toast(err.response.data.Message, { hideProgressBar: true, autoClose: 1200, type: 'error' });
-									}
-									setOpenEditShip(false);
-								}}>
-									Save
-								</Button>
-							</DialogActions>
-						</Dialog>
-
-
-						{/* Add / Edit PO Condition dialog */}
-						<Dialog open={openEditCondition} onClose={() => { setOpenEditCondition(false); setIsAddingCondition(false); setIsItemConditionMode(false); setTargetItemForCondition(null); }} fullWidth maxWidth="sm">
-							<DialogTitle>
-								{isAddingCondition
-									? (isItemConditionMode ? 'Add Item Condition' : 'Add New Condition')
-									: (isItemConditionMode ? 'Edit Item Condition' : 'Edit PO Condition')}
-							</DialogTitle>
-							<DialogContent>
-								{/* Info Alert for mutual exclusivity */}
-								<Alert severity="info" sx={{ mt: 2, mb: 2 }}>
-									<strong>Note:</strong> You can enter either a <strong>numeric value</strong> OR <strong>text description</strong>, but not both.
-									Clear one field to use the other.
-								</Alert>
-								<Box component="form" sx={{ mt: 1 }}>
-									{/* Condition Category — driven by POCommercialFind termNames */}
-									<TextField
-										label="Condition Category"
-										fullWidth
-										size="small"
-										margin="normal"
-										value={conditionForm.conditionCategory}
-										onChange={(e) => setConditionForm(prev => ({ ...prev, conditionCategory: e.target.value }))}
-									/>
-									{/* Condition Value - Disabled if Condition Text has value */}
-									<TextField
-										label="Condition Value (Numeric)"
-										fullWidth
-										size="small"
-										type="text"
-										margin="normal"
-										value={conditionForm.conditionValue}
-										onChange={(e) => {
-											// Only allow numeric input
-											const value = e.target.value;
-											if (value === '' || /^\d*\.?\d*$/.test(value)) {
-												setConditionForm(prev => ({ ...prev, conditionValue: value }));
-											}
-										}}
-										disabled={!!(conditionForm.conditionText && conditionForm.conditionText.trim())}
-										helperText={
-											conditionForm.conditionText && conditionForm.conditionText.trim()
-												? "⚠️ Clear the Condition Text below to enter a numeric value here"
-												: "Enter a numeric value OR use Condition Text below (not both)"
-										}
-										sx={{
-											'& .MuiInputBase-input.Mui-disabled': {
-												WebkitTextFillColor: '#999',
-												cursor: 'not-allowed'
-											}
-										}}
-									/>
-									{/* Condition Text - Disabled if Condition Value has value */}
-									<TextField
-										label="Condition Text"
-										fullWidth
-										size="small"
-										type="text"
-										margin="normal"
-										multiline
-										rows={2}
-										value={conditionForm.conditionText || ''}
-										onChange={(e) => setConditionForm(prev => ({ ...prev, conditionText: e.target.value }))}
-										disabled={!!(conditionForm.conditionValue && conditionForm.conditionValue.toString().trim())}
-										helperText={
-											conditionForm.conditionValue && conditionForm.conditionValue.toString().trim()
-												? "⚠️ Clear the Condition Value above to enter text here"
-												: "Enter text description OR use Condition Value above (not both)"
-										}
-										sx={{
-											'& .MuiInputBase-input.Mui-disabled': {
-												WebkitTextFillColor: '#999',
-												cursor: 'not-allowed'
-											}
-										}}
-									/>
-								</Box>
-							</DialogContent>
-							<DialogActions>
-								<Button onClick={() => { setOpenEditCondition(false); setIsAddingCondition(false); setIsItemConditionMode(false); setTargetItemForCondition(null); }}>Cancel</Button>
-								<Button
-									variant="contained"
-									disabled={savingCondition}
-									onClick={async () => {
-										// Validation: Ensure mutual exclusivity between conditionValue and conditionText
-										const hasValue = conditionForm.conditionValue && conditionForm.conditionValue.toString().trim();
-										const hasText = conditionForm.conditionText && conditionForm.conditionText.trim();
-
-										if (hasValue && hasText) {
-											toast.error('Cannot have both Condition Value and Condition Text. Please clear one field.');
-											return;
-										}
-
-										if (!hasValue && !hasText) {
-											toast.warning('Please enter either a Condition Value or Condition Text.');
-											return;
-										}
-
-										setSavingCondition(true);
-										try {
-											if (isAddingCondition) {
-												// Add New Condition (header or item level)
-												const isItem = isItemConditionMode && targetItemForCondition;
-												const payload = {
-													id: 0,
-													poHeaderId: parseInt(pageSlug),
-													poItemId: isItem ? targetItemForCondition.id : 0,
-													conditionType: conditionForm.conditionType,
-													conditionCategory: conditionForm.conditionCategory,
-													conditionRate: parseFloat(conditionForm.conditionRate) || 0,
-													conditionValue: parseFloat(conditionForm.conditionValue) || 0,
-													currency: conditionForm.currency,
-													calculationType: conditionForm.calculationType,
-													conditionText: conditionForm.conditionText || "",
-													isHeaderCondition: !isItem,
-												};
-												const res = await apiClient.postres(`/api/pocondition/Add`, payload, atoken);
-												if (res) {
-													toast.success('PO Condition added successfully.');
-													// Re-fetch conditions for the current version
-													const conds = await GetPOCondition(pageSlug, selectedVersion, atoken, { signal: versionControllerRef.current?.signal });
-													if (!(conds && conds.__cancelled)) {
-														setPoSpecificDetails(prev => ({
-															...prev,
-															poConditions: (conds ?? []).filter(c => c.isHeaderCondition === true),
-															poItemConditions: (conds ?? []).filter(c => c.isHeaderCondition === false),
-														}));
-													}
-													setOpenEditCondition(false);
-													setIsAddingCondition(false);
-													setIsItemConditionMode(false);
-													setTargetItemForCondition(null);
-												}
-											} else {
-												// Edit Existing Condition
-												if (!editingCondition) return;
-												const isItem = editingCondition.isHeaderCondition === false;
-												const payload = {
-													id: editingCondition.id ?? 0,
-													poHeaderId: editingCondition.poHeaderId ?? parseInt(pageSlug),
-													poItemId: editingCondition.poItemId ?? 0,
-													conditionType: conditionForm.conditionType,
-													conditionCategory: conditionForm.conditionCategory,
-													conditionRate: parseFloat(conditionForm.conditionRate) || 0,
-													conditionValue: parseFloat(conditionForm.conditionValue) || 0,
-													currency: conditionForm.currency,
-													calculationType: conditionForm.calculationType,
-													conditionText: conditionForm.conditionText || "",
-													isHeaderCondition: !isItem,
-												};
-												const res = await apiClient.postres(`/api/pocondition/Update`, payload, atoken);
-												if (res) {
-													toast.success('PO Condition updated successfully.');
-													// Re-fetch conditions for the current version
-													const conds = await GetPOCondition(pageSlug, selectedVersion, atoken, { signal: versionControllerRef.current?.signal });
-													if (!(conds && conds.__cancelled)) {
-														setPoSpecificDetails(prev => ({
-															...prev,
-															poConditions: (conds ?? []).filter(c => c.isHeaderCondition === true),
-															poItemConditions: (conds ?? []).filter(c => c.isHeaderCondition === false),
-														}));
-													}
-													setOpenEditCondition(false);
-													setIsItemConditionMode(false);
-													setTargetItemForCondition(null);
-												}
-											}
-										} catch (err) {
-											const msg = err?.response?.data?.Message || (isAddingCondition ? 'Failed to add PO Condition.' : 'Failed to update PO Condition.');
-											toast.error(msg);
-										} finally {
-											setSavingCondition(false);
-										}
-									}}
-								>
-									{savingCondition ? 'Saving...' : (isAddingCondition ? 'Add' : 'Save')}
-								</Button>
-							</DialogActions>
-						</Dialog>
-
-						{/* Delete PO Condition confirmation dialog */}
-						<Dialog open={deleteConditionDialogOpen} onClose={() => { if (!isDeletingCondition) { setDeleteConditionDialogOpen(false); setConditionToDelete(null); } }} maxWidth="xs" fullWidth>
-							<DialogTitle>Delete Condition</DialogTitle>
-							<DialogContent>
-								<Typography>Are you sure you want to delete this condition?</Typography>
-							</DialogContent>
-							<DialogActions>
-								<Button onClick={() => { setDeleteConditionDialogOpen(false); setConditionToDelete(null); }} disabled={isDeletingCondition}>
-									Cancel
-								</Button>
-								<Button variant="contained" color="error" onClick={handleDeleteCondition} disabled={isDeletingCondition}>
-									{isDeletingCondition ? <CircularProgress size={18} color="inherit" /> : 'Delete'}
-								</Button>
-							</DialogActions>
-						</Dialog>
-
-						<Dialog open={poCancelDialogOpen} onClose={closePOCancelDialog} maxWidth="xs" fullWidth>
-							<DialogTitle>Cancel Purchase Order</DialogTitle>
-							<DialogContent>
-								<Typography sx={{ mb: 2 }}>Are you sure you want to cancel this PO? Please provide a reason.</Typography>
-								<TextField
-									autoFocus
-									fullWidth
-									required
-									multiline
-									rows={3}
-									label="Reason / Comment"
-									value={poCancelComment}
-									onChange={(e) => {
-										setPoCancelComment(e.target.value);
-										if (poCancelError && e.target.value.trim()) setPoCancelError(null);
-									}}
-									error={Boolean(poCancelError)}
-									helperText={poCancelError || ""}
-									disabled={poCancelSubmitting}
-									placeholder="Enter reason for cancelling this PO"
-								/>
-							</DialogContent>
-							<DialogActions>
-								<Button onClick={closePOCancelDialog} disabled={poCancelSubmitting}>
-									Cancel
-								</Button>
-								<Button
-									variant="contained"
-									color="error"
-									onClick={handlePOCancelConfirm}
-									disabled={poCancelSubmitting || !poCancelComment.trim()}
-								>
-									{poCancelSubmitting ? <CircularProgress size={18} color="inherit" /> : 'Save'}
-								</Button>
-							</DialogActions>
-						</Dialog>
-
-					</div>
-				</div>
-
-				{/* Right content - PO Approval Section */}
-				<div className={`rightContent ${approvershow ? "col-3" : "d-none"}`}>
-					<div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column ms-3" style={{
-						border: "1px solid #ddd",
-						borderTop: "none",
-						height: 'calc(100vh - 120px)',
-						overflow: 'auto',
-						scrollbarWidth: 'none', /* Firefox */
-						msOverflowStyle: 'none' /* IE and Edge */
-					}}>
-						<style jsx>{`
-								div::-webkit-scrollbar {
-									display: none;
-								}
-							`}</style>
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2">
-							<div className="section-heading mb-0 pb-4">Approval Workflow</div>
-							<IconButton
-								onClick={() => handleApprover(false)}
-								size="small"
-								className="text-muted"
-							>
-								<HiOutlineX className="f16" />
-							</IconButton>
-						</div>
-						<div className="flex-grow-1">
-							{approvershow && (
-								<EventApprovalBox
-									requestCell={requestCell}
-									handleEventAppList={handleEventAppList}
-									wfupdate={wfupdate}
-									action={stagearray.includes(currentStage)}
-									stagelist={stagelist}
-									Version={1}
-									permissionManager={poPermissionManager}
-									eventCode={poSpecificDetails?.poNumber}
-									eventSubject={poSpecificDetails?.headerText}
-									startDate={poSpecificDetails?.createdOn}
-									endDate={poSpecificDetails?.deliveryDate}
-									currentStage={currentStage}
-								/>
-							)}
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<React.Fragment key="top2">
-				<Drawer
-					anchor="right"
-					open={state["openCreateSheet"]}
-				// onClose={toggleDrawer('openCreateSheet', false)}
-				>
-					<Box sx={{ width: { xs: 280, sm: 480, md: 720, lg: 1080 } }}>
-						<div className="flex flex-col">
-							<Box className="bgheaderCards">
-								<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-									<div className="ms-3 text-white">
-										{shipConfirmDetails?.shipmentDetails?.some(item => isServiceItem(item))
-											? "Create Service Sheet"
-											: "Shipment/Invoice"}
-									</div>
-									<div>
-										<IconButton
-											onClick={(event) => {
-												toggleDrawer("openCreateSheet", false, allPOShipHeader)(event);
-												// If this drawer was opened via the unified Add ASN/Invoice flow,
-												// closing it returns the user to the line item selection step
-												// (rather than fully exiting) so they can adjust their choice.
-												if (addFlowMode === 'ASN' || addFlowMode === 'INVOICE') {
-													setAddFlowStep('select');
-													setValue(1);
-												}
-											}}
-											size="small"
-											edge="start"
-											sx={{ mr: 1 }}
-										>
-											<HiOutlineX className="f20 text-white" />
-										</IconButton>
-									</div>
-								</div>
-							</Box>
-							<div className="h50px"></div>
-							<div className="row g-0" style={{ overflow: 'hidden' }}>
-								{/* <div className="col-8"> */}
-								{/* <div className="col-12"> */}
-								{(() => {
-									// Check if invoice data exists
-									const hasInvoiceData = shipConfirmDetails?.invoiceAmount ||
-										shipConfirmDetails?.invoiceDate ||
-										shipConfirmDetails?.invoiceFile ||
-										shipConfirmDetails?.invoiceId ||
-										shipConfirmDetails?.invoiceNo ||
-										shipConfirmDetails?.invoicePath;
-									return null;
-								})()}
-								<div className={["Under Approval", "Pending for Payment", "Paid"].includes(currentInvStage) && (shipConfirmDetails?.invoiceAmount || shipConfirmDetails?.invoiceDate || shipConfirmDetails?.invoiceFile || shipConfirmDetails?.invoiceId || shipConfirmDetails?.invoiceNo || shipConfirmDetails?.invoicePath) ? "col-8" : "col-12"}>
-									<Box sx={{ flexGrow: 1, p: 2 }}>
-										<div className="mb-3">
-											<div className="row">
-												{(shipConfirmDetails?.invoiceAmount || shipConfirmDetails?.invoiceDate || shipConfirmDetails?.invoiceFile || shipConfirmDetails?.invoiceId || shipConfirmDetails?.invoiceNo || shipConfirmDetails?.invoicePath) && (
-													<div className="col-md-12">
-														<MemoizedEventStageFlow
-															stagelist={invStagelist}
-															currentStage={currentInvStage}
-														/>
-													</div>
-												)}
-												<div className="col-12">
-													<Box sx={{ width: "100%", display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-														<Tabs
-															onChange={handleTabShipsNotice}
-															value={tabShipsNotice}
-															aria-label="Tabs where selection follows focus"
-															selectionFollowsFocus
-														>
-															<Tab
-																className="text-capitalize"
-																label={shipConfirmDetails?.shipmentDetails?.some(item => isServiceItem(item))
-																	? "Service Sheet Header"
-																	: "Ship Notice Header"}
-															/>
-															<Tab
-																className="text-capitalize"
-																label="Order Items"
-															/>
-															<Tab
-																className="text-capitalize"
-																label="Invoice Details"
-															/>
-															{/* <Tab
-														className="text-capitalize"
-														label="Attachments"
-													/> */}
-														</Tabs>
-														{/* Invoice Audit History Icon - Only visible when Invoice Details tab is active */}
-														{tabShipsNotice === 2 && shipConfirmDetails?.invoiceId && (
-															<Box sx={{ display: 'flex', alignItems: 'center' }}>
-																<HistoryCell eventtype="INV" eventId={shipConfirmDetails.invoiceId} permissionManager={invPermissionManager} />
-															</Box>
-														)}
-													</Box>
-												</div>
-											</div>
-										</div>
-										<hr />
-										{tabShipsNotice == 0 ? (
-											<>
-												{isServiceItem(shipConfirmDetails?.shipmentDetails?.[0]) ? (
-													// Service Sheet Header
-													<div className="row">
-														<div className="col-12 col-md-6 col-lg-6 mb-4">
-															<TextField
-																id="serviceSheetNo"
-																InputLabelProps={{ shrink: true }}
-																name="serviceSheetNo"
-																className="w-100 f14"
-																size="small"
-																label="Service Sheet No *"
-																variant="outlined"
-																value={shipConfirmDetails?.shipSlipId}
-																InputProps={{ readOnly: true }}
-															/>
-														</div>
-														<div className="col-12 col-md-6 col-lg-6 mb-4">
-															<TextField
-																label="Service Sheet Date *"
-																variant="outlined"
-																size="small"
-																className="w-100 f14"
-																InputLabelProps={{ shrink: true }}
-																value={
-																	shipConfirmDetails?.serviceSheetDate
-																		? formatDateViaTimeZone(shipConfirmDetails.serviceSheetDate, "en-GB", formatoption)
-																		: shipConfirmDetails?.shippingDate
-																			? formatDateViaTimeZone(shipConfirmDetails.shippingDate, "en-GB", formatoption)
-																			: ''
-																}
-																inputProps={{ readOnly: true }}
-															/>
-														</div>
-													</div>
-												) : (
-													<>
-														{/* <div className="p-2">
-															<div className="row ">
-														<div className="col-12 col-md-3">
-															<div className="f12 text-muted mb-1">
-																<span className="fw600">From:</span>
-																<div className="f09pt mb-1">
-																	<span> {poSpecificDetails?.company}</span>
-																	<br />
-																	<span>{poSpecificDetails?.shipToAddress}</span>
-																	<br />
-																	{poSpecificDetails?.shipToCity},
-																	{poSpecificDetails?.shipToState}
-																</div>
-																<div className="">
-																	<span>Phone: </span>
-																	{poSpecificDetails?.shipToPhone}
-																</div>
-
-																<div className="">
-																	<span>Email: </span>
-																	{poSpecificDetails?.shipToEmail}
-																</div>
-															</div>
-														</div>
-														<div className="col-12 col-md-3">
-															<div className="f12 text-muted mb-1">
-																<span className="fw600">To:</span>
-																<br />
-																<span> {poSpecificDetails?.vendorName}</span>
-																<br />
-																<div className="f09pt mb-1">
-																	<span>{poSpecificDetails?.billToAddress}</span>
-																	<br />
-																	{poSpecificDetails?.billToCity},
-																	{poSpecificDetails?.billToState}
-																</div>
-																<div className="">
-																	<span>Phone: </span>
-																	{poSpecificDetails?.billToPhone}
-																</div>
-																<div className="">
-																	<span>E-Mail: </span>
-																	{poSpecificDetails?.billToEmail}
-																</div>
-															</div>
-														</div>
-														<div className="col-12 col-md-3">
-															<div className="f09pt">
-															</div>
-														</div>
-														<div className="col-12 col-md-3">
-															<div className="f09pt">
-																<div>
-																	<div className="fw600">Purchase Order</div>
-																	<div className="text-success">
-																		{currentStage}
-																	</div>
-																</div>
-																<div className="f09pt mb-1 mt-2">
-																	<span className="fw600">
-																		{poSpecificDetails?.poNumber}
-																	</span>
-																	<br />
-																</div>
-															</div>
-														</div>
-													</div>
-												</div>
-												<hr className="" /> */}
-														{/*shipConfirmDetails?.map((selectedItem, index) => (*/}
-														<div className="row ">
-															<div className="col-12 col-md-8 col-lg-8">
-																<div className="mb-4 textblue f14">Shipping</div>
-
-																<div className="row">
-																	<div className="col-12 col-md-12 col-lg-12 mb-4">
-																		<TextField
-																			id="packingSlipId"
-																			InputLabelProps={{
-																				shrink: true,
-																			}}
-																			name="packingSlipId"
-																			className="w-100 f14"
-																			size="small"
-																			label="Packing Slip ID *"
-																			variant="outlined"
-																			value={shipConfirmDetails?.shipSlipId}
-																		/>
-																	</div>
-																	<div className="col-12 col-md-12 col-lg-12 mb-4">
-																		<TextField
-																			id="status"
-																			InputLabelProps={{
-																				shrink: true,
-																			}}
-																			name="status"
-																			className="w-100 f14"
-																			size="small"
-																			label="Ship Notice Type"
-																			variant="outlined"
-																			value={shipConfirmDetails?.shipNoticeType}
-																		></TextField>
-																	</div>
-																	<div className="col-12 col-md-12 col-lg-6 mb-4">
-																		<TextField
-																			label="Shipping Date *"
-																			variant="outlined"
-																			size="small"
-																			className="w-100 f14"
-																			InputLabelProps={{
-																				shrink: true,
-																			}}
-																			value={
-																				shipConfirmDetails?.shippingDate
-																					? formatDateViaTimeZone(shipConfirmDetails.shippingDate, "en-GB", formatoption)
-																					: ''
-																			}
-																			inputProps={{ readOnly: true }}
-																		/>
-																	</div>
-																	<div className="col-12 col-md-12 col-lg-6 mb-4">
-																		<TextField
-																			label="Delivery Date *"
-																			variant="outlined"
-																			size="small"
-																			className="w-100 f14"
-																			InputLabelProps={{
-																				shrink: true,
-																			}}
-																			value={
-																				shipConfirmDetails?.deliveryDate
-																					? formatDateViaTimeZone(shipConfirmDetails.deliveryDate, "en-GB", formatoption)
-																					: ''
-																			}
-																			inputProps={{ readOnly: true }}
-																		/>
-																	</div>
-
-																	<div className="col-12 col-md-12 col-lg-12 mb-4">
-																		<TextField
-																			id="ewayBillNumber"
-																			InputLabelProps={{
-																				shrink: true,
-																			}}
-																			name="ewayBillNumber"
-																			className="w-100 f14"
-																			size="small"
-																			label="Eway Bill No. *"
-																			variant="outlined"
-																			value={shipConfirmDetails?.ewayBillNumber}
-																		/>
-																	</div>
-																</div>
-															</div>
-															<div className="col-12 col-md-8 col-lg-4">
-																<div className="mb-4 textblue f14">Tracking</div>
-																<div className="row">
-																	<div className="col-12 col-md-12 col-lg-12 mb-4">
-																		<TextField
-																			id="carrierName"
-																			InputLabelProps={{
-																				shrink: true,
-																			}}
-																			name="carrierName"
-																			className="w-100 f14"
-																			size="small"
-																			label="Carrier Name"
-																			variant="outlined"
-																			value={shipConfirmDetails?.carrierName}
-																		></TextField>
-																	</div>
-																	<div className="col-12 col-md-12 col-lg-12 mb-4">
-																		<TextField
-																			id="serviceLevel"
-																			InputLabelProps={{
-																				shrink: true,
-																			}}
-																			name="serviceLevel"
-																			className="w-100 f14"
-																			size="small"
-																			label="Service Level"
-																			variant="outlined"
-																			value={shipConfirmDetails?.serviceLevel}
-																		/>
-																	</div>
-																	<div className="col-12 col-md-12 col-lg-12 mb-4">
-																		<TextField
-																			id="lrShipBillNumber"
-																			InputLabelProps={{
-																				shrink: true,
-																			}}
-																			name="lrShipBillNumber"
-																			className="w-100 f14"
-																			size="small"
-																			label="AWB/LR/Shipping Bill Number *"
-																			variant="outlined"
-																			value={shipConfirmDetails?.lrShipBillNumber}
-																		/>
-																	</div>
-																	<div className="col-12 col-md-12 col-lg-12 mb-4">
-																		<TextField
-																			id="shipMethod"
-																			InputLabelProps={{
-																				shrink: true,
-																			}}
-																			name="shipMethod"
-																			className="w-100 f14"
-																			size="small"
-																			label="Shipping Method"
-																			variant="outlined"
-																			value={shipConfirmDetails?.shipMethod}
-																		></TextField>
-																	</div>
-																</div>
-															</div>
-														</div>
-														{/*  ))}*/}
-													</>
-												)}
-											</>
-										) : (
-											<></>
-										)}
-
-										{tabShipsNotice == 1 ? (
-											<>
-												<form
-													onSubmit={formik_POShipOrdrItem.handleSubmit}
-													autoComplete="off"
-												>
-													<div className="row">
-														<div className="col-12 mb-3 ">
-															{shipConfirmDetails &&
-																shipConfirmDetails?.shipmentDetails?.length >
-																0 ? (
-																<>
-																	{/* {shipConfirmDetails?.shipmentDetails?.map(
-																		(selectedItem, index) => (
-																			<div key={index}>
-																				<div className="row border-bottom f12 mb-2 pt-0 pb-3">
-																					<div className="col-12">
-																						<div className="row">
-																							<div className="col-12 col-md-2">
-																								<div>
-																									<span className="text-muted">
-																										Item No:
-																									</span>
-																									<br />
-																									{selectedItem?.itemNo}
-																								</div>
-																							</div>
-																							<div className="col-12 col-md-4">
-																								<div>
-																									<span className="text-muted">
-																										Description:
-																									</span>
-																									<br />
-																									{selectedItem?.itemDesc}
-																								</div>
-																							</div>
-																						</div>
-																					</div>
-																					<div className="col-12 mt-1">
-																						<div className="row">
-																							<div className="col-12 col-md-2">
-																								<div>
-																									<span className="text-muted">
-																										Qty:
-																									</span>
-																									<br />
-																									<span className="fw600">
-																										{selectedItem?.quantity}
-																									</span>
-																								</div>
-																							</div>
-																							<div className="col-12 col-md-2">
-																								<div>
-																									<span className="text-muted">
-																										Unit:
-																									</span>
-																									<br />
-																									{selectedItem?.uom}
-																								</div>
-																							</div>
-																							<div className="col-12 col-md-2">
-																								<div>
-																									<span className="text-muted">
-																										Net Price :
-																									</span>
-																									<br />
-																									{selectedItem?.materialPOUnitPrice}
-																								</div>
-																							</div>
-
-																						</div>
-																					</div>
-																					<div className="col-12 mt-1 bggray pt-2 pb-2">
-																						<div className="row">
-																							<div className="col-12 mt-4">
-																								{shipConfirmDetails?.shipmentDetails?.map(
-																									(shipItem, i) => {
-																										return (
-																											<div
-																												className="row  d-flex align-items-center w-100 mb-3"
-																												key={i}
-																											>
-																												<div className="col-12 col-md-2 col-lg-3">
-																													<TextField
-																														id={shipItem.batchId}
-																														InputLabelProps={{
-																															shrink: true,
-																														}}
-																														name="shipQty"
-																														className="w-100 f14"
-																														size="small"
-																														label="Ship Qty *"
-																														variant="outlined"
-																														value={shipItem.shipQty}
-																													/>
-																												</div>
-																												<div className="col-12 col-md-2 col-lg-3">
-																													<TextField
-																														id={shipItem.batchId}
-																														InputLabelProps={{
-																															shrink: true,
-																														}}
-																														name="packingSlipId"
-																														className="w-100 f14"
-																														size="small"
-																														label="Supplier Batch Id"
-																														variant="outlined"
-																														value={shipItem.batchId}
-																													/>
-																												</div>
-
-																												<div className="col-12 col-md-2 col-lg-2">
-
-																												</div>
-																											</div>
-																										);
-																									}
-																								)}
-																							</div>
-																						</div>
-																					</div>
-																				</div>
-																			</div>
-																		)
-																	)} */}
-																	{shipConfirmDetails &&
-																		shipConfirmDetails?.shipmentDetails?.length > 0 ? (
-																		<>
-																			{Object.values(
-																				shipConfirmDetails?.shipmentDetails.reduce((acc, detail) => {
-																					if (!acc[detail?.itemNo]) {
-																						acc[detail?.itemNo] = {
-																							...detail,
-																							batches: [],
-																						};
-																					}
-																					acc[detail?.itemNo].batches.push({
-																						id: detail.id,
-																						batchId: detail.batchId,
-																						shipQty: detail.shipQty,
-																					});
-																					return acc;
-																				}, {})
-																			).map((item, index) => (
-																				<div key={index}>
-																					<div className="row border-bottom f12 mb-2 pt-0 pb-3">
-																						<div className="col-12">
-																							<div className="row">
-																								<div className="col-12 col-md-2">
-																									<div>
-																										<span className="text-muted">Item No:</span>
-																										<br />
-																										{item?.itemNo}
-																									</div>
-																								</div>
-																								<div className="col-12 col-md-4">
-																									<div>
-																										<span className="text-muted">Description:</span>
-																										<br />
-																										{item?.itemDesc}
-																									</div>
-																								</div>
-																							</div>
-																						</div>
-																						<div className="col-12 mt-1">
-																							<div className="row">
-																								{isServiceItem(item) ? (
-																									// Service item - show UOM, Unit Price, Delivery Date
-																									<>
-																										<div className="col-12 col-md-2">
-																											<div>
-																												<span className="text-muted">UOM:</span>
-																												<br />
-																												{item?.uom}
-																											</div>
-																										</div>
-																										<div className="col-12 col-md-2">
-																											<div>
-																												<span className="text-muted">Unit Price:</span>
-																												<br />
-																												{item?.materialPOUnitPrice}
-																											</div>
-																										</div>
-																										<div className="col-12 col-md-3">
-																											<div>
-																												<span className="text-muted">Delivery Date:</span>
-																												<br />
-																												{item?.deliveryDate ? new Date(item.deliveryDate).toLocaleDateString() : 'N/A'}
-																											</div>
-																										</div>
-																									</>
-																								) : (
-																									// Material item - show Qty, Unit, Net Price
-																									<>
-																										<div className="col-12 col-md-2">
-																											<div>
-																												<span className="text-muted">Qty:</span>
-																												<br />
-																												<span className="fw600">{item?.quantity}</span>
-																											</div>
-																										</div>
-																										<div className="col-12 col-md-2">
-																											<div>
-																												<span className="text-muted">Unit:</span>
-																												<br />
-																												{item?.uom}
-																											</div>
-																										</div>
-																										<div className="col-12 col-md-2">
-																											<div>
-																												<span className="text-muted">Net Price :</span>
-																												<br />
-																												{item?.materialPOUnitPrice}
-																											</div>
-																										</div>
-																									</>
-																								)}
-																							</div>
-																						</div>
-
-																						{/* Batch rows */}
-																						<div className="col-12 mt-1 bggray pt-2 pb-2">
-																							<div className="row">
-																								<div className="col-12 mt-4">
-																									{isServiceItem(item) ? (
-																										// Service item fields - single row layout
-																										<div className="row mb-3">
-																											<div className="col-12 col-md-2">
-																												<div>
-																													<span className="text-muted">Total Item Due Qty:</span>
-																													<br />
-																													<span className="fw600">{item?.quantity}</span>
-																												</div>
-																											</div>
-																											{item.batches.map((batch, i) => {
-																												// Find the full detail for this batch to get service dates
-																												const batchDetail = shipConfirmDetails?.shipmentDetails?.find(d => d.id === batch.id);
-																												return (
-																													<React.Fragment key={batch.id}>
-																														<div className="col-12 col-md-3">
-																															<TextField
-																																label="Service Start Date"
-																																variant="outlined"
-																																size="small"
-																																className="w-100 f14"
-																																InputLabelProps={{ shrink: true }}
-																																value={batchDetail?.serviceStartDate ? formatDateViaTimeZone(batchDetail.serviceStartDate, "en-GB", formatoption) : ''}
-																																inputProps={{ readOnly: true }}
-																															/>
-																														</div>
-																														<div className="col-12 col-md-3">
-																															<TextField
-																																label="Service End Date"
-																																variant="outlined"
-																																size="small"
-																																className="w-100 f14"
-																																InputLabelProps={{ shrink: true }}
-																																value={batchDetail?.serviceEndDate ? formatDateViaTimeZone(batchDetail.serviceEndDate, "en-GB", formatoption) : ''}
-																																inputProps={{ readOnly: true }}
-																															/>
-																														</div>
-																														<div className="col-12 col-md-4">
-																															{batchDetail?.shipfile ? (
-																																<Button
-																																	variant="outlined"
-																																	size="small"
-																																	startIcon={<HiOutlineLink />}
-																																	onClick={() => {
-																																		if (batchDetail?.shipfilePath) {
-																																			downloadFilesOnAzure(batchDetail.shipfilePath, getFileName(batchDetail.shipfile), atoken);
-																																		}
-																																	}}
-																																	className="f14"
-																																>
-																																	Service Attachment
-																																</Button>
-																															) : (
-																																<span className="text-muted f14">No attachment</span>
-																															)}
-																														</div>
-																													</React.Fragment>
-																												);
-																											})}
-																										</div>
-																									) : (
-																										// Material item fields
-																										item.batches.map((batch, i) => (
-																											<div
-																												className="row d-flex align-items-center w-100 mb-3"
-																												key={batch.id}
-																											>
-																												<div className="col-12 col-md-2 col-lg-3">
-																													<TextField
-																														id={batch.batchId}
-																														InputLabelProps={{ shrink: true }}
-																														name="shipQty"
-																														className="w-100 f14"
-																														size="small"
-																														label="Ship Qty *"
-																														variant="outlined"
-																														value={batch.shipQty}
-																														InputProps={{ readOnly: true }}
-																													/>
-																												</div>
-																												<div className="col-12 col-md-2 col-lg-3">
-																													<TextField
-																														id={batch.batchId}
-																														InputLabelProps={{ shrink: true }}
-																														name="packingSlipId"
-																														className="w-100 f14"
-																														size="small"
-																														label="Supplier Batch Id"
-																														variant="outlined"
-																														value={batch.batchId}
-																														InputProps={{ readOnly: true }}
-																													/>
-																												</div>
-																												<div className="col-12 col-md-2 col-lg-2"></div>
-																											</div>
-																										))
-																									)}
-																								</div>
-																							</div>
-																						</div>
-																					</div>
-																				</div>
-																			))}
-																		</>
-																	) : null}
-
-																</>
-															) : (
-																<>
-																	<div key={1}>
-																		<div className="row border-bottom f12 mb-2 pt-0 pb-3">
-																			<div className="col-12">
-																				<div className="row">
-																					<div className="col-12 col-md-2">
-																						<div>
-																							<span className="text-muted">
-																								Item No:
-																							</span>
-																							<br />
-																							{poOrderItems?.itemNo}
-																						</div>
-																					</div>
-																					<div className="col-12 col-md-4">
-																						<div>
-																							<span className="text-muted">
-																								Description:
-																							</span>
-																							<br />
-																							{poOrderItems?.itemDesc}
-																						</div>
-																					</div>
-
-																					<div className="col-12 col-md-2">
-																						<div>
-																							<span className="text-muted"></span>
-																						</div>
-																					</div>
-
-																					<div className="col-12 col-md-2">
-
-																					</div>
-																				</div>
-																			</div>
-																			<div className="col-12 mt-1">
-																				<div className="row">
-																					<div className="col-12 col-md-2">
-																						<div>
-																							<span className="text-muted">
-																								Qty:
-																							</span>
-																							<br />
-																							<span className="fw600">
-																								{poOrderItems?.quantity}
-																							</span>
-																						</div>
-																					</div>
-																					<div className="col-12 col-md-2">
-																						<div>
-																							<span className="text-muted">
-																								Unit:
-																							</span>
-																							<br />
-																							{poOrderItems?.uom}
-																						</div>
-																					</div>
-																					<div className="col-12 col-md-2">
-																						<div>
-																							<span className="text-muted">
-																								Net Price :
-																							</span>
-																							<br />
-																							{poOrderItems?.materialPOUnitPrice}
-																						</div>
-																					</div>
-
-																				</div>
-																			</div>
-																			<div className="col-12 mt-1 bggray pt-2 pb-2">
-																				<div className="row">
-																					<div className="col-12 mt-4">
-																						{poOrderItems.shipmentDetails?.map(
-																							(shipItem, i) => {
-																								return (
-																									<div
-																										className="row  d-flex align-items-center w-100 mb-3"
-																										key={i}
-																									>
-																										<div className="col-12 col-md-2 col-lg-3">
-																											<TextField
-																												id={shipItem.batchId}
-																												InputLabelProps={{
-																													shrink: true,
-																												}}
-																												name="shipQty"
-																												className="w-100 f14"
-																												size="small"
-																												label="Ship Qty *"
-																												variant="outlined"
-																												value={shipItem.shipQty}
-																											/>
-																										</div>
-																										<div className="col-12 col-md-2 col-lg-3">
-																											<TextField
-																												id={shipItem.batchId}
-																												InputLabelProps={{
-																													shrink: true,
-																												}}
-																												name="packingSlipId"
-																												className="w-100 f14"
-																												size="small"
-																												label="Supplier Batch Id"
-																												variant="outlined"
-																												value={shipItem.batchId}
-																											/>
-																										</div>
-
-																										<div className="col-12 col-md-2 col-lg-2">
-																											{/* <Button
-																									variant='text'
-																									size='small'
-																									className='text-capitalize font-normal'
-																									onClick={()=>handleItemViewClik(shipConfirmDetails.id)}
-																									>
-																										View
-																									</Button>                         */}
-																										</div>
-																									</div>
-																								);
-																							}
-																						)}
-																					</div>
-																				</div>
-																			</div>
-																		</div>
-																	</div>
-																	{/* ))} */}
-																</>
-															)}
-														</div>
-													</div>
-												</form>
-											</>
-										) : (
-											<></>
-										)}
-
-										{tabShipsNotice == 2 ? (
-											<>
-												<form
-													onSubmit={formik_POShipInvoiceHeader.handleSubmit}
-													autoComplete="off"
-												>
-													<div className="row ">
-														<div className="col-12 col-md-12 col-lg-12">
-															<div className="mb-4 textblue f14">
-																Invoice Details
-															</div>
-															<div className="row">
-																<div className="col-12 col-md-12 col-lg-12">
-																	<div className="row">
-																		<div className="col-12 col-md-12 col-lg-4 mb-4">
-																			<TextField
-																				id="poId"
-																				InputLabelProps={{
-																					shrink: true,
-																				}}
-																				name="poId"
-																				className="w-100 f14"
-																				size="small"
-																				label="Purchase Order *"
-																				variant="outlined"
-																				value={poSpecificDetails?.poNumber}
-																			/>
-																		</div>
-																		<div className="col-12 col-md-12 col-lg-4 mb-4">
-																			<TextField
-																				id="invoiceNo"
-																				InputLabelProps={{
-																					shrink: true,
-																				}}
-																				name="invoiceNo"
-																				className="w-100 f14"
-																				size="small"
-																				label="Invoice No *"
-																				variant="outlined"
-																				value={shipConfirmDetails?.invoiceNo}
-																			/>
-																		</div>
-																		<div className="col-12 col-md-12 col-lg-4 mb-4">
-																			<TextField
-																				id="invoiceAmount"
-																				InputLabelProps={{
-																					shrink: true,
-																				}}
-																				name="invoiceAmount"
-																				className="w-100 f14"
-																				size="small"
-																				label="Invoice Amount *"
-																				variant="outlined"
-																				value={shipConfirmDetails?.invoiceAmount}
-																				readOnly={true}
-																			/>
-																		</div>
-																		<div className="col-12 col-md-12 col-lg-6 mb-4">
-																			<LocalizationProvider
-																				dateAdapter={AdapterDateFns}
-																			>
-																				<DateField
-																					label="Invoice Date"
-																					variant="outlined"
-																					size="small"
-																					className="w-100 f14"
-																					InputLabelProps={{
-																						shrink: true,
-																					}}
-																					value={
-																						shipConfirmDetails &&
-																							shipConfirmDetails?.invoiceDate
-																							? new Date(
-																								shipConfirmDetails?.invoiceDate
-																							)
-																							: null
-																					}
-																					format="dd/MM/yyyy"
-																				/>
-																			</LocalizationProvider>
-																		</div>
-																		<div className="col-12 col-md-12 col-lg-6 ">
-																			<TextField
-																				id="supplierTaxId"
-																				InputLabelProps={{
-																					shrink: true,
-																				}}
-																				name="supplierTaxId"
-																				className="w-100 f14"
-																				size="small"
-																				label="Supplier Tax ID"
-																				variant="outlined"
-																				value={poSpecificDetails?.payTerms}
-																			/>
-																		</div>
-																		<div className="col-12 col-md-12 col-lg-12 mb-4">
-																			<TextField
-																				id="ServiceDesc"
-																				InputLabelProps={{
-																					shrink: true,
-																				}}
-																				name="ServiceDesc"
-																				className="w-100 f14"
-																				size="small"
-																				label="Service Description"
-																				variant="outlined"
-																				value={shipConfirmDetails?.serviceLevel}
-																				multiline
-																				rows={3}
-																			/>
-																		</div>
-
-																		<div className="col-12 col-md-12 col-lg-12 mb-2 f12">
-																			<br />
-																			<Button
-																				variant="text"
-																				size="small"
-																				className="text-capitalize font-normal"
-																				onClick={(e) => {
-																					e.preventDefault();
-																					downloadFilesOnAzure(
-																						shipConfirmDetails?.invoicePath,
-																						getFileName(
-																							shipConfirmDetails?.invoiceFile
-																						),
-																						atoken
-																					);
-																				}}
-																			>
-																				{getFileName(shipConfirmDetails?.invoiceFile)}
-																			</Button>
-																		</div>
-																		{/*<div className="col-12 col-md-12 col-lg-12 mb-2 f12">
-																	<div>
-																	<span className="fw600">Subtotal:</span>:
-																	1,0000.00 INR
-																	</div>
-																	<div>
-																	<span className="fw600">Total Tax:</span>:
-																	180.00 INR
-																	</div>
-																	<div>
-																	<span className="fw600">
-																		Total Gross Amount:
-																	</span>
-																	: 1,180.00 INR
-																	</div>
-																	<div>
-																	<span className="fw600">
-																		Total Net Amount:
-																	</span>
-																	: 1,180.00 INR
-																	</div>
-																	<div className="fw600">
-																	<span className="">Amount Due:</span>:
-																	1,180.00 INR
-																	</div>
-																</div> */}
-																	</div>
-																</div>
-															</div>
-														</div>
-														{shipConfirmDetails?.grnNumber != "" &&
-															shipConfirmDetails?.grnNumber != null ? (
-															<div className="col-12 col-md-8 col-lg-4">
-																<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 2 }}>
-																	<div className="mb-4 textblue f14">GRN Details</div>
-																	<IconButton
-																		size="small"
-																		onClick={(e) => handleGrnMenuOpen(e, shipConfirmDetails)}
-																		sx={{ color: '#1976d2', mt: '-16px' }}
-																	>
-																		<MoreVertIcon />
-																	</IconButton>
-																	<Menu
-																		anchorEl={grnMenuAnchor}
-																		open={Boolean(grnMenuAnchor)}
-																		onClose={handleGrnMenuClose}
-																	>
-																		<MenuItem onClick={handleViewGrnReport} disabled={loadingGrnReport}>
-																			View GRN Report
-																		</MenuItem>
-
-																		<MenuItem onClick={handleDownloadGrnReport} disabled={loadingGrnReport}>
-																			Download GRN Report
-																		</MenuItem>
-																	</Menu>
-																</Box>
-																<div className="row f12">
-																	<div className="col-12 col-md-12 col-lg-12 mb-2">
-																		<div>
-																			<span className="fw600">GRN:</span>
-																		</div>
-																		<div>{shipConfirmDetails?.grnNumber}</div>
-																	</div>
-																	<div className="col-12 col-md-12 col-lg-12 mb-2">
-																		<div>
-																			<span className="fw600">GRN Date:</span>
-																		</div>
-																		<div>
-																			{formatDateViaTimeZone(
-																				shipConfirmDetails?.grnDate,
-																				"en-GB",
-																				formatoption
-																			)}
-																		</div>
-																	</div>
-																	<div className="col-12 col-md-12 col-lg-12 mb-2">
-																		<div>
-																			<span className="fw600">GRN Quantity:</span>
-																		</div>
-																		<div>{shipConfirmDetails?.grnQuantity}</div>
-																	</div>
-																	<div className="col-12 col-md-12 col-lg-12 mb-2">
-																		<div>
-																			<span className="fw600">GRN Amount:</span>
-																		</div>
-																		<div>
-																			<span className="text-muted">
-																				<div>{shipConfirmDetails?.grnAmount}</div>
-																			</span>
-																		</div>
-																	</div>
-																</div>
-															</div>
-														) : (
-															<></>
-														)}
-														<div className="col-12 col-md-8 col-lg-4">
-															<div className="row">
-																<div className="col-12 col-md-12 col-lg-12 mb-2 f12 border-bottom">
-																	<br />
-																	<span class="fw600">Terms & Condition :</span>
-																	<span>{poSpecificDetails?.termsOfPayment}</span>
-																</div>
-
-															</div>
-														</div>
-													</div>
-												</form>
-											</>
-										) : (
-											<></>
-										)}
-
-										{tabShipsNotice == 3 ? (
-											<>
-												<div className="">
-													<div className="row bggray p-1 pt-1 mb-1">
-														<div className="col-12 col-md-3">File Type</div>
-														<div className="col-12 col-md-3">Description</div>
-
-														<div className="col-12 col-md-3">File Name</div>
-													</div>
-													{selectAttachedFile?.map((SingleRowComponent, index) => (
-														<>
-															{SingleRowComponent.poAttachment != "" ? (
-																<div
-																	className="row  p-1 pt-1 mb-1 border-bottom"
-																	key={index}
-																>
-																	<div className="col-12 col-md-3">
-																		{SingleRowComponent?.fileType}
-																	</div>
-																	<div className="col-12 col-md-3">
-																		{SingleRowComponent?.poAttachmentDescription}
-																	</div>
-
-																	<div className="col-12 col-md-3">
-																		{/* <Link
-																	to={downloadFilesOnAzure(
-																		SingleRowComponent?.filePath +
-																			"/" +
-																			SingleRowComponent?.poAttachment,
-																		SingleRowComponent?.poAttachment,
-																		atoken
-																	)}
-																>
-																	Download
-																</Link> */}
-
-																		<Button
-																			variant="text"
-																			size="small"
-																			className="text-capitalize font-normal"
-																			as={Link}
-																			onClick={() =>
-																				downloadFilesOnAzure(
-																					SingleRowComponent?.filePath +
-																					"/" +
-																					SingleRowComponent?.poAttachment,
-																					SingleRowComponent?.poAttachment,
-																					atoken
-																				)
-																			}
-																		>
-																			{SingleRowComponent?.poAttachment}
-																		</Button>
-																	</div>
-																</div>
-															) : (
-																<></>
-															)}
-														</>
-													))}
-												</div>
-											</>
-										) : (
-											<></>
-										)}
-									</Box>
-								</div>
-								{["Under Approval", "Pending for Payment", "Paid"].includes(currentInvStage) && (shipConfirmDetails?.invoiceAmount || shipConfirmDetails?.invoiceDate || shipConfirmDetails?.invoiceFile || shipConfirmDetails?.invoiceId || shipConfirmDetails?.invoiceNo || shipConfirmDetails?.invoicePath) && (
-									<div className="col-4" style={{ overflowX: 'hidden', borderLeft: '2px solid #e0e0e0' }}>
-										{!activityId ? (
-											<div className="p-0">
-												<div className="d-flex flex-column min-vh-100">
-													<div className="flex-grow-1">
-														<div className="row">
-															<div className="col-12">
-																<div className="section-heading mb-3 pb-2 border-bottom mt-2 ps-2">Approval Workflow</div>
-																<EventApprovalBox
-																	requestCell={requestCellINV}
-																	handleEventAppList={handleEventAppList}
-																	wfupdate={wfupdate}
-																	action={stagearray.includes(currentInvStage)}
-																	stagelist={invStagelist}
-																	Version={1}
-																	permissionManager={invPermissionManager}
-																	eventCode={shipConfirmDetails?.invoiceNo || poSpecificDetails?.poNumber}
-																	eventSubject={poSpecificDetails?.headerText || ''}
-																	startDate={poSpecificDetails?.createdOn}
-																	endDate={poSpecificDetails?.deliveryDate}
-																	currentStage={currentInvStage}
-																/>
-															</div>
-														</div>
-													</div>
-
-													<div className="row">
-														<div className="col-12 mb-2">
-															<div className="d-flex bg-white rounded p-2 shadow-sm align-items-center ">
-																<div className="me-2 ">
-																	<HiOutlineCollection className="f14" />
-																</div>
-																<div className="flex-grow-1">Invoices</div>
-																<Badge pill bg="warning" text="dark">
-																	{allPOShipHeader?.length ?? 0}
-																</Badge>
-															</div>
-														</div>
-													</div>
-												</div>
-											</div>
-										) : (
-											selectedInvoiceId?.toString() === poId?.toString() && (
-												<form
-													onSubmit={formik_InvoiceAccepted.handleSubmit}
-													autoComplete="off"
-												>
-													<Box sx={{ width: '100%', maxWidth: '100%' }}>
-														<div className="flex flex-col">
-															<Box>
-																<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-																	<div className="ms-3 w-100 f14">Approval Action</div>
-																</div>
-															</Box>
-															<div className="h50px"></div>
-															<div className="p-1">
-																<div className="">
-																	<div className="col-12 col-md-12 col-lg-12">
-																		<div className="mb-4 textblue f14"></div>
-																		<div className="row">
-																			<div className="col-12 col-md-4 col-lg-12 mb-4">
-																				<TextField
-																					id="status"
-																					InputLabelProps={{ shrink: true }}
-																					name="status"
-																					select
-																					className="mb-2"
-																					fullWidth
-																					size="small"
-																					label="Invoice Status *"
-																					variant="outlined"
-																					value={formik_InvoiceAccepted.values.status}
-																					onChange={formik_InvoiceAccepted.handleChange}
-																				>
-																					<MenuItem value={true}>Approve</MenuItem>
-																					<MenuItem value={false}>Reject</MenuItem>
-																					{/* <MenuItem value="Approved">Approve</MenuItem>
-																			<MenuItem value="Rejected">Revert</MenuItem> */}
-																				</TextField>
-																				{
-																					formik_InvoiceAccepted.errors.status ? (
-																						<div style={{ color: "red" }}>
-																							{formik_InvoiceAccepted.errors.status}
-																						</div>
-																					) : null}
-																			</div>
-
-																			<div className="col-12 col-md-4 col-lg-12 mb-4">
-																				<TextField
-																					id="approveComment"
-																					InputLabelProps={{ shrink: true }}
-																					name="approveComment"
-																					className="w-100 f14"
-																					size="small"
-																					label="Comment *"
-																					variant="outlined"
-																					value={formik_InvoiceAccepted?.values?.approveComment}
-																					onChange={formik_InvoiceAccepted.handleChange}
-																				/>
-																				{
-																					formik_InvoiceAccepted.errors.approveComment ? (
-																						<div style={{ color: "red" }}>
-																							{formik_InvoiceAccepted.errors.approveComment}
-																						</div>
-																					) : null}
-																			</div>
-																		</div>
-																	</div>
-																</div>
-																<div className="row">
-																	<div className="col-12 text-end">
-																		<LoadingButton
-																			color="primary"
-																			size="medium"
-																			className="text-white text-capitalize mb-3 mr-3"
-																			variant="contained"
-																			type="submit"
-																			disabled={approveSaveDisable}
-																			loading={loading}
-																		>
-																			<span>Save</span>
-																		</LoadingButton>
-																	</div>
-																</div>
-															</div>
-														</div>
-													</Box>
-												</form>
+											isDraft && (value === 0 || value === 1 || value === 10) && (
+												<>
+													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost"
+														onClick={openPOCancelDialog} disabled={savingPaymentTerm}>
+														PO Cancel
+													</button>
+													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
+														onClick={handleSaveAndContinue} disabled={savingPaymentTerm}>
+														{savingPaymentTerm ? 'Saving...' : (value === 10 ? 'Submit' : 'Save & Continue')}
+													</button>
+												</>
 											)
-										)}
-									</div>
-								)}
+										)
+									)}
+								</div>
+							</div>
 
-								{/* <div className="col-4" style={{ backgroundColor: '#f8f8f8ff' }}>
-									<form
-										onSubmit={formik_InvoiceAccepted.handleSubmit}
-										autoComplete="off"
-									>
-										<Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-											<div className="flex flex-col">
-												<div className="p-3">
-													<div className="row ">
-														<div className="col-12 col-md-12 col-lg-12">
-															<div className="mb-4 textblue f14"></div>
-															<div className="row">
-																<div className="col-12 col-md-4 col-lg-12 mb-4">
-																	<TextField
-																		id="status"
-																		InputLabelProps={{
-																			shrink: true,
-																		}}
-																		name="status"
-																		select
-																		className="mb-2"
-																		fullWidth
-																		size="small"
-																		label="Invoice Status"
-																		variant="outlined"
-																		value={formik_InvoiceAccepted.values.status}
-																		onChange={formik_InvoiceAccepted.handleChange}
-																	>
-																		<MenuItem value="Approved">Approve</MenuItem>
-																		<MenuItem value="Rejected">Revert</MenuItem>
-																	</TextField>
-																</div>
-
-																<div className="col-12 col-md-4 col-lg-12 mb-4">
-																	<TextField
-																		id="approveComment"
-																		InputLabelProps={{
-																			shrink: true,
-																		}}
-																		name="approveComment"
-																		className="w-100 f14"
-																		size="small"
-																		label="Comment "
-																		variant="outlined"
-																		value={
-																			formik_InvoiceAccepted?.values?.approveComment
-																		}
-																		onChange={formik_InvoiceAccepted.handleChange}
-																	/>
-																</div>
+							{/* Meta row with status pill */}
+							<div className="rfq-dv2-head-bottom">
+								<div className="rfq-dv2-meta-row">
+									<span className="rfq-dv2-meta-item">
+										<span className="rfq-dv2-meta-label">Status</span>
+										<button
+											type="button"
+											className={`rfq-dv2-status-pill${normalizedCurrentStage.toLowerCase() === 'draft' ? ' is-draft' : ''}`}
+											onClick={handleStatusMenuOpen}
+										>
+											<span className="rfq-dv2-status-dot" />
+											{normalizedCurrentStage}
+										</button>
+										<Menu
+											anchorEl={statusAnchorEl}
+											open={Boolean(statusAnchorEl)}
+											onClose={handleStatusMenuClose}
+											classes={{ paper: 'rfq-dv2-status-menu-paper' }}
+											anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+											transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+											PaperProps={{ style: { width: 260, minWidth: 260, maxWidth: 260, overflow: 'hidden' } }}
+										>
+											<div className="rfq-dv2-status-menu">
+												<div className="rfq-dv2-status-menu-title">PO Status</div>
+												<div className="rfq-dv2-status-menu-list">
+													{poStatusSteps.map((step, index) => {
+														const stepClass = index < currentStatusIndex ? '' : index === currentStatusIndex ? 'is-current' : 'is-future';
+														return (
+															<div key={step} className={`rfq-dv2-status-step ${stepClass}`}>
+																<span className="rfq-dv2-status-step-icon" />
+																<span>{step}</span>
 															</div>
-
-															<hr className="mt-0" />
-														</div>
-													</div>
-													<div className="row">
-														<div className="col-12 text-end">
-															<LoadingButton
-																color="primary"
-																size="medium"
-																className="text-white text-capitalize mb-3 mr-3"
-																variant="contained"
-																type="submit"
-																disabled={approveSaveDisable}
-															>
-																<span>Save</span>
-															</LoadingButton>
-														</div>
-													</div>
+														);
+													})}
 												</div>
 											</div>
-										</Box>
-									</form>
-								</div> */}
+										</Menu>
+									</span>
+									{poSpecificDetails?.createdOn && (
+										<span className="rfq-dv2-meta-item">
+											<span className="rfq-dv2-meta-label">PO Date:</span>
+											<span className="rfq-dv2-meta-value">
+												{formatDateViaTimeZone(poSpecificDetails.createdOn, 'en-GB', formatoption)}
+											</span>
+										</span>
+									)}
+									{(poSpecificDetails?.company || poSpecificDetails?.vendorName) && (
+										<span className="rfq-dv2-meta-item">
+											<span className="rfq-dv2-meta-label">Supplier:</span>
+											<span className="rfq-dv2-meta-value">{poSpecificDetails.company || poSpecificDetails.vendorName}</span>
+										</span>
+									)}
+									{poSpecificDetails?.poAmount != null && (
+										<span className="rfq-dv2-meta-item">
+											<span className="rfq-dv2-meta-label">PO Amount:</span>
+											<span className="rfq-dv2-meta-value" style={{ fontWeight: 600, color: '#111827' }}>
+												{poSpecificDetails?.currency}{' '}
+												{Number(poSpecificDetails.poAmount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+											</span>
+										</span>
+									)}
+								</div>
 							</div>
 						</div>
-					</Box>
-				</Drawer>
-			</React.Fragment >
-			<React.Fragment key="top">
-				<Drawer
-					anchor="right"
-					open={state["openOrderConfirm"]}
-				// onClose={toggleDrawer('openCreateSheet', false)}
-				>
-					<form
-						onSubmit={formik_POConfirmOrder.handleSubmit}
-						autoComplete="off"
-					>
-						<Box sx={{ width: { xs: 280, sm: 480, md: 720, lg: 1080 } }}>
-							<div className="flex flex-col">
-								<Box className="bgheaderCards">
-									<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-										<div className="ms-3 text-white">Confirm Entire Order</div>
-										<div>
-											<IconButton
-												onClick={toggleDrawer(
-													"openOrderConfirm",
-													false,
-													allPOShipHeader
-												)}
-												size="small"
-												edge="start"
-												sx={{ mr: 1 }}
-											>
-												<HiOutlineX className="f20 text-white" />
-											</IconButton>
-										</div>
-									</div>
+
+						{/* ── Tabs + Content ── */}
+						<div className="flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+
+							{/* Tab bar */}
+							<div className="pe-detail-tabs-shell border-bottom" style={{ flexShrink: 0 }}>
+								<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
+									{/* Tab list */}
+									<Tabs value={value} onChange={handleChange} textColor="primary" className="tabstheme"
+										indicatorColor="primary" variant="scrollable" allowScrollButtonsMobile>
+										{(loadingPermissions || poPermissionManager?.hasPermission('PO Details', ACTIONS.READ)) && (
+											<Tab value={0} label="PO Details" disabled={isPoDetailsReadDisabled} />)}
+										{(loadingPermissions || poPermissionManager?.hasPermission('Items/Services', ACTIONS.READ)) && (
+											<Tab value={1} label={`Line Items (${dashboardCounts.itemCount})`} disabled={isItemServicesReadDisabled} />)}
+										{!isDraft && hasMaterialLineItems && Number(poCustomerId ?? customerid) !== 78 && (
+											<Tab value={2} label={dashboardCounts.asnCount > 0 ? `ASN (${dashboardCounts.asnCount})` : 'ASN'} />)}
+										{!isDraft && hasMaterialLineItems && (
+											<Tab value={3} label={dashboardCounts.grnCount > 0 ? `GRN (${dashboardCounts.grnCount})` : 'GRN'} />)}
+										{!isDraft && hasServiceLineItems && (
+											<Tab value={4} label={dashboardCounts.sesCount > 0 ? `Service Entry (${dashboardCounts.sesCount})` : 'Service Entry'} />)}
+										{!isDraft && (
+											<Tab value={5} label={dashboardCounts.invoiceCount > 0 ? `Invoices (${dashboardCounts.invoiceCount})` : 'Invoices'} />)}
+										{!isDraft && (
+											<Tab value={7} label={`Payments (${dashboardCounts.paymentCount ?? 0})`} />)}
+										<Tab value={10} label="Preview" />
+									</Tabs>
+
+									{/* Right icons: PO document + history + approver toggle */}
+									<Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+										{poSpecificDetails?.poDocumentFileName && (
+											<Tooltip title={`Download: ${poSpecificDetails.poDocumentFileName}`}>
+												<button type="button" className="pe-icon-btn pe-icon-btn--download"
+													onClick={() => poSpecificDetails?.poDocumentFilePath && downloadFilesOnAzure(poSpecificDetails.poDocumentFilePath, poSpecificDetails.poDocumentFileName, atoken)}>
+													<HiOutlineLink style={{ fontSize: 14 }} />
+												</button>
+											</Tooltip>
+										)}
+										<HistoryCell eventtype="PO" eventId={pageSlug} permissionManager={poPermissionManager} />
+										{pageSlug && (
+											<Tooltip title="Show/Hide Approvers">
+												<IconButton onClick={() => handleApprover(!approvershow)} size="small" className="pointer">
+													<div className="approverCircle shadow-sm"><PeopleAltIcon /></div>
+												</IconButton>
+											</Tooltip>
+										)}
+									</Box>
 								</Box>
-								<div className="h50px"></div>
-								<div className="p-3">
-									<div className="row ">
-										<div className="col-12 col-md-12 col-lg-12">
-											<div className="mb-4 textblue f14">
-												Order Confirmation Header
-											</div>
-											<div className="row">
-												<div className="col-12 col-md-4 col-lg-3 mb-4">
-													<TextField
-														id="POId"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														inputProps={{
-															readOnly: true,
-															title: "This field is not editable",
-														}}
-														name="POId"
-														className="w-100 f14"
-														size="small"
-														label="Associated Purchase Order*"
-														variant="outlined"
-														value={poSpecificDetails?.id}
-													// onChange={(e) => {
-													//     formik.setFieldValue('packingSlipId', e.target.value);
-													// }}
-													/>
-												</div>
+							</div>{/* end pe-detail-tabs-shell */}
 
-												<div className="col-12 col-md-4 col-lg-3 mb-4">
-													<TextField
-														id="Company"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														inputProps={{
-															readOnly: true,
-															title: "This field is not editable",
-														}}
-														name="Company"
-														className="w-100 f14"
-														size="small"
-														label="Customer"
-														variant="outlined"
-														value={poSpecificDetails?.company}
-													// onChange={(e) => {
-													//     formik.setFieldValue('packingSlipId', e.target.value);
-													// }}
-													/>
-												</div>
-												<div className="col-12 col-md-4 col-lg-3 mb-4">
-													<TextField
-														id="ConfirmationNo"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="ConfirmationNo"
-														className="w-100 f14"
-														size="small"
-														label="Confirmation *"
-														variant="outlined"
-														value={formik_POConfirmOrder.values?.ConfirmationNo}
-														onChange={formik_POConfirmOrder.handleChange}
-													// onChange={(e) => {
-													//     formik.setFieldValue('ConfirmationNo', e.target.value);
-													// }}
-													/>
-												</div>
-												<div className="col-12 col-md-4 col-lg-3 mb-4">
-													<TextField
-														id="SupplierRef"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="SupplierRef"
-														className="w-100 f14"
-														size="small"
-														label="Supplier Reference"
-														variant="outlined"
-														value={formik_POConfirmOrder.values?.SupplierRef}
-														onChange={formik_POConfirmOrder.handleChange}
-													// onChange={(e) => {
-													//     formik.setFieldValue('packingSlipId', e.target.value);
-													// }}
-													/>
-												</div>
-											</div>
-											<hr className="mt-0" />
-											<div className="mb-4 textblue f14">
-												Shipping and Tax Information
-											</div>
-											<div className="row">
-												<div className="col-12 col-md-4 col-lg-3 mb-4">
-													<LocalizationProvider dateAdapter={AdapterDateFns}>
-														<DateField
-															label="Est. Shipping Date *"
-															variant="outlined"
-															size="small"
-															className="w-100 f14"
-															InputLabelProps={{
-																shrink: true,
-															}}
-															value={
-																formik_POConfirmOrder.values?.ConfirmedShipDate
-															}
-															format={getOnlyDateFormatPatternLocale(userDetail)}
-														/>
-													</LocalizationProvider>
-													{formik_POConfirmOrder.touched.ConfirmedShipDate &&
-														formik_POConfirmOrder.errors.ConfirmedShipDate ? (
-														<div style={{ color: "red" }}>
-															{formik_POConfirmOrder.errors.ConfirmedShipDate}
-														</div>
-													) : null}
-												</div>
-												<div className="col-12 col-md-4 col-lg-3 mb-4">
-													<LocalizationProvider dateAdapter={AdapterDateFns}>
-														<DateField
-															label="Est. Delivery Date *"
-															variant="outlined"
-															size="small"
-															className="w-100 f14"
-															InputLabelProps={{
-																shrink: true,
-															}}
-															value={
-																formik_POConfirmOrder.values?.confirmedDelDate
-															}
-															format={getOnlyDateFormatPatternLocale(userDetail)}
-														/>
-													</LocalizationProvider>
-													{formik_POConfirmOrder.touched.ConfirmedDelDate &&
-														formik_POConfirmOrder.errors.ConfirmedDelDate ? (
-														<div style={{ color: "red" }}>
-															{formik_POConfirmOrder.errors.ConfirmedDelDate}
-														</div>
-													) : null}
-												</div>
-												<div className="col-12 col-md-4 col-lg-3 mb-4">
-													<TextField
-														id="ShippingCost"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="ShippingCost"
-														className="w-100 f14"
-														size="small"
-														label="Est. Shipping Cost"
-														variant="outlined"
-														value={formik_POConfirmOrder.values?.ShippingCost}
-														onChange={(e) => {
-															formik_POConfirmOrder?.setFieldValue(
-																"ShippingCost",
-																e.target.value
-															);
-														}}
-													/>
-													{formik_POConfirmOrder.touched.ShippingCost &&
-														formik_POConfirmOrder.errors.ShippingCost ? (
-														<div style={{ color: "red" }}>
-															{formik_POConfirmOrder.errors.ShippingCost}
-														</div>
-													) : null}
-												</div>
-												<div className="col-12 col-md-4 col-lg-3 mb-4"></div>
-												<div className="col-12 mb-4">
-													<TextField
-														id="Remarks"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														rows={2}
-														multiline
-														name="Remarks"
-														className="w-100 f14"
-														size="small"
-														label="Comments"
-														variant="outlined"
-														value={formik_POConfirmOrder.values?.Remarks}
-														onChange={(e) => {
-															formik_POConfirmOrder.setFieldValue(
-																"Remarks",
-																e.target.value
-															);
-														}}
-													/>
-												</div>
-											</div>
-											<hr className="mt-0" />
-											<div className="mb-4 textblue f14">Attachments</div>
+							<Menu anchorEl={anchorElAction} open={openAction} onClose={handleCloseActionMenu} />
 
-											{showAttach && (
-												<div className="row align-items-center p-0 pb-1 border-bottom ms-0 me-0 pt-1 pb-1">
-													<div className="col-12 col-md-10">
-														<div className="row text-left f12 lingh14 text-muted">
-															<div className="col-lg-4 col-md-2 col-12">
-																<div>
-																	<a href={`${returnfileName}`} target="_blank">
-																		{attachmentfilters?.poAttachmentDescription}
-																	</a>
-																</div>
-															</div>
+							{/* Scrollable tab content */}
+							<div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
 
-														</div>
-													</div>
-													<div className="d-flex col-12 col-md-2 align-items-center justify-content-end">
-														<IconButton size="small" className="bg-white ms-2">
-															<HiOutlineX className="f17 text-danger" />
-														</IconButton>
-													</div>
-												</div>
-											)}
+								{value == 0 && (
+									<PODetailsTab
+										versionError={versionError}
+										loadPOVersionData={loadPOVersionData}
+										pageSlug={pageSlug}
+										selectedVersion={selectedVersion}
+										latestVersion={latestVersion}
+										loadingVersion={loadingVersion}
+										setSelectedVersion={setSelectedVersion}
+										isDraft={isDraft}
+										poNumberInput={poNumberInput}
+										setPoNumberInput={setPoNumberInput}
+										poSpecificDetails={poSpecificDetails}
+										stagedPODate={stagedPODate}
+										expiryDate={expiryDate}
+										setExpiryDate={setExpiryDate}
+										currentStage={currentStage}
+										addressCountryOptions={addressCountryOptions}
+										atoken={atoken}
+										setbillToAddress={setbillToAddress}
+										setbillToCity={setbillToCity}
+										setbillToState={setbillToState}
+										setBillToCountry={setBillToCountry}
+										setBillToCountryObj={setBillToCountryObj}
+										setBillToStateObj={setBillToStateObj}
+										setBillToCityObj={setBillToCityObj}
+										setBillStateOptions={setBillStateOptions}
+										setBillCityOptions={setBillCityOptions}
+										setOpenEditBill={setOpenEditBill}
+										setshipToAddress={setshipToAddress}
+										setshipToCity={setshipToCity}
+										setshipToState={setshipToState}
+										setShipToCountry={setShipToCountry}
+										setShipToCountryObj={setShipToCountryObj}
+										setShipToStateObj={setShipToStateObj}
+										setShipToCityObj={setShipToCityObj}
+										setShipStateOptions={setShipStateOptions}
+										setShipCityOptions={setShipCityOptions}
+										setOpenEditShip={setOpenEditShip}
+										selectedPaymentTermId={selectedPaymentTermId}
+										paymentTermsFieldRef={paymentTermsFieldRef}
+										setPaymentTermModal={setPaymentTermModal}
+										paymentTermsOptions={paymentTermsOptions}
+										paymentTermsLoading={paymentTermsLoading}
+										setSelectedPaymentTermId={setSelectedPaymentTermId}
+										selectPOAttachedFile={selectPOAttachedFile}
+										handleOpenAddCondition={handleOpenAddCondition}
+										setIsAddingCondition={setIsAddingCondition}
+										setEditingCondition={setEditingCondition}
+										setConditionForm={setConditionForm}
+										setOpenEditCondition={setOpenEditCondition}
+										setConditionToDelete={setConditionToDelete}
+										setDeleteConditionDialogOpen={setDeleteConditionDialogOpen}
+										isPoDetailsReadDisabled={isPoDetailsReadDisabled}
+									/>
+								)}
 
-											<div className="row bggray p-2 pt-3 mb-3">
-												<div className="col-12 col-md-5">
-													<Form.Group controlId="formFile" className="">
-														<Form.Control
-															// onChange={userAttachment}
-															// onChange={(e) => setFileName(e.target.files[0])}
-															name="poAttachment"
-															type="file"
-															size="md"
-															accept=".docx,.doc,image/jpeg,image/gif,image/png,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-															// value={attachmentfilters?.poAttachment}
-															onChange={handleAttachfileChange("POAttachment")}
-															// onChange={handleFileChange}
-															isInvalid={"Unsupported Format"}
-														/>
-														<Form.Text id="filiploadtext" muted className="f10">
-															(\.docx|\.doc|\.jpg|\.jpeg|\.png|\.pdf|\.xlsx),
-															Max Size: 10 mb
-														</Form.Text>
-													</Form.Group>
-												</div>
-												{/* <div className="col-12 col-md-5">
-                        <LoadingButton
-                          // loading
-                          type="button"
-                          variant="outlined"
-                          color="primary"
-                          className="text-capitalize"
-                          onClick={()=>{handleAddClick(attachmentfilters)
-                             
-                          }}
-                        >
-                          Add Attachment
-                        </LoadingButton>
-                      </div> */}
-											</div>
-										</div>
-									</div>
-									{/* <div className="row">
-                          <div className="col-12 text-end">
-                            <LoadingButton
-                              // loading={loadingBids}
-                              color="primary"
-                              size="medium"
-                              className="text-white text-capitalize mb-3 mr-3"
-                              variant="contained"
-                              type="submit"
-                              disabled={poSpecificDetails?.status=='Confirmed' ?false:false}
-                            >
-                              <span>Save</span>
-                            </LoadingButton>
-                            
-                          </div>
-                </div>
-                 */}
-								</div>
+								{value == 1 && (
+									<LineItemsTab
+										isItemServicesReadDisabled={isItemServicesReadDisabled}
+										addFlowMode={addFlowMode}
+										ADD_FLOW_LABEL={ADD_FLOW_LABEL}
+										addFlowSelectedItems={addFlowSelectedItems}
+										cancelAddFlow={cancelAddFlow}
+										handleAddFlowNext={handleAddFlowNext}
+										displayPOItems={displayPOItems}
+										allPOShipHeader={allPOShipHeader}
+										currentStage={currentStage}
+										pageSlug={pageSlug}
+										poCustomerId={poCustomerId}
+										customerid={customerid}
+										apiClient={apiClient}
+										atoken={atoken}
+										poSpecificDetails={poSpecificDetails}
+										isItemEligibleForAddMode={_isItemEligibleForAddMode}
+										handleAddFlowToggleItem={handleAddFlowToggleItem}
+										handleAddFlowToggleAll={handleAddFlowToggleAll}
+										deliveryUpdates={deliveryUpdates}
+										setDeliveryDialogRow={setDeliveryDialogRow}
+										setDeliveryDialogDate={setDeliveryDialogDate}
+										setDeliveryDialogOpen={setDeliveryDialogOpen}
+										canCreateAsn={canCreateAsn}
+										isUnderApprovalStage={isUnderApprovalStage}
+										handleOpenAddAsnDrawer={handleOpenAddAsnDrawer}
+										canCreateGrn={canCreateGrn}
+										getEligibleItemsForAddMode={_getEligibleItemsForAddMode}
+										NO_REMAINING_ITEM_MSG_GRN={NO_REMAINING_ITEM_MSG_GRN}
+										setPOOrderItems={setPOOrderItems}
+										SetRef_ItemId={SetRef_ItemId}
+										setSelectedGrnItems={setSelectedGrnItems}
+										setAddGrnDialogOpen={setAddGrnDialogOpen}
+										canCreateInvoice={canCreateInvoice}
+										handleOpenAddInvoiceDrawer={handleOpenAddInvoiceDrawer}
+										canCreateSes={canCreateSes}
+										NO_REMAINING_ITEM_MSG_SES={NO_REMAINING_ITEM_MSG_SES}
+										setSelectedSesItems={setSelectedSesItems}
+										setAddSesDialogOpen={setAddSesDialogOpen}
+										allPOItems={allPOItems}
+										setSesDialogMode={setSesDialogMode}
+										setSesPreviewData={setSesPreviewData}
+										toggleDrawer={toggleDrawer}
+										setValue={setValue}
+										canCreatePayment={canCreatePayment}
+										setPaymentTargetItem={setPaymentTargetItem}
+										resetPaymentForm={resetPaymentForm}
+										setOpenAddPaymentDrawer={setOpenAddPaymentDrawer}
+										handlePreviewInvoice={handlePreviewInvoice}
+										handlePreviewAsn={handlePreviewAsn}
+										fetchPaymentDetails={fetchPaymentDetails}
+									/>
+								)}
+
+								{value == 10 && (
+									<PreviewTab
+										poSpecificDetails={poSpecificDetails}
+										allPOItems={allPOItems}
+										atoken={atoken}
+										requestCell={requestCell}
+										stagelist={stagelist}
+										customerid={customerid}
+										customersuffix={customersuffix}
+									/>
+								)}
+								{/* ASN Tab Content */}
+								{value == 2 && Number(poCustomerId ?? customerid) !== 78 && allPOItems?.some(item => item.itemType?.toLowerCase() !== 'service') && (
+									<ASNTab
+										poCustomerId={poCustomerId}
+										customerid={customerid}
+										allPOItems={allPOItems}
+										isShippedHistoryCreateDisabled={isShippedHistoryCreateDisabled}
+										canCreateAsn={canCreateAsn}
+										renderAddFlowButton={renderAddFlowButton}
+										poAsnList={poAsnList}
+										allPOShipHeader={allPOShipHeader}
+										formatoption={formatoption}
+										handlePreviewAsn={handlePreviewAsn}
+									/>
+								)}
+
+								{/* GRN Tab Content - Only for Material Items */}
+								{value == 3 && allPOItems?.some(item => item.itemType?.toLowerCase() !== 'service') && (
+									<GRNTab
+										allPOItems={allPOItems}
+										isShippedHistoryCreateDisabled={isShippedHistoryCreateDisabled}
+										canCreateGrn={canCreateGrn}
+										renderAddFlowButton={renderAddFlowButton}
+										poGrnList={poGrnList}
+										expandedGrnHeaderIds={expandedGrnHeaderIds}
+										toggleGrnHeaderExpand={toggleGrnHeaderExpand}
+										formatoption={formatoption}
+										handleDownloadIndividualGrnReport={handleDownloadIndividualGrnReport}
+										downloadingGrnId={downloadingGrnId}
+									/>
+								)}
+
+								{/* Service Entry Tab Content - Only for Service Items */}
+								{value == 4 && allPOItems?.some(item => item.itemType?.toLowerCase() === 'service') && (
+									<ServiceEntryTab
+										allPOItems={allPOItems}
+										isShippedHistoryCreateDisabled={isShippedHistoryCreateDisabled}
+										canCreateSes={canCreateSes}
+										renderAddFlowButton={renderAddFlowButton}
+										poSesList={poSesList}
+										pageSlug={pageSlug}
+										loadingGrnReport={loadingGrnReport}
+										handleDownloadSesReport={handleDownloadSesReport}
+										expandedSesHeaderIds={expandedSesHeaderIds}
+										toggleSesHeaderExpand={toggleSesHeaderExpand}
+										formatoption={formatoption}
+										setSesDialogMode={setSesDialogMode}
+										setSesPreviewData={setSesPreviewData}
+										setSelectedSesItems={setSelectedSesItems}
+										setAddSesDialogOpen={setAddSesDialogOpen}
+									/>
+								)}
+
+								{/* Invoices Tab Content */}
+								{value == 5 && (
+									<InvoicesTab
+										isShippedHistoryCreateDisabled={isShippedHistoryCreateDisabled}
+										canCreateInvoice={canCreateInvoice}
+										renderAddFlowButton={renderAddFlowButton}
+										canReadInvoice={canReadInvoice}
+										poInvoiceList={poInvoiceList}
+										formatoption={formatoption}
+										handlePreviewInvoice={handlePreviewInvoice}
+									/>
+								)}
+
+								{value == 7 && (
+									<PaymentsTab
+										isShippedHistoryCreateDisabled={isShippedHistoryCreateDisabled}
+										canCreatePayment={canCreatePayment}
+										setPaymentTargetItem={setPaymentTargetItem}
+										resetPaymentForm={resetPaymentForm}
+										poInvoiceList={poInvoiceList}
+										pageSlug={pageSlug}
+										poCustomerId={poCustomerId}
+										customerid={customerid}
+										apiClient={apiClient}
+										atoken={atoken}
+										setPoInvoiceList={setPoInvoiceList}
+										setOpenAddPaymentDrawer={setOpenAddPaymentDrawer}
+										loadingPayments={loadingPayments}
+										paymentError={paymentError}
+										paymentLoadedRef={paymentLoadedRef}
+										fetchPayments={fetchPayments}
+										poPaymentList={poPaymentList}
+										formatoption={formatoption}
+										setPaymentDetails={setPaymentDetails}
+										setState={setState}
+									/>
+								)}
+
 							</div>
-						</Box>
-					</form>
-				</Drawer>
-			</React.Fragment>
-			<React.Fragment key="top3">
-				<Drawer
-					anchor="right"
-					open={state["openOrderReject"]}
-				// onClose={toggleDrawer('openCreateSheet', false)}
-				>
-					<form onSubmit={formik_PORejectOrder.handleSubmit} autoComplete="off">
-						<Box sx={{ width: { xs: 280, sm: 480, md: 720, lg: 1080 } }}>
-							<div className="flex flex-col">
-								<Box className="bgheaderCards">
-									<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-										<div className="ms-3 text-white">Reject Entire Order</div>
-										<div>
-											<IconButton
-												onClick={toggleDrawer(
-													"openOrderReject",
-													false,
-													allPOShipHeader
-												)}
-												size="small"
-												edge="start"
-												sx={{ mr: 1 }}
-											>
-												<HiOutlineX className="f20 text-white" />
-											</IconButton>
-										</div>
-									</div>
-								</Box>
-								<div className="h50px"></div>
-								<div className="p-3">
-									<div className="row ">
-										<div className="col-12 col-md-12 col-lg-12">
-											<div className="mb-4 textblue f14">
-												Order Rejection Header
-											</div>
-											<div className="row">
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="rejectionReason"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														multiline
-														rows={3}
-														name="rejectionReason"
-														className="w-100 f14"
-														size="small"
-														label="Reason"
-														variant="outlined"
-														value={formik_PORejectOrder.values?.rejectionReason}
-														onChange={(e) => {
-															formik_PORejectOrder?.setFieldValue(
-																"rejectionReason",
-																e.target.value
-															);
-														}}
-													/>
-												</div>
-											</div>
-											<hr className="mt-0" />
-										</div>
-									</div>
-									<div className="row">
-										<div className="col-12 text-end">
-											<LoadingButton
-												// loading={loadingBids}
-												color="primary"
-												size="medium"
-												className="text-white text-capitalize mb-3 mr-3"
-												variant="contained"
-												type="submit"
-											>
-												<span>Save</span>
-											</LoadingButton>
-											{/* Add margin-bottom to create a gap */}
-										</div>
-									</div>
-								</div>
-							</div>
-						</Box>
-					</form>
-				</Drawer>
-			</React.Fragment>
+						</div>
 
-			<React.Fragment key="top4">
-				<Drawer
-					anchor="right"
-					open={state["openOrderGRNSubmit"]}
-				// onClose={toggleDrawer('openCreateSheet', false)}
-				>
-					<form onSubmit={formik_GRNAccepted.handleSubmit} autoComplete="off">
-						<Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-							<div className="flex flex-col">
-								<Box className="bgheaderCards">
-									<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-										<div className="ms-3 text-white">GRN Submit</div>
-										<div>
-											<IconButton
-												onClick={toggleDrawer("openOrderGRNSubmit", false, [])}
-												size="small"
-												edge="start"
-												sx={{ mr: 1 }}
-											>
-												<HiOutlineX className="f20 text-white" />
-											</IconButton>
-										</div>
-									</div>
-								</Box>
-								<div className="h50px"></div>
-								<div className="p-3">
-									<div className="row ">
-										<div className="col-12 col-md-12 col-lg-12">
-											<div className="mb-4 textblue f14"></div>
-											<div className="row">
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="grnNumber"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="grnNumber"
-														className="w-100 f14"
-														size="small"
-														label="GRN No *"
-														variant="outlined"
-														value={formik_GRNAccepted?.values?.grnNumber}
-														onChange={formik_GRNAccepted.handleChange}
-														inputProps={{
-															maxLength: 25,
-														}}
-														InputProps={{
-															endAdornment: (
-																<InputAdornment position="end">
-																	<Typography variant="body2" color="textSecondary">
-																		{formik_GRNAccepted?.values?.grnNumber?.length}/25
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-													/>
-													{formik_GRNAccepted.touched.grnNumber &&
-														formik_GRNAccepted.errors.grnNumber ? (
-														<div style={{ color: "red" }}>
-															{formik_GRNAccepted.errors.grnNumber}
-														</div>
-													) : null}
-												</div>
+						<PODetailsDialogs
+							openEditBill={openEditBill}
+							setOpenEditBill={setOpenEditBill}
+							addressCountryOptions={addressCountryOptions}
+							billToCountryObj={billToCountryObj}
+							setBillToCountryObj={setBillToCountryObj}
+							setBillToCountry={setBillToCountry}
+							billStateOptions={billStateOptions}
+							setBillStateOptions={setBillStateOptions}
+							billToStateObj={billToStateObj}
+							setBillToStateObj={setBillToStateObj}
+							billCityOptions={billCityOptions}
+							setBillCityOptions={setBillCityOptions}
+							billToCityObj={billToCityObj}
+							setBillToCityObj={setBillToCityObj}
+							setbillToState={setbillToState}
+							setbillToCity={setbillToCity}
+							billToAddress={billToAddress}
+							setbillToAddress={setbillToAddress}
+							billToCity={billToCity}
+							billToState={billToState}
+							billToCountry={billToCountry}
+							atoken={atoken}
+							pageSlug={pageSlug}
+							poSpecificDetails={poSpecificDetails}
+							setPoSpecificDetails={setPoSpecificDetails}
+							openEditShip={openEditShip}
+							setOpenEditShip={setOpenEditShip}
+							shipToCountryObj={shipToCountryObj}
+							setShipToCountryObj={setShipToCountryObj}
+							setShipToCountry={setShipToCountry}
+							shipStateOptions={shipStateOptions}
+							setShipStateOptions={setShipStateOptions}
+							shipToStateObj={shipToStateObj}
+							setShipToStateObj={setShipToStateObj}
+							shipCityOptions={shipCityOptions}
+							setShipCityOptions={setShipCityOptions}
+							shipToCityObj={shipToCityObj}
+							setShipToCityObj={setShipToCityObj}
+							setshipToState={setshipToState}
+							setshipToCity={setshipToCity}
+							shipToAddress={shipToAddress}
+							setshipToAddress={setshipToAddress}
+							shipToCity={shipToCity}
+							shipToState={shipToState}
+							shipToCountry={shipToCountry}
+							openEditCondition={openEditCondition}
+							setOpenEditCondition={setOpenEditCondition}
+							isAddingCondition={isAddingCondition}
+							setIsAddingCondition={setIsAddingCondition}
+							isItemConditionMode={isItemConditionMode}
+							setIsItemConditionMode={setIsItemConditionMode}
+							targetItemForCondition={targetItemForCondition}
+							setTargetItemForCondition={setTargetItemForCondition}
+							conditionForm={conditionForm}
+							setConditionForm={setConditionForm}
+							savingCondition={savingCondition}
+							setSavingCondition={setSavingCondition}
+							editingCondition={editingCondition}
+							selectedVersion={selectedVersion}
+							versionControllerRef={versionControllerRef}
+							apiClient={apiClient}
+							deleteConditionDialogOpen={deleteConditionDialogOpen}
+							setDeleteConditionDialogOpen={setDeleteConditionDialogOpen}
+							isDeletingCondition={isDeletingCondition}
+							setConditionToDelete={setConditionToDelete}
+							handleDeleteCondition={handleDeleteCondition}
+							poCancelDialogOpen={poCancelDialogOpen}
+							closePOCancelDialog={closePOCancelDialog}
+							poCancelComment={poCancelComment}
+							setPoCancelComment={setPoCancelComment}
+							poCancelError={poCancelError}
+							setPoCancelError={setPoCancelError}
+							poCancelSubmitting={poCancelSubmitting}
+							handlePOCancelConfirm={handlePOCancelConfirm}
+						/>
 
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="grnAmount"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="grnAmount"
-														className="w-100 f14"
-														size="small"
-														label="GRN Amount *"
-														variant="outlined"
-														value={formik_GRNAccepted?.values?.grnAmount}
-														onChange={formik_GRNAccepted.handleChange}
-														inputProps={{
-															maxLength: 25,
-														}}
-														InputProps={{
-															endAdornment: (
-																<InputAdornment position="end">
-																	<Typography variant="body2" color="textSecondary">
-																		{formik_GRNAccepted?.values?.grnAmount?.length}/25
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-														onInput={(e) => onlyNumberdec(e)}
-													/>
-													{formik_GRNAccepted.touched.grnAmount &&
-														formik_GRNAccepted.errors.grnAmount ? (
-														<div style={{ color: "red" }}>
-															{formik_GRNAccepted.errors.grnAmount}
-														</div>
-													) : null}
-												</div>
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="grnQuantity"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="grnQuantity"
-														className="w-100 f14"
-														size="small"
-														label="GRN Quantity *"
-														variant="outlined"
-														value={formik_GRNAccepted?.values?.grnQuantity}
-														onChange={formik_GRNAccepted.handleChange}
-														onInput={(e) => onlyNumbers(e)}
-														inputProps={{
-															maxLength: 15,
-														}}
-														InputProps={{
-															endAdornment: (
-																<InputAdornment position="end">
-																	<Typography variant="body2" color="textSecondary">
-																		{formik_GRNAccepted?.values?.grnQuantity?.length}/15
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-													/>
-													{formik_GRNAccepted.touched.grnQuantity &&
-														formik_GRNAccepted.errors.grnQuantity ? (
-														<div style={{ color: "red" }}>
-															{formik_GRNAccepted.errors.grnQuantity}
-														</div>
-													) : null}
-												</div>
-											</div>
+					</div>{/* end scrollable tab content */}
+				</div>{/* end tabs+content flex */}
+			</div>{/* end bg-white card + leftContent */}
 
-											<div className="col-12 col-md-4 col-lg-12 mb-4">
-												<LocalizationProvider dateAdapter={AdapterDateFns}>
-													<MobileDatePicker
-														label="GRN Date"
-														disablePast
-														minDate={new Date()}
-														value={formik_GRNAccepted.values?.grnDate}
-														name="grnDate"
-														slotProps={{
-															textField: {
-																variant: "outlined",
-																fullWidth: true,
-																size: "small",
-																InputLabelProps: { shrink: true },
-															},
-															actionBar: {
-																actions: ["clear", "cancel", "accept"],
-															},
-														}}
-														onChange={(newValue) => {
-															formik_GRNAccepted.setFieldValue(
-																"grnDate",
-																newValue
-															);
-														}}
-														format="dd/MM/yyyy"
-														renderInput={(params) => (
-															<TextField variant="standard" {...params} />
-														)}
-													/>
-												</LocalizationProvider>
-
-												{formik_GRNAccepted.touched.grnDate &&
-													formik_GRNAccepted.errors.grnDate ? (
-													<div style={{ color: "red" }}>
-														{formik_GRNAccepted.errors.grnDate}
-													</div>
-												) : null}
-											</div>
-										</div>
-									</div>
-									<div className="row">
-										<div className="col-12 text-end">
-											<LoadingButton
-												// loading={loadingBids}
-												color="primary"
-												size="medium"
-												className="text-white text-capitalize mb-3 mr-3"
-												variant="contained"
-												type="submit"
-												disabled={grnSaveDisable || isShippedHistoryEditDisabled}
-											>
-												<span>Save</span>
-											</LoadingButton>
-											{/* Add margin-bottom to create a gap */}
-										</div>
-									</div>
-								</div>
-							</div>
-						</Box>
-					</form>
-				</Drawer>
-			</React.Fragment>
-
-			<React.Fragment key="approvePR">
-				<Drawer anchor="right" open={state["openInvoiceApproved"]}>
-					<form onSubmit={formik_POApproveReject.handleSubmit} autoComplete="off">
-						<Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-							<div className="flex flex-col">
-								<Box className="bgheaderCards">
-									<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-										<div className="ms-3 text-white">
-											Approval Action
-										</div>
-										<div>
-											<IconButton
-												onClick={toggleDrawer("openInvoiceApproved", false, [])}
-												size="small"
-												edge="start"
-												sx={{ mr: 1 }}
-											>
-												<HiOutlineX className="f20 text-white" />
-											</IconButton>
-										</div>
-									</div>
-								</Box>
-								<div className="h50px"></div>
-								<div className="p-3">
-									<div className="row ">
-										<div className="col-12 col-md-12 col-lg-12">
-											<div className="mb-4 textblue f14"></div>
-											<div className="row">
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="IsApproved"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="IsApproved"
-														select
-														className="mb-2"
-														fullWidth
-														size="small"
-														label="Status"
-														variant="outlined"
-														value={formik_POApproveReject.values.IsApproved}
-														onChange={(e) =>
-															formik_POApproveReject.setFieldValue(
-																"IsApproved",
-																e.target.value
-															)
-														}
-													>
-														<MenuItem value={true}>Approve</MenuItem>
-														<MenuItem value={false}>Reject</MenuItem>
-													</TextField>
-												</div>
-
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="remarks"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														multiline
-														rows={3}
-														name="remarks"
-														className="w-100 f14"
-														size="small"
-														label="Comment "
-														variant="outlined"
-														inputProps={{ maxLength: 200 }}
-														value={formik_POApproveReject?.values?.remarks}
-														error={formik_POApproveReject.touched.remarks && Boolean(formik_POApproveReject.errors.remarks)}
-														helperText={formik_POApproveReject.touched.remarks && formik_POApproveReject.errors.remarks}
-														onChange={(e) =>
-															formik_POApproveReject.setFieldValue(
-																"remarks",
-																e.target.value
-															)
-														}
-														InputProps={{
-															endAdornment: formik_POApproveReject?.values?.remarks && (
-																<InputAdornment position="end">
-																	<Typography variant="body2" color="textSecondary">
-																		{formik_POApproveReject?.values?.remarks?.length}/200
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-													/>
-												</div>
-											</div>
-
-
-										</div>
-									</div>
-									<div className="row">
-										<div className="col-12 text-end">
-											<LoadingButton
-												loading={loading}
-												color="primary"
-												size="medium"
-												className="text-white text-capitalize mb-3 mr-3"
-												variant="contained"
-												type="submit"
-											>
-												<span>Save</span>
-											</LoadingButton>
-										</div>
-									</div>
-								</div>
-							</div>
-						</Box>
-					</form>
-				</Drawer>
-			</React.Fragment>
-
-			{/* <React.Fragment key="top5">
-				<Drawer
-					anchor="right"
-					open={state["openInvoiceApproved"]}
-				>
-					<form
-						onSubmit={formik_InvoiceAccepted.handleSubmit}
-						autoComplete="off"
-					>
-						<Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-							<div className="flex flex-col">
-								<Box className="bgheaderCards">
-									<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-										<div className="ms-3 text-white">Invoice Details</div>
-										<div>
-											<IconButton
-												onClick={toggleDrawer("openInvoiceApproved", false, [])}
-												size="small"
-												edge="start"
-												sx={{ mr: 1 }}
-											>
-												<HiOutlineX className="f20 text-white" />
-											</IconButton>
-										</div>
-									</div>
-								</Box>
-								<div className="h50px"></div>
-								<div className="p-3">
-									<div className="row ">
-										<div className="col-12 col-md-12 col-lg-12">
-											<div className="mb-4 textblue f14"></div>
-											<div className="row">
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="status"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="status"
-														select
-														className="mb-2"
-														fullWidth
-														size="small"
-														label="Invoice Status"
-														variant="outlined"
-														value={formik_InvoiceAccepted.values.status}
-														onChange={formik_InvoiceAccepted.handleChange}
-													>
-														<MenuItem value="Approved">Approve</MenuItem>
-														<MenuItem value="Rejected">Revert</MenuItem>
-													</TextField>
-												</div>
-
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="approveComment"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="approveComment"
-														className="w-100 f14"
-														size="small"
-														label="Comment "
-														variant="outlined"
-														value={
-															formik_InvoiceAccepted?.values?.approveComment
-														}
-														onChange={formik_InvoiceAccepted.handleChange}
-													/>
-												</div>
-											</div>
-
-											<hr className="mt-0" />
-										</div>
-									</div>
-									<div className="row">
-										<div className="col-12 text-end">
-											<LoadingButton
-												color="primary"
-												size="medium"
-												className="text-white text-capitalize mb-3 mr-3"
-												variant="contained"
-												type="submit"
-												disabled={approveSaveDisable}
-											>
-												<span>Save</span>
-											</LoadingButton>
-										</div>
-									</div>
-								</div>
-							</div>
-						</Box>
-					</form>
-				</Drawer>
-			</React.Fragment> */}
+			<PODrawers
+				state={state}
+				toggleDrawer={toggleDrawer}
+				shipConfirmDetails={shipConfirmDetails}
+				isServiceItem={_isServiceItem}
+				addFlowMode={addFlowMode}
+				setAddFlowStep={setAddFlowStep}
+				setValue={setValue}
+				formatoption={formatoption}
+				invStagelist={invStagelist}
+				currentInvStage={currentInvStage}
+				tabShipsNotice={tabShipsNotice}
+				handleTabShipsNotice={handleTabShipsNotice}
+				invPermissionManager={invPermissionManager}
+				formik_POShipOrdrItem={formik_POShipOrdrItem}
+				formik_POShipInvoiceHeader={formik_POShipInvoiceHeader}
+				formik_InvoiceAccepted={formik_InvoiceAccepted}
+				poSpecificDetails={poSpecificDetails}
+				atoken={atoken}
+				allPOShipHeader={allPOShipHeader}
+				allPOItems={allPOItems}
+				selectedItemIds={selectedItemIds}
+				invStatus={invStatus}
+				openRows={openRows}
+				handleToggleRow={handleToggleRow}
+				handleSelectAllRow={handleSelectAllRow}
+				handleCheckboxChange={handleCheckboxChange}
+				handleItemInputChange={handleItemInputChange}
+				itemInputs={itemInputs}
+				validationErrors={validationErrors}
+				isServiceRow={_isServiceRow}
+				getValidationStyle={getValidationStyle}
+				handleSubmitGRN={handleSubmitGRN}
+				disableGrnBtn={disableGrnBtn}
+				grnMenuAnchor={grnMenuAnchor}
+				handleGrnMenuOpen={handleGrnMenuOpen}
+				handleGrnMenuClose={handleGrnMenuClose}
+				handleViewGrnReport={handleViewGrnReport}
+				handleDownloadGrnReport={handleDownloadGrnReport}
+				loadingGrnReport={loadingGrnReport}
+				setInvStatus={setInvStatus}
+				setSelectedInvoiceRows={setSelectedInvoiceRows}
+				setDisableGrnBtn={setDisableGrnBtn}
+				handleInvoiceRowClick={handleInvoiceRowClick}
+				loadingPayment={loadingPayment}
+				fetchPaymentDetails={fetchPaymentDetails}
+				requestCellINV={requestCellINV}
+				handleEventAppList={handleEventAppList}
+				wfupdate={wfupdate}
+				stagearray={stagearray}
+				activityId={activityId}
+				selectedInvoiceId={selectedInvoiceId}
+				poId={poId}
+				selectAttachedFile={selectAttachedFile}
+				returnfileName={returnfileName}
+				attachmentfilters={attachmentfilters}
+				handleAttachfileChange={handleAttachfileChange}
+				showAttach={showAttach}
+				approveSaveDisable={approveSaveDisable}
+				loading={loading}
+				poOrderItems={poOrderItems}
+				formik_POConfirmOrder={formik_POConfirmOrder}
+				userDetail={userDetail}
+				formik_PORejectOrder={formik_PORejectOrder}
+				formik_GRNAccepted={formik_GRNAccepted}
+				grnSaveDisable={grnSaveDisable}
+				isShippedHistoryEditDisabled={isShippedHistoryEditDisabled}
+				formik_POApproveReject={formik_POApproveReject}
+				setState={setState}
+				currentStage={currentStage}
+				paymentDetails={paymentDetails}
+				setPaymentDetails={setPaymentDetails}
+				openAddPaymentDrawer={openAddPaymentDrawer}
+				setOpenAddPaymentDrawer={setOpenAddPaymentDrawer}
+				resetPaymentForm={resetPaymentForm}
+				paymentTargetItem={paymentTargetItem}
+				paymentForm={paymentForm}
+				handlePaymentFormChange={handlePaymentFormChange}
+				poInvoiceList={poInvoiceList}
+				savingPayment={savingPayment}
+				handleSubmitPayment={handleSubmitPayment}
+				paymentTermModal={paymentTermModal}
+				setPaymentTermModal={setPaymentTermModal}
+				setPaymentTermsOptions={setPaymentTermsOptions}
+				grnReportModal={grnReportModal}
+				setGrnReportModal={setGrnReportModal}
+				grnReportData={grnReportData}
+				addGrnDialogOpen={addGrnDialogOpen}
+				handleCloseAddGrnDialog={handleCloseAddGrnDialog}
+				selectedGrnItems={selectedGrnItems}
+				handleSubmitGrn={handleSubmitGrn}
+				poGrnList={poGrnList}
+				addSesDialogOpen={addSesDialogOpen}
+				handleCloseAddSesDialog={handleCloseAddSesDialog}
+				selectedSesItems={selectedSesItems}
+				handleSubmitSes={handleSubmitSes}
+				sesDialogMode={sesDialogMode}
+				sesPreviewData={sesPreviewData}
+				addAsnDialogOpen={addAsnDialogOpen}
+				handleCloseAddAsnDialog={handleCloseAddAsnDialog}
+				selectedAsnItems={selectedAsnItems}
+				handleSubmitAsn={handleSubmitAsn}
+				asnDialogMode={asnDialogMode}
+				asnPreviewData={asnPreviewData}
+				addInvoiceDialogOpen={addInvoiceDialogOpen}
+				handleCloseAddInvoiceDialog={handleCloseAddInvoiceDialog}
+				selectedInvoiceItems={selectedInvoiceItems}
+				handleSubmitInvoice={handleSubmitInvoice}
+				UOMMaster={UOMMaster}
+				invoiceDialogMode={invoiceDialogMode}
+				invoicePreviewData={invoicePreviewData}
+				buildInvoiceStagesPayload={buildInvoiceStagesPayload}
+				customerid={customerid}
+				poCustomerId={poCustomerId}
+				invoiceApprovalPanel={invoiceApprovalPanel}
+				invoiceApprovalHeaderActions={invoiceApprovalHeaderActions}
+				deliveryDialogOpen={deliveryDialogOpen}
+				setDeliveryDialogOpen={setDeliveryDialogOpen}
+				deliveryDialogRow={deliveryDialogRow}
+				setDeliveryDialogRow={setDeliveryDialogRow}
+				deliveryDialogDate={deliveryDialogDate}
+				setDeliveryDialogDate={setDeliveryDialogDate}
+				setDeliveryUpdates={setDeliveryUpdates}
+				approvershow={approvershow}
+				handleApprover={handleApprover}
+				requestCell={requestCell}
+				stagelist={stagelist}
+				poPermissionManager={poPermissionManager}
+			/>
 
 			{/* Payment Details Drawer */}
 			<Drawer
