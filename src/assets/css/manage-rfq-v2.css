@@ -1232,6 +1232,17 @@
   border-color: #1d5bbf;
 }
 
+.rfq-v2-event-btn-danger {
+  background: #b8232f;
+  color: #ffffff;
+  border-color: #b8232f;
+}
+
+.rfq-v2-event-btn-danger:hover {
+  background: #9b1d28;
+  border-color: #9b1d28;
+}
+
 .rfq-v2-event-drawer-body {
   flex: 1;
   min-height: 0;

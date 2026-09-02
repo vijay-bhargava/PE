@@ -1,11 +1,8 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState, useCallback, useMemo } from "react";
+import {HiPlusSm, HiOutlineX } from "react-icons/hi";
+import { Box, Drawer, Alert } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { HiOutlineX } from "react-icons/hi";
-import {
-  Divider, Menu, MenuItem,
-  Box, Drawer, Alert,
-} from "@mui/material";
+import CommonBottomDrawer from "../../../components/CommonBottomDrawer";
 import { useParams } from "react-router-dom";
 import "react-quill/dist/quill.snow.css";
 import { useStateValue } from "../../../store";
@@ -42,8 +39,9 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
     libQuesDrawer: false
   });
   const [libraryWithQuestions, setLibraryWithQuestions] = useState([]);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [tempSelectedLibrary, setTempSelectedLibrary] = useState(null); // Temporary state for new selection
+  const [tempSelectedLibrary, setTempSelectedLibrary] = useState(null);
+  const [libQuesLoading, setLibQuesLoading] = useState(false);
+  const libQuesTabRef = useRef(null);
 
   // Extract permission properties from props
   const { permissionManager, canRead, canEdit, canCreate, canRemove } = props;
@@ -239,14 +237,6 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
     }
   }
 
-  const handleClickAnchor = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleCloseAnchor = () => {
-    setAnchorEl(null);
-  };
-
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     handleExcelUpload(file);
@@ -385,73 +375,46 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
   }
 
   return (
-    <div className="p-3 pt-0 ps-0">
-      <div className="d-flex justify-content-between align-items-center">
+    <div style={{ padding: '16px' }}>
+      <div className="d-flex justify-content-between align-items-center pb-3 border-bottom">
         <div className="flex-grow-1">
           <div className="row mt-2">
             <input className="d-none" id="itemuploadid" ref={fileInputRef} type="file" onChange={handleFileChange} />
           </div>
         </div>
 
-        <div className="text-end">
-          {props.action && isDraftStage && questionsCanEdit && <div className="d-inline-block">
-            <IconButton
-              aria-label="more"
-              id="dropdown-custom-components"
-              aria-controls="long-menu"
-              aria-haspopup="true"
-              aria-expanded={Boolean(anchorEl) ? 'true' : undefined}
-              onClick={handleClickAnchor}
-              size="medium"
-              className="shadow-sm"
+        {props.action && isDraftStage && questionsCanCreate && (
+          <div className="d-flex align-items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              className="pe-btn pe-btn--secondary"
+              onClick={() => document.getElementById('itemuploadid').click()}
             >
-              <MoreVertIcon className="f17" />
-            </IconButton>
-            <Menu
-              id="long-menu"
-              anchorEl={anchorEl}
-              keepMounted
-              open={Boolean(anchorEl)}
-              onClose={handleCloseAnchor}
-              className="ddl-menu"
+              Excel Upload
+            </button>
+            <button
+              type="button"
+              className="pe-btn pe-btn--secondary"
+              onClick={handleDownloadExcelTemplate}
             >
-              {isDraftStage && questionsCanCreate && (
-                <>
-                  <MenuItem className="f14" onClick={() => document.getElementById('itemuploadid').click()}>
-                    Excel Upload
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem className="f14" onClick={handleDownloadExcelTemplate}>
-                    Excel Template
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem className="f14"
-                    onClick={() => {
-                      handleCloseAnchor();
-                      setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }));
-                    }}
-                  >
-                    Add more questions
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem className="f14"
-                    onClick={() => {
-                      handleCloseAnchor();
-                      setOpenComponents(prev => ({ ...prev, libQuesDrawer: true }));
-                    }}
-                  >
-                    Add more questions from Library
-                  </MenuItem>
-                </>
-              )}
-              {(!isDraftStage || !questionsCanCreate) && (
-                <MenuItem className="f14" disabled>
-                  {!isDraftStage ? "Not in Draft Stage" : "No Create Permission"}
-                </MenuItem>
-              )}
-            </Menu>
-          </div>}
-        </div>
+              Excel Template
+            </button>
+            <button
+              type="button"
+              className="pe-btn pe-btn--primary"
+              onClick={() => setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }))}
+            >
+              <HiPlusSm /> Add Questions
+            </button>
+            <button
+              type="button"
+              className="pe-btn pe-btn--primary"
+              onClick={() => setOpenComponents(prev => ({ ...prev, libQuesDrawer: true }))}
+            >
+             <HiPlusSm /> Add from Library
+            </button>
+          </div>
+        )}
       </div>
       {/* Questions List */}
       <NFAQuestionScreenList
@@ -483,78 +446,76 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
       {/*add question component*/}
       <React.Fragment key="top">
         {/* Add Question Drawer */}
-        <Drawer
-          anchor="right"
+        <CommonBottomDrawer
           open={openComponents.addQuestionDrawer}
           onClose={() => handleCancelChange("addQuestionDrawer")}
+          title="Add Question"
+          actions={
+            <>
+              <button
+                type="button"
+                className="rfq-v2-event-btn rfq-v2-event-btn-ghost"
+                onClick={() => handleCancelChange("addQuestionDrawer")}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="add-question-form"
+                className="rfq-v2-event-btn rfq-v2-event-btn-primary"
+              >
+                Add Question
+              </button>
+            </>
+          }
+          sectionStyle={{ display: "flex", flexDirection: "column" }}
+          bodyStyle={{ padding: "16px", overflowY: "auto", flex: 1 }}
         >
-          <Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-            <div className="flex flex-col">
-              <Box className="bgheaderCards">
-                <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                  <div className="ms-3 text-white">Add Question</div>
-                  <div>
-                    <IconButton
-                      onClick={() => handleCancelChange("addQuestionDrawer")}
-                      size="small"
-                      edge="start"
-                      sx={{ mr: 1 }}
-                    >
-                      <HiOutlineX className="f20 text-white" />
-                    </IconButton>
-                  </div>
-                </div>
-              </Box>
-              <div className="h50px"></div>
-              <Box sx={{ flexGrow: 1, p: 2 }}>
-                <EventAddQuestionScreen
-                  questionlist={questionlist}
-                  eventid={props?.eventid}
-                  eventtype={props?.eventtype}
-                  callback={handleAddQuestion}
-                />
-              </Box>
-            </div>
-          </Box>
-        </Drawer>
-        {/* Lib Ques Drawer (NEW) */}
-        <Drawer
-          anchor="right"
+          <EventAddQuestionScreen
+            questionlist={questionlist}
+            eventid={props?.eventid}
+            eventtype={props?.eventtype}
+            callback={handleAddQuestion}
+          />
+        </CommonBottomDrawer>
+        {/* Library Questions Drawer */}
+        <CommonBottomDrawer
           open={openComponents.libQuesDrawer}
           onClose={() => handleCancelChange("libQuesDrawer")}
+          title="Library Questions"
+          actions={
+            <>
+              <button
+                type="button"
+                className="rfq-v2-event-btn rfq-v2-event-btn-ghost"
+                onClick={() => handleCancelChange("libQuesDrawer")}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="rfq-v2-event-btn rfq-v2-event-btn-primary"
+                disabled={libQuesLoading}
+                onClick={() => libQuesTabRef.current?.handleSubmit()}
+              >
+                {libQuesLoading ? "Saving…" : "Submit Selected Questions"}
+              </button>
+            </>
+          }
+          sectionStyle={{ display: "flex", flexDirection: "column" }}
+          bodyStyle={{ padding: "16px", overflowY: "auto", flex: 1 }}
         >
-          <Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-            <div className="flex flex-col">
-              <Box className="bgheaderCards">
-                <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                  <div className="ms-3 text-white">Library Questions</div>
-                  <div>
-                    <IconButton
-                      onClick={() => handleCancelChange("libQuesDrawer")}
-                      size="small"
-                      edge="start"
-                      sx={{ mr: 1 }}
-                    >
-                      <HiOutlineX className="f20 text-white" />
-                    </IconButton>
-                  </div>
-                </div>
-              </Box>
-              <div className="h50px"></div>
-              <Box sx={{ flexGrow: 1, p: 2 }}>
-                {/* TODO: Replace with actual component or content for library questions */}
-                <NFAQuestionTabCell
-                  questions={nonMandatoryLibraryQuestions}
-                  addedQuestions={questionlist}
-                  eventid={props?.eventid}
-                  eventtype={props?.eventtype}
-                  version={props?.Version}
-                  handleCancelChange={handleCancelChange}
-                />
-              </Box>
-            </div>
-          </Box>
-        </Drawer>
+          <NFAQuestionTabCell
+            ref={libQuesTabRef}
+            questions={nonMandatoryLibraryQuestions}
+            addedQuestions={questionlist}
+            eventid={props?.eventid}
+            eventtype={props?.eventtype}
+            version={props?.Version}
+            handleCancelChange={handleCancelChange}
+            setLoading={setLibQuesLoading}
+          />
+        </CommonBottomDrawer>
       </React.Fragment>
     </div>
   );
