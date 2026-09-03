@@ -1,20 +1,14 @@
 import {
-	Box, Button, CircularProgress,
-	Drawer, IconButton, Menu, MenuItem,
-	Tab, Tabs, TextField, InputAdornment,
-	Typography, Tooltip, Dialog,
-	DialogTitle, DialogContent, DialogActions,
+	Box, Button, Menu, MenuItem, Tab, Tabs,
+	TextField, InputAdornment, Typography, Tooltip,
 } from "@mui/material";
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
-import HistoryCell from "../BaseCells/HistoryCell";
 import EventApprovalBox from "../BaseCells/eventapprovalbox";
-import { Modal } from "react-bootstrap";
 import AddUpdatePaymentterms from "./AddUpdatePaymentterms";
-import { HiOutlineLink, HiOutlineX, HiPlusSm, } from "react-icons/hi";
-import { MdReceipt } from "react-icons/md";
+import { HiOutlineLink, HiPlusSm, } from "react-icons/hi";
 import {
 	useLocation, useNavigate,
 	useParams, useSearchParams,
@@ -45,11 +39,9 @@ import {
 } from "../../utils/common";
 import { StageFindAll } from "../../utils/stagemaster";
 import { useStateValue } from "../../store";
-import {
-	formatDateViaTimeZone, formatoption,
-	getCurrency, getEventApproversFind,
-} from "../../utils/common/utility";
+import { formatoption, getCurrency, getEventApproversFind } from "../../utils/common/utility";
 import GridSkeleton from "../../components/Skeleton/gridSkeleton";
+import PEModal from "../../components/PEModal";
 import { ApiClient, api } from "../../Apiclient";
 import { toast } from "react-toastify";
 
@@ -67,16 +59,13 @@ import InvoicesTab from './tabs/InvoicesTab';
 import PaymentsTab from './tabs/PaymentsTab';
 import PODetailsDialogs from './tabs/PODetailsDialogs';
 import PODrawers from './tabs/PODrawers';
+import GRNReportModal from './GRNReportModal';
 import {
 	getOrderedQty, matchesPOItem, isRejectedInvoiceRecord,
-	isRejectedInvoiceDetail, getStageInfo, getAsnCompletedQty,
-	getGrnCompletedQty, getSesCompletedQty, getInvoiceCompletedQty,
-	getCompletedQtyForAddMode, getRemainingQtyForAddMode,
-	isItemEligibleForAddMode, getItemWithStageQuantity,
-	getEligibleItemsForAddMode, hasRemainingItemsForAddMode,
-	isItemShipped, isServiceRow, isServiceItem,
+	isRejectedInvoiceDetail, getStageInfo, getInvoiceCompletedQty,
+	isItemEligibleForAddMode, getEligibleItemsForAddMode,
+	hasRemainingItemsForAddMode, isServiceRow, isServiceItem,
 } from '../../utils/purchaseOrder/poHelpers';
-import { getLineItemColumns, getInvoiceColumns } from './poColumns';
 import '../../assets/css/manage-rfq-v2.css';
 import '../../assets/css/rfq-detail-v2.css';
 import '../../assets/css/rfq-modern.css';
@@ -201,16 +190,6 @@ const PurchaseOrder = () => {
 	// Item-level condition state
 	const [isItemConditionMode, setIsItemConditionMode] = useState(false);
 	const [targetItemForCondition, setTargetItemForCondition] = useState(null);
-	// Item accordion + search state
-	const [expandedItemIds, setExpandedItemIds] = useState(new Set());
-	const [itemTableSearch, setItemTableSearch] = useState('');
-	const toggleItemExpand = (id) => {
-		setExpandedItemIds(prev => {
-			const next = new Set(prev);
-			if (next.has(id)) next.delete(id); else next.add(id);
-			return next;
-		});
-	};
 
 	const [billToAddress, setbillToAddress] = useState("");
 	const [billToCity, setbillToCity] = useState("");
@@ -244,10 +223,6 @@ const PurchaseOrder = () => {
 	const [shipToStateObj, setShipToStateObj] = useState(null);
 	const [shipToCityObj, setShipToCityObj] = useState(null);
 
-
-
-	const [gRNDate, setGRNDate] = useState(null);
-
 	const [currentStage, setCurrentStage] = useState("");
 	// Single source of truth for "is this PO still in Draft" — used across the
 	// PO Details tab (PO Number / Expiry Date editability) and other stage-gated UI.
@@ -257,12 +232,28 @@ const PurchaseOrder = () => {
 	// hidden and unusable while the PO is in this stage.
 	const isUnderApprovalStage = String(currentStage ?? "").toLowerCase().includes("under approval");
 	const [currentInvStage, setCurrentInvStage] = useState("");
-	const [approvershow, setApproverShow] = useState(true);
+	const [workflowPanelTab, setWorkflowPanelTab] = useState('workflow');
+	const [historyAudit, setHistoryAudit] = useState([]);
+	const [historyGraph, setHistoryGraph] = useState([]);
+	const [historyLoading, setHistoryLoading] = useState(false);
 
-	// Debug: Track approvershow visibility
 	useEffect(() => {
-		// Approver visibility tracking
-	}, [approvershow]);
+		if (workflowPanelTab === 'history' && pageSlug) {
+			fetchPanelHistory();
+		}
+	}, [workflowPanelTab, pageSlug]);
+
+	const fetchPanelHistory = async () => {
+		if (!pageSlug) return;
+		setHistoryLoading(true);
+		const params = new URLSearchParams({ CustomerId: customerid, EventType: 'PO', EventId: pageSlug }).toString();
+		const res = await new ApiClient(customersuffix).getres(`api/ReportConfig/AuditReport?${params}`, atoken);
+		if (res?.data) {
+			setHistoryAudit(res.data?.changeAudit || []);
+			setHistoryGraph(res.data?.stategraph || []);
+		}
+		setHistoryLoading(false);
+	};
 
 	// Permission managers for PO and INV
 	const [poPermissionManager, setPoPermissionManager] = useState(null);
@@ -322,22 +313,10 @@ const PurchaseOrder = () => {
 		});
 	};
 
-	const initialValues_fetchPODetails = {
-		// CustomerId:customerid,
-		// pagenumber:1,
-		POId: pageSlug,
-	};
-
-	const [ref_POHeaderId, setref_POHeaderId] = useState(0);
 	const [Ref_ItemId, SetRef_ItemId] = useState(0);
-	const [itemId, setitemId] = useState(0);
-
 	const [eventType, setEvenType] = useState("PO");
-	const [eventStage, setEventStage] = useState("");
 	const [invStatus, setInvStatus] = useState("");
-	const [nextEventStage, setNextEventStage] = useState('');
 	const [eventId, setEventId] = useState(pageSlug);
-
 	const [allPOShipHeader, setallPOShipHeader] = useState([]);
 
 	const [poInvoiceList, setPoInvoiceList] = useState([]);
@@ -346,6 +325,7 @@ const PurchaseOrder = () => {
 	// Track which GRN / SES header rows are expanded to show their line items.
 	const [expandedGrnHeaderIds, setExpandedGrnHeaderIds] = useState(new Set());
 	const [expandedSesHeaderIds, setExpandedSesHeaderIds] = useState(new Set());
+
 	const toggleGrnHeaderExpand = (id) => {
 		setExpandedGrnHeaderIds(prev => {
 			const next = new Set(prev);
@@ -449,18 +429,9 @@ const PurchaseOrder = () => {
 
 	// Thin wrappers that bind the imported pure helpers to local state
 	const _state = () => ({ allPOShipHeader, poGrnList, poSesList, poInvoiceList });
-	const _getAsnCompletedQty = (item) => getAsnCompletedQty(item, allPOShipHeader);
-	const _getGrnCompletedQty = (item) => getGrnCompletedQty(item, poGrnList);
-	const _getSesCompletedQty = (item) => getSesCompletedQty(item, poSesList);
-	const _getInvoiceCompletedQty = (item) => getInvoiceCompletedQty(item, poInvoiceList);
-	const _getCompletedQtyForAddMode = (mode, item) => getCompletedQtyForAddMode(mode, item, _state());
-	const _getRemainingQtyForAddMode = (mode, item) => getRemainingQtyForAddMode(mode, item, _state());
 	const _isItemEligibleForAddMode = (mode, item) => isItemEligibleForAddMode(mode, item, _state());
-	const _getItemWithStageQuantity = (mode, item) => getItemWithStageQuantity(mode, item, _state());
-	const _getEligibleItemsForAddMode = (mode, sourceItems = allPOItems) =>
-		getEligibleItemsForAddMode(mode, sourceItems, _state());
+	const _getEligibleItemsForAddMode = (mode, sourceItems = allPOItems) => getEligibleItemsForAddMode(mode, sourceItems, _state());
 	const _hasRemainingItemsForAddMode = (mode) => hasRemainingItemsForAddMode(mode, allPOItems, _state());
-	const _isItemShipped = (item) => isItemShipped(item, allPOShipHeader);
 	const _isServiceRow = (row) => isServiceRow(row, allPOItems);
 	const _isServiceItem = (item) => isServiceItem(item, allPOItems);
 
@@ -480,17 +451,13 @@ const PurchaseOrder = () => {
 	const [deliveryUpdates, setDeliveryUpdates] = useState({}); // itemId -> Date
 
 	// PO Number inline edit state
-	const [editingPONumber, setEditingPONumber] = useState(false);
 	const [poNumberInput, setPoNumberInput] = useState('');
 
 	// PO Date edit dialog state
-	const [poDateDialogOpen, setPoDateDialogOpen] = useState(false);
-	const [poDateDialogValue, setPoDateDialogValue] = useState(null);
 	const [stagedPODate, setStagedPODate] = useState(null);
 
 	// Expiry Date state
 	const [expiryDate, setExpiryDate] = useState(null);
-
 
 	// Payment terms state
 	const [paymentTermsOptions, setPaymentTermsOptions] = useState([]);
@@ -506,7 +473,6 @@ const PurchaseOrder = () => {
 	// Action menu state (top-right)
 	const [anchorElAction, setAnchorElAction] = useState(null);
 	const openAction = Boolean(anchorElAction);
-	const handleOpenActionMenu = (e) => setAnchorElAction(e.currentTarget);
 	const handleCloseActionMenu = () => setAnchorElAction(null);
 
 	// GRN Report state variables
@@ -557,7 +523,6 @@ const PurchaseOrder = () => {
 	// only the selected items. Back (and cancelling the drawer/dialog)
 	// returns to the line item selection so the choice can be adjusted.
 	// ─────────────────────────────────────────────────────────────────
-	const [showAddButtons] = useState(false); // Show "+ Add X" buttons on ASN/GRN/SES/Invoice tabs
 	const hasCreatePermission = useCallback((claimTypes, action = ACTIONS.CREATE) => {
 		if (!poPermissionManager) return false;
 
@@ -643,16 +608,6 @@ const PurchaseOrder = () => {
 		fetchPayments();
 	}, [value, pageSlug, fetchPayments]);
 
-	// Shipment (ASN) is only allowed once the PO has reached Confirmed or a later stage.
-	const isShipmentAllowed = () => {
-		const stage = String(currentStage ?? '').toLowerCase().trim();
-		if (!stage) return false;
-		if (stage.includes('not confirmed')) return false;
-		const blocked = ['draft', 'under approval', 'sent to supplier', 'po sent'];
-		if (blocked.some(s => stage.includes(s))) return false;
-		return stage.includes('confirmed') || stage.includes('in process') || stage.includes('closed');
-	};
-
 	// Start the flow from a tab's "+ Add X" button.
 	const startAddFlow = (mode) => {
 		// if (mode === 'ASN' && !isShipmentAllowed()) {
@@ -680,7 +635,7 @@ const PurchaseOrder = () => {
 		setAddFlowMode(null);
 		setAddFlowStep('select');
 		setAddFlowSelectedItems([]);
-		if (originTab != null) setValue(originTab);
+		if (originTab !== null) setValue(originTab);
 	};
 
 	// Toggle a single line item's selection during the Add flow.
@@ -810,36 +765,6 @@ const PurchaseOrder = () => {
 		}
 	};
 
-	// Open modal for adding item-level condition
-	const handleOpenAddItemCondition = async (item) => {
-		setIsAddingCondition(true);
-		setEditingCondition(null);
-		setIsItemConditionMode(true);
-		setTargetItemForCondition(item);
-		setCommercialTerms([]);
-		setConditionForm({
-			conditionType: "",
-			conditionCategory: "",
-			conditionRate: "",
-			conditionValue: "",
-			currency: "",
-			calculationType: "",
-		});
-		setOpenEditCondition(true);
-		// Fetch commercial terms using eventId (RfqId) from PO header
-		const rfqId = poSpecificDetails?.eventId;
-		if (rfqId) {
-			try {
-				const data = await POCommercialFind(rfqId, false, atoken);
-				if (Array.isArray(data) && data.length > 0) {
-					setCommercialTerms(data);
-				}
-			} catch (_err) {
-				// best-effort; silently ignore
-			}
-		}
-	};
-
 	// Delete PO Condition
 	const handleDeleteCondition = async () => {
 		if (!conditionToDelete) return;
@@ -915,17 +840,6 @@ const PurchaseOrder = () => {
 		setGrnReportModal(true);
 	};
 
-
-
-	// Handle opening Add GRN Dialog
-	const handleOpenAddGrnDialog = () => {
-		if (selectedGrnItems.length === 0) {
-			toast.warning('Please select at least one item.');
-			return;
-		}
-		setAddGrnDialogOpen(true);
-	};
-
 	// Handle closing Add GRN Dialog
 	const handleCloseAddGrnDialog = () => {
 		setAddGrnDialogOpen(false);
@@ -937,27 +851,6 @@ const PurchaseOrder = () => {
 		if (addFlowMode === 'GRN') {
 			setAddFlowStep('select');
 			setValue(1);
-		}
-	};
-
-	// Handle GRN item selection in the GRN tab
-	const handleToggleGrnItem = (item) => {
-		setSelectedGrnItems(prev => {
-			const isSelected = prev.some(i => i.id === item.id);
-			if (isSelected) {
-				return prev.filter(i => i.id !== item.id);
-			} else {
-				return [...prev, item];
-			}
-		});
-	};
-
-	// Handle select all GRN items
-	const handleSelectAllGrnItems = (event) => {
-		if (event.target.checked) {
-			setSelectedGrnItems(_getEligibleItemsForAddMode('GRN'));
-		} else {
-			setSelectedGrnItems([]);
 		}
 	};
 
@@ -1023,15 +916,6 @@ const PurchaseOrder = () => {
 		}
 	};
 
-	// Handle opening Add SES Dialog (mirrors handleOpenAddGrnDialog)
-	const handleOpenAddSesDialog = () => {
-		if (selectedSesItems.length === 0) {
-			toast.warning('Please select at least one item.');
-			return;
-		}
-		setAddSesDialogOpen(true);
-	};
-
 	// Handle closing Add SES Dialog
 	const handleCloseAddSesDialog = () => {
 		setAddSesDialogOpen(false);
@@ -1072,26 +956,6 @@ const PurchaseOrder = () => {
 		pullUOMMasterList();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [atoken, customerid]);
-	// Handle SES item selection in the SES tab
-	const handleToggleSesItem = (item) => {
-		setSelectedSesItems(prev => {
-			const isSelected = prev.some(i => i.id === item.id);
-			if (isSelected) {
-				return prev.filter(i => i.id !== item.id);
-			} else {
-				return [...prev, item];
-			}
-		});
-	};
-
-	// Handle select all SES items
-	const handleSelectAllSesItems = (event) => {
-		if (event.target.checked) {
-			setSelectedSesItems(_getEligibleItemsForAddMode('SES'));
-		} else {
-			setSelectedSesItems([]);
-		}
-	};
 
 	// Handle SES submission from dialog — POST /api/sesheader/Add.
 	// sesData.sesItem already contains only the selected line items (built in SESDialog).
@@ -1283,7 +1147,7 @@ const PurchaseOrder = () => {
 		const current = currentIdx >= 0 ? list[currentIdx] : (list.find(s => s.isActive) ?? list[0]);
 		const next = currentIdx >= 0 && currentIdx < list.length - 1 ? list[currentIdx + 1] : null;
 
-		if (current?.eventType != null && (current?.currentStage || current?.stageName)) {
+		if (current?.eventType !== null && (current?.currentStage || current?.stageName)) {
 			return {
 				eventType: current.eventType ?? 'INV',
 				currentStage: current.currentStage ?? current.stageName ?? stageName,
@@ -1424,7 +1288,7 @@ const PurchaseOrder = () => {
 			const details = Array.isArray(header?.invoiceDetails) && header.invoiceDetails.length > 0
 				? header.invoiceDetails
 				: [invoiceRow].filter(Boolean);
-			const detail = (invoiceRow?.creationDetailId != null
+			const detail = (invoiceRow?.creationDetailId !== null
 				? details.find(d => String(d.creationDetailId) === String(invoiceRow.creationDetailId))
 				: null) ?? details[0] ?? invoiceRow;
 
@@ -1549,13 +1413,10 @@ const PurchaseOrder = () => {
 
 				const grnLabel = String(grnRow?.grnNumber ?? grnId).replace(/[/\\?%*:|"<>]/g, "_");
 				link.download = `GRN_${grnLabel}.pdf`;
-
 				document.body.appendChild(link);
 				link.click();
 				document.body.removeChild(link);
-
 				window.URL.revokeObjectURL(url);
-
 				toast.success("GRN report downloaded successfully");
 			}
 		} catch (error) {
@@ -1575,7 +1436,6 @@ const PurchaseOrder = () => {
 
 		try {
 			setLoadingSesReport(true);
-
 			const response = await apiClient.api.get(`/api/sesheader/downloadSES/${poId}`,
 				{
 					headers: { Authorization: `Bearer ${atoken}`, },
@@ -1627,11 +1487,6 @@ const PurchaseOrder = () => {
 
 				const result = res?.filter((item) => item.stageSeq > 0)
 				setStageList(result);
-
-				// const filteredGRN = res?.filter((rowData) => {
-				// 	return rowData.isActive == true && rowData.stageName == "GRN";
-				// });
-				// setGRNIsActive(filteredGRN);
 			});
 	}, [customerid, eventType]);
 
@@ -1652,7 +1507,7 @@ const PurchaseOrder = () => {
 			}
 			setSavingPaymentTerm(true);
 			try {
-				const sel = paymentTermsOptions.find(p => (p.id ?? p.paymentTermsId ?? p.paymentTermId) == selectedPaymentTermId);
+				const sel = paymentTermsOptions.find(p => (p.id ?? p.paymentTermsId ?? p.paymentTermId) === selectedPaymentTermId);
 				const payload = {
 					poId: parseInt(pageSlug),
 					customerId: parseInt(poSpecificDetails?.customerId ?? customerid),
@@ -1712,7 +1567,7 @@ const PurchaseOrder = () => {
 					// Merge the just-saved dates into allPOItems BEFORE clearing the
 					// staged edits, so the item list stays in sync with the backend.
 					setAllPOItems(prevItems => prevItems.map(it => (
-						deliveryUpdates[it.id] != null
+						deliveryUpdates[it.id] !== null
 							? { ...it, poDeliveryDate: deliveryUpdates[it.id] }
 							: it
 					)));
@@ -1933,7 +1788,6 @@ const PurchaseOrder = () => {
 		}
 
 		versionControllerRef.current = new AbortController();
-
 		setLoadingVersion(true);
 		setVersionError(null);
 
@@ -2000,7 +1854,7 @@ const PurchaseOrder = () => {
 
 				setEventId(poData?.id ?? poId);
 				setCurrentStage(poData?.stage ?? '');
-				if (poData?.customerId != null) {
+				if (poData?.customerId !== null) {
 					setPoCustomerId(poData.customerId);
 				}
 
@@ -2145,14 +1999,14 @@ const PurchaseOrder = () => {
 		const newIdFromURL = getIdFromSearchParams();
 		setActionTypeFromURL(newIdFromURL);
 
-		if (actionTypeFromURL == "approval") {
+		if (actionTypeFromURL === "approval") {
 			setValue(2);
 		}
 	}, [searchParams]);
 
 	useEffect(() => {
 
-		if (actionTypeFromURL == "approval") {
+		if (actionTypeFromURL === "approval") {
 			setValue(2);
 		}
 		// Determine initial version: prefer value from POSearch (passed via location.state),
@@ -2286,7 +2140,7 @@ const PurchaseOrder = () => {
 			const result = res?.filter((item) => item.stageSeq > 0)
 			setInvStageList(result);
 			const filteredGRN = res?.filter((rowData) => {
-				return rowData.isActive == true && rowData.stageName == "GRN";
+				return rowData.isActive === true && rowData.stageName === "GRN";
 			});
 			setGRNIsActive(filteredGRN);
 		});
@@ -2624,12 +2478,12 @@ const PurchaseOrder = () => {
 			setAddFlowSelectedItems([]);
 		}
 
-		if (newValue == 0) {
+		if (newValue === 0) {
 			// Tab 0 – PO Details: reload header + conditions only.
 			// DO NOT call ASN / GRN / SES / Invoice / Payment / Document APIs here.
 			loadPOVersionData(pageSlug, selectedVersion);
 
-		} else if (newValue == 1) {
+		} else if (newValue === 1) {
 			// Tab 1 – Line Items: fetch /api/pocreationdetail/Find on first open (or version change).
 			if (poItemsLoadedVersionRef.current !== Number(selectedVersion) && !poItemsLoadingRef.current) {
 				poItemsLoadedVersionRef.current = null;
@@ -2637,15 +2491,15 @@ const PurchaseOrder = () => {
 			}
 			// Item expansion (Invoice/ASN/GRN per item) is handled inside each item row — DO NOT move here.
 
-		} else if (newValue == 2) {
+		} else if (newValue === 2) {
 			// Tab 2 – ASN: loaded by useEffect via /api/shipment/Find?POId=...
 
-		} else if (newValue == 3) {
+		} else if (newValue === 3) {
 			// Tab 3 – GRN (Material PO) or SES (Service PO): handled by dedicated useEffects above.
 			// GRN: /api/grnheader/Find?poId=...&customerId=... (useEffect on value===3)
 			// SES: /api/sesheader/Find?poId=... (useEffect on value===4, but shown as tab 3 for service POs)
 
-		} else if (newValue == 4) {
+		} else if (newValue === 4) {
 			// Tab 4 – SES (Service PO only): fetch /api/sesheader/Find?poId=...
 			// (For material POs this tab is hidden; shown only when it's a service PO.)
 			const fetchSes = async () => {
@@ -2659,14 +2513,14 @@ const PurchaseOrder = () => {
 			};
 			fetchSes();
 
-		} else if (newValue == 5) {
+		} else if (newValue === 5) {
 			// Tab 5 – Invoice: handled by dedicated useEffect above (fires on value===5).
 			// Uses /api/poinvoice/Find?poId=...&customerId=... where customerId comes from GetPOVersion.
 			// Do NOT preload.
 
 		} else if (newValue >= 6 && newValue <= 9) {
 			// Tabs 6-9 – Payments, Documents, History, etc.
-		} else if (newValue == 10) {
+		} else if (newValue === 10) {
 			// Preview tab
 			loadPOVersionData(pageSlug, selectedVersion);
 		}
@@ -2726,15 +2580,15 @@ const PurchaseOrder = () => {
 			setShipConfirmDetails(dataSelect);
 		};
 
-		if (anchor == "openInvoiceApproved") {
-			if (nstagevalue?.nextStage == 'Under Approval') {
+		if (anchor === "openInvoiceApproved") {
+			if (nstagevalue?.nextStage === 'Under Approval') {
 				setGrnSaveDisable(false);
 				setapproveSaveDisable(false);
 			}
 		}
 
-		if (anchor == "openOrderGRNSubmit") {
-			if (nstagevalue?.currentStage == 'Shipped') {
+		if (anchor === "openOrderGRNSubmit") {
+			if (nstagevalue?.currentStage === 'Shipped') {
 				setGrnSaveDisable(false);
 				setapproveSaveDisable(false);
 			}
@@ -2745,9 +2599,9 @@ const PurchaseOrder = () => {
 
 			if (
 				dataSelect &&
-				dataSelect[0]?.grnNumber != "" &&
-				dataSelect[0]?.grnNumber != null &&
-				dataSelect[0]?.grnNumber != undefined
+				dataSelect[0]?.grnNumber !== "" &&
+				dataSelect[0]?.grnNumber !== null &&
+				dataSelect[0]?.grnNumber !== undefined
 			) {
 				//setGrnSaveDisable(true);
 				formik_GRNAccepted.setFieldValue(
@@ -3285,50 +3139,21 @@ const PurchaseOrder = () => {
 		}
 	};
 
-	const handleRowClick = (rows) => {
-		// Prevent navigation to shipped history in draft mode
-		if (String(currentStage ?? "").toLowerCase().includes("draft")) {
-			return;
-		}
-
-		SetRef_ItemId(rows?.row?.id);
-		setPOOrderItems(rows.row);
-		setValue(2);
-	};
-
-	const getRowId = (row) => row.id;
-
-	const columns = getLineItemColumns({
-		handleRowClick,
-		deliveryUpdates,
-		setDeliveryDialogRow,
-		setDeliveryDialogDate,
-		setDeliveryDialogOpen,
-		formatoption,
-		formatDateViaTimeZone,
-	});
-
 	const [shipCreatedById, setShipCreatedById] = useState(0);
 
-	const handleApprover = (show) => {
-		setApproverShow(show);
-	};
-
 	const handleInvoiceRowClick = (rows) => {
-
-		setApproverShow(true);
 		setCurrentInvStage(rows?.row?.stage);
 		var anchor = "openCreateSheet";
 
 		if (
-			rows.field == "shippingDate" ||
-			rows.field == "deliveryDate" ||
-			rows.field == "invoiceNo" ||
-			rows.field == "status" ||
-			rows.field == "invoiceAmount" ||
-			rows.field == "invoiceDate" ||
-			rows.field == "stage" ||
-			rows.field == "viewItem"
+			rows.field === "shippingDate" ||
+			rows.field === "deliveryDate" ||
+			rows.field === "invoiceNo" ||
+			rows.field === "status" ||
+			rows.field === "invoiceAmount" ||
+			rows.field === "invoiceDate" ||
+			rows.field === "stage" ||
+			rows.field === "viewItem"
 		) {
 			setSelectedInvoiceId(rows?.row?.invoiceId);
 			setShipCreatedById(rows?.row?.createdById);
@@ -3338,26 +3163,10 @@ const PurchaseOrder = () => {
 			setState({ ...state, [anchor]: true });
 			setTabShipsNotice(0);
 		}
-		else if (rows.field == "invoiceFile") {
-
+		else if (rows.field === "invoiceFile") {
 			downloadFilesOnAzure(rows.row.invoicePath, atoken);
-			// downloadFilesOnAzure(rows.row.invoicePath + "/" + rows.row.invoiceFile, atoken);
 		}
 	};
-
-	const POInvoiicecolumns = getInvoiceColumns({
-		handleInvoiceRowClick,
-		fetchPaymentDetails,
-		loadingPayment,
-		isShippedHistoryEditDisabled,
-		openRows,
-		setInvStatus,
-		handleToggleRow,
-		setSelectedInvoiceRows,
-		setDisableGrnBtn,
-		formatoption,
-		formatDateViaTimeZone,
-	});
 
 	const stageInfo = getStageInfo(currentStage, stagelist);
 
@@ -3385,8 +3194,7 @@ const PurchaseOrder = () => {
 		onSubmit: async (values) => {
 
 			setLoading(true)
-			const currentDate = new Date();
-			// if (isCurrentAfterBid && values?.IsApproved == true) {
+			// if (isCurrentAfterBid && values?.IsApproved === true) {
 			//     toast.info("Start date of auction is passsed.Please revert to send back to creator for edit pr.");
 			//     setLoading(false);
 			//     return;
@@ -3430,7 +3238,7 @@ const PurchaseOrder = () => {
 		},
 	});
 
-	// ===== Invoice Approval via URL: /purchase-order/:invoiceId/:poId?ActionType=approval =====
+	// ====== Invoice Approval via URL: /purchase-order/:invoiceId/:poId?ActionType=approval ======
 	// (poId param = Invoice ID, pageSlug = PO ID). The PO approval flow (single-ID URL) is untouched.
 	const isInvoiceApprovalUrl = Boolean(poId) && actionTypeFromURL === "approval";
 
@@ -3720,171 +3528,144 @@ const PurchaseOrder = () => {
 	);
 
 	return (
-		<>
-			<div style={{ display: 'flex', flexDirection: 'row', gap: 16, height: 'calc(100vh - 104px)', overflow: 'hidden', alignItems: 'stretch' }}>
-				<div style={{ flex: '1 1 0', minWidth: 0, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ overflow: 'hidden', minHeight: 0 }}>
+		<div className="rfq-detail-v2-shell">
+			<div className="mainContainer d-flex rfq-modern-shell">
+				<div className="leftContent d-flex flex-column">
 
-						{/* ── Page header ── */}
-						<div className="rfq-dv2-page-head border-bottom mb-3" style={{ flexShrink: 0 }}>
+					{/* ── Page header ── */}
+					<div className="rfq-dv2-page-head border-bottom mb-3" style={{ flexShrink: 0 }}>
 
-							{/* Row 1: breadcrumb + action buttons */}
-							<div className="rfq-dv2-head-top">
-								<div className="rfq-v2-breadcrumb">
-									<span style={{ cursor: 'pointer', color: '#6b7280' }} onClick={() => navigate('/PO/POlist')}>
-										Purchase Orders
-									</span>
-									<span className="rfq-v2-breadcrumb-sep">/</span>
-									<span style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>
-										{poSpecificDetails?.externalSourcePONumber || poSpecificDetails?.poNumber || poSpecificDetails?.id || 'PO Detail'}
-									</span>
-								</div>
+						{/* Row 1: breadcrumb + action buttons */}
+						<div className="rfq-dv2-head-top">
+							<nav className="rfq-dv2-breadcrumb" aria-label="breadcrumb">
+								<span className="rfq-dv2-breadcrumb-link" onClick={() => navigate('/app')} role="button" tabIndex={0}>
+									Home
+								</span>
+								<span className="rfq-dv2-sep">/</span>
+								<span className="rfq-dv2-breadcrumb-link" onClick={() => navigate('/PO/POlist')} role="button" tabIndex={0}>
+									Purchase Orders
+								</span>
+								<span className="rfq-dv2-sep">/</span>
+								<span className="rfq-dv2-breadcrumb-current">
+									PO - {poSpecificDetails?.externalSourcePONumber || poSpecificDetails?.poNumber || poSpecificDetails?.id || 'PO Detail'}
+								</span>
+							</nav>
 
-								<div className="rfq-dv2-actions">
-									{!loading && (
-										String(currentStage ?? "").toLowerCase().includes("under approval") &&
-											actionType !== "" && activityId !== "" ? (
-											<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
-												onClick={toggleDrawer("openInvoiceApproved", true)}>
-												Action
-											</button>
-										) : (
-											isDraft && (value === 0 || value === 1 || value === 10) && (
-												<>
-													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost"
-														onClick={openPOCancelDialog} disabled={savingPaymentTerm}>
-														PO Cancel
-													</button>
-													<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
-														onClick={handleSaveAndContinue} disabled={savingPaymentTerm}>
-														{savingPaymentTerm ? 'Saving...' : (value === 10 ? 'Submit' : 'Save & Continue')}
-													</button>
-												</>
-											)
-										)
-									)}
-								</div>
-							</div>
-
-							{/* Meta row with status pill */}
-							<div className="rfq-dv2-head-bottom">
-								<div className="rfq-dv2-meta-row">
-									<span className="rfq-dv2-meta-item">
-										<span className="rfq-dv2-meta-label">Status</span>
-										<button
-											type="button"
-											className={`rfq-dv2-status-pill${normalizedCurrentStage.toLowerCase() === 'draft' ? ' is-draft' : ''}`}
-											onClick={handleStatusMenuOpen}
-										>
-											<span className="rfq-dv2-status-dot" />
-											{normalizedCurrentStage}
+							<div className="rfq-dv2-actions">
+								{poSpecificDetails?.poDocumentFileName && (
+									<button type="button" className="pe-btn pe-btn--outline"
+										onClick={() => poSpecificDetails?.poDocumentFilePath && downloadFilesOnAzure(poSpecificDetails.poDocumentFilePath, poSpecificDetails.poDocumentFileName, atoken)}>
+										<HiOutlineLink style={{ fontSize: 14, marginRight: 6 }} />
+										Download PO
+									</button>
+								)}
+								{!loading && (
+									String(currentStage ?? "").toLowerCase().includes("under approval") &&
+										actionType !== "" && activityId !== "" ? (
+										<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
+											onClick={toggleDrawer("openInvoiceApproved", true)}>
+											Action
 										</button>
-										<Menu
-											anchorEl={statusAnchorEl}
-											open={Boolean(statusAnchorEl)}
-											onClose={handleStatusMenuClose}
-											classes={{ paper: 'rfq-dv2-status-menu-paper' }}
-											anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-											transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-											PaperProps={{ style: { width: 260, minWidth: 260, maxWidth: 260, overflow: 'hidden' } }}
-										>
-											<div className="rfq-dv2-status-menu">
-												<div className="rfq-dv2-status-menu-title">PO Status</div>
-												<div className="rfq-dv2-status-menu-list">
-													{poStatusSteps.map((step, index) => {
-														const stepClass = index < currentStatusIndex ? '' : index === currentStatusIndex ? 'is-current' : 'is-future';
-														return (
-															<div key={step} className={`rfq-dv2-status-step ${stepClass}`}>
-																<span className="rfq-dv2-status-step-icon" />
-																<span>{step}</span>
-															</div>
-														);
-													})}
-												</div>
-											</div>
-										</Menu>
-									</span>
-									{poSpecificDetails?.createdOn && (
-										<span className="rfq-dv2-meta-item">
-											<span className="rfq-dv2-meta-label">PO Date:</span>
-											<span className="rfq-dv2-meta-value">
-												{formatDateViaTimeZone(poSpecificDetails.createdOn, 'en-GB', formatoption)}
-											</span>
-										</span>
-									)}
-									{(poSpecificDetails?.company || poSpecificDetails?.vendorName) && (
-										<span className="rfq-dv2-meta-item">
-											<span className="rfq-dv2-meta-label">Supplier:</span>
-											<span className="rfq-dv2-meta-value">{poSpecificDetails.company || poSpecificDetails.vendorName}</span>
-										</span>
-									)}
-									{poSpecificDetails?.poAmount != null && (
-										<span className="rfq-dv2-meta-item">
-											<span className="rfq-dv2-meta-label">PO Amount:</span>
-											<span className="rfq-dv2-meta-value" style={{ fontWeight: 600, color: '#111827' }}>
-												{poSpecificDetails?.currency}{' '}
-												{Number(poSpecificDetails.poAmount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-											</span>
-										</span>
-									)}
-								</div>
+									) : (
+										isDraft && (value === 0 || value === 1 || value === 10) && (
+											<>
+												<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost"
+													onClick={openPOCancelDialog} disabled={savingPaymentTerm}>
+													PO Cancel
+												</button>
+												<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
+													onClick={handleSaveAndContinue} disabled={savingPaymentTerm}>
+													{savingPaymentTerm ? 'Saving...' : (value === 10 ? 'Submit' : 'Save & Continue')}
+												</button>
+											</>
+										)
+									)
+								)}
 							</div>
 						</div>
 
+						{/* Meta row with status pill */}
+						<div className="rfq-dv2-head-bottom">
+							<div className="rfq-dv2-meta-row">
+								<span className="rfq-dv2-meta-item">
+									<span className="rfq-dv2-meta-label">Status</span>
+									<button
+										type="button"
+										className={`rfq-dv2-status-pill${normalizedCurrentStage.toLowerCase() === 'draft' ? ' is-draft' : ''}`}
+										onClick={handleStatusMenuOpen}
+									>
+										<span className="rfq-dv2-status-dot" />
+										{normalizedCurrentStage}
+									</button>
+									<Menu
+										anchorEl={statusAnchorEl}
+										open={Boolean(statusAnchorEl)}
+										onClose={handleStatusMenuClose}
+										classes={{ paper: 'rfq-dv2-status-menu-paper' }}
+										anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+										transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+										PaperProps={{ style: { width: 260, minWidth: 260, maxWidth: 260, overflow: 'hidden' } }}
+									>
+										<div className="rfq-dv2-status-menu">
+											<div className="rfq-dv2-status-menu-title">PO Status</div>
+											<div className="rfq-dv2-status-menu-list">
+												{poStatusSteps.map((step, index) => {
+													const stepClass = index < currentStatusIndex ? '' : index === currentStatusIndex ? 'is-current' : 'is-future';
+													return (
+														<div key={step} className={`rfq-dv2-status-step ${stepClass}`}>
+															<span className="rfq-dv2-status-step-icon" />
+															<span>{step}</span>
+														</div>
+													);
+												})}
+											</div>
+										</div>
+									</Menu>
+								</span>
+							</div>
+						</div>
+					</div>
+
+					<div className="rounded-default shadow-sm w-100 flex-grow-1 d-flex flex-column" style={{ overflow: 'hidden', minHeight: 0, borderRadius: '8px 8px 0 0 !important' }}>
+
 						{/* ── Tabs + Content ── */}
-						<div className="flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+						<div className="flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden', borderRadius: '8px 8px 0 0 !important' }}>
 
 							{/* Tab bar */}
-							<div className="pe-detail-tabs-shell border-bottom" style={{ flexShrink: 0 }}>
-								<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
-									{/* Tab list */}
-									<Tabs value={value} onChange={handleChange} textColor="primary" className="tabstheme"
-										indicatorColor="primary" variant="scrollable" allowScrollButtonsMobile>
-										{(loadingPermissions || poPermissionManager?.hasPermission('PO Details', ACTIONS.READ)) && (
-											<Tab value={0} label="PO Details" disabled={isPoDetailsReadDisabled} />)}
-										{(loadingPermissions || poPermissionManager?.hasPermission('Items/Services', ACTIONS.READ)) && (
-											<Tab value={1} label={`Line Items (${dashboardCounts.itemCount})`} disabled={isItemServicesReadDisabled} />)}
-										{!isDraft && hasMaterialLineItems && Number(poCustomerId ?? customerid) !== 78 && (
-											<Tab value={2} label={dashboardCounts.asnCount > 0 ? `ASN (${dashboardCounts.asnCount})` : 'ASN'} />)}
-										{!isDraft && hasMaterialLineItems && (
-											<Tab value={3} label={dashboardCounts.grnCount > 0 ? `GRN (${dashboardCounts.grnCount})` : 'GRN'} />)}
-										{!isDraft && hasServiceLineItems && (
-											<Tab value={4} label={dashboardCounts.sesCount > 0 ? `Service Entry (${dashboardCounts.sesCount})` : 'Service Entry'} />)}
-										{!isDraft && (
-											<Tab value={5} label={dashboardCounts.invoiceCount > 0 ? `Invoices (${dashboardCounts.invoiceCount})` : 'Invoices'} />)}
-										{!isDraft && (
-											<Tab value={7} label={`Payments (${dashboardCounts.paymentCount ?? 0})`} />)}
-										<Tab value={10} label="Preview" />
-									</Tabs>
-
-									{/* Right icons: PO document + history + approver toggle */}
-									<Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-										{poSpecificDetails?.poDocumentFileName && (
-											<Tooltip title={`Download: ${poSpecificDetails.poDocumentFileName}`}>
-												<button type="button" className="pe-icon-btn pe-icon-btn--download"
-													onClick={() => poSpecificDetails?.poDocumentFilePath && downloadFilesOnAzure(poSpecificDetails.poDocumentFilePath, poSpecificDetails.poDocumentFileName, atoken)}>
-													<HiOutlineLink style={{ fontSize: 14 }} />
-												</button>
-											</Tooltip>
-										)}
-										<HistoryCell eventtype="PO" eventId={pageSlug} permissionManager={poPermissionManager} />
-										{pageSlug && (
-											<Tooltip title="Show/Hide Approvers">
-												<IconButton onClick={() => handleApprover(!approvershow)} size="small" className="pointer">
-													<div className="approverCircle shadow-sm"><PeopleAltIcon /></div>
-												</IconButton>
-											</Tooltip>
-										)}
-									</Box>
-								</Box>
-							</div>{/* end pe-detail-tabs-shell */}
+							<div className="d-flex align-items-center po-tab-bar" style={{ flexShrink: 0, borderRadius: '8px 8px 0 0 !important' }}>
+								<Tabs
+									value={value}
+									onChange={handleChange}
+									textColor="primary"
+									className="tabstheme"
+									indicatorColor="primary"
+									variant="scrollable"
+									allowScrollButtonsMobile
+								>
+									{(loadingPermissions || poPermissionManager?.hasPermission('PO Details', ACTIONS.READ)) && (
+										<Tab value={0} label={<span className="section-heading">PO Details</span>} disabled={isPoDetailsReadDisabled} />)}
+									{(loadingPermissions || poPermissionManager?.hasPermission('Items/Services', ACTIONS.READ)) && (
+										<Tab value={1} label={<span className="section-heading">Line Items {dashboardCounts.itemCount > 0 ? `(${dashboardCounts.itemCount})` : ''}</span>} disabled={isItemServicesReadDisabled} />)}
+									{!isDraft && hasMaterialLineItems && Number(poCustomerId ?? customerid) !== 78 && (
+										<Tab value={2} label={<span className="section-heading">{dashboardCounts.asnCount > 0 ? `ASN (${dashboardCounts.asnCount})` : 'ASN'}</span>} />)}
+									{!isDraft && hasMaterialLineItems && (
+										<Tab value={3} label={<span className="section-heading">{dashboardCounts.grnCount > 0 ? `GRN (${dashboardCounts.grnCount})` : 'GRN'}</span>} />)}
+									{!isDraft && hasServiceLineItems && (
+										<Tab value={4} label={<span className="section-heading">{dashboardCounts.sesCount > 0 ? `Service Entry (${dashboardCounts.sesCount})` : 'Service Entry'}</span>} />)}
+									{!isDraft && (
+										<Tab value={5} label={<span className="section-heading">{dashboardCounts.invoiceCount > 0 ? `Invoices (${dashboardCounts.invoiceCount})` : 'Invoices'}</span>} />)}
+									{!isDraft && (
+										<Tab value={7} label={<span className="section-heading">Payments {dashboardCounts.paymentCount > 0 ? `(${dashboardCounts.paymentCount})` : ''}</span>} />)}
+									<Tab value={10} label={<span className="section-heading">Preview</span>} />
+								</Tabs>
+							</div>
 
 							<Menu anchorEl={anchorElAction} open={openAction} onClose={handleCloseActionMenu} />
 
 							{/* Scrollable tab content */}
 							<div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
 
-								{value == 0 && (
+								{value === 0 && (
 									<PODetailsTab
 										versionError={versionError}
 										loadPOVersionData={loadPOVersionData}
@@ -3941,7 +3722,7 @@ const PurchaseOrder = () => {
 									/>
 								)}
 
-								{value == 1 && (
+								{value === 1 && (
 									<LineItemsTab
 										isItemServicesReadDisabled={isItemServicesReadDisabled}
 										addFlowMode={addFlowMode}
@@ -3996,7 +3777,7 @@ const PurchaseOrder = () => {
 									/>
 								)}
 
-								{value == 10 && (
+								{value === 10 && (
 									<PreviewTab
 										poSpecificDetails={poSpecificDetails}
 										allPOItems={allPOItems}
@@ -4008,7 +3789,7 @@ const PurchaseOrder = () => {
 									/>
 								)}
 								{/* ASN Tab Content */}
-								{value == 2 && Number(poCustomerId ?? customerid) !== 78 && allPOItems?.some(item => item.itemType?.toLowerCase() !== 'service') && (
+								{value === 2 && Number(poCustomerId ?? customerid) !== 78 && allPOItems?.some(item => item.itemType?.toLowerCase() !== 'service') && (
 									<ASNTab
 										poCustomerId={poCustomerId}
 										customerid={customerid}
@@ -4024,7 +3805,7 @@ const PurchaseOrder = () => {
 								)}
 
 								{/* GRN Tab Content - Only for Material Items */}
-								{value == 3 && allPOItems?.some(item => item.itemType?.toLowerCase() !== 'service') && (
+								{value === 3 && allPOItems?.some(item => item.itemType?.toLowerCase() !== 'service') && (
 									<GRNTab
 										allPOItems={allPOItems}
 										isShippedHistoryCreateDisabled={isShippedHistoryCreateDisabled}
@@ -4040,7 +3821,7 @@ const PurchaseOrder = () => {
 								)}
 
 								{/* Service Entry Tab Content - Only for Service Items */}
-								{value == 4 && allPOItems?.some(item => item.itemType?.toLowerCase() === 'service') && (
+								{value === 4 && allPOItems?.some(item => item.itemType?.toLowerCase() === 'service') && (
 									<ServiceEntryTab
 										allPOItems={allPOItems}
 										isShippedHistoryCreateDisabled={isShippedHistoryCreateDisabled}
@@ -4061,7 +3842,7 @@ const PurchaseOrder = () => {
 								)}
 
 								{/* Invoices Tab Content */}
-								{value == 5 && (
+								{value === 5 && (
 									<InvoicesTab
 										isShippedHistoryCreateDisabled={isShippedHistoryCreateDisabled}
 										canCreateInvoice={canCreateInvoice}
@@ -4073,7 +3854,7 @@ const PurchaseOrder = () => {
 									/>
 								)}
 
-								{value == 7 && (
+								{value === 7 && (
 									<PaymentsTab
 										isShippedHistoryCreateDisabled={isShippedHistoryCreateDisabled}
 										canCreatePayment={canCreatePayment}
@@ -4178,9 +3959,81 @@ const PurchaseOrder = () => {
 							handlePOCancelConfirm={handlePOCancelConfirm}
 						/>
 
-					</div>{/* end scrollable tab content */}
-				</div>{/* end tabs+content flex */}
-			</div>{/* end bg-white card + leftContent */}
+					</div>
+				</div>
+
+				{/* Right panel — always visible */}
+				{pageSlug && (
+					<div className="rightContent">
+						<div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column approver-panel" style={{ overflow: 'hidden' }}>
+							{/* Panel tab headers */}
+							<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2 flex-shrink-0 rfq-dv2-workflow-head">
+								<div className="rfq-dv2-workflow-tabs">
+									<button type="button" className={`rfq-dv2-workflow-tab ${workflowPanelTab === 'workflow' ? 'active' : ''}`} onClick={() => setWorkflowPanelTab('workflow')}>
+										Approval Workflow
+									</button>
+									<button type="button" className={`rfq-dv2-workflow-tab ${workflowPanelTab === 'history' ? 'active' : ''}`} onClick={() => setWorkflowPanelTab('history')}>
+										View History
+									</button>
+								</div>
+							</div>
+							<div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
+								{workflowPanelTab === 'workflow' && (
+									<EventApprovalBox
+										requestCell={requestCell}
+										handleEventAppList={handleEventAppList}
+										wfupdate={wfupdate}
+										stagelist={stagelist}
+										currentStage={currentStage}
+										eventCode={poSpecificDetails?.poNumber}
+										eventSubject={poSpecificDetails?.headerText || ''}
+										startDate={poSpecificDetails?.createdOn}
+										endDate={poSpecificDetails?.deliveryDate}
+									/>
+								)}
+								{workflowPanelTab === 'history' && (
+									<div className="rfq-dv2-history-track">
+										{historyLoading ? (
+											<div className="rfq-dv2-panel-loading">Loading history…</div>
+										) : historyGraph.length === 0 && historyAudit.length === 0 ? (
+											<div className="rfq-dv2-panel-empty">No history found.</div>
+										) : (
+											<>
+												{historyGraph.length > 0 && (
+													<div className="rfq-dv2-stage-graph">
+														{historyGraph.map((stage, i) => {
+															const name = stage.approverName ?? stage.modifiedByName ?? 'Unknown';
+															const date = stage.stageDone || stage.modifiedOn || '';
+															return (
+																<React.Fragment key={i}>
+																	{i > 0 && (
+																		<div className="rfq-dv2-stage-graph-arrow">
+																			<span className="rfq-dv2-stage-arrow-icon">→</span>
+																		</div>
+																	)}
+																	<div className="rfq-dv2-stage-graph-node">
+																		<span className="rfq-dv2-stage-graph-badge">
+																			<span className="rfq-dv2-stage-check">✓</span>
+																			{stage.currentStage?.toUpperCase()}
+																		</span>
+																		<span className="rfq-dv2-stage-graph-user">{name}</span>
+																		<span className="rfq-dv2-stage-graph-date">{date}</span>
+																	</div>
+																</React.Fragment>
+															);
+														})}
+													</div>
+												)}
+											</>
+										)}
+									</div>
+								)}
+							</div>
+						</div>
+					</div>
+				)}
+
+			</div>{/* end mainContainer rfq-modern-shell */}
 
 			<PODrawers
 				state={state}
@@ -4263,360 +4116,36 @@ const PurchaseOrder = () => {
 				poInvoiceList={poInvoiceList}
 				savingPayment={savingPayment}
 				handleSubmitPayment={handleSubmitPayment}
-				paymentTermModal={paymentTermModal}
-				setPaymentTermModal={setPaymentTermModal}
-				setPaymentTermsOptions={setPaymentTermsOptions}
-				grnReportModal={grnReportModal}
-				setGrnReportModal={setGrnReportModal}
-				grnReportData={grnReportData}
-				addGrnDialogOpen={addGrnDialogOpen}
-				handleCloseAddGrnDialog={handleCloseAddGrnDialog}
-				selectedGrnItems={selectedGrnItems}
-				handleSubmitGrn={handleSubmitGrn}
-				poGrnList={poGrnList}
-				addSesDialogOpen={addSesDialogOpen}
-				handleCloseAddSesDialog={handleCloseAddSesDialog}
-				selectedSesItems={selectedSesItems}
-				handleSubmitSes={handleSubmitSes}
-				sesDialogMode={sesDialogMode}
-				sesPreviewData={sesPreviewData}
-				addAsnDialogOpen={addAsnDialogOpen}
-				handleCloseAddAsnDialog={handleCloseAddAsnDialog}
-				selectedAsnItems={selectedAsnItems}
-				handleSubmitAsn={handleSubmitAsn}
-				asnDialogMode={asnDialogMode}
-				asnPreviewData={asnPreviewData}
-				addInvoiceDialogOpen={addInvoiceDialogOpen}
-				handleCloseAddInvoiceDialog={handleCloseAddInvoiceDialog}
-				selectedInvoiceItems={selectedInvoiceItems}
-				handleSubmitInvoice={handleSubmitInvoice}
-				UOMMaster={UOMMaster}
-				invoiceDialogMode={invoiceDialogMode}
-				invoicePreviewData={invoicePreviewData}
-				buildInvoiceStagesPayload={buildInvoiceStagesPayload}
-				customerid={customerid}
-				poCustomerId={poCustomerId}
-				invoiceApprovalPanel={invoiceApprovalPanel}
-				invoiceApprovalHeaderActions={invoiceApprovalHeaderActions}
-				deliveryDialogOpen={deliveryDialogOpen}
-				setDeliveryDialogOpen={setDeliveryDialogOpen}
-				deliveryDialogRow={deliveryDialogRow}
-				setDeliveryDialogRow={setDeliveryDialogRow}
-				deliveryDialogDate={deliveryDialogDate}
-				setDeliveryDialogDate={setDeliveryDialogDate}
-				setDeliveryUpdates={setDeliveryUpdates}
-				approvershow={approvershow}
-				handleApprover={handleApprover}
 				requestCell={requestCell}
 				stagelist={stagelist}
 				poPermissionManager={poPermissionManager}
 			/>
 
-			{/* Payment Details Drawer */}
-			{/* Payment Terms - Add New Modal */}
-			<Modal
-				size="xl"
-				show={paymentTermModal}
-				backdrop="static"
-				keyboard={false}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={() => setPaymentTermModal(false)}
+			{/* Payment Terms - Add/Edit Modal */}
+			<PEModal
+				open={paymentTermModal}
+				onClose={() => setPaymentTermModal(false)}
+				title="Manage Payment Terms"
+				size="lg"
+				bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+				bodyClassName="d-flex flex-column"
 			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-							Manage Payment Terms
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => setPaymentTermModal(false)}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<AddUpdatePaymentterms
-							handlePaymentTermsList={(list) => {
-								setPaymentTermsOptions(list);
-							}}
-						/>
-					</div>
-				</Modal.Body>
-			</Modal>
+				<div className="flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
+					<AddUpdatePaymentterms
+						handlePaymentTermsList={(list) => {
+							setPaymentTermsOptions(list);
+						}}
+					/>
+				</div>
+			</PEModal>
 
 			{/* GRN Report Modal */}
-			<Dialog
+			<GRNReportModal
 				open={grnReportModal}
 				onClose={() => setGrnReportModal(false)}
-				maxWidth="xl"
-				fullWidth
-			>
-				<DialogTitle sx={{ padding: 0 }}>
-					<IconButton
-						aria-label="close"
-						onClick={() => setGrnReportModal(false)}
-						sx={{
-							position: 'absolute',
-							right: 8,
-							top: 8,
-							color: (theme) => theme.palette.grey[500],
-							zIndex: 1,
-						}}
-					>
-						<HiOutlineX />
-					</IconButton>
-				</DialogTitle>
-				<DialogContent dividers sx={{ padding: 0 }}>
-					{loadingGrnReport ? (
-						<div className="text-center py-4">
-							<CircularProgress />
-						</div>
-					) : grnReportData.length > 0 ? (
-						<div style={{
-							padding: '40px',
-							backgroundColor: '#fff',
-							fontFamily: 'Arial, sans-serif'
-						}}>
-							{/* Document Border */}
-							<div style={{
-								border: '2px solid #000',
-								padding: '20px'
-							}}>
-								{/* Company Header */}
-								<div style={{
-									borderBottom: '2px solid #000',
-									paddingBottom: '10px',
-									marginBottom: '10px',
-									textAlign: 'center',
-									fontWeight: 'bold',
-									fontSize: '16px'
-								}}>
-									POSCO - India Pune Processing Center Pvt. Ltd.
-								</div>
-
-								{/* Document Title */}
-								<div style={{
-									borderBottom: '2px solid #000',
-									padding: '8px 0',
-									marginBottom: '15px',
-									textAlign: 'center',
-									fontWeight: 'bold',
-									fontSize: '14px'
-								}}>
-									Goods Receipt Note
-								</div>
-
-								{/* Supplier Information */}
-								<div style={{
-									display: 'flex',
-									justifyContent: 'space-between',
-									marginBottom: '15px',
-									fontSize: '12px',
-									padding: '10px 0'
-								}}>
-									<div style={{ flex: 1 }}>
-										<span style={{ fontWeight: 'bold' }}>Supplier Name : </span>
-										<span>{grnReportData[0]?.vendorCompany || ''}</span>
-									</div>
-									<div style={{ flex: 1 }}>
-										<span style={{ fontWeight: 'bold' }}>Supplier Code : </span>
-										<span>{grnReportData[0]?.vendorCode || ''}</span>
-									</div>
-									<div style={{ flex: 1 }}>
-										<span style={{ fontWeight: 'bold' }}>GRN Date : </span>
-										<span>
-											{grnReportData[0]?.grnDate ? (() => {
-												try {
-													const dateObj = new Date(grnReportData[0].grnDate);
-													return !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString('en-GB') : '';
-												} catch (e) {
-													return grnReportData[0].grnDate;
-												}
-											})() : ''}
-										</span>
-									</div>
-								</div>
-
-								{/* Invoice Number and GRN Number */}
-								<div style={{
-									display: 'flex',
-									justifyContent: 'space-between',
-									marginBottom: '15px',
-									fontSize: '12px',
-									padding: '5px 0'
-								}}>
-									<div style={{ flex: 1 }}>
-										<span style={{ fontWeight: 'bold' }}>Invoice NO : </span>
-										<span>{grnReportData[0]?.invoiceNo || ''}</span>
-									</div>
-									<div style={{ flex: 1 }}>
-										<span style={{ fontWeight: 'bold' }}>GRN No : </span>
-										<span>{grnReportData[0]?.grnNumber || ''}</span>
-									</div>
-									<div style={{ flex: 1 }}>
-										<span style={{ fontWeight: 'bold' }}>Invoice Date : </span>
-										<span>
-											{grnReportData[0]?.invoiceDate ? (() => {
-												try {
-													const dateObj = new Date(grnReportData[0].invoiceDate);
-													return !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString('en-GB') : '';
-												} catch (e) {
-													return grnReportData[0].invoiceDate;
-												}
-											})() : ''}
-										</span>
-									</div>
-								</div>
-
-								{/* Items Table */}
-								<div style={{ marginBottom: '20px' }}>
-									<table style={{
-										width: '100%',
-										fontSize: '11px',
-										borderCollapse: 'collapse',
-										border: '1px solid #000'
-									}}>
-										<thead>
-											<tr style={{ backgroundColor: '#f0f0f0' }}>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>Sr</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>PO NO LN</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>PO NUMBER</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>ITEM CODE</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>GRN NO</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>BATCH NUMBER</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>ITEM DESCRIPTION</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>UOM</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>REC QTY</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>APP QTY</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>REJ QTY</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>WHLO C</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>COST CENTER</th>
-												<th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>GL ACCOUNT</th>
-											</tr>
-										</thead>
-										<tbody>
-											{grnReportData.map((item, index) => {
-												// PO Line Number - API returns it formatted as "0001", "0002"
-												const poLineNumber = item.poLn || '';
-
-												return (
-													<tr key={index}>
-														<td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center' }}>{item.sr || index + 1}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center' }}>
-															{poLineNumber}
-														</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.poNo || ''}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.itemCode || ''}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.grnNumber || grnReportData[0]?.grnNumber || ''}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.batchNumber || ''}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.itemDescription || ''}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center' }}>{item.uom || ''}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'right' }}>{item.recQty ?? '0.00'}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'right' }}>{item.appQty ?? '0.00'}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'right' }}>{item.rejQty ?? '0.00'}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center' }}>{item.whLoc || ''}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.costCenter || ''}</td>
-														<td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.glAccount || ''}</td>
-													</tr>
-												);
-											})}
-										</tbody>
-									</table>
-								</div>
-
-								{/* Inspection Remarks */}
-								<div style={{ fontSize: '11px', marginBottom: '30px' }}>
-									<div style={{ marginBottom: '8px' }}>
-										<span style={{ fontWeight: 'bold' }}>INSPECTION REMARKS:</span>
-									</div>
-									<div style={{ marginBottom: '4px' }}>
-										<span style={{ fontWeight: 'bold' }}>INSPECTION NUMBER:</span>
-										<span style={{ marginLeft: '150px' }}>{grnReportData[0]?.inspectionNumber || ''}</span>
-										{/* <span style={{ marginLeft: '50px', fontWeight: 'bold' }}>INSPECTION DATE:</span> */}
-										<span style={{ marginLeft: '10px' }}>{grnReportData[0]?.inspectionDate || ''}</span>
-									</div>
-								</div>
-
-								{/* Inspection Remarks Date & Prepared By */}
-								<div style={{
-									display: 'flex',
-									justifyContent: 'space-between',
-									fontSize: '11px',
-									marginBottom: '10px'
-								}}>
-									<div></div>
-									<div style={{ textAlign: 'right' }}>
-										<div><span style={{ fontWeight: 'bold' }}>DATE:</span> {grnReportData[0]?.date ? (() => {
-											try {
-												const dateObj = new Date(grnReportData[0].date);
-												return !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString('en-GB') : '';
-											} catch (e) {
-												return grnReportData[0].date;
-											}
-										})() : ''}</div>
-										<div><span style={{ fontWeight: 'bold' }}>Prepared By :</span> {grnReportData[0]?.createdByName || ''}</div>
-									</div>
-								</div>
-
-								{/* Signature Section */}
-								<div style={{
-									display: 'flex',
-									justifyContent: 'space-between',
-									fontSize: '11px',
-									marginTop: '40px',
-									paddingTop: '20px'
-								}}>
-									<div style={{ textAlign: 'center', flex: 1 }}>
-										<div style={{ marginBottom: '40px' }}></div>
-										<div style={{ paddingTop: '5px' }}>
-											<div style={{ fontWeight: 'bold' }}>Approved By</div>
-											<div>(Store/QC)</div>
-										</div>
-									</div>
-									<div style={{ textAlign: 'center', flex: 1 }}>
-										<div style={{ marginBottom: '40px' }}></div>
-										<div style={{ paddingTop: '5px' }}>
-											<div style={{ fontWeight: 'bold' }}>Approved By</div>
-											<div>(TL)</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					) : (
-						<div className="text-center py-4">
-							<p>No GRN report data available</p>
-						</div>
-					)}
-				</DialogContent>
-				<DialogActions>
-					<Button
-						onClick={() => {
-							const printContent = document.querySelector('[style*="padding: 40px"]');
-							if (printContent) {
-								const printWindow = window.open('', '', 'height=800,width=1200');
-								printWindow.document.write('<html><head><title>GRN Report</title>');
-								printWindow.document.write('<style>@media print { @page { margin: 0.5in; } body { margin: 0; } }</style>');
-								printWindow.document.write('</head><body>');
-								printWindow.document.write(printContent.innerHTML);
-								printWindow.document.write('</body></html>');
-								printWindow.document.close();
-								printWindow.print();
-							}
-						}}
-						variant="outlined"
-					>
-						Print
-					</Button>
-					<Button onClick={() => setGrnReportModal(false)}>Close</Button>
-				</DialogActions>
-			</Dialog>
+				data={grnReportData}
+				loading={loadingGrnReport}
+			/>
 
 			{/* Add GRN Dialog */}
 			<AddGRNDialog
@@ -4673,70 +4202,72 @@ const PurchaseOrder = () => {
 				stagelist={invStagelist}
 				currentStage={invoicePreviewData?.header?.stage ?? currentInvStage}
 			/>
-			<Dialog
+
+			{/* Edit Delivery Date Dialog */}
+			<PEModal
 				open={deliveryDialogOpen}
 				onClose={() => {
 					setDeliveryDialogOpen(false);
 					setDeliveryDialogRow(null);
 					setDeliveryDialogDate(null);
 				}}
-				fullWidth
-				maxWidth="xs"
+				title="Edit Delivery Date"
+				size="xs"
+				footer={
+					<>
+						<button
+							type="button"
+							className="pe-btn pe-btn--outline"
+							onClick={() => {
+								setDeliveryDialogOpen(false);
+								setDeliveryDialogRow(null);
+								setDeliveryDialogDate(null);
+							}}
+						>
+							Cancel
+						</button>
+						<button
+							type="button"
+							className="pe-btn pe-btn--primary"
+							disabled={!deliveryDialogRow || !deliveryDialogDate}
+							onClick={() => {
+								if (deliveryDialogRow) {
+									setDeliveryUpdates((prev) => ({
+										...prev,
+										[deliveryDialogRow.id]: deliveryDialogDate,
+									}));
+								}
+								setDeliveryDialogOpen(false);
+								setDeliveryDialogRow(null);
+								setDeliveryDialogDate(null);
+							}}
+						>
+							Save
+						</button>
+					</>
+				}
 			>
-				<DialogTitle>Edit Delivery Date</DialogTitle>
-				<DialogContent>
-					<Box sx={{ mt: 1 }}>
-						<LocalizationProvider dateAdapter={AdapterDateFns}>
-							<MobileDatePicker
-								label="Delivery Date"
-								value={deliveryDialogDate}
-								onChange={(newValue) => setDeliveryDialogDate(newValue)}
-								slotProps={{
-									textField: {
-										variant: "outlined",
-										fullWidth: true,
-										size: "small",
-										InputLabelProps: { shrink: true },
-									},
-									actionBar: {
-										actions: ["clear", "cancel", "accept"],
-									},
-								}}
-								format="dd/MM/yyyy"
-							/>
-						</LocalizationProvider>
-					</Box>
-				</DialogContent>
-				<DialogActions>
-					<Button
-						onClick={() => {
-							setDeliveryDialogOpen(false);
-							setDeliveryDialogRow(null);
-							setDeliveryDialogDate(null);
-						}}
-					>
-						Cancel
-					</Button>
-					<Button
-						variant="contained"
-						disabled={!deliveryDialogRow || !deliveryDialogDate}
-						onClick={() => {
-							if (deliveryDialogRow) {
-								setDeliveryUpdates((prev) => ({
-									...prev,
-									[deliveryDialogRow.id]: deliveryDialogDate,
-								}));
-							}
-							setDeliveryDialogOpen(false);
-							setDeliveryDialogRow(null);
-							setDeliveryDialogDate(null);
-						}}
-					>
-						Save
-					</Button>
-				</DialogActions>
-			</Dialog>
-		</>
+				<div style={{ padding: '8px 0' }}>
+					<label className="pe-field-label">Delivery Date</label>
+					<LocalizationProvider dateAdapter={AdapterDateFns}>
+						<MobileDatePicker
+							value={deliveryDialogDate}
+							onChange={(newValue) => setDeliveryDialogDate(newValue)}
+							slotProps={{
+								textField: {
+									variant: "outlined",
+									fullWidth: true,
+									size: "small",
+									InputLabelProps: { shrink: true },
+								},
+								actionBar: { actions: ["clear", "cancel", "accept"] },
+							}}
+							format="dd/MM/yyyy"
+						/>
+					</LocalizationProvider>
+				</div>
+			</PEModal>
+		</div>
 	);
 };
 

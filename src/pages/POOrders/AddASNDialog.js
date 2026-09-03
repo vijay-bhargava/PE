@@ -6,12 +6,12 @@ import { getApiErrorMessage } from '../../utils/common';
 import PEModal from '../../components/PEModal';
 import { PETableSimple } from '../../components/RFQ/PETable';
 
-const fmtQty = (q, uom) => (q != null ? `${q} ${uom ?? ''}`.trim() : '—');
+const fmtQty = (q, uom) => (q != null ? `${q} ${uom ?? ''}`.trim() : '');
 
 const fmtCurrency = (amt) => {
-	if (amt == null || amt === '') return '—';
+	if (amt == null || amt === '') return '';
 	const num = Number(amt);
-	if (isNaN(num)) return '—';
+	if (isNaN(num)) return '';
 	return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
@@ -28,10 +28,10 @@ const getItemConditions = (itemConditions, item) =>
 	});
 
 const conditionColumns = [
-	{ key: 'conditionCategory', label: 'Category', renderCell: (v) => v ?? '—' },
+	{ key: 'conditionCategory', label: 'Category', renderCell: (v) => v ?? '' },
 	{ key: 'conditionValue', label: 'Value', renderCell: (v) => fmtCurrency(v) },
-	{ key: 'currency', label: 'Currency', renderCell: (v) => v ?? '—' },
-	{ key: 'calculationType', label: 'Calc. Type', renderCell: (v) => v ?? '—' },
+	{ key: 'currency', label: 'Currency', renderCell: (v) => v ?? '' },
+	{ key: 'calculationType', label: 'Calc. Type', renderCell: (v) => v ?? '' },
 ];
 
 const ConditionsAccordion = ({ conditions = [] }) => {
@@ -350,7 +350,7 @@ const AddASNDialog = ({ open, onClose, poDetails, lineItems = [], onSubmit, mode
 			key: 'itemCode',
 			label: 'Line Item',
 			renderCell: (v, row) => (
-				<span style={{ fontWeight: 600, color: '#1976d2' }}>{row.itemCode ?? row.itemNo ?? '—'}</span>
+				<span style={{ fontWeight: 600, color: '#1976d2' }}>{row.itemCode ?? row.itemNo ?? ''}</span>
 			),
 		},
 		{
@@ -358,7 +358,7 @@ const AddASNDialog = ({ open, onClose, poDetails, lineItems = [], onSubmit, mode
 			label: 'Material / Description',
 			renderCell: (v, row) => (
 				<>
-					<div style={{ fontWeight: 500, color: '#1a1a1a' }}>{row.itemDesc ?? '—'}</div>
+					<div style={{ fontWeight: 500, color: '#1a1a1a' }}>{row.itemDesc ?? ''}</div>
 					{row.materialCode && <div style={{ fontSize: 11, color: '#888' }}>MAT-{row.materialCode} | {row.uom}</div>}
 					<ConditionsAccordion conditions={getItemConditions(poDetails?.poItemConditions, row)} />
 				</>
@@ -503,13 +503,13 @@ const AddASNDialog = ({ open, onClose, poDetails, lineItems = [], onSubmit, mode
 				const deliveryDateError = errors[`delivery_${item.id}`];
 
 				const itemDetailColumns = [
-					{ key: 'itemCode', label: 'Item No', renderCell: (v, row) => row.itemCode ?? row.itemNo ?? '—' },
+					{ key: 'itemCode', label: 'Item No', renderCell: (v, row) => row.itemCode ?? row.itemNo ?? '' },
 					{
 						key: 'itemDesc',
 						label: 'Description',
 						renderCell: (v, row) => (
 							<>
-								<div>{row.itemDesc ?? '—'}</div>
+								<div>{row.itemDesc ?? ''}</div>
 								<ConditionsAccordion conditions={getItemConditions(poDetails?.poItemConditions, row)} />
 							</>
 						),

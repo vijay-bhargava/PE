@@ -21,7 +21,7 @@ const ASNTab = ({
       label: 'ASN Number',
       renderCell: (v, row) => (
         <span style={{ fontWeight: 500 }}>
-          {row.shipSlipId ?? row.asnNumber ?? row.id ?? '—'}
+          {row.shipSlipId ?? row.asnNumber ?? row.id ?? ''}
         </span>
       ),
     },
@@ -29,7 +29,7 @@ const ASNTab = ({
       key: 'shippingDate',
       label: 'ASN Date',
       renderCell: (v) =>
-        v ? formatDateViaTimeZone(v, 'en-GB', formatoption) : '—',
+        v ? formatDateViaTimeZone(v, 'en-GB', formatoption) : '',
     },
     {
       key: 'status',

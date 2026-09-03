@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { HiCheck, HiOutlineLink, HiOutlineChevronDown, HiOutlineChevronUp, HiX } from 'react-icons/hi';
+import { HiCheck, HiOutlineLink, HiX } from 'react-icons/hi';
 import { MdExpandMore } from 'react-icons/md';
 import { toast } from 'react-toastify';
-import { downloadFilesOnAzure, getFileName, replaceMultipleDotsExceptExtension, getApiErrorMessage } from '../../utils/common';
-import { MemoizedEventStageFlow } from '../../utils/common/component';
+import {
+	downloadFilesOnAzure, getFileName,
+	replaceMultipleDotsExceptExtension, getApiErrorMessage
+} from '../../utils/common';
 import { ApiClient, api } from '../../Apiclient';
 import axios from 'axios';
 import PEModal from '../../components/PEModal';
@@ -16,12 +18,12 @@ const resolveUomString = (val) => {
 	return String(val);
 };
 
-const fmtQty = (q, uom) => (q != null ? `${q} ${resolveUomString(uom)}`.trim() : '—');
+const fmtQty = (q, uom) => (q != null ? `${q} ${resolveUomString(uom)}`.trim() : '');
 
 const fmtCurrency = (amt) => {
-	if (amt == null || amt === '') return '—';
+	if (amt == null || amt === '') return '';
 	const num = Number(amt);
-	if (isNaN(num)) return '—';
+	if (isNaN(num)) return '';
 	return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
@@ -159,13 +161,13 @@ const EditableConditionsTable = ({ conditions = [], onChange, onAdd, onRemove, d
 		{
 			key: 'conditionType', label: 'Condition Type',
 			renderCell: (v, row) => disabled
-				? (row._cond.conditionType || '—')
+				? (row._cond.conditionType || '')
 				: <input type="text" className="pe-detail-form-input" value={row._cond.conditionType ?? ''} placeholder="e.g. GST" onChange={(e) => onChange(row._idx, 'conditionType', e.target.value)} />,
 		},
 		{
 			key: 'calculationType', label: 'Calculation Type',
 			renderCell: (v, row) => disabled
-				? (row._cond.calculationType || '—')
+				? (row._cond.calculationType || '')
 				: (
 					<select className="pe-detail-form-input" value={normalizeCalculationType(row._cond.calculationType)} onChange={(e) => onChange(row._idx, 'calculationType', e.target.value)}>
 						{CALC_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -658,13 +660,13 @@ const AddInvoiceDialog = ({
 		},
 		{
 			key: 'itemNo', label: 'Line Item',
-			renderCell: (v) => <span style={{ fontWeight: 600, color: '#1976d2' }}>{v ?? '—'}</span>,
+			renderCell: (v) => <span style={{ fontWeight: 600, color: '#1976d2' }}>{v ?? ''}</span>,
 		},
 		{
 			key: 'itemDesc', label: 'Material / Description',
 			renderCell: (v, row) => (
 				<div>
-					<div style={{ fontWeight: 500, fontSize: 13, color: '#1a1a1a' }}>{v ?? '—'}</div>
+					<div style={{ fontWeight: 500, fontSize: 13, color: '#1a1a1a' }}>{v ?? ''}</div>
 					{row._item.materialCode && <div style={{ fontSize: 11, color: '#888' }}>MAT-{row._item.materialCode}</div>}
 				</div>
 			),
@@ -677,7 +679,7 @@ const AddInvoiceDialog = ({
 				const data = itemData[row._item.id] || {};
 				const showFields = isPreview || isSelected(row._item);
 				if (!showFields) return <span style={{ color: '#999', fontSize: 12 }}>—</span>;
-				if (isPreview) return <span style={{ fontSize: 12 }}>{data.invoiceQty ?? '—'}</span>;
+				if (isPreview) return <span style={{ fontSize: 12 }}>{data.invoiceQty ?? ''}</span>;
 				const err = errors[`item_${row._item.id}_invoiceQty`];
 				return (
 					<div>
@@ -694,7 +696,7 @@ const AddInvoiceDialog = ({
 				const showFields = isPreview || isSelected(row._item);
 				if (!showFields) return <span style={{ color: '#999', fontSize: 12 }}>—</span>;
 				const err = errors[`item_${row._item.id}_uom`];
-				return <span style={{ fontSize: 12, color: err ? '#ef4444' : undefined }}>{resolveUomString(data.uom) || '—'}</span>;
+				return <span style={{ fontSize: 12, color: err ? '#ef4444' : undefined }}>{resolveUomString(data.uom) || ''}</span>;
 			},
 		},
 		{
@@ -721,8 +723,8 @@ const AddInvoiceDialog = ({
 	const lineItemRows = displayItems.map((item) => ({
 		_rowId: String(item.id),
 		_item: item,
-		itemNo: item.itemNo ?? '—',
-		itemDesc: item.itemDesc ?? '—',
+		itemNo: item.itemNo ?? '',
+		itemDesc: item.itemDesc ?? '',
 		orderedQty: fmtQty(getOrderedQtyForItem(item), item.uom),
 		remainingQty: fmtQty(getRemainingQtyForItem(item), item.uom),
 	}));

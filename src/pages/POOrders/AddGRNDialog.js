@@ -5,12 +5,12 @@ import { getApiErrorMessage } from '../../utils/common';
 import PEModal from '../../components/PEModal';
 import { PETableSimple } from '../../components/RFQ/PETable';
 
-const fmtQty = (q, uom) => (q != null ? `${q} ${uom ?? ''}`.trim() : '—');
+const fmtQty = (q, uom) => (q != null ? `${q} ${uom ?? ''}`.trim() : '');
 
 const fmtCurrency = (amt) => {
-	if (amt == null || amt === '') return '—';
+	if (amt == null || amt === '') return '';
 	const num = Number(amt);
-	if (isNaN(num)) return '—';
+	if (isNaN(num)) return '';
 	return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
@@ -350,7 +350,7 @@ const AddGRNDialog = ({ open, onClose, poDetails, lineItems = [], onSubmit, exis
 		{
 			key: 'itemNo',
 			label: 'Line Item',
-			renderCell: (v) => <span style={{ fontWeight: 600, color: '#1976d2' }}>{v ?? '—'}</span>,
+			renderCell: (v) => <span style={{ fontWeight: 600, color: '#1976d2' }}>{v ?? ''}</span>,
 		},
 		{
 			key: 'itemDesc',
@@ -493,8 +493,8 @@ const AddGRNDialog = ({ open, onClose, poDetails, lineItems = [], onSubmit, exis
 				_available: available,
 				_sel: sel,
 				_disabled: disabled,
-				itemNo: item.itemNo ?? '—',
-				itemDesc: item.itemDesc ?? '—',
+				itemNo: item.itemNo ?? '',
+				itemDesc: item.itemDesc ?? '',
 				orderedQty: fmtQty(item.quantity, item.uom),
 				receivedQty: fmtQty(item.totalShipQty ?? 0, item.uom),
 				openQty: null,

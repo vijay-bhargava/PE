@@ -31,6 +31,7 @@ const AddPaymentDrawer = ({
       open={open}
       onClose={onClose}
       size="lg"
+      dialogProps={{ PaperProps: { style: { minHeight: '75vh', maxHeight: '90vh' } } }}
       title={
         <>
           Add Payment
