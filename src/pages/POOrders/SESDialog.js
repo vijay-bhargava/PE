@@ -8,12 +8,12 @@ import { getApiErrorMessage } from '../../utils/common';
 import PEModal from '../../components/PEModal';
 import { PETableSimple } from '../../components/RFQ/PETable';
 
-const fmtQty = (q, uom) => (q != null ? `${q} ${uom ?? ''}`.trim() : '—');
+const fmtQty = (q, uom) => (q != null ? `${q} ${uom ?? ''}`.trim() : '');
 
 const fmtCurrency = (amt) => {
-	if (amt == null || amt === '') return '—';
+	if (amt == null || amt === '') return '';
 	const num = Number(amt);
-	if (isNaN(num)) return '—';
+	if (isNaN(num)) return '';
 	return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 

@@ -1807,35 +1807,35 @@ const PODrawers = ({
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
                 <div>
                   <label className="pe-field-label">SAP Doc Number</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.invoiceNo || '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.invoiceNo || ''}</div>
                 </div>
                 <div>
                   <label className="pe-field-label">Payment Method</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentMethod || '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentMethod || ''}</div>
                 </div>
                 <div>
                   <label className="pe-field-label">UTR Number</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.utrNumber || '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.utrNumber || ''}</div>
                 </div>
                 <div>
                   <label className="pe-field-label">Bank Reference</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.bankReference || '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.bankReference || ''}</div>
                 </div>
                 <div>
                   <label className="pe-field-label">Payment Category</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentCategory || '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentCategory || ''}</div>
                 </div>
                 <div>
                   <label className="pe-field-label">Amount</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentAmount ?? '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentAmount ?? ''}</div>
                 </div>
                 <div>
                   <label className="pe-field-label">Status</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentStatus || '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentStatus || ''}</div>
                 </div>
                 <div>
                   <label className="pe-field-label">Payment Date</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentDate ? formatDateViaTimeZone(paymentDetails.paymentDate, 'en-GB', formatoption) : '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.paymentDate ? formatDateViaTimeZone(paymentDetails.paymentDate, 'en-GB', formatoption) : ''}</div>
                 </div>
                 {paymentDetails.sapPaymentDoc && (
                   <div style={{ gridColumn: '1 / -1' }}>
@@ -1848,19 +1848,19 @@ const PODrawers = ({
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
                 <div>
                   <label className="pe-field-label">Bank Name</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.bankName || paymentDetails.BankName || '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.bankName || paymentDetails.BankName || ''}</div>
                 </div>
                 <div>
                   <label className="pe-field-label">Transaction ID</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.transactionID || paymentDetails.TransactionID || paymentDetails.transactionId || paymentDetails.TransactionId || '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.transactionID || paymentDetails.TransactionID || paymentDetails.transactionId || paymentDetails.TransactionId || ''}</div>
                 </div>
                 <div>
                   <label className="pe-field-label">Amount</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.amount || paymentDetails.Amount || '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{paymentDetails.amount || paymentDetails.Amount || ''}</div>
                 </div>
                 <div>
                   <label className="pe-field-label">Payment Date</label>
-                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{(paymentDetails.paymentDate || paymentDetails.PaymentDate) ? formatDateViaTimeZone(paymentDetails.paymentDate || paymentDetails.PaymentDate, 'en-GB', formatoption) : '—'}</div>
+                  <div className="pe-detail-form-input" style={{ background: '#f8fafc', cursor: 'default' }}>{(paymentDetails.paymentDate || paymentDetails.PaymentDate) ? formatDateViaTimeZone(paymentDetails.paymentDate || paymentDetails.PaymentDate, 'en-GB', formatoption) : ''}</div>
                 </div>
               </div>
             )}

@@ -253,7 +253,7 @@ export function PETableSimple({
                           verticalAlign: 'middle',
                         }}
                       >
-                        {col.renderCell ? col.renderCell(row[col.key], row, index) : (row[col.key] ?? '—')}
+                        {col.renderCell ? col.renderCell(row[col.key], row, index) : (row[col.key] ?? '')}
                       </TableCell>
                     ))}
                   </TableRow>
