@@ -80,9 +80,12 @@
 
 .rfq-detail-v2-shell .leftContent {
   flex: 1 1 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
   width: auto !important;
   max-width: none !important;
   min-width: 0 !important;
+  min-height: 0 !important;
   padding: 0 !important;
 }
 
@@ -98,12 +101,12 @@
 .rfq-detail-v2-shell .leftContent > .bg-white {
   display: flex !important;
   flex-direction: column !important;
+  flex: 1 1 0 !important;
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
   min-height: 0 !important;
   padding: 0 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  overflow: hidden !important;
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -501,17 +504,30 @@
   color: #2388d9 !important;
 }
 
+/* Tab bar wrapper — grey background matching RFQ style */
+.rfq-detail-v2-shell .po-tab-bar {
+  background-color: #FAFAFA !important;
+  border-bottom: none !important;
+  border-radius: 8px 8px 0 0 !important;
+  padding: 0 8px !important;
+}
+
+.tabstheme,
+.tabstheme .MuiTabs-root,
 .rfq-detail-v2-shell .tabstheme,
 .rfq-detail-v2-shell .tabstheme .MuiTabs-root {
   min-height: 48px !important;
-  background-color: var(--vz-body-bg) !important;
+  background-color: transparent !important;
 }
 
+.tabstheme .MuiTabs-scroller,
+.tabstheme .MuiTabs-flexContainer,
 .rfq-detail-v2-shell .tabstheme .MuiTabs-scroller,
 .rfq-detail-v2-shell .tabstheme .MuiTabs-flexContainer {
   min-height: 48px !important;
 }
 
+.tabstheme .MuiTab-root,
 .rfq-detail-v2-shell .tabstheme .MuiTab-root {
   min-width: 0 !important;
   min-height: 48px !important;
@@ -526,14 +542,17 @@
   text-transform: none !important;
 }
 
+.tabstheme .MuiTab-root.Mui-selected,
 .rfq-detail-v2-shell .tabstheme .MuiTab-root.Mui-selected {
   color: #2388d9 !important;
 }
 
+.tabstheme .MuiTabs-indicator,
 .rfq-detail-v2-shell .tabstheme .MuiTabs-indicator {
   height: 3px !important;
   border-radius: 0 !important;
   background-color: #2388d9 !important;
+  bottom: 0 !important;
 }
 
 .rfq-detail-v2-shell .tabstheme .section-heading {

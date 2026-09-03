@@ -190,44 +190,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const [QuestionCategoryList, setQuestionCategoryList] = useState([]);
 	const [uncategorizedQuestions, setUncategorizedQuestions] = useState([]);
 
-	const getAuditHistoryRoles = async () => {
-		const dataR = {
-			roleId: parseInt(userDetail?.roleId),
-			featureName: "Request for Quotation",
-			claimType: "Audit History",
-		};
-		const queryParams = buildQueryParams(dataR);
-		const res = await apiClient.getres(`/api/auth/UserRoleClaim?${queryParams}`, atoken);
-		if (res) {
-			const data = res?.data;
-			dispatch({ type: actionTypes.SET_RoleClaims, value: data });
-		}
-		res?.data?.map(item => {
-			if (item.claimType === 'Audit History' && item.claimValue === 'Read' && item.accessLevel === 'None') {
-				setisHistoryReadDisabled(false);
-			}
-		});
-	};
-
-	const getworkflowRoles = async () => {
-		const dataR = {
-			roleId: parseInt(userDetail?.roleId),
-			featureName: "Request for Quotation",
-			claimType: "Work Flow",
-		};
-		const queryParams = buildQueryParams(dataR);
-		const res = await apiClient.getres(`/api/auth/UserRoleClaim?${queryParams}`, atoken);
-		if (res) {
-			const data = res?.data;
-			dispatch({ type: actionTypes.SET_RoleClaims, value: data });
-		}
-		res?.data?.map(item => {
-			if (item.claimType === 'Work Flow' && item.claimValue === 'Read' && item.accessLevel === 'None') {
-				setisworkReadDisabled(false);
-			}
-		});
-	};
-
 	useEffect(() => {
 		getUserRoleRights();
 	}, []);
@@ -310,8 +272,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 			.max(200, "Max 200 character")
 			.required("RFQ Subject is required"),
 		description: yup.string().test("valid-desc", function (description) {
-			const { termandcondition } = this.parent;
-			const termandconditionobj = extractTextFromHTML(termandcondition ?? "");
 			const descriptionobj = extractTextFromHTML(description ?? "");
 
 
@@ -321,8 +281,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 					path: "description",
 					message: "Description is required", // Custom error message
 				});
-				scrollToTargetC("description")
-
 			}
 			return true;
 		}),
@@ -672,29 +630,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 				currencyConversion: "",
 				rfqId: formik?.values?.id,
 			},
-		]);
-	};
-
-	const handleCurrencyInputChange = (e, index) => {
-		const { name, value } = e.target;
-		if (!commcurrencyList || !Array.isArray(commcurrencyList) || index < 0 || index >= commcurrencyList.length) return;
-		const list = [...commcurrencyList];
-		if (!list[index]) list[index] = {};
-		list[index][name] = value;
-		setcommcurrencyList(list);
-	};
-
-	const handleRemoveCurrencyClick = (index) => {
-		if (!commcurrencyList || !Array.isArray(commcurrencyList) || index < 0 || index >= commcurrencyList.length) return;
-		const list = [...commcurrencyList];
-		list.splice(index, 1);
-		setcommcurrencyList(list);
-	};
-
-	const handleAddCurrencyClick = () => {
-		setcommcurrencyList([
-			...commcurrencyList,
-			{ id: "0", baseCurrency: "", currencyConversion: "", rfqId: idFromURL },
 		]);
 	};
 
@@ -1058,12 +993,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 
 	//to set question for edit
 	const [questionforedit, setQuestionForEdit] = useState(null);
-	const handleSelectedEditQuestion = (question) => {
-
-		setQuestionForEdit(question)
-		setState({ ...state, qusDrawer: true })
-	}
-
 
 	const pullCommercialLibFind = async (selectedItems) => {
 		//console.log("selectedItems", selectedItems?.id);
@@ -1136,22 +1065,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	};
 
 	const [selectedQuesDll, setSelectedQuesDll] = useState();
-	const pullQuestionsLibFind = (selectedItem) => {
-		//console.log("selectedItems", selectedItem);
-		var data = {
-			CustomerId: customerid,
-			LibraryId: selectedItem?.id,
-		};
-		//console.log("request id getCommercialLibFind", data);
-		getQuestionsLibFind(data, atoken).then((res) => {
-			//console.log("response getCommercialLibFind", res);
-			if (res && res?.length > 0) {
-
-				setSelectedQuesionArray(res);
-				// setCommercialLibFind(res)
-			}
-		});
-	};
 
 	const callbackQuesAddCustom = useCallback(
 		(quesData, questionforedit) => {
@@ -1179,104 +1092,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		},
 		[selectedQuesionArray]
 	);
-
-
-	const [selectedcommercialterm, setSelectedCommercialTerm] = useState(null);
-	//it is for opening modal of commercial term currency
-	const handleChangeCom = (index, value, x, openmodal) => {
-
-		const item = commercialLibFind[index];
-		if (openmodal) {
-			setModal1(true)
-		}
-		// Check if the valuetype is "Currency" to open the modal
-		if (item.valuetype === "Currency") {
-			const list = [...commercialLibFind];
-			if (value) {
-				list[index]["level"] = value;
-			}
-
-			//to handle selected dependent formula field
-			if (value === "item") {
-				const selectedFieldGroup = list[index].fieldNameGroup.split(',');
-				// Iterate through the list to update dependent fields
-				list.forEach(item => {
-					if (selectedFieldGroup.includes(item.fieldName)) {
-						item.isSelected = true; // Set isSelected to the same value
-						item.level = "item"
-					}
-				});
-			}
-
-			setCommercialLibFind(list);
-			// set object for commecial  term
-
-			setSelectedCommercialTerm(x);
-			if (x?.rfqTermCurrency && x?.rfqTermCurrency?.length > 0) {
-				setcommcurrencyList(x?.rfqTermCurrency);
-			}
-			//setModal1(true);
-
-		} else {
-			const list = [...commercialLibFind];
-			list[index]["level"] = value;
-
-			//to handle selected dependent formula field
-			if (value === "item") {
-				const selectedFieldGroup = list[index].fieldNameGroup.split(',');
-				// Iterate through the list to update dependent fields
-				list.forEach(item => {
-					if (selectedFieldGroup.includes(item.fieldName)) {
-						item.isSelected = true; // Set isSelected to the same value
-						item.level = "item"
-					}
-				});
-			}
-			// Get the fieldNameGroup of the selected item
-
-			setCommercialLibFind(list);
-			setModal1(false);
-		}
-	};
-	//to handle multicurrency submit modal for commercial term
-	const handlecurrencytermmodal = () => {
-		//console.log();
-		const updatedlist = commercialLibFind.map((x, i) => {
-			if (x.termsId === selectedcommercialterm?.termsId) {
-				x.rfqTermCurrency = commcurrencyList;
-			}
-			return x;
-		});
-		setCommercialLibFind(updatedlist);
-		setModal1(false);
-		setSelectedCommercialTerm(null);
-		setcommcurrencyList([
-			{ id: "0", baseCurrency: "", currencyConversion: "" },
-		]);
-	};
-
-	const handleChangeComQues = (index, value) => {
-		const list = [...commercialLibFind];
-		list[index]["requirement"] = value;
-		setCommercialLibFind(list);
-	};
-
-	//to autoselect required formula field
-	const handleComItemCheck = (index, value) => {
-
-		const list = [...commercialLibFind];
-		// Set isSelected for the selected item
-		list[index]["isSelected"] = value;
-		setCommercialLibFind(list);
-	};
-
-	const handleComItemAllCheck = (value) => {
-		const list = commercialLibFind?.map((component) => ({
-			...component,
-			isSelected: value,
-		}));
-		setCommercialLibFind(list);
-	};
 
 	const [itemEditTempData, setItemEditTempData] = useState([]);
 	const handleEditItem = useCallback((dataItem) => {
@@ -1450,36 +1265,9 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		pullgetCurrency();
 	}, [atoken]);
 
-	const saveRFQLineItems = async (exceldata) => {
-		const data = exceldata?.map((rfqitem, index) => {
-			const i = (rfqItemsList?.length + index + 1).toString();
-			return {
-				...rfqitem,
-				customerId: customerid,
-				rfqId: idFromURL,
-				poDate: new Date(rfqitem?.poDate),
-				srno: i,
-			};
-		});
-
-		const res = await apiClient.postres(
-			`/api/RFQItemService/${idFromURL}/AddItems`,
-			data,
-			atoken
-		);
-
-		if (res) {
-			callbackItemAdd(res);
-			toast.success("Data Saved successfully", {
-				toastId: "RFQItemService_add"
-			});
-		}
-	};
-
 	const handleSaveContinue = async () => {
 		if (value === 1) {
 
-			const currentDate = new Date();
 			if (formik.values.IsMultiCurrency) {
 				if (inputList?.length === 0) {
 					toast.error("Please add multi-currency details.", {
@@ -1591,20 +1379,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		if (e.target.value.trim()) {
 			setRfqError("");
 		}
-	};
-
-
-	const handlecheckpreview = async () => {
-		//to check formik validity dynamically
-		if (!formik.isValid) {
-			toast.error("Please make sure all required fields are properly filled.", {
-				toastId: "preview_error"
-			});
-			setValue(1);
-			return false;
-		}
-
-		return true;
 	};
 
 	const checkApprovers = () => {
@@ -1957,31 +1731,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		}
 	};
 
-	const pullCategoryList = async (value) => {
-		var data = {
-			CustomerId: customerid,
-			LibraryId: value?.id ? value?.id : value,
-		};
-		setLoading(true);
-		const queryParams = Object.entries(data)
-			?.filter(([key, val]) => val !== null && val !== undefined && val !== "")
-			.map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
-			.join("&");
-
-		const res = await apiClient.getres(`/api/QCategory/Find?${queryParams}`, atoken);
-		const res2 = await apiClient.getres(`/api/QuestionsLib/Find?${queryParams}`, atoken);
-		const categories = res?.data?.result;
-		const questions = res2?.data?.result;
-		setAllDataList(questions);
-		const result = mapQuestionsToSubcategories(categories, questions);
-		if (res !== "" && res !== undefined) {
-			setQuestionCategoryList(result);
-		}
-		const uncategorized = questions?.filter(question => !question.questionCategory);
-		setUncategorizedQuestions(uncategorized);
-		setLoading(false);
-	};
-
 	const handleSupplierWithCategory = async (selectedCategory) => {
 		const obj = {
 			CustomerId: customerid,
@@ -2128,16 +1877,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		setTotalSupplier(list);
 
 		setSelectedSupplier(selectedList);
-	};
-	const [selectAll, setSelectAll] = useState(true);
-	const handleSelectAllSuppliers = (selectAll) => {
-		const updatedList = totalSupplier?.map((supplier) => ({
-			...supplier,
-			isSelected: selectAll,
-		}));
-		setTotalSupplier(updatedList);
-
-		setSelectedSupplier(selectAll ? updatedList : []);
 	};
 
 	const clearSelectedSupplier = async (x, value) => {
@@ -2522,25 +2261,11 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 		setEventAppList(arr);
 		setApproverInWorkflow(updatedvalue)
 	}, []);
-	const handleWorkFlowUpdate = useCallback(() => {
-		setwfUpdate((prev) => !prev);
-	}, []);
-
-	const VendorfilterOptions = createFilterOptions({
-		matchFrom: "any",
-		stringify: (option) => `${option.contactPerson} ${option.email} `,
-	});
 
 	const [pageCount, setPageCount] = React.useState(10);
 
 	//pagination for total suppliers
 	const [pageTS, setPageTS] = React.useState(1);
-
-	const handlePaginationTS = (event, value) => {
-		if (value) {
-			setPageTS(value);
-		}
-	};
 
 	//pagination for selected suppliers
 	const [pageSS, setPageSS] = React.useState(1);
@@ -2749,7 +2474,6 @@ const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const [purchaseOrgGrpModal, setPurchaseOrgGrpModal] = useState(false);
 	const ClosePurcgaseOrgModal = () => setPurchaseOrgModal(false);
 	const ClosePurcgaseOrgGrpModal = () => setPurchaseOrgGrpModal(false);
-	const [age, setAge] = React.useState('');
 
 	const [anchorEl, setAnchorEl] = React.useState(null);
 	const [statusAnchorEl, setStatusAnchorEl] = React.useState(null);

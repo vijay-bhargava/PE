@@ -1,44 +1,19 @@
 import React from "react";
 import {
-  Badge,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Drawer,
-  IconButton,
-  InputAdornment,
-  Menu,
-  MenuItem,
-  Tab,
-  Tabs,
-  TextField,
-  Typography,
+  Badge, Box, Button, IconButton, InputAdornment,
+  Menu, MenuItem, TextField, Typography,
 } from "@mui/material";
-import { Form, Modal } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { LocalizationProvider, DateField } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
-import { LoadingButton } from "@mui/lab";
-import {
-  HiOutlineX,
-  HiOutlineCollection,
-  HiOutlineLink,
-} from "react-icons/hi";
+import { HiOutlineX, HiOutlineCollection, HiOutlineLink } from "react-icons/hi";
 import { MdReceipt } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { downloadFilesOnAzure, getFileName, onlyNumbers, onlyNumberdec } from "../../../utils/common";
 import { formatDateViaTimeZone, getOnlyDateFormatPatternLocale } from "../../../utils/common/utility";
 import EventApprovalBox from "../../BaseCells/eventapprovalbox";
 import HistoryCell from "../../BaseCells/HistoryCell";
-import AddGRNDialog from '../AddGRNDialog';
-import SESDialog from '../SESDialog';
-import AddASNDialog from '../AddASNDialog';
-import AddInvoiceDialog from '../AddInvoiceDialog';
-import AddUpdatePaymentterms from '../AddUpdatePaymentterms';
 import AddPaymentDrawer from '../AddPaymentDrawer';
 import PEModal from '../../../components/PEModal';
 import { MemoizedEventStageFlow } from "../../../utils/common/component";
@@ -120,1661 +95,863 @@ const PODrawers = ({
   poInvoiceList,
   savingPayment,
   handleSubmitPayment,
-
-  // Payment Terms Modal
-  paymentTermModal,
-  setPaymentTermModal,
-  setPaymentTermsOptions,
-
-  // GRN Report Dialog
-  grnReportModal,
-  setGrnReportModal,
-  loadingGrnReport: loadingGrnReportProp,
-  grnReportData,
-
-  // AddGRNDialog
-  addGrnDialogOpen,
-  handleCloseAddGrnDialog,
-  selectedGrnItems,
-  allPOItems,
-  handleSubmitGrn,
-  poGrnList,
-
-  // SESDialog
-  addSesDialogOpen,
-  handleCloseAddSesDialog,
-  selectedSesItems,
-  handleSubmitSes,
-  sesDialogMode,
-  sesPreviewData,
-
-  // AddASNDialog
-  addAsnDialogOpen,
-  handleCloseAddAsnDialog,
-  selectedAsnItems,
-  handleSubmitAsn,
-  asnDialogMode,
-  asnPreviewData,
-
-  // AddInvoiceDialog
-  addInvoiceDialogOpen,
-  handleCloseAddInvoiceDialog,
-  selectedInvoiceItems,
-  handleSubmitInvoice,
-  UOMMaster,
-  invoiceDialogMode,
-  invoicePreviewData,
-  buildInvoiceStagesPayload,
-  customerid,
-  poCustomerId,
-  invoiceApprovalPanel,
-  invoiceApprovalHeaderActions,
-
-  // Delivery Dialog
-  deliveryDialogOpen,
-  setDeliveryDialogOpen,
-  deliveryDialogRow,
-  setDeliveryDialogRow,
-  deliveryDialogDate,
-  setDeliveryDialogDate,
-  setDeliveryUpdates,
-
-  // Workflow panel (approvershow)
-  approvershow,
-  handleApprover,
-  requestCell,
-  stagelist,
-  poPermissionManager,
 }) => {
   return (
     <>
-      {/* ── Right workflow panel ── */}
-      {approvershow && (
-        <div style={{ flex: '0 0 300px', width: 300, height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <div className="bg-white rounded-default shadow-sm" style={{ flex: '1 1 0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div className="d-flex justify-content-between align-items-center border-bottom px-3 py-2" style={{ flexShrink: 0 }}>
-              <span style={{ fontWeight: 600, fontSize: 14, color: '#111827' }}>Approval Workflow</span>
-              <IconButton onClick={() => handleApprover(false)} size="small">
-                <HiOutlineX className="f16" />
-              </IconButton>
-            </div>
-            <div className="flex-grow-1" style={{ overflowY: 'auto', padding: '12px' }}>
-              <EventApprovalBox
-                requestCell={requestCell}
-                handleEventAppList={handleEventAppList}
-                wfupdate={wfupdate}
-                action={stagearray.includes(currentStage)}
-                stagelist={stagelist}
-                Version={1}
-                permissionManager={poPermissionManager}
-                eventCode={poSpecificDetails?.poNumber}
-                eventSubject={poSpecificDetails?.headerText}
-                startDate={poSpecificDetails?.createdOn}
-                endDate={poSpecificDetails?.deliveryDate}
-                currentStage={currentStage}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      <React.Fragment key="top2">
-        <Drawer
-          anchor="right"
-          open={state["openCreateSheet"]}
-        >
-          <Box sx={{ width: { xs: 280, sm: 480, md: 720, lg: 1080 } }}>
-            <div className="flex flex-col">
-              <Box className="bgheaderCards">
-                <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                  <div className="ms-3 text-white">
-                    {shipConfirmDetails?.shipmentDetails?.some(item => isServiceItem(item))
-                      ? "Create Service Sheet"
-                      : "Shipment/Invoice"}
-                  </div>
-                  <div>
-                    <IconButton
-                      onClick={(event) => {
-                        toggleDrawer("openCreateSheet", false, allPOShipHeader)(event);
-                        if (addFlowMode === 'ASN' || addFlowMode === 'INVOICE') {
-                          setAddFlowStep('select');
-                          setValue(1);
-                        }
-                      }}
-                      size="small"
-                      edge="start"
-                      sx={{ mr: 1 }}
-                    >
-                      <HiOutlineX className="f20 text-white" />
-                    </IconButton>
+      <PEModal
+        open={!!state["openCreateSheet"]}
+        onClose={(event) => {
+          toggleDrawer("openCreateSheet", false, allPOShipHeader)(event);
+          if (addFlowMode === 'ASN' || addFlowMode === 'INVOICE') {
+            setAddFlowStep('select');
+            setValue(1);
+          }
+        }}
+        title={shipConfirmDetails?.shipmentDetails?.some(item => isServiceItem(item)) ? "Create Service Sheet" : "Shipment/Invoice"}
+        size="lg"
+        bodyStyle={{ padding: 0, overflow: 'hidden' }}
+      >
+        <div className="row g-0" style={{ overflow: 'hidden' }}>
+          <div className={["Under Approval", "Pending for Payment", "Paid"].includes(currentInvStage) && (shipConfirmDetails?.invoiceAmount || shipConfirmDetails?.invoiceDate || shipConfirmDetails?.invoiceFile || shipConfirmDetails?.invoiceId || shipConfirmDetails?.invoiceNo || shipConfirmDetails?.invoicePath) ? "col-8" : "col-12"}>
+            <Box sx={{ flexGrow: 1 }}>
+              <div className="mb-3">
+                <div className="row">
+                  {(shipConfirmDetails?.invoiceAmount || shipConfirmDetails?.invoiceDate || shipConfirmDetails?.invoiceFile || shipConfirmDetails?.invoiceId || shipConfirmDetails?.invoiceNo || shipConfirmDetails?.invoicePath) && (
+                    <div className="col-md-12">
+                      <MemoizedEventStageFlow
+                        stagelist={invStagelist}
+                        currentStage={currentInvStage}
+                      />
+                    </div>
+                  )}
+                  <div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2 flex-shrink-0 rfq-dv2-workflow-head">
+                    <div className="rfq-dv2-workflow-tabs">
+                      <button type="button" className={`rfq-dv2-workflow-tab ${tabShipsNotice === 0 ? 'active' : ''}`} onClick={() => handleTabShipsNotice(null, 0)}>
+                        {shipConfirmDetails?.shipmentDetails?.some(item => isServiceItem(item)) ? "Service Sheet Header" : "Ship Notice Header"}
+                      </button>
+                      <button type="button" className={`rfq-dv2-workflow-tab ${tabShipsNotice === 1 ? 'active' : ''}`} onClick={() => handleTabShipsNotice(null, 1)}>
+                        Order Items
+                      </button>
+                      <button type="button" className={`rfq-dv2-workflow-tab ${tabShipsNotice === 2 ? 'active' : ''}`} onClick={() => handleTabShipsNotice(null, 2)}>
+                        Invoice Details
+                      </button>
+                    </div>
+                    {tabShipsNotice === 2 && shipConfirmDetails?.invoiceId && (
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <HistoryCell eventtype="INV" eventId={shipConfirmDetails.invoiceId} permissionManager={invPermissionManager} />
+                      </div>
+                    )}
                   </div>
                 </div>
-              </Box>
-              <div className="h50px"></div>
-              <div className="row g-0" style={{ overflow: 'hidden' }}>
-                <div className={["Under Approval", "Pending for Payment", "Paid"].includes(currentInvStage) && (shipConfirmDetails?.invoiceAmount || shipConfirmDetails?.invoiceDate || shipConfirmDetails?.invoiceFile || shipConfirmDetails?.invoiceId || shipConfirmDetails?.invoiceNo || shipConfirmDetails?.invoicePath) ? "col-8" : "col-12"}>
-                  <Box sx={{ flexGrow: 1, p: 2 }}>
-                    <div className="mb-3">
-                      <div className="row">
-                        {(shipConfirmDetails?.invoiceAmount || shipConfirmDetails?.invoiceDate || shipConfirmDetails?.invoiceFile || shipConfirmDetails?.invoiceId || shipConfirmDetails?.invoiceNo || shipConfirmDetails?.invoicePath) && (
-                          <div className="col-md-12">
-                            <MemoizedEventStageFlow
-                              stagelist={invStagelist}
-                              currentStage={currentInvStage}
+              </div>
+              {tabShipsNotice === 0 ? (
+                <div className="pt-3">
+                  {isServiceItem(shipConfirmDetails?.shipmentDetails?.[0]) ? (
+                    <div className="row">
+                      <div className="col-12 col-md-6 mb-4">
+                        <label className="pe-field-label">Service Sheet No  <span className="rfq-required-star">*</span></label>
+                        <TextField
+                          id="serviceSheetNo"
+                          name="serviceSheetNo"
+                          fullWidth
+                          size="small"
+                          variant="outlined"
+                          value={shipConfirmDetails?.shipSlipId}
+                        />
+                      </div>
+                      <div className="col-12 col-md-6 mb-4">
+                        <label className="pe-field-label">Service Sheet Date  <span className="rfq-required-star">*</span></label>
+                        <TextField
+                          fullWidth
+                          variant="outlined"
+                          size="small"
+                          value={
+                            shipConfirmDetails?.serviceSheetDate
+                              ? formatDateViaTimeZone(shipConfirmDetails.serviceSheetDate, "en-GB", formatoption)
+                              : shipConfirmDetails?.shippingDate
+                                ? formatDateViaTimeZone(shipConfirmDetails.shippingDate, "en-GB", formatoption)
+                                : ''
+                          }
+                          inputProps={{ readOnly: true }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="row">
+                      <div className="col-12 col-md-8">
+                        <div className="section-heading mb-3">Shipping</div>
+                        <div className="row">
+                          <div className="col-12 col-md-6 mb-4">
+                            <label className="pe-field-label">Packing Slip ID  <span className="rfq-required-star">*</span></label>
+                            <TextField
+                              id="packingSlipId"
+                              name="packingSlipId"
+                              fullWidth
+                              size="small"
+                              variant="outlined"
+                              value={shipConfirmDetails?.shipSlipId}
                             />
                           </div>
-                        )}
-                        <div className="col-12">
-                          <Box sx={{ width: "100%", display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Tabs
-                              onChange={handleTabShipsNotice}
-                              value={tabShipsNotice}
-                              aria-label="Tabs where selection follows focus"
-                              selectionFollowsFocus
-                            >
-                              <Tab
-                                className="text-capitalize"
-                                label={shipConfirmDetails?.shipmentDetails?.some(item => isServiceItem(item))
-                                  ? "Service Sheet Header"
-                                  : "Ship Notice Header"}
+                          <div className="col-12 col-md-6 mb-4">
+                            <label className="pe-field-label">Ship Notice Type</label>
+                            <TextField
+                              id="status"
+                              name="status"
+                              fullWidth
+                              size="small"
+                              variant="outlined"
+                              value={shipConfirmDetails?.shipNoticeType}
+                            />
+                          </div>
+                          <div className="col-12 col-md-6 mb-4">
+                            <label className="pe-field-label">Shipping Date  <span className="rfq-required-star">*</span></label>
+                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                              <MobileDatePicker
+                                value={shipConfirmDetails?.shippingDate ? new Date(shipConfirmDetails.shippingDate) : null}
+                                format="dd/MM/yyyy"
+                                slotProps={{
+                                  textField: { variant: "outlined", fullWidth: true, size: "small" },
+                                  actionBar: { actions: ["clear", "cancel", "accept"] },
+                                }}
                               />
-                              <Tab
-                                className="text-capitalize"
-                                label="Order Items"
+                            </LocalizationProvider>
+                          </div>
+                          <div className="col-12 col-md-6 mb-4">
+                            <label className="pe-field-label">Delivery Date  <span className="rfq-required-star">*</span></label>
+                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                              <MobileDatePicker
+                                value={shipConfirmDetails?.deliveryDate ? new Date(shipConfirmDetails.deliveryDate) : null}
+                                format="dd/MM/yyyy"
+                                slotProps={{
+                                  textField: { variant: "outlined", fullWidth: true, size: "small" },
+                                  actionBar: { actions: ["clear", "cancel", "accept"] },
+                                }}
                               />
-                              <Tab
-                                className="text-capitalize"
-                                label="Invoice Details"
-                              />
-                            </Tabs>
-                            {tabShipsNotice === 2 && shipConfirmDetails?.invoiceId && (
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <HistoryCell eventtype="INV" eventId={shipConfirmDetails.invoiceId} permissionManager={invPermissionManager} />
-                              </Box>
-                            )}
-                          </Box>
+                            </LocalizationProvider>
+                          </div>
+                          <div className="col-12 col-md-6 mb-4">
+                            <label className="pe-field-label">Eway Bill No.  <span className="rfq-required-star">*</span></label>
+                            <TextField
+                              id="ewayBillNumber"
+                              name="ewayBillNumber"
+                              fullWidth
+                              size="small"
+                              variant="outlined"
+                              value={shipConfirmDetails?.ewayBillNumber}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-12 col-md-4">
+                        <div className="section-heading mb-3">Tracking</div>
+                        <div className="row">
+                          <div className="col-12 mb-4">
+                            <label className="pe-field-label">Carrier Name</label>
+                            <TextField
+                              id="carrierName"
+                              name="carrierName"
+                              fullWidth
+                              size="small"
+                              variant="outlined"
+                              value={shipConfirmDetails?.carrierName}
+                            />
+                          </div>
+                          <div className="col-12 mb-4">
+                            <label className="pe-field-label">Service Level</label>
+                            <TextField
+                              id="serviceLevel"
+                              name="serviceLevel"
+                              fullWidth
+                              size="small"
+                              variant="outlined"
+                              value={shipConfirmDetails?.serviceLevel}
+                            />
+                          </div>
+                          <div className="col-12 mb-4">
+                            <label className="pe-field-label">AWB/LR/Shipping Bill Number  <span className="rfq-required-star">*</span></label>
+                            <TextField
+                              id="lrShipBillNumber"
+                              name="lrShipBillNumber"
+                              fullWidth
+                              size="small"
+                              variant="outlined"
+                              value={shipConfirmDetails?.lrShipBillNumber}
+                            />
+                          </div>
+                          <div className="col-12 mb-4">
+                            <label className="pe-field-label">Shipping Method</label>
+                            <TextField
+                              id="shipMethod"
+                              name="shipMethod"
+                              fullWidth
+                              size="small"
+                              variant="outlined"
+                              value={shipConfirmDetails?.shipMethod}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <hr />
-                    {tabShipsNotice == 0 ? (
-                      <>
-                        {isServiceItem(shipConfirmDetails?.shipmentDetails?.[0]) ? (
-                          <div className="row">
-                            <div className="col-12 col-md-6 col-lg-6 mb-4">
-                              <TextField
-                                id="serviceSheetNo"
-                                InputLabelProps={{ shrink: true }}
-                                name="serviceSheetNo"
-                                className="w-100 f14"
-                                size="small"
-                                label="Service Sheet No *"
-                                variant="outlined"
-                                value={shipConfirmDetails?.shipSlipId}
-                                InputProps={{ readOnly: true }}
-                              />
+                  )}
+                </div>
+              ) : null}
+
+              {tabShipsNotice === 1 ? (
+                <form onSubmit={formik_POShipOrdrItem.handleSubmit} autoComplete="off" className="pt-2">
+                  <div className="section-heading mb-3">Order Items</div>
+                  {shipConfirmDetails?.shipmentDetails?.length > 0 ? (
+                    Object.values(
+                      shipConfirmDetails.shipmentDetails.reduce((acc, detail) => {
+                        if (!acc[detail?.itemNo]) {
+                          acc[detail?.itemNo] = { ...detail, batches: [] };
+                        }
+                        acc[detail?.itemNo].batches.push({ id: detail.id, batchId: detail.batchId, shipQty: detail.shipQty });
+                        return acc;
+                      }, {})
+                    ).map((item, index) => (
+                      <div key={index} className="rfq-v2-card mb-3">
+                        {/* Item header row */}
+                        <div className="d-flex align-items-center gap-3 px-3 py-2 border-bottom f13" style={{ flexWrap: 'wrap', gap: '16px' }}>
+                          <span><span className="pe-field-label mb-0 me-1">Item No:</span><span className="fw500">{item?.itemNo}</span></span>
+                          <span className=""><span className="pe-field-label mb-0 me-1">Description:</span>{item?.itemDesc}</span>
+                          {isServiceItem(item) ? (
+                            <>
+                              <span><span className="pe-field-label mb-0 me-1">UOM:</span>{item?.uom}</span>
+                              <span><span className="pe-field-label mb-0 me-1">Unit Price:</span>{item?.materialPOUnitPrice}</span>
+                              <span><span className="pe-field-label mb-0 me-1">Delivery Date:</span>{item?.deliveryDate ? new Date(item.deliveryDate).toLocaleDateString() : 'N/A'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span><span className="pe-field-label mb-0 me-1">Qty:</span><span className="fw500">{item?.quantity}</span></span>
+                              <span><span className="pe-field-label mb-0 me-1">UOM:</span>{item?.uom}</span>
+                              <span><span className="pe-field-label mb-0 me-1">Net Price:</span>{item?.materialPOUnitPrice}</span>
+                            </>
+                          )}
+                        </div>
+                        {/* Batch table */}
+                        {isServiceItem(item) ? (
+                          <div className="p-3">
+                            <div className="f13 mb-2"><span className="pe-field-label mb-0 me-1">Total Due Qty:</span><span className="fw500">{item?.quantity}</span></div>
+                            <table className="w-100 f13" style={{ borderCollapse: 'collapse' }}>
+                              <thead>
+                                <tr style={{ background: '#f3f4f6' }}>
+                                  <th className="px-2 py-2 text-muted fw-normal">Service Start Date</th>
+                                  <th className="px-2 py-2 text-muted fw-normal">Service End Date</th>
+                                  <th className="px-2 py-2 text-muted fw-normal">Attachment</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {item.batches.map((batch) => {
+                                  const batchDetail = shipConfirmDetails?.shipmentDetails?.find(d => d.id === batch.id);
+                                  return (
+                                    <tr key={batch.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                      <td className="px-2 py-2">{batchDetail?.serviceStartDate ? formatDateViaTimeZone(batchDetail.serviceStartDate, "en-GB", formatoption) : '—'}</td>
+                                      <td className="px-2 py-2">{batchDetail?.serviceEndDate ? formatDateViaTimeZone(batchDetail.serviceEndDate, "en-GB", formatoption) : '—'}</td>
+                                      <td className="px-2 py-2">
+                                        {batchDetail?.shipfile ? (
+                                          <button type="button" className="pe-btn pe-btn--outline" style={{ padding: '2px 10px', fontSize: 12 }}
+                                            onClick={() => { if (batchDetail?.shipfilePath) downloadFilesOnAzure(batchDetail.shipfilePath, getFileName(batchDetail.shipfile), atoken); }}>
+                                            <HiOutlineLink className="me-1" /> View
+                                          </button>
+                                        ) : <span className="text-muted">—</span>}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <div className="p-3">
+                            <table className="w-100 f13" style={{ borderCollapse: 'collapse' }}>
+                              <thead>
+                                <tr style={{ background: '#f3f4f6' }}>
+                                  <th className="px-2 py-2 text-muted fw-normal">Ship Qty</th>
+                                  <th className="px-2 py-2 text-muted fw-normal">Supplier Batch Id</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {item.batches.map((batch) => (
+                                  <tr key={batch.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                    <td className="px-2 py-2 fw500">{batch.shipQty}</td>
+                                    <td className="px-2 py-2">{batch.batchId || '—'}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rfq-v2-card mb-3">
+                      <div className="d-flex align-items-center gap-3 px-3 py-2 border-bottom f13" style={{ flexWrap: 'wrap', gap: '16px' }}>
+                        <span><span className="pe-field-label mb-0 me-1">Item No:</span><span className="fw500">{poOrderItems?.itemNo}</span></span>
+                        <span className=""><span className="pe-field-label mb-0 me-1">Description:</span>{poOrderItems?.itemDesc}</span>
+                        <span><span className="pe-field-label mb-0 me-1">Qty:</span><span className="fw500">{poOrderItems?.quantity}</span></span>
+                        <span><span className="pe-field-label mb-0 me-1">UOM:</span>{poOrderItems?.uom}</span>
+                        <span><span className="pe-field-label mb-0 me-1">Net Price:</span>{poOrderItems?.materialPOUnitPrice}</span>
+                      </div>
+                      <div className="p-3">
+                        <table className="w-100 f13" style={{ borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ background: '#f3f4f6' }}>
+                              <th className="px-2 py-2 text-muted fw-normal">Ship Qty</th>
+                              <th className="px-2 py-2 text-muted fw-normal">Supplier Batch Id</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {poOrderItems.shipmentDetails?.map((shipItem, i) => (
+                              <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                <td className="px-2 py-2 fw500">{shipItem.shipQty}</td>
+                                <td className="px-2 py-2">{shipItem.batchId || '—'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </form>
+              ) : null}
+
+              {tabShipsNotice === 2 ? (
+                <form onSubmit={formik_POShipInvoiceHeader.handleSubmit} autoComplete="off" className="pt-2">
+                  <div className="section-heading mb-3">Invoice Details</div>
+                  <div className="row">
+                    <div className="col-12">
+                      <div className="row">
+                        <div className="col-12 col-md-4 mb-4">
+                          <label className="pe-field-label">Purchase Order *</label>
+                          <TextField id="poId" name="poId" fullWidth size="small" variant="outlined" value={poSpecificDetails?.poNumber} InputProps={{ readOnly: true }} />
+                        </div>
+                        <div className="col-12 col-md-4 mb-4">
+                          <label className="pe-field-label">Invoice No *</label>
+                          <TextField id="invoiceNo" name="invoiceNo" fullWidth size="small" variant="outlined" value={shipConfirmDetails?.invoiceNo} />
+                        </div>
+                        <div className="col-12 col-md-4 mb-4">
+                          <label className="pe-field-label">Invoice Amount *</label>
+                          <TextField id="invoiceAmount" name="invoiceAmount" fullWidth size="small" variant="outlined" value={shipConfirmDetails?.invoiceAmount} />
+                        </div>
+                        <div className="col-12 col-md-6 mb-4">
+                          <label className="pe-field-label">Invoice Date</label>
+                          <LocalizationProvider dateAdapter={AdapterDateFns}>
+                            <MobileDatePicker
+                              value={shipConfirmDetails?.invoiceDate ? new Date(shipConfirmDetails.invoiceDate) : null}
+                              format="dd/MM/yyyy"
+                              slotProps={{
+                                textField: { variant: "outlined", fullWidth: true, size: "small" },
+                                actionBar: { actions: ["clear", "cancel", "accept"] },
+                              }}
+                            />
+                          </LocalizationProvider>
+                        </div>
+                        <div className="col-12 col-md-6 mb-4">
+                          <label className="pe-field-label">Supplier Tax ID</label>
+                          <TextField id="supplierTaxId" name="supplierTaxId" fullWidth size="small" variant="outlined" value={poSpecificDetails?.payTerms} />
+                        </div>
+                        <div className="col-12 mb-4">
+                          <label className="pe-field-label">Service Description</label>
+                          <TextField id="ServiceDesc" name="ServiceDesc" fullWidth size="small" variant="outlined" value={shipConfirmDetails?.serviceLevel} multiline rows={3} />
+                        </div>
+                        {shipConfirmDetails?.invoiceFile && (
+                          <div className="col-12 mb-3">
+                            <button
+                              type="button"
+                              className="pe-btn pe-btn--outline"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                downloadFilesOnAzure(shipConfirmDetails?.invoicePath, getFileName(shipConfirmDetails?.invoiceFile), atoken);
+                              }}
+                            >
+                              <HiOutlineLink className="me-1" /> {getFileName(shipConfirmDetails?.invoiceFile)}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {shipConfirmDetails?.grnNumber != null && shipConfirmDetails?.grnNumber !== "" && (
+                      <div className="col-12 col-md-6 mb-4">
+                        <div className="rfq-v2-card p-3">
+                          <div className="d-flex align-items-center justify-content-between mb-3">
+                            <div className="section-heading mb-0">GRN Details</div>
+                            <div>
+                              <button type="button" className="pe-icon-btn" onClick={(e) => handleGrnMenuOpen(e, shipConfirmDetails)}>
+                                <span style={{ fontSize: 18, lineHeight: 1 }}>⋮</span>
+                              </button>
+                              <Menu anchorEl={grnMenuAnchor} open={Boolean(grnMenuAnchor)} onClose={handleGrnMenuClose}>
+                                <MenuItem onClick={handleViewGrnReport} disabled={loadingGrnReport}>View GRN Report</MenuItem>
+                                <MenuItem onClick={handleDownloadGrnReport} disabled={loadingGrnReport}>Download GRN Report</MenuItem>
+                              </Menu>
                             </div>
-                            <div className="col-12 col-md-6 col-lg-6 mb-4">
-                              <TextField
-                                label="Service Sheet Date *"
-                                variant="outlined"
+                          </div>
+                          <div className="row f13">
+                            <div className="col-6 mb-2">
+                              <span className="pe-field-label mb-0">GRN</span>
+                              <div className="fw500">{shipConfirmDetails?.grnNumber}</div>
+                            </div>
+                            <div className="col-6 mb-2">
+                              <span className="pe-field-label mb-0">GRN Date</span>
+                              <div>{formatDateViaTimeZone(shipConfirmDetails?.grnDate, "en-GB", formatoption)}</div>
+                            </div>
+                            <div className="col-6 mb-2">
+                              <span className="pe-field-label mb-0">GRN Quantity</span>
+                              <div className="fw500">{shipConfirmDetails?.grnQuantity}</div>
+                            </div>
+                            <div className="col-6 mb-2">
+                              <span className="pe-field-label mb-0">GRN Amount</span>
+                              <div>{shipConfirmDetails?.grnAmount}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {poSpecificDetails?.termsOfPayment && (
+                      <div className="col-12 mb-3">
+                        <div className="rfq-v2-card p-3">
+                          <span className="pe-field-label mb-1 d-block">Terms & Conditions</span>
+                          <span className="f13">{poSpecificDetails?.termsOfPayment}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </form>
+              ) : null}
+
+              {tabShipsNotice === 3 ? (
+                <>
+                  <div className="">
+                    <div className="row bggray p-1 pt-1 mb-1">
+                      <div className="col-12 col-md-3">File Type</div>
+                      <div className="col-12 col-md-3">Description</div>
+                      <div className="col-12 col-md-3">File Name</div>
+                    </div>
+                    {selectAttachedFile?.map((SingleRowComponent, index) => (
+                      <>
+                        {SingleRowComponent.poAttachment !== "" ? (
+                          <div
+                            className="row  p-1 pt-1 mb-1 border-bottom"
+                            key={index}
+                          >
+                            <div className="col-12 col-md-3">
+                              {SingleRowComponent?.fileType}
+                            </div>
+                            <div className="col-12 col-md-3">
+                              {SingleRowComponent?.poAttachmentDescription}
+                            </div>
+                            <div className="col-12 col-md-3">
+                              <Button
+                                variant="text"
                                 size="small"
-                                className="w-100 f14"
-                                InputLabelProps={{ shrink: true }}
-                                value={
-                                  shipConfirmDetails?.serviceSheetDate
-                                    ? formatDateViaTimeZone(shipConfirmDetails.serviceSheetDate, "en-GB", formatoption)
-                                    : shipConfirmDetails?.shippingDate
-                                      ? formatDateViaTimeZone(shipConfirmDetails.shippingDate, "en-GB", formatoption)
-                                      : ''
+                                className="text-capitalize font-normal"
+                                as={Link}
+                                onClick={() =>
+                                  downloadFilesOnAzure(
+                                    SingleRowComponent?.filePath +
+                                    "/" +
+                                    SingleRowComponent?.poAttachment,
+                                    SingleRowComponent?.poAttachment,
+                                    atoken
+                                  )
                                 }
-                                inputProps={{ readOnly: true }}
-                              />
+                              >
+                                {SingleRowComponent?.poAttachment}
+                              </Button>
                             </div>
                           </div>
                         ) : (
-                          <>
-                            <div className="row ">
-                              <div className="col-12 col-md-8 col-lg-8">
-                                <div className="mb-4 textblue f14">Shipping</div>
-
-                                <div className="row">
-                                  <div className="col-12 col-md-12 col-lg-12 mb-4">
-                                    <TextField
-                                      id="packingSlipId"
-                                      InputLabelProps={{ shrink: true }}
-                                      name="packingSlipId"
-                                      className="w-100 f14"
-                                      size="small"
-                                      label="Packing Slip ID *"
-                                      variant="outlined"
-                                      value={shipConfirmDetails?.shipSlipId}
-                                    />
-                                  </div>
-                                  <div className="col-12 col-md-12 col-lg-12 mb-4">
-                                    <TextField
-                                      id="status"
-                                      InputLabelProps={{ shrink: true }}
-                                      name="status"
-                                      className="w-100 f14"
-                                      size="small"
-                                      label="Ship Notice Type"
-                                      variant="outlined"
-                                      value={shipConfirmDetails?.shipNoticeType}
-                                    ></TextField>
-                                  </div>
-                                  <div className="col-12 col-md-12 col-lg-6 mb-4">
-                                    <TextField
-                                      label="Shipping Date *"
-                                      variant="outlined"
-                                      size="small"
-                                      className="w-100 f14"
-                                      InputLabelProps={{ shrink: true }}
-                                      value={
-                                        shipConfirmDetails?.shippingDate
-                                          ? formatDateViaTimeZone(shipConfirmDetails.shippingDate, "en-GB", formatoption)
-                                          : ''
-                                      }
-                                      inputProps={{ readOnly: true }}
-                                    />
-                                  </div>
-                                  <div className="col-12 col-md-12 col-lg-6 mb-4">
-                                    <TextField
-                                      label="Delivery Date *"
-                                      variant="outlined"
-                                      size="small"
-                                      className="w-100 f14"
-                                      InputLabelProps={{ shrink: true }}
-                                      value={
-                                        shipConfirmDetails?.deliveryDate
-                                          ? formatDateViaTimeZone(shipConfirmDetails.deliveryDate, "en-GB", formatoption)
-                                          : ''
-                                      }
-                                      inputProps={{ readOnly: true }}
-                                    />
-                                  </div>
-
-                                  <div className="col-12 col-md-12 col-lg-12 mb-4">
-                                    <TextField
-                                      id="ewayBillNumber"
-                                      InputLabelProps={{ shrink: true }}
-                                      name="ewayBillNumber"
-                                      className="w-100 f14"
-                                      size="small"
-                                      label="Eway Bill No. *"
-                                      variant="outlined"
-                                      value={shipConfirmDetails?.ewayBillNumber}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="col-12 col-md-8 col-lg-4">
-                                <div className="mb-4 textblue f14">Tracking</div>
-                                <div className="row">
-                                  <div className="col-12 col-md-12 col-lg-12 mb-4">
-                                    <TextField
-                                      id="carrierName"
-                                      InputLabelProps={{ shrink: true }}
-                                      name="carrierName"
-                                      className="w-100 f14"
-                                      size="small"
-                                      label="Carrier Name"
-                                      variant="outlined"
-                                      value={shipConfirmDetails?.carrierName}
-                                    ></TextField>
-                                  </div>
-                                  <div className="col-12 col-md-12 col-lg-12 mb-4">
-                                    <TextField
-                                      id="serviceLevel"
-                                      InputLabelProps={{ shrink: true }}
-                                      name="serviceLevel"
-                                      className="w-100 f14"
-                                      size="small"
-                                      label="Service Level"
-                                      variant="outlined"
-                                      value={shipConfirmDetails?.serviceLevel}
-                                    />
-                                  </div>
-                                  <div className="col-12 col-md-12 col-lg-12 mb-4">
-                                    <TextField
-                                      id="lrShipBillNumber"
-                                      InputLabelProps={{ shrink: true }}
-                                      name="lrShipBillNumber"
-                                      className="w-100 f14"
-                                      size="small"
-                                      label="AWB/LR/Shipping Bill Number *"
-                                      variant="outlined"
-                                      value={shipConfirmDetails?.lrShipBillNumber}
-                                    />
-                                  </div>
-                                  <div className="col-12 col-md-12 col-lg-12 mb-4">
-                                    <TextField
-                                      id="shipMethod"
-                                      InputLabelProps={{ shrink: true }}
-                                      name="shipMethod"
-                                      className="w-100 f14"
-                                      size="small"
-                                      label="Shipping Method"
-                                      variant="outlined"
-                                      value={shipConfirmDetails?.shipMethod}
-                                    ></TextField>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </>
+                          <></>
                         )}
                       </>
-                    ) : (
-                      <></>
-                    )}
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <></>
+              )}
+            </Box>
+          </div>
+          {["Under Approval", "Pending for Payment", "Paid"].includes(currentInvStage) && (shipConfirmDetails?.invoiceAmount || shipConfirmDetails?.invoiceDate || shipConfirmDetails?.invoiceFile || shipConfirmDetails?.invoiceId || shipConfirmDetails?.invoiceNo || shipConfirmDetails?.invoicePath) && (
+            <div className="col-4" style={{ overflowX: 'hidden', borderLeft: '2px solid #e0e0e0' }}>
+              {!activityId ? (
+                <div className="p-0">
+                  <div className="d-flex flex-column min-vh-100">
+                    <div className="flex-grow-1">
+                      <div className="row">
+                        <div className="col-12">
+                          <div className="section-heading mb-3 pb-2 border-bottom mt-2 ps-2">Approval Workflow</div>
+                          <EventApprovalBox
+                            requestCell={requestCellINV}
+                            handleEventAppList={handleEventAppList}
+                            wfupdate={wfupdate}
+                            action={stagearray.includes(currentInvStage)}
+                            stagelist={invStagelist}
+                            Version={1}
+                            permissionManager={invPermissionManager}
+                            eventCode={shipConfirmDetails?.invoiceNo || poSpecificDetails?.poNumber}
+                            eventSubject={poSpecificDetails?.headerText || ''}
+                            startDate={poSpecificDetails?.createdOn}
+                            endDate={poSpecificDetails?.deliveryDate}
+                            currentStage={currentInvStage}
+                          />
+                        </div>
+                      </div>
+                    </div>
 
-                    {tabShipsNotice == 1 ? (
-                      <>
-                        <form
-                          onSubmit={formik_POShipOrdrItem.handleSubmit}
-                          autoComplete="off"
-                        >
-                          <div className="row">
-                            <div className="col-12 mb-3 ">
-                              {shipConfirmDetails &&
-                                shipConfirmDetails?.shipmentDetails?.length > 0 ? (
-                                <>
-                                  {shipConfirmDetails &&
-                                    shipConfirmDetails?.shipmentDetails?.length > 0 ? (
-                                    <>
-                                      {Object.values(
-                                        shipConfirmDetails?.shipmentDetails.reduce((acc, detail) => {
-                                          if (!acc[detail?.itemNo]) {
-                                            acc[detail?.itemNo] = {
-                                              ...detail,
-                                              batches: [],
-                                            };
-                                          }
-                                          acc[detail?.itemNo].batches.push({
-                                            id: detail.id,
-                                            batchId: detail.batchId,
-                                            shipQty: detail.shipQty,
-                                          });
-                                          return acc;
-                                        }, {})
-                                      ).map((item, index) => (
-                                        <div key={index}>
-                                          <div className="row border-bottom f12 mb-2 pt-0 pb-3">
-                                            <div className="col-12">
-                                              <div className="row">
-                                                <div className="col-12 col-md-2">
-                                                  <div>
-                                                    <span className="text-muted">Item No:</span>
-                                                    <br />
-                                                    {item?.itemNo}
-                                                  </div>
-                                                </div>
-                                                <div className="col-12 col-md-4">
-                                                  <div>
-                                                    <span className="text-muted">Description:</span>
-                                                    <br />
-                                                    {item?.itemDesc}
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            </div>
-                                            <div className="col-12 mt-1">
-                                              <div className="row">
-                                                {isServiceItem(item) ? (
-                                                  <>
-                                                    <div className="col-12 col-md-2">
-                                                      <div>
-                                                        <span className="text-muted">UOM:</span>
-                                                        <br />
-                                                        {item?.uom}
-                                                      </div>
-                                                    </div>
-                                                    <div className="col-12 col-md-2">
-                                                      <div>
-                                                        <span className="text-muted">Unit Price:</span>
-                                                        <br />
-                                                        {item?.materialPOUnitPrice}
-                                                      </div>
-                                                    </div>
-                                                    <div className="col-12 col-md-3">
-                                                      <div>
-                                                        <span className="text-muted">Delivery Date:</span>
-                                                        <br />
-                                                        {item?.deliveryDate ? new Date(item.deliveryDate).toLocaleDateString() : 'N/A'}
-                                                      </div>
-                                                    </div>
-                                                  </>
-                                                ) : (
-                                                  <>
-                                                    <div className="col-12 col-md-2">
-                                                      <div>
-                                                        <span className="text-muted">Qty:</span>
-                                                        <br />
-                                                        <span className="fw600">{item?.quantity}</span>
-                                                      </div>
-                                                    </div>
-                                                    <div className="col-12 col-md-2">
-                                                      <div>
-                                                        <span className="text-muted">Unit:</span>
-                                                        <br />
-                                                        {item?.uom}
-                                                      </div>
-                                                    </div>
-                                                    <div className="col-12 col-md-2">
-                                                      <div>
-                                                        <span className="text-muted">Net Price :</span>
-                                                        <br />
-                                                        {item?.materialPOUnitPrice}
-                                                      </div>
-                                                    </div>
-                                                  </>
-                                                )}
-                                              </div>
-                                            </div>
-
-                                            {/* Batch rows */}
-                                            <div className="col-12 mt-1 bggray pt-2 pb-2">
-                                              <div className="row">
-                                                <div className="col-12 mt-4">
-                                                  {isServiceItem(item) ? (
-                                                    <div className="row mb-3">
-                                                      <div className="col-12 col-md-2">
-                                                        <div>
-                                                          <span className="text-muted">Total Item Due Qty:</span>
-                                                          <br />
-                                                          <span className="fw600">{item?.quantity}</span>
-                                                        </div>
-                                                      </div>
-                                                      {item.batches.map((batch, i) => {
-                                                        const batchDetail = shipConfirmDetails?.shipmentDetails?.find(d => d.id === batch.id);
-                                                        return (
-                                                          <React.Fragment key={batch.id}>
-                                                            <div className="col-12 col-md-3">
-                                                              <TextField
-                                                                label="Service Start Date"
-                                                                variant="outlined"
-                                                                size="small"
-                                                                className="w-100 f14"
-                                                                InputLabelProps={{ shrink: true }}
-                                                                value={batchDetail?.serviceStartDate ? formatDateViaTimeZone(batchDetail.serviceStartDate, "en-GB", formatoption) : ''}
-                                                                inputProps={{ readOnly: true }}
-                                                              />
-                                                            </div>
-                                                            <div className="col-12 col-md-3">
-                                                              <TextField
-                                                                label="Service End Date"
-                                                                variant="outlined"
-                                                                size="small"
-                                                                className="w-100 f14"
-                                                                InputLabelProps={{ shrink: true }}
-                                                                value={batchDetail?.serviceEndDate ? formatDateViaTimeZone(batchDetail.serviceEndDate, "en-GB", formatoption) : ''}
-                                                                inputProps={{ readOnly: true }}
-                                                              />
-                                                            </div>
-                                                            <div className="col-12 col-md-4">
-                                                              {batchDetail?.shipfile ? (
-                                                                <Button
-                                                                  variant="outlined"
-                                                                  size="small"
-                                                                  startIcon={<HiOutlineLink />}
-                                                                  onClick={() => {
-                                                                    if (batchDetail?.shipfilePath) {
-                                                                      downloadFilesOnAzure(batchDetail.shipfilePath, getFileName(batchDetail.shipfile), atoken);
-                                                                    }
-                                                                  }}
-                                                                  className="f14"
-                                                                >
-                                                                  Service Attachment
-                                                                </Button>
-                                                              ) : (
-                                                                <span className="text-muted f14">No attachment</span>
-                                                              )}
-                                                            </div>
-                                                          </React.Fragment>
-                                                        );
-                                                      })}
-                                                    </div>
-                                                  ) : (
-                                                    item.batches.map((batch, i) => (
-                                                      <div
-                                                        className="row d-flex align-items-center w-100 mb-3"
-                                                        key={batch.id}
-                                                      >
-                                                        <div className="col-12 col-md-2 col-lg-3">
-                                                          <TextField
-                                                            id={batch.batchId}
-                                                            InputLabelProps={{ shrink: true }}
-                                                            name="shipQty"
-                                                            className="w-100 f14"
-                                                            size="small"
-                                                            label="Ship Qty *"
-                                                            variant="outlined"
-                                                            value={batch.shipQty}
-                                                            InputProps={{ readOnly: true }}
-                                                          />
-                                                        </div>
-                                                        <div className="col-12 col-md-2 col-lg-3">
-                                                          <TextField
-                                                            id={batch.batchId}
-                                                            InputLabelProps={{ shrink: true }}
-                                                            name="packingSlipId"
-                                                            className="w-100 f14"
-                                                            size="small"
-                                                            label="Supplier Batch Id"
-                                                            variant="outlined"
-                                                            value={batch.batchId}
-                                                            InputProps={{ readOnly: true }}
-                                                          />
-                                                        </div>
-                                                        <div className="col-12 col-md-2 col-lg-2"></div>
-                                                      </div>
-                                                    ))
-                                                  )}
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </>
-                                  ) : null}
-
-                                </>
-                              ) : (
-                                <>
-                                  <div key={1}>
-                                    <div className="row border-bottom f12 mb-2 pt-0 pb-3">
-                                      <div className="col-12">
-                                        <div className="row">
-                                          <div className="col-12 col-md-2">
-                                            <div>
-                                              <span className="text-muted">
-                                                Item No:
-                                              </span>
-                                              <br />
-                                              {poOrderItems?.itemNo}
-                                            </div>
-                                          </div>
-                                          <div className="col-12 col-md-4">
-                                            <div>
-                                              <span className="text-muted">
-                                                Description:
-                                              </span>
-                                              <br />
-                                              {poOrderItems?.itemDesc}
-                                            </div>
-                                          </div>
-
-                                          <div className="col-12 col-md-2">
-                                            <div>
-                                              <span className="text-muted"></span>
-                                            </div>
-                                          </div>
-
-                                          <div className="col-12 col-md-2">
-
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div className="col-12 mt-1">
-                                        <div className="row">
-                                          <div className="col-12 col-md-2">
-                                            <div>
-                                              <span className="text-muted">
-                                                Qty:
-                                              </span>
-                                              <br />
-                                              <span className="fw600">
-                                                {poOrderItems?.quantity}
-                                              </span>
-                                            </div>
-                                          </div>
-                                          <div className="col-12 col-md-2">
-                                            <div>
-                                              <span className="text-muted">
-                                                Unit:
-                                              </span>
-                                              <br />
-                                              {poOrderItems?.uom}
-                                            </div>
-                                          </div>
-                                          <div className="col-12 col-md-2">
-                                            <div>
-                                              <span className="text-muted">
-                                                Net Price :
-                                              </span>
-                                              <br />
-                                              {poOrderItems?.materialPOUnitPrice}
-                                            </div>
-                                          </div>
-
-                                        </div>
-                                      </div>
-                                      <div className="col-12 mt-1 bggray pt-2 pb-2">
-                                        <div className="row">
-                                          <div className="col-12 mt-4">
-                                            {poOrderItems.shipmentDetails?.map(
-                                              (shipItem, i) => {
-                                                return (
-                                                  <div
-                                                    className="row  d-flex align-items-center w-100 mb-3"
-                                                    key={i}
-                                                  >
-                                                    <div className="col-12 col-md-2 col-lg-3">
-                                                      <TextField
-                                                        id={shipItem.batchId}
-                                                        InputLabelProps={{
-                                                          shrink: true,
-                                                        }}
-                                                        name="shipQty"
-                                                        className="w-100 f14"
-                                                        size="small"
-                                                        label="Ship Qty *"
-                                                        variant="outlined"
-                                                        value={shipItem.shipQty}
-                                                      />
-                                                    </div>
-                                                    <div className="col-12 col-md-2 col-lg-3">
-                                                      <TextField
-                                                        id={shipItem.batchId}
-                                                        InputLabelProps={{
-                                                          shrink: true,
-                                                        }}
-                                                        name="packingSlipId"
-                                                        className="w-100 f14"
-                                                        size="small"
-                                                        label="Supplier Batch Id"
-                                                        variant="outlined"
-                                                        value={shipItem.batchId}
-                                                      />
-                                                    </div>
-
-                                                    <div className="col-12 col-md-2 col-lg-2">
-                                                    </div>
-                                                  </div>
-                                                );
-                                              }
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </>
-                              )}
-                            </div>
+                    <div className="row">
+                      <div className="col-12 mb-2">
+                        <div className="d-flex bg-white rounded p-2 shadow-sm align-items-center ">
+                          <div className="me-2 ">
+                            <HiOutlineCollection className="f14" />
                           </div>
-                        </form>
-                      </>
-                    ) : (
-                      <></>
-                    )}
-
-                    {tabShipsNotice == 2 ? (
-                      <>
-                        <form
-                          onSubmit={formik_POShipInvoiceHeader.handleSubmit}
-                          autoComplete="off"
-                        >
-                          <div className="row ">
+                          <div className="flex-grow-1">Invoices</div>
+                          <Badge pill bg="warning" text="dark">
+                            {allPOShipHeader?.length ?? 0}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                selectedInvoiceId?.toString() === poId?.toString() && (
+                  <form
+                    onSubmit={formik_InvoiceAccepted.handleSubmit}
+                    autoComplete="off"
+                  >
+                    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+                      <div className="flex flex-col">
+                        <Box>
+                          <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
+                            <div className="ms-3 w-100 f14">Approval Action</div>
+                          </div>
+                        </Box>
+                        <div className="h50px"></div>
+                        <div className="p-1">
+                          <div className="">
                             <div className="col-12 col-md-12 col-lg-12">
-                              <div className="mb-4 textblue f14">
-                                Invoice Details
-                              </div>
+                              <div className="mb-4 textblue f14"></div>
                               <div className="row">
-                                <div className="col-12 col-md-12 col-lg-12">
-                                  <div className="row">
-                                    <div className="col-12 col-md-12 col-lg-4 mb-4">
-                                      <TextField
-                                        id="poId"
-                                        InputLabelProps={{ shrink: true }}
-                                        name="poId"
-                                        className="w-100 f14"
-                                        size="small"
-                                        label="Purchase Order *"
-                                        variant="outlined"
-                                        value={poSpecificDetails?.poNumber}
-                                      />
-                                    </div>
-                                    <div className="col-12 col-md-12 col-lg-4 mb-4">
-                                      <TextField
-                                        id="invoiceNo"
-                                        InputLabelProps={{ shrink: true }}
-                                        name="invoiceNo"
-                                        className="w-100 f14"
-                                        size="small"
-                                        label="Invoice No *"
-                                        variant="outlined"
-                                        value={shipConfirmDetails?.invoiceNo}
-                                      />
-                                    </div>
-                                    <div className="col-12 col-md-12 col-lg-4 mb-4">
-                                      <TextField
-                                        id="invoiceAmount"
-                                        InputLabelProps={{ shrink: true }}
-                                        name="invoiceAmount"
-                                        className="w-100 f14"
-                                        size="small"
-                                        label="Invoice Amount *"
-                                        variant="outlined"
-                                        value={shipConfirmDetails?.invoiceAmount}
-                                        readOnly={true}
-                                      />
-                                    </div>
-                                    <div className="col-12 col-md-12 col-lg-6 mb-4">
-                                      <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                        <DateField
-                                          label="Invoice Date"
-                                          variant="outlined"
-                                          size="small"
-                                          className="w-100 f14"
-                                          InputLabelProps={{ shrink: true }}
-                                          value={
-                                            shipConfirmDetails &&
-                                              shipConfirmDetails?.invoiceDate
-                                              ? new Date(shipConfirmDetails?.invoiceDate)
-                                              : null
-                                          }
-                                          format="dd/MM/yyyy"
-                                        />
-                                      </LocalizationProvider>
-                                    </div>
-                                    <div className="col-12 col-md-12 col-lg-6 ">
-                                      <TextField
-                                        id="supplierTaxId"
-                                        InputLabelProps={{ shrink: true }}
-                                        name="supplierTaxId"
-                                        className="w-100 f14"
-                                        size="small"
-                                        label="Supplier Tax ID"
-                                        variant="outlined"
-                                        value={poSpecificDetails?.payTerms}
-                                      />
-                                    </div>
-                                    <div className="col-12 col-md-12 col-lg-12 mb-4">
-                                      <TextField
-                                        id="ServiceDesc"
-                                        InputLabelProps={{ shrink: true }}
-                                        name="ServiceDesc"
-                                        className="w-100 f14"
-                                        size="small"
-                                        label="Service Description"
-                                        variant="outlined"
-                                        value={shipConfirmDetails?.serviceLevel}
-                                        multiline
-                                        rows={3}
-                                      />
-                                    </div>
-
-                                    <div className="col-12 col-md-12 col-lg-12 mb-2 f12">
-                                      <br />
-                                      <Button
-                                        variant="text"
-                                        size="small"
-                                        className="text-capitalize font-normal"
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          downloadFilesOnAzure(
-                                            shipConfirmDetails?.invoicePath,
-                                            getFileName(shipConfirmDetails?.invoiceFile),
-                                            atoken
-                                          );
-                                        }}
-                                      >
-                                        {getFileName(shipConfirmDetails?.invoiceFile)}
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            {shipConfirmDetails?.grnNumber != "" &&
-                              shipConfirmDetails?.grnNumber != null ? (
-                              <div className="col-12 col-md-8 col-lg-4">
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 2 }}>
-                                  <div className="mb-4 textblue f14">GRN Details</div>
-                                  <IconButton
+                                <div className="col-12 mb-4">
+                                  <label className="pe-field-label">Invoice Status  <span className="rfq-required-star">*</span></label>
+                                  <TextField
+                                    id="status"
+                                    name="status"
+                                    select
+                                    fullWidth
                                     size="small"
-                                    onClick={(e) => handleGrnMenuOpen(e, shipConfirmDetails)}
-                                    sx={{ color: '#1976d2', mt: '-16px' }}
+                                    variant="outlined"
+                                    value={formik_InvoiceAccepted.values.status}
+                                    onChange={formik_InvoiceAccepted.handleChange}
                                   >
-                                    {/* MoreVertIcon */}
-                                  </IconButton>
-                                  <Menu
-                                    anchorEl={grnMenuAnchor}
-                                    open={Boolean(grnMenuAnchor)}
-                                    onClose={handleGrnMenuClose}
-                                  >
-                                    <MenuItem onClick={handleViewGrnReport} disabled={loadingGrnReport}>
-                                      View GRN Report
-                                    </MenuItem>
-                                    <MenuItem onClick={handleDownloadGrnReport} disabled={loadingGrnReport}>
-                                      Download GRN Report
-                                    </MenuItem>
-                                  </Menu>
-                                </Box>
-                                <div className="row f12">
-                                  <div className="col-12 col-md-12 col-lg-12 mb-2">
-                                    <div>
-                                      <span className="fw600">GRN:</span>
-                                    </div>
-                                    <div>{shipConfirmDetails?.grnNumber}</div>
-                                  </div>
-                                  <div className="col-12 col-md-12 col-lg-12 mb-2">
-                                    <div>
-                                      <span className="fw600">GRN Date:</span>
-                                    </div>
-                                    <div>
-                                      {formatDateViaTimeZone(
-                                        shipConfirmDetails?.grnDate,
-                                        "en-GB",
-                                        formatoption
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="col-12 col-md-12 col-lg-12 mb-2">
-                                    <div>
-                                      <span className="fw600">GRN Quantity:</span>
-                                    </div>
-                                    <div>{shipConfirmDetails?.grnQuantity}</div>
-                                  </div>
-                                  <div className="col-12 col-md-12 col-lg-12 mb-2">
-                                    <div>
-                                      <span className="fw600">GRN Amount:</span>
-                                    </div>
-                                    <div>
-                                      <span className="text-muted">
-                                        <div>{shipConfirmDetails?.grnAmount}</div>
-                                      </span>
-                                    </div>
-                                  </div>
+                                    <MenuItem value={true}>Approve</MenuItem>
+                                    <MenuItem value={false}>Reject</MenuItem>
+                                  </TextField>
+                                  {formik_InvoiceAccepted.errors.status && (
+                                    <div style={{ color: "red", fontSize: 12 }}>{formik_InvoiceAccepted.errors.status}</div>
+                                  )}
                                 </div>
-                              </div>
-                            ) : (
-                              <></>
-                            )}
-                            <div className="col-12 col-md-8 col-lg-4">
-                              <div className="row">
-                                <div className="col-12 col-md-12 col-lg-12 mb-2 f12 border-bottom">
-                                  <br />
-                                  <span class="fw600">Terms & Condition :</span>
-                                  <span>{poSpecificDetails?.termsOfPayment}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </form>
-                      </>
-                    ) : (
-                      <></>
-                    )}
 
-                    {tabShipsNotice == 3 ? (
-                      <>
-                        <div className="">
-                          <div className="row bggray p-1 pt-1 mb-1">
-                            <div className="col-12 col-md-3">File Type</div>
-                            <div className="col-12 col-md-3">Description</div>
-                            <div className="col-12 col-md-3">File Name</div>
-                          </div>
-                          {selectAttachedFile?.map((SingleRowComponent, index) => (
-                            <>
-                              {SingleRowComponent.poAttachment != "" ? (
-                                <div
-                                  className="row  p-1 pt-1 mb-1 border-bottom"
-                                  key={index}
-                                >
-                                  <div className="col-12 col-md-3">
-                                    {SingleRowComponent?.fileType}
-                                  </div>
-                                  <div className="col-12 col-md-3">
-                                    {SingleRowComponent?.poAttachmentDescription}
-                                  </div>
-                                  <div className="col-12 col-md-3">
-                                    <Button
-                                      variant="text"
-                                      size="small"
-                                      className="text-capitalize font-normal"
-                                      as={Link}
-                                      onClick={() =>
-                                        downloadFilesOnAzure(
-                                          SingleRowComponent?.filePath +
-                                          "/" +
-                                          SingleRowComponent?.poAttachment,
-                                          SingleRowComponent?.poAttachment,
-                                          atoken
-                                        )
-                                      }
-                                    >
-                                      {SingleRowComponent?.poAttachment}
-                                    </Button>
-                                  </div>
+                                <div className="col-12 mb-4">
+                                  <label className="pe-field-label">Comment  <span className="rfq-required-star">*</span></label>
+                                  <TextField
+                                    id="approveComment"
+                                    name="approveComment"
+                                    fullWidth
+                                    size="small"
+                                    variant="outlined"
+                                    multiline
+                                    rows={3}
+                                    value={formik_InvoiceAccepted?.values?.approveComment}
+                                    onChange={formik_InvoiceAccepted.handleChange}
+                                  />
+                                  {formik_InvoiceAccepted.errors.approveComment && (
+                                    <div style={{ color: "red", fontSize: 12 }}>{formik_InvoiceAccepted.errors.approveComment}</div>
+                                  )}
                                 </div>
-                              ) : (
-                                <></>
-                              )}
-                            </>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <></>
-                    )}
-                  </Box>
-                </div>
-                {["Under Approval", "Pending for Payment", "Paid"].includes(currentInvStage) && (shipConfirmDetails?.invoiceAmount || shipConfirmDetails?.invoiceDate || shipConfirmDetails?.invoiceFile || shipConfirmDetails?.invoiceId || shipConfirmDetails?.invoiceNo || shipConfirmDetails?.invoicePath) && (
-                  <div className="col-4" style={{ overflowX: 'hidden', borderLeft: '2px solid #e0e0e0' }}>
-                    {!activityId ? (
-                      <div className="p-0">
-                        <div className="d-flex flex-column min-vh-100">
-                          <div className="flex-grow-1">
-                            <div className="row">
-                              <div className="col-12">
-                                <div className="section-heading mb-3 pb-2 border-bottom mt-2 ps-2">Approval Workflow</div>
-                                <EventApprovalBox
-                                  requestCell={requestCellINV}
-                                  handleEventAppList={handleEventAppList}
-                                  wfupdate={wfupdate}
-                                  action={stagearray.includes(currentInvStage)}
-                                  stagelist={invStagelist}
-                                  Version={1}
-                                  permissionManager={invPermissionManager}
-                                  eventCode={shipConfirmDetails?.invoiceNo || poSpecificDetails?.poNumber}
-                                  eventSubject={poSpecificDetails?.headerText || ''}
-                                  startDate={poSpecificDetails?.createdOn}
-                                  endDate={poSpecificDetails?.deliveryDate}
-                                  currentStage={currentInvStage}
-                                />
                               </div>
                             </div>
                           </div>
-
-                          <div className="row">
-                            <div className="col-12 mb-2">
-                              <div className="d-flex bg-white rounded p-2 shadow-sm align-items-center ">
-                                <div className="me-2 ">
-                                  <HiOutlineCollection className="f14" />
-                                </div>
-                                <div className="flex-grow-1">Invoices</div>
-                                <Badge pill bg="warning" text="dark">
-                                  {allPOShipHeader?.length ?? 0}
-                                </Badge>
-                              </div>
-                            </div>
+                          <div className="d-flex justify-content-end mt-2">
+                            <button type="submit" className="pe-btn pe-btn--primary" disabled={approveSaveDisable || loading}>
+                              {loading ? "Saving…" : "Save"}
+                            </button>
                           </div>
                         </div>
                       </div>
-                    ) : (
-                      selectedInvoiceId?.toString() === poId?.toString() && (
-                        <form
-                          onSubmit={formik_InvoiceAccepted.handleSubmit}
-                          autoComplete="off"
-                        >
-                          <Box sx={{ width: '100%', maxWidth: '100%' }}>
-                            <div className="flex flex-col">
-                              <Box>
-                                <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                                  <div className="ms-3 w-100 f14">Approval Action</div>
-                                </div>
-                              </Box>
-                              <div className="h50px"></div>
-                              <div className="p-1">
-                                <div className="">
-                                  <div className="col-12 col-md-12 col-lg-12">
-                                    <div className="mb-4 textblue f14"></div>
-                                    <div className="row">
-                                      <div className="col-12 col-md-4 col-lg-12 mb-4">
-                                        <TextField
-                                          id="status"
-                                          InputLabelProps={{ shrink: true }}
-                                          name="status"
-                                          select
-                                          className="mb-2"
-                                          fullWidth
-                                          size="small"
-                                          label="Invoice Status *"
-                                          variant="outlined"
-                                          value={formik_InvoiceAccepted.values.status}
-                                          onChange={formik_InvoiceAccepted.handleChange}
-                                        >
-                                          <MenuItem value={true}>Approve</MenuItem>
-                                          <MenuItem value={false}>Reject</MenuItem>
-                                        </TextField>
-                                        {
-                                          formik_InvoiceAccepted.errors.status ? (
-                                            <div style={{ color: "red" }}>
-                                              {formik_InvoiceAccepted.errors.status}
-                                            </div>
-                                          ) : null}
-                                      </div>
-
-                                      <div className="col-12 col-md-4 col-lg-12 mb-4">
-                                        <TextField
-                                          id="approveComment"
-                                          InputLabelProps={{ shrink: true }}
-                                          name="approveComment"
-                                          className="w-100 f14"
-                                          size="small"
-                                          label="Comment *"
-                                          variant="outlined"
-                                          value={formik_InvoiceAccepted?.values?.approveComment}
-                                          onChange={formik_InvoiceAccepted.handleChange}
-                                        />
-                                        {
-                                          formik_InvoiceAccepted.errors.approveComment ? (
-                                            <div style={{ color: "red" }}>
-                                              {formik_InvoiceAccepted.errors.approveComment}
-                                            </div>
-                                          ) : null}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="row">
-                                  <div className="col-12 text-end">
-                                    <LoadingButton
-                                      color="primary"
-                                      size="medium"
-                                      className="text-white text-capitalize mb-3 mr-3"
-                                      variant="contained"
-                                      type="submit"
-                                      disabled={approveSaveDisable}
-                                      loading={loading}
-                                    >
-                                      <span>Save</span>
-                                    </LoadingButton>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </Box>
-                        </form>
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
+                    </Box>
+                  </form>
+                )
+              )}
             </div>
-          </Box>
-        </Drawer>
-      </React.Fragment>
+          )}
+        </div>
+      </PEModal>
 
-      <React.Fragment key="top">
-        <Drawer
-          anchor="right"
-          open={state["openOrderConfirm"]}
-        >
-          <form
-            onSubmit={formik_POConfirmOrder.handleSubmit}
-            autoComplete="off"
-          >
-            <Box sx={{ width: { xs: 280, sm: 480, md: 720, lg: 1080 } }}>
-              <div className="flex flex-col">
-                <Box className="bgheaderCards">
-                  <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                    <div className="ms-3 text-white">Confirm Entire Order</div>
-                    <div>
-                      <IconButton
-                        onClick={toggleDrawer("openOrderConfirm", false, allPOShipHeader)}
-                        size="small"
-                        edge="start"
-                        sx={{ mr: 1 }}
-                      >
-                        <HiOutlineX className="f20 text-white" />
-                      </IconButton>
-                    </div>
-                  </div>
-                </Box>
-                <div className="h50px"></div>
-                <div className="p-3">
-                  <div className="row ">
-                    <div className="col-12 col-md-12 col-lg-12">
-                      <div className="mb-4 textblue f14">
-                        Order Confirmation Header
-                      </div>
-                      <div className="row">
-                        <div className="col-12 col-md-4 col-lg-3 mb-4">
-                          <TextField
-                            id="POId"
-                            InputLabelProps={{ shrink: true }}
-                            inputProps={{ readOnly: true, title: "This field is not editable" }}
-                            name="POId"
-                            className="w-100 f14"
-                            size="small"
-                            label="Associated Purchase Order*"
-                            variant="outlined"
-                            value={poSpecificDetails?.id}
-                          />
-                        </div>
+      <PEModal
+        open={!!state["openOrderConfirm"]}
+        onClose={toggleDrawer("openOrderConfirm", false, allPOShipHeader)}
+        title="Confirm Entire Order"
+        size="lg"
+        footer={
+          <>
+            <button type="button" className="pe-btn pe-btn--outline" onClick={toggleDrawer("openOrderConfirm", false, allPOShipHeader)}>Cancel</button>
+            <button type="submit" form="form-order-confirm" className="pe-btn pe-btn--primary">Save</button>
+          </>
+        }
+      >
+        <form id="form-order-confirm" onSubmit={formik_POConfirmOrder.handleSubmit} autoComplete="off">
+          <div className="mb-3 textblue f14">Order Confirmation Header</div>
+          <div className="row">
+            <div className="col-12 col-md-6 col-lg-3 mb-4">
+              <label className="pe-field-label">Associated Purchase Order  <span className="rfq-required-star">*</span></label>
+              <TextField id="POId" name="POId" fullWidth size="small" variant="outlined" inputProps={{ readOnly: true }} value={poSpecificDetails?.id} />
+            </div>
+            <div className="col-12 col-md-6 col-lg-3 mb-4">
+              <label className="pe-field-label">Customer</label>
+              <TextField id="Company" name="Company" fullWidth size="small" variant="outlined" inputProps={{ readOnly: true }} value={poSpecificDetails?.company} />
+            </div>
+            <div className="col-12 col-md-6 col-lg-3 mb-4">
+              <label className="pe-field-label">Confirmation  <span className="rfq-required-star">*</span></label>
+              <TextField id="ConfirmationNo" name="ConfirmationNo" fullWidth size="small" variant="outlined" value={formik_POConfirmOrder.values?.ConfirmationNo} onChange={formik_POConfirmOrder.handleChange} />
+            </div>
+            <div className="col-12 col-md-6 col-lg-3 mb-4">
+              <label className="pe-field-label">Supplier Reference</label>
+              <TextField id="SupplierRef" name="SupplierRef" fullWidth size="small" variant="outlined" value={formik_POConfirmOrder.values?.SupplierRef} onChange={formik_POConfirmOrder.handleChange} />
+            </div>
+          </div>
+          <hr className="mt-0" />
+          <div className="mb-3 textblue f14">Shipping and Tax Information</div>
+          <div className="row">
+            <div className="col-12 col-md-6 col-lg-3 mb-4">
+              <label className="pe-field-label">Est. Shipping Date  <span className="rfq-required-star">*</span></label>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DateField fullWidth variant="outlined" size="small" InputLabelProps={{ shrink: true }} value={formik_POConfirmOrder.values?.ConfirmedShipDate} format={getOnlyDateFormatPatternLocale(userDetail)} />
+              </LocalizationProvider>
+              {formik_POConfirmOrder.touched.ConfirmedShipDate && formik_POConfirmOrder.errors.ConfirmedShipDate && <div style={{ color: "red", fontSize: 12 }}>{formik_POConfirmOrder.errors.ConfirmedShipDate}</div>}
+            </div>
+            <div className="col-12 col-md-6 col-lg-3 mb-4">
+              <label className="pe-field-label">Est. Delivery Date  <span className="rfq-required-star">*</span></label>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DateField fullWidth variant="outlined" size="small" InputLabelProps={{ shrink: true }} value={formik_POConfirmOrder.values?.confirmedDelDate} format={getOnlyDateFormatPatternLocale(userDetail)} />
+              </LocalizationProvider>
+              {formik_POConfirmOrder.touched.ConfirmedDelDate && formik_POConfirmOrder.errors.ConfirmedDelDate && <div style={{ color: "red", fontSize: 12 }}>{formik_POConfirmOrder.errors.ConfirmedDelDate}</div>}
+            </div>
+            <div className="col-12 col-md-6 col-lg-3 mb-4">
+              <label className="pe-field-label">Est. Shipping Cost</label>
+              <TextField id="ShippingCost" name="ShippingCost" fullWidth size="small" variant="outlined" value={formik_POConfirmOrder.values?.ShippingCost} onChange={(e) => formik_POConfirmOrder?.setFieldValue("ShippingCost", e.target.value)} error={formik_POConfirmOrder.touched.ShippingCost && Boolean(formik_POConfirmOrder.errors.ShippingCost)} helperText={formik_POConfirmOrder.touched.ShippingCost && formik_POConfirmOrder.errors.ShippingCost} />
+            </div>
+            <div className="col-12 mb-4">
+              <label className="pe-field-label">Comments</label>
+              <TextField id="Remarks" name="Remarks" fullWidth multiline rows={2} size="small" variant="outlined" value={formik_POConfirmOrder.values?.Remarks} onChange={(e) => formik_POConfirmOrder.setFieldValue("Remarks", e.target.value)} />
+            </div>
+          </div>
+          <hr className="mt-0" />
+          <div className="mb-3 textblue f14">Attachments</div>
+          {showAttach && (
+            <div className="d-flex align-items-center border-bottom mb-2 pb-2">
+              <a href={`${returnfileName}`} target="_blank" className="f12 me-auto">{attachmentfilters?.poAttachmentDescription}</a>
+              <IconButton size="small"><HiOutlineX className="f17 text-danger" /></IconButton>
+            </div>
+          )}
+          <div className="bggray p-2 pt-3 mb-3">
+            <Form.Group controlId="formFile">
+              <Form.Control name="poAttachment" type="file" size="md" accept=".docx,.doc,image/jpeg,image/gif,image/png,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={handleAttachfileChange("POAttachment")} isInvalid={"Unsupported Format"} />
+              <Form.Text muted className="f10">(.docx|.doc|.jpg|.jpeg|.png|.pdf|.xlsx), Max Size: 10 mb</Form.Text>
+            </Form.Group>
+          </div>
+        </form>
+      </PEModal>
 
-                        <div className="col-12 col-md-4 col-lg-3 mb-4">
-                          <TextField
-                            id="Company"
-                            InputLabelProps={{ shrink: true }}
-                            inputProps={{ readOnly: true, title: "This field is not editable" }}
-                            name="Company"
-                            className="w-100 f14"
-                            size="small"
-                            label="Customer"
-                            variant="outlined"
-                            value={poSpecificDetails?.company}
-                          />
-                        </div>
-                        <div className="col-12 col-md-4 col-lg-3 mb-4">
-                          <TextField
-                            id="ConfirmationNo"
-                            InputLabelProps={{ shrink: true }}
-                            name="ConfirmationNo"
-                            className="w-100 f14"
-                            size="small"
-                            label="Confirmation *"
-                            variant="outlined"
-                            value={formik_POConfirmOrder.values?.ConfirmationNo}
-                            onChange={formik_POConfirmOrder.handleChange}
-                          />
-                        </div>
-                        <div className="col-12 col-md-4 col-lg-3 mb-4">
-                          <TextField
-                            id="SupplierRef"
-                            InputLabelProps={{ shrink: true }}
-                            name="SupplierRef"
-                            className="w-100 f14"
-                            size="small"
-                            label="Supplier Reference"
-                            variant="outlined"
-                            value={formik_POConfirmOrder.values?.SupplierRef}
-                            onChange={formik_POConfirmOrder.handleChange}
-                          />
-                        </div>
-                      </div>
-                      <hr className="mt-0" />
-                      <div className="mb-4 textblue f14">
-                        Shipping and Tax Information
-                      </div>
-                      <div className="row">
-                        <div className="col-12 col-md-4 col-lg-3 mb-4">
-                          <LocalizationProvider dateAdapter={AdapterDateFns}>
-                            <DateField
-                              label="Est. Shipping Date *"
-                              variant="outlined"
-                              size="small"
-                              className="w-100 f14"
-                              InputLabelProps={{ shrink: true }}
-                              value={formik_POConfirmOrder.values?.ConfirmedShipDate}
-                              format={getOnlyDateFormatPatternLocale(userDetail)}
-                            />
-                          </LocalizationProvider>
-                          {formik_POConfirmOrder.touched.ConfirmedShipDate &&
-                            formik_POConfirmOrder.errors.ConfirmedShipDate ? (
-                            <div style={{ color: "red" }}>
-                              {formik_POConfirmOrder.errors.ConfirmedShipDate}
-                            </div>
-                          ) : null}
-                        </div>
-                        <div className="col-12 col-md-4 col-lg-3 mb-4">
-                          <LocalizationProvider dateAdapter={AdapterDateFns}>
-                            <DateField
-                              label="Est. Delivery Date *"
-                              variant="outlined"
-                              size="small"
-                              className="w-100 f14"
-                              InputLabelProps={{ shrink: true }}
-                              value={formik_POConfirmOrder.values?.confirmedDelDate}
-                              format={getOnlyDateFormatPatternLocale(userDetail)}
-                            />
-                          </LocalizationProvider>
-                          {formik_POConfirmOrder.touched.ConfirmedDelDate &&
-                            formik_POConfirmOrder.errors.ConfirmedDelDate ? (
-                            <div style={{ color: "red" }}>
-                              {formik_POConfirmOrder.errors.ConfirmedDelDate}
-                            </div>
-                          ) : null}
-                        </div>
-                        <div className="col-12 col-md-4 col-lg-3 mb-4">
-                          <TextField
-                            id="ShippingCost"
-                            InputLabelProps={{ shrink: true }}
-                            name="ShippingCost"
-                            className="w-100 f14"
-                            size="small"
-                            label="Est. Shipping Cost"
-                            variant="outlined"
-                            value={formik_POConfirmOrder.values?.ShippingCost}
-                            onChange={(e) => {
-                              formik_POConfirmOrder?.setFieldValue("ShippingCost", e.target.value);
-                            }}
-                          />
-                          {formik_POConfirmOrder.touched.ShippingCost &&
-                            formik_POConfirmOrder.errors.ShippingCost ? (
-                            <div style={{ color: "red" }}>
-                              {formik_POConfirmOrder.errors.ShippingCost}
-                            </div>
-                          ) : null}
-                        </div>
-                        <div className="col-12 col-md-4 col-lg-3 mb-4"></div>
-                        <div className="col-12 mb-4">
-                          <TextField
-                            id="Remarks"
-                            InputLabelProps={{ shrink: true }}
-                            rows={2}
-                            multiline
-                            name="Remarks"
-                            className="w-100 f14"
-                            size="small"
-                            label="Comments"
-                            variant="outlined"
-                            value={formik_POConfirmOrder.values?.Remarks}
-                            onChange={(e) => {
-                              formik_POConfirmOrder.setFieldValue("Remarks", e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <hr className="mt-0" />
-                      <div className="mb-4 textblue f14">Attachments</div>
+      <PEModal
+        open={!!state["openOrderReject"]}
+        onClose={toggleDrawer("openOrderReject", false, allPOShipHeader)}
+        title="Reject Entire Order"
+        size="sm"
+        footer={
+          <>
+            <button type="button" className="pe-btn pe-btn--outline" onClick={toggleDrawer("openOrderReject", false, allPOShipHeader)}>Cancel</button>
+            <button type="submit" form="form-order-reject" className="pe-btn pe-btn--primary">Save</button>
+          </>
+        }
+      >
+        <form id="form-order-reject" onSubmit={formik_PORejectOrder.handleSubmit} autoComplete="off">
+          <div className="mb-4 textblue f14">Order Rejection Header</div>
+          <div className="mb-4">
+            <label className="pe-field-label">Reason</label>
+            <TextField
+              id="rejectionReason"
+              name="rejectionReason"
+              multiline
+              rows={3}
+              fullWidth
+              size="small"
+              variant="outlined"
+              value={formik_PORejectOrder.values?.rejectionReason}
+              onChange={(e) => formik_PORejectOrder?.setFieldValue("rejectionReason", e.target.value)}
+            />
+          </div>
+        </form>
+      </PEModal>
 
-                      {showAttach && (
-                        <div className="row align-items-center p-0 pb-1 border-bottom ms-0 me-0 pt-1 pb-1">
-                          <div className="col-12 col-md-10">
-                            <div className="row text-left f12 lingh14 text-muted">
-                              <div className="col-lg-4 col-md-2 col-12">
-                                <div>
-                                  <a href={`${returnfileName}`} target="_blank">
-                                    {attachmentfilters?.poAttachmentDescription}
-                                  </a>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="d-flex col-12 col-md-2 align-items-center justify-content-end">
-                            <IconButton size="small" className="bg-white ms-2">
-                              <HiOutlineX className="f17 text-danger" />
-                            </IconButton>
-                          </div>
-                        </div>
-                      )}
+      <PEModal
+        open={!!state["openOrderGRNSubmit"]}
+        onClose={toggleDrawer("openOrderGRNSubmit", false, [])}
+        title="GRN Submit"
+        size="sm"
+        footer={
+          <>
+            <button type="button" className="pe-btn pe-btn--outline" onClick={toggleDrawer("openOrderGRNSubmit", false, [])}>Cancel</button>
+            <button type="submit" form="form-grn-submit" className="pe-btn pe-btn--primary" disabled={grnSaveDisable || isShippedHistoryEditDisabled}>Save</button>
+          </>
+        }
+      >
+        <form id="form-grn-submit" onSubmit={formik_GRNAccepted.handleSubmit} autoComplete="off">
+          <div className="mb-4">
+            <label className="pe-field-label">GRN No  <span className="rfq-required-star">*</span></label>
+            <TextField
+              id="grnNumber"
+              name="grnNumber"
+              fullWidth
+              size="small"
+              variant="outlined"
+              value={formik_GRNAccepted?.values?.grnNumber}
+              onChange={formik_GRNAccepted.handleChange}
+              inputProps={{ maxLength: 25 }}
+              InputProps={{ endAdornment: <InputAdornment position="end"><Typography variant="body2" color="textSecondary">{formik_GRNAccepted?.values?.grnNumber?.length}/25</Typography></InputAdornment> }}
+              error={formik_GRNAccepted.touched.grnNumber && Boolean(formik_GRNAccepted.errors.grnNumber)}
+              helperText={formik_GRNAccepted.touched.grnNumber && formik_GRNAccepted.errors.grnNumber}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="pe-field-label">GRN Amount  <span className="rfq-required-star">*</span></label>
+            <TextField
+              id="grnAmount"
+              name="grnAmount"
+              fullWidth
+              size="small"
+              variant="outlined"
+              value={formik_GRNAccepted?.values?.grnAmount}
+              onChange={formik_GRNAccepted.handleChange}
+              inputProps={{ maxLength: 25 }}
+              InputProps={{ endAdornment: <InputAdornment position="end"><Typography variant="body2" color="textSecondary">{formik_GRNAccepted?.values?.grnAmount?.length}/25</Typography></InputAdornment> }}
+              onInput={(e) => onlyNumberdec(e)}
+              error={formik_GRNAccepted.touched.grnAmount && Boolean(formik_GRNAccepted.errors.grnAmount)}
+              helperText={formik_GRNAccepted.touched.grnAmount && formik_GRNAccepted.errors.grnAmount}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="pe-field-label">GRN Quantity  <span className="rfq-required-star">*</span></label>
+            <TextField
+              id="grnQuantity"
+              name="grnQuantity"
+              fullWidth
+              size="small"
+              variant="outlined"
+              value={formik_GRNAccepted?.values?.grnQuantity}
+              onChange={formik_GRNAccepted.handleChange}
+              onInput={(e) => onlyNumbers(e)}
+              inputProps={{ maxLength: 15 }}
+              InputProps={{ endAdornment: <InputAdornment position="end"><Typography variant="body2" color="textSecondary">{formik_GRNAccepted?.values?.grnQuantity?.length}/15</Typography></InputAdornment> }}
+              error={formik_GRNAccepted.touched.grnQuantity && Boolean(formik_GRNAccepted.errors.grnQuantity)}
+              helperText={formik_GRNAccepted.touched.grnQuantity && formik_GRNAccepted.errors.grnQuantity}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="pe-field-label">GRN Date</label>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <MobileDatePicker
+                disablePast
+                minDate={new Date()}
+                value={formik_GRNAccepted.values?.grnDate}
+                name="grnDate"
+                slotProps={{
+                  textField: { variant: "outlined", fullWidth: true, size: "small", InputLabelProps: { shrink: true } },
+                  actionBar: { actions: ["clear", "cancel", "accept"] },
+                }}
+                onChange={(newValue) => formik_GRNAccepted.setFieldValue("grnDate", newValue)}
+                format="dd/MM/yyyy"
+              />
+            </LocalizationProvider>
+            {formik_GRNAccepted.touched.grnDate && formik_GRNAccepted.errors.grnDate && (
+              <div style={{ color: "red", fontSize: 12 }}>{formik_GRNAccepted.errors.grnDate}</div>
+            )}
+          </div>
+        </form>
+      </PEModal>
 
-                      <div className="row bggray p-2 pt-3 mb-3">
-                        <div className="col-12 col-md-5">
-                          <Form.Group controlId="formFile" className="">
-                            <Form.Control
-                              name="poAttachment"
-                              type="file"
-                              size="md"
-                              accept=".docx,.doc,image/jpeg,image/gif,image/png,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                              onChange={handleAttachfileChange("POAttachment")}
-                              isInvalid={"Unsupported Format"}
-                            />
-                            <Form.Text id="filiploadtext" muted className="f10">
-                              (\.docx|\.doc|\.jpg|\.jpeg|\.png|\.pdf|\.xlsx),
-                              Max Size: 10 mb
-                            </Form.Text>
-                          </Form.Group>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Box>
-          </form>
-        </Drawer>
-      </React.Fragment>
-
-      <React.Fragment key="top3">
-        <Drawer
-          anchor="right"
-          open={state["openOrderReject"]}
-        >
-          <form onSubmit={formik_PORejectOrder.handleSubmit} autoComplete="off">
-            <Box sx={{ width: { xs: 280, sm: 480, md: 720, lg: 1080 } }}>
-              <div className="flex flex-col">
-                <Box className="bgheaderCards">
-                  <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                    <div className="ms-3 text-white">Reject Entire Order</div>
-                    <div>
-                      <IconButton
-                        onClick={toggleDrawer("openOrderReject", false, allPOShipHeader)}
-                        size="small"
-                        edge="start"
-                        sx={{ mr: 1 }}
-                      >
-                        <HiOutlineX className="f20 text-white" />
-                      </IconButton>
-                    </div>
-                  </div>
-                </Box>
-                <div className="h50px"></div>
-                <div className="p-3">
-                  <div className="row ">
-                    <div className="col-12 col-md-12 col-lg-12">
-                      <div className="mb-4 textblue f14">
-                        Order Rejection Header
-                      </div>
-                      <div className="row">
-                        <div className="col-12 col-md-4 col-lg-12 mb-4">
-                          <TextField
-                            id="rejectionReason"
-                            InputLabelProps={{ shrink: true }}
-                            multiline
-                            rows={3}
-                            name="rejectionReason"
-                            className="w-100 f14"
-                            size="small"
-                            label="Reason"
-                            variant="outlined"
-                            value={formik_PORejectOrder.values?.rejectionReason}
-                            onChange={(e) => {
-                              formik_PORejectOrder?.setFieldValue("rejectionReason", e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <hr className="mt-0" />
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-12 text-end">
-                      <LoadingButton
-                        color="primary"
-                        size="medium"
-                        className="text-white text-capitalize mb-3 mr-3"
-                        variant="contained"
-                        type="submit"
-                      >
-                        <span>Save</span>
-                      </LoadingButton>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Box>
-          </form>
-        </Drawer>
-      </React.Fragment>
-
-      <React.Fragment key="top4">
-        <Drawer
-          anchor="right"
-          open={state["openOrderGRNSubmit"]}
-        >
-          <form onSubmit={formik_GRNAccepted.handleSubmit} autoComplete="off">
-            <Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-              <div className="flex flex-col">
-                <Box className="bgheaderCards">
-                  <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                    <div className="ms-3 text-white">GRN Submit</div>
-                    <div>
-                      <IconButton
-                        onClick={toggleDrawer("openOrderGRNSubmit", false, [])}
-                        size="small"
-                        edge="start"
-                        sx={{ mr: 1 }}
-                      >
-                        <HiOutlineX className="f20 text-white" />
-                      </IconButton>
-                    </div>
-                  </div>
-                </Box>
-                <div className="h50px"></div>
-                <div className="p-3">
-                  <div className="row ">
-                    <div className="col-12 col-md-12 col-lg-12">
-                      <div className="mb-4 textblue f14"></div>
-                      <div className="row">
-                        <div className="col-12 col-md-4 col-lg-12 mb-4">
-                          <TextField
-                            id="grnNumber"
-                            InputLabelProps={{ shrink: true }}
-                            name="grnNumber"
-                            className="w-100 f14"
-                            size="small"
-                            label="GRN No *"
-                            variant="outlined"
-                            value={formik_GRNAccepted?.values?.grnNumber}
-                            onChange={formik_GRNAccepted.handleChange}
-                            inputProps={{ maxLength: 25 }}
-                            InputProps={{
-                              endAdornment: (
-                                <InputAdornment position="end">
-                                  <Typography variant="body2" color="textSecondary">
-                                    {formik_GRNAccepted?.values?.grnNumber?.length}/25
-                                  </Typography>
-                                </InputAdornment>
-                              ),
-                            }}
-                          />
-                          {formik_GRNAccepted.touched.grnNumber &&
-                            formik_GRNAccepted.errors.grnNumber ? (
-                            <div style={{ color: "red" }}>
-                              {formik_GRNAccepted.errors.grnNumber}
-                            </div>
-                          ) : null}
-                        </div>
-
-                        <div className="col-12 col-md-4 col-lg-12 mb-4">
-                          <TextField
-                            id="grnAmount"
-                            InputLabelProps={{ shrink: true }}
-                            name="grnAmount"
-                            className="w-100 f14"
-                            size="small"
-                            label="GRN Amount *"
-                            variant="outlined"
-                            value={formik_GRNAccepted?.values?.grnAmount}
-                            onChange={formik_GRNAccepted.handleChange}
-                            inputProps={{ maxLength: 25 }}
-                            InputProps={{
-                              endAdornment: (
-                                <InputAdornment position="end">
-                                  <Typography variant="body2" color="textSecondary">
-                                    {formik_GRNAccepted?.values?.grnAmount?.length}/25
-                                  </Typography>
-                                </InputAdornment>
-                              ),
-                            }}
-                            onInput={(e) => onlyNumberdec(e)}
-                          />
-                          {formik_GRNAccepted.touched.grnAmount &&
-                            formik_GRNAccepted.errors.grnAmount ? (
-                            <div style={{ color: "red" }}>
-                              {formik_GRNAccepted.errors.grnAmount}
-                            </div>
-                          ) : null}
-                        </div>
-                        <div className="col-12 col-md-4 col-lg-12 mb-4">
-                          <TextField
-                            id="grnQuantity"
-                            InputLabelProps={{ shrink: true }}
-                            name="grnQuantity"
-                            className="w-100 f14"
-                            size="small"
-                            label="GRN Quantity *"
-                            variant="outlined"
-                            value={formik_GRNAccepted?.values?.grnQuantity}
-                            onChange={formik_GRNAccepted.handleChange}
-                            onInput={(e) => onlyNumbers(e)}
-                            inputProps={{ maxLength: 15 }}
-                            InputProps={{
-                              endAdornment: (
-                                <InputAdornment position="end">
-                                  <Typography variant="body2" color="textSecondary">
-                                    {formik_GRNAccepted?.values?.grnQuantity?.length}/15
-                                  </Typography>
-                                </InputAdornment>
-                              ),
-                            }}
-                          />
-                          {formik_GRNAccepted.touched.grnQuantity &&
-                            formik_GRNAccepted.errors.grnQuantity ? (
-                            <div style={{ color: "red" }}>
-                              {formik_GRNAccepted.errors.grnQuantity}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      <div className="col-12 col-md-4 col-lg-12 mb-4">
-                        <LocalizationProvider dateAdapter={AdapterDateFns}>
-                          <MobileDatePicker
-                            label="GRN Date"
-                            disablePast
-                            minDate={new Date()}
-                            value={formik_GRNAccepted.values?.grnDate}
-                            name="grnDate"
-                            slotProps={{
-                              textField: {
-                                variant: "outlined",
-                                fullWidth: true,
-                                size: "small",
-                                InputLabelProps: { shrink: true },
-                              },
-                              actionBar: {
-                                actions: ["clear", "cancel", "accept"],
-                              },
-                            }}
-                            onChange={(newValue) => {
-                              formik_GRNAccepted.setFieldValue("grnDate", newValue);
-                            }}
-                            format="dd/MM/yyyy"
-                            renderInput={(params) => (
-                              <TextField variant="standard" {...params} />
-                            )}
-                          />
-                        </LocalizationProvider>
-
-                        {formik_GRNAccepted.touched.grnDate &&
-                          formik_GRNAccepted.errors.grnDate ? (
-                          <div style={{ color: "red" }}>
-                            {formik_GRNAccepted.errors.grnDate}
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-12 text-end">
-                      <LoadingButton
-                        color="primary"
-                        size="medium"
-                        className="text-white text-capitalize mb-3 mr-3"
-                        variant="contained"
-                        type="submit"
-                        disabled={grnSaveDisable || isShippedHistoryEditDisabled}
-                      >
-                        <span>Save</span>
-                      </LoadingButton>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Box>
-          </form>
-        </Drawer>
-      </React.Fragment>
-
-      <React.Fragment key="approvePR">
-        <Drawer anchor="right" open={state["openInvoiceApproved"]}>
-          <form onSubmit={formik_POApproveReject.handleSubmit} autoComplete="off">
-            <Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-              <div className="flex flex-col">
-                <Box className="bgheaderCards">
-                  <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                    <div className="ms-3 text-white">
-                      Approval Action
-                    </div>
-                    <div>
-                      <IconButton
-                        onClick={toggleDrawer("openInvoiceApproved", false, [])}
-                        size="small"
-                        edge="start"
-                        sx={{ mr: 1 }}
-                      >
-                        <HiOutlineX className="f20 text-white" />
-                      </IconButton>
-                    </div>
-                  </div>
-                </Box>
-                <div className="h50px"></div>
-                <div className="p-3">
-                  <div className="row ">
-                    <div className="col-12 col-md-12 col-lg-12">
-                      <div className="mb-4 textblue f14"></div>
-                      <div className="row">
-                        <div className="col-12 col-md-4 col-lg-12 mb-4">
-                          <TextField
-                            id="IsApproved"
-                            InputLabelProps={{ shrink: true }}
-                            name="IsApproved"
-                            select
-                            className="mb-2"
-                            fullWidth
-                            size="small"
-                            label="Status"
-                            variant="outlined"
-                            value={formik_POApproveReject.values.IsApproved}
-                            onChange={(e) =>
-                              formik_POApproveReject.setFieldValue("IsApproved", e.target.value)
-                            }
-                          >
-                            <MenuItem value={true}>Approve</MenuItem>
-                            <MenuItem value={false}>Reject</MenuItem>
-                          </TextField>
-                        </div>
-
-                        <div className="col-12 col-md-4 col-lg-12 mb-4">
-                          <TextField
-                            id="remarks"
-                            InputLabelProps={{ shrink: true }}
-                            multiline
-                            rows={3}
-                            name="remarks"
-                            className="w-100 f14"
-                            size="small"
-                            label="Comment "
-                            variant="outlined"
-                            inputProps={{ maxLength: 200 }}
-                            value={formik_POApproveReject?.values?.remarks}
-                            error={formik_POApproveReject.touched.remarks && Boolean(formik_POApproveReject.errors.remarks)}
-                            helperText={formik_POApproveReject.touched.remarks && formik_POApproveReject.errors.remarks}
-                            onChange={(e) =>
-                              formik_POApproveReject.setFieldValue("remarks", e.target.value)
-                            }
-                            InputProps={{
-                              endAdornment: formik_POApproveReject?.values?.remarks && (
-                                <InputAdornment position="end">
-                                  <Typography variant="body2" color="textSecondary">
-                                    {formik_POApproveReject?.values?.remarks?.length}/200
-                                  </Typography>
-                                </InputAdornment>
-                              ),
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-12 text-end">
-                      <LoadingButton
-                        loading={loading}
-                        color="primary"
-                        size="medium"
-                        className="text-white text-capitalize mb-3 mr-3"
-                        variant="contained"
-                        type="submit"
-                      >
-                        <span>Save</span>
-                      </LoadingButton>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Box>
-          </form>
-        </Drawer>
-      </React.Fragment>
+      <PEModal
+        open={!!state["openInvoiceApproved"]}
+        onClose={toggleDrawer("openInvoiceApproved", false, [])}
+        title="Approval Action"
+        size="sm"
+        footer={
+          <>
+            <button
+              type="button"
+              className="pe-btn pe-btn--outline"
+              onClick={toggleDrawer("openInvoiceApproved", false, [])}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="form-invoice-approve"
+              className="pe-btn pe-btn--primary"
+              disabled={loading}
+            >
+              {loading ? "Saving…" : "Save"}
+            </button>
+          </>
+        }
+      >
+        <form id="form-invoice-approve" onSubmit={formik_POApproveReject.handleSubmit} autoComplete="off">
+          <div className="mb-4">
+            <label className="pe-field-label">Status</label>
+            <TextField
+              id="IsApproved"
+              name="IsApproved"
+              select
+              fullWidth
+              size="small"
+              variant="outlined"
+              value={formik_POApproveReject.values.IsApproved}
+              onChange={(e) => formik_POApproveReject.setFieldValue("IsApproved", e.target.value)}
+            >
+              <MenuItem value={true}>Approve</MenuItem>
+              <MenuItem value={false}>Reject</MenuItem>
+            </TextField>
+          </div>
+          <div className="mb-4">
+            <label className="pe-field-label">Comment</label>
+            <TextField
+              id="remarks"
+              name="remarks"
+              multiline
+              rows={3}
+              fullWidth
+              size="small"
+              variant="outlined"
+              inputProps={{ maxLength: 200 }}
+              value={formik_POApproveReject?.values?.remarks}
+              error={formik_POApproveReject.touched.remarks && Boolean(formik_POApproveReject.errors.remarks)}
+              helperText={formik_POApproveReject.touched.remarks && formik_POApproveReject.errors.remarks}
+              onChange={(e) => formik_POApproveReject.setFieldValue("remarks", e.target.value)}
+              InputProps={{
+                endAdornment: formik_POApproveReject?.values?.remarks && (
+                  <InputAdornment position="end">
+                    <Typography variant="body2" color="textSecondary">
+                      {formik_POApproveReject?.values?.remarks?.length}/200
+                    </Typography>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </div>
+        </form>
+      </PEModal>
 
       {/* Payment Details Modal */}
       <PEModal
@@ -1884,311 +1061,6 @@ const PODrawers = ({
         poInvoiceList={poInvoiceList}
         allPOShipHeader={allPOShipHeader}
       />
-
-      {/* Payment Terms - Add New Modal */}
-      <Modal
-        size="xl"
-        show={paymentTermModal}
-        backdrop="static"
-        keyboard={false}
-        className="zindex1280"
-        backdropClassName="zindex1280"
-        centered
-        contentClassName="border-0"
-        onHide={() => setPaymentTermModal(false)}
-      >
-        <Modal.Header className="pt-2 pb-2 bgheaderCards">
-          <Modal.Title id="modal-heading">
-            <div className="d-flex align-items-center f14 text-white">
-              Manage Payment Terms
-            </div>
-          </Modal.Title>
-          <IconButton
-            onClick={() => setPaymentTermModal(false)}
-            size="small"
-            edge="start"
-          >
-            <HiOutlineX className="f20 text-white" />
-          </IconButton>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <div className="p-3">
-            <AddUpdatePaymentterms
-              handlePaymentTermsList={(list) => {
-                setPaymentTermsOptions(list);
-              }}
-            />
-          </div>
-        </Modal.Body>
-      </Modal>
-
-      {/* GRN Report Dialog */}
-      <Dialog
-        open={grnReportModal}
-        onClose={() => setGrnReportModal(false)}
-        maxWidth="xl"
-        fullWidth
-      >
-        <DialogTitle sx={{ padding: 0 }}>
-          <IconButton
-            aria-label="close"
-            onClick={() => setGrnReportModal(false)}
-            sx={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-              color: (theme) => theme.palette.grey[500],
-              zIndex: 1,
-            }}
-          >
-            <HiOutlineX />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers sx={{ padding: 0 }}>
-          {loadingGrnReport ? (
-            <div className="text-center py-4">
-              <CircularProgress />
-            </div>
-          ) : grnReportData.length > 0 ? (
-            <div style={{ padding: '40px', backgroundColor: '#fff', fontFamily: 'Arial, sans-serif' }}>
-              <div style={{ border: '2px solid #000', padding: '20px' }}>
-                <div style={{ borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '10px', textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}>
-                  POSCO - India Pune Processing Center Pvt. Ltd.
-                </div>
-                <div style={{ borderBottom: '2px solid #000', padding: '8px 0', marginBottom: '15px', textAlign: 'center', fontWeight: 'bold', fontSize: '14px' }}>
-                  Goods Receipt Note
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '12px', padding: '10px 0' }}>
-                  <div style={{ flex: 1 }}><span style={{ fontWeight: 'bold' }}>Supplier Name : </span><span>{grnReportData[0]?.vendorCompany || ''}</span></div>
-                  <div style={{ flex: 1 }}><span style={{ fontWeight: 'bold' }}>Supplier Code : </span><span>{grnReportData[0]?.vendorCode || ''}</span></div>
-                  <div style={{ flex: 1 }}><span style={{ fontWeight: 'bold' }}>GRN Date : </span><span>{grnReportData[0]?.grnDate ? (() => { try { const d = new Date(grnReportData[0].grnDate); return !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB') : ''; } catch (e) { return grnReportData[0].grnDate; } })() : ''}</span></div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '12px', padding: '5px 0' }}>
-                  <div style={{ flex: 1 }}><span style={{ fontWeight: 'bold' }}>Invoice NO : </span><span>{grnReportData[0]?.invoiceNo || ''}</span></div>
-                  <div style={{ flex: 1 }}><span style={{ fontWeight: 'bold' }}>GRN No : </span><span>{grnReportData[0]?.grnNumber || ''}</span></div>
-                  <div style={{ flex: 1 }}><span style={{ fontWeight: 'bold' }}>Invoice Date : </span><span>{grnReportData[0]?.invoiceDate ? (() => { try { const d = new Date(grnReportData[0].invoiceDate); return !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB') : ''; } catch (e) { return grnReportData[0].invoiceDate; } })() : ''}</span></div>
-                </div>
-                <div style={{ marginBottom: '20px' }}>
-                  <table style={{ width: '100%', fontSize: '11px', borderCollapse: 'collapse', border: '1px solid #000' }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#f0f0f0' }}>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>Sr</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>PO NO LN</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>PO NUMBER</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>ITEM CODE</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>GRN NO</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>BATCH NUMBER</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>ITEM DESCRIPTION</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>UOM</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>REC QTY</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>APP QTY</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>REJ QTY</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>WHLO C</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>COST CENTER</th>
-                        <th style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>GL ACCOUNT</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {grnReportData.map((item, index) => (
-                        <tr key={index}>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center' }}>{item.sr || index + 1}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center' }}>{item.poLn || ''}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.poNo || ''}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.itemCode || ''}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.grnNumber || grnReportData[0]?.grnNumber || ''}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.batchNumber || ''}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.itemDescription || ''}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center' }}>{item.uom || ''}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'right' }}>{item.recQty ?? '0.00'}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'right' }}>{item.appQty ?? '0.00'}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'right' }}>{item.rejQty ?? '0.00'}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px', textAlign: 'center' }}>{item.whLoc || ''}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.costCenter || ''}</td>
-                          <td style={{ border: '1px solid #000', padding: '6px 4px' }}>{item.glAccount || ''}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div style={{ fontSize: '11px', marginBottom: '30px' }}>
-                  <div style={{ marginBottom: '8px' }}><span style={{ fontWeight: 'bold' }}>INSPECTION REMARKS:</span></div>
-                  <div style={{ marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 'bold' }}>INSPECTION NUMBER:</span>
-                    <span style={{ marginLeft: '150px' }}>{grnReportData[0]?.inspectionNumber || ''}</span>
-                    <span style={{ marginLeft: '10px' }}>{grnReportData[0]?.inspectionDate || ''}</span>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '10px' }}>
-                  <div></div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div><span style={{ fontWeight: 'bold' }}>DATE:</span> {grnReportData[0]?.date ? (() => { try { const d = new Date(grnReportData[0].date); return !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB') : ''; } catch (e) { return grnReportData[0].date; } })() : ''}</div>
-                    <div><span style={{ fontWeight: 'bold' }}>Prepared By :</span> {grnReportData[0]?.createdByName || ''}</div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginTop: '40px', paddingTop: '20px' }}>
-                  <div style={{ textAlign: 'center', flex: 1 }}>
-                    <div style={{ marginBottom: '40px' }}></div>
-                    <div style={{ paddingTop: '5px' }}>
-                      <div style={{ fontWeight: 'bold' }}>Approved By</div>
-                      <div>(Store/QC)</div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'center', flex: 1 }}>
-                    <div style={{ marginBottom: '40px' }}></div>
-                    <div style={{ paddingTop: '5px' }}>
-                      <div style={{ fontWeight: 'bold' }}>Approved By</div>
-                      <div>(TL)</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <p>No GRN report data available</p>
-            </div>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              const printContent = document.querySelector('[style*="padding: 40px"]');
-              if (printContent) {
-                const printWindow = window.open('', '', 'height=800,width=1200');
-                printWindow.document.write('<html><head><title>GRN Report</title>');
-                printWindow.document.write('<style>@media print { @page { margin: 0.5in; } body { margin: 0; } }</style>');
-                printWindow.document.write('</head><body>');
-                printWindow.document.write(printContent.innerHTML);
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
-                printWindow.print();
-              }
-            }}
-            variant="outlined"
-          >
-            Print
-          </Button>
-          <Button onClick={() => setGrnReportModal(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Add GRN Dialog */}
-      <AddGRNDialog
-        open={addGrnDialogOpen}
-        onClose={handleCloseAddGrnDialog}
-        poDetails={poSpecificDetails}
-        lineItems={selectedGrnItems.length > 0 ? selectedGrnItems : allPOItems}
-        onSubmit={handleSubmitGrn}
-        existingGrnNumbers={poGrnList}
-      />
-
-      {/* Add SES Dialog */}
-      <SESDialog
-        open={addSesDialogOpen}
-        onClose={handleCloseAddSesDialog}
-        poDetails={poSpecificDetails}
-        lineItems={selectedSesItems.length > 0 ? selectedSesItems : allPOItems.filter(item => item.itemType?.toLowerCase() === 'service')}
-        onSubmit={handleSubmitSes}
-        mode={sesDialogMode}
-        previewData={sesPreviewData}
-      />
-
-      {/* Add ASN Dialog */}
-      <AddASNDialog
-        open={addAsnDialogOpen}
-        onClose={handleCloseAddAsnDialog}
-        poDetails={poSpecificDetails}
-        lineItems={selectedAsnItems.length > 0 ? selectedAsnItems : allPOItems.filter(item => item.itemType?.toLowerCase() !== 'service')}
-        asnHeaders={allPOShipHeader}
-        onSubmit={handleSubmitAsn}
-        mode={asnDialogMode}
-        previewData={asnPreviewData}
-      />
-
-      {/* Add Invoice Dialog */}
-      <AddInvoiceDialog
-        open={addInvoiceDialogOpen}
-        onClose={handleCloseAddInvoiceDialog}
-        poDetails={poSpecificDetails}
-        lineItems={selectedInvoiceItems.length > 0 ? selectedInvoiceItems : allPOItems}
-        initialSelectedItems={selectedInvoiceItems}
-        onSubmit={handleSubmitInvoice}
-        uomOptions={UOMMaster}
-        mode={invoiceDialogMode}
-        previewData={invoicePreviewData}
-        stagesPayload={buildInvoiceStagesPayload()}
-        atoken={atoken}
-        customerid={poCustomerId ?? customerid}
-        userName={userDetail?.name ?? ''}
-        approvalPanel={invoiceApprovalPanel}
-        headerActions={invoiceApprovalHeaderActions}
-        stagelist={invStagelist}
-        currentStage={invoicePreviewData?.header?.stage ?? currentInvStage}
-      />
-
-      <Dialog
-        open={deliveryDialogOpen}
-        onClose={() => {
-          setDeliveryDialogOpen(false);
-          setDeliveryDialogRow(null);
-          setDeliveryDialogDate(null);
-        }}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle>Edit Delivery Date</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 1 }}>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <MobileDatePicker
-                label="Delivery Date"
-                value={deliveryDialogDate}
-                onChange={(newValue) => setDeliveryDialogDate(newValue)}
-                slotProps={{
-                  textField: {
-                    variant: "outlined",
-                    fullWidth: true,
-                    size: "small",
-                    InputLabelProps: { shrink: true },
-                  },
-                  actionBar: {
-                    actions: ["clear", "cancel", "accept"],
-                  },
-                }}
-                format="dd/MM/yyyy"
-              />
-            </LocalizationProvider>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setDeliveryDialogOpen(false);
-              setDeliveryDialogRow(null);
-              setDeliveryDialogDate(null);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            disabled={!deliveryDialogRow || !deliveryDialogDate}
-            onClick={() => {
-              if (deliveryDialogRow) {
-                setDeliveryUpdates((prev) => ({
-                  ...prev,
-                  [deliveryDialogRow.id]: deliveryDialogDate,
-                }));
-              }
-              setDeliveryDialogOpen(false);
-              setDeliveryDialogRow(null);
-              setDeliveryDialogDate(null);
-            }}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 };
