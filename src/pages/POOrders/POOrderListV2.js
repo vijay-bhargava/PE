@@ -1,10 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Tooltip } from '@mui/material';
 import { HiDownload } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { actionTypes, useStateValue } from "../../store";
 import { GetPOHeaderList } from '../../utils/pOToAccept';
-import { useCookies } from 'react-cookie';
 import FilterCell from "./FilterCell";
 import { formatDateToDDMMYYYY, downloadFilesOnAzure, getApiErrorMessage } from '../../utils/common';
 import GridSkeleton from '../../components/Skeleton/gridSkeleton';
@@ -13,6 +11,7 @@ import { ApiClient } from '../../Apiclient';
 import { PETable } from '../../components/RFQ/PETable';
 import { PETableToolbar } from '../../components/RFQ/PETableToolbar';
 import StatusBadge from '../../components/StatusBadge';
+import CommonTooltip from '../../components/commonTooltip';
 import '../../assets/css/manage-rfq-v2.css';
 import '../../assets/css/design-system.css';
 
@@ -59,7 +58,6 @@ const FILTER_COLUMNS = [
 /* ═══════════════════════════════════════════════════════════ */
 const POOrderListV2 = () => {
   const navigate = useNavigate();
-  const [cookies] = useCookies(['patkn', 'prtkn']);
   const [{ atoken, customerid, userDetail, customersuffix }, dispatch] = useStateValue();
   const apiClient = new ApiClient(customersuffix);
 
@@ -244,7 +242,9 @@ const POOrderListV2 = () => {
       flex: 1,
       minWidth: 100,
       renderCell: (params) => (
-        <span className="rfq-v2-cell-subject">{params.row.poType || ''}</span>
+        <CommonTooltip title={params.row.poType || ''} placement="bottom">
+          <span className="rfq-v2-cell-subject" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{params.row.poType || ''}</span>
+        </CommonTooltip>
       ),
     },
     {
@@ -253,7 +253,9 @@ const POOrderListV2 = () => {
       flex: 1.5,
       minWidth: 130,
       renderCell: (params) => (
-        <span className="rfq-v2-cell-subject">{params.row.createdByName || ''}</span>
+        <CommonTooltip title={params.row.createdByName || ''} placement="bottom">
+          <span className="rfq-v2-cell-subject" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{params.row.createdByName || ''}</span>
+        </CommonTooltip>
       ),
     },
     {
@@ -262,7 +264,9 @@ const POOrderListV2 = () => {
       flex: 1.5,
       minWidth: 130,
       renderCell: (params) => (
-        <span className="rfq-v2-cell-subject">{params.row.requestedBy || ''}</span>
+        <CommonTooltip title={params.row.requestedBy || ''} placement="bottom">
+          <span className="rfq-v2-cell-subject" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{params.row.requestedBy || ''}</span>
+        </CommonTooltip>
       ),
     },
     {
@@ -273,11 +277,11 @@ const POOrderListV2 = () => {
       renderCell: (params) => {
         const name = params.row.company || params.row.vendorName || '';
         return (
-          <Tooltip title={name} arrow>
+          <CommonTooltip title={name} placement="bottom">
             <span className="rfq-v2-cell-subject" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {name}
             </span>
-          </Tooltip>
+          </CommonTooltip>
         );
       },
     },
@@ -289,7 +293,7 @@ const POOrderListV2 = () => {
       sortable: false,
       renderCell: (params) =>
         params.row.poDocumentFileName ? (
-          <Tooltip title="Download PO Document" arrow>
+          <CommonTooltip title="Download PO Document" placement="bottom">
             <button
               type="button"
               className="pe-icon-btn pe-icon-btn--download"
@@ -304,7 +308,7 @@ const POOrderListV2 = () => {
             >
               <HiDownload style={{ fontSize: 11 }} />
             </button>
-          </Tooltip>
+          </CommonTooltip>
         ) : (" "),
     },
   ];
