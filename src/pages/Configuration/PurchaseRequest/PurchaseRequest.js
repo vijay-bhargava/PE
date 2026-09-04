@@ -21,7 +21,7 @@ import AddProductsCell from './AddProductsCell';
 import { OrgGroupMasterList, getPurchaseOrgList } from '../../../utils/commerciallibrary';
 import { PRFinalSubmit, PRItemServiceDelete, PRManageAdd, PRManageUpdate, buildQueryParams, getPRItemServiceFind, getPRManageFind } from '../../../utils/purchaseRequest';
 import { toast } from 'react-toastify';
-import { findObjByValueFromArray, findObjListByValueFromArray, findStringByValueFromArray, handlesaveAttachment, downloadExcelTemplate } from '../../../utils/common';
+import { findObjByValueFromArray, findObjListByValueFromArray, findStringByValueFromArray, handlesaveAttachment, downloadExcelTemplate, getApiErrorMessage } from '../../../utils/common';
 import { BackButton, MemoizedEventStageFlow } from '../../../utils/common/component';
 import { Dropdown, Modal } from 'react-bootstrap';
 import AttachmentWorkFlow from '../../BaseCells/attachmentworkflow';
@@ -113,23 +113,28 @@ const PurchaseRequest = ({ claimType }) => {
   }, [loadingPermissions, permissionManager, value, idFromURL]);
 
   const getUserRoleRights = async () => {
-    const obj = {
-      FeatureName: "Purchase Requisition",
-      UserId: userDetail?.id,
-      CreatedById: userDetail?.id
-    }
-    const queryParams = buildQueryParams(obj);
+    try {
+      const obj = {
+        FeatureName: "Purchase Requisition",
+        UserId: userDetail?.id,
+        CreatedById: userDetail?.id
+      }
+      const queryParams = buildQueryParams(obj);
 
-    const res = await apiClient.getres(
-      `/api/rolemanagement/GetUserRoleRights?${queryParams}`,
-      atoken
-    );
+      const res = await apiClient.getres(
+        `/api/rolemanagement/GetUserRoleRights?${queryParams}`,
+        atoken
+      );
 
-    if (res) {
-      const permManager = new PermissionManager(res?.data);
-      setPermissionManager(permManager);
+      if (res) {
+        const permManager = new PermissionManager(res?.data);
+        setPermissionManager(permManager);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error), { toastId: 'getUserRoleRights_error' });
+    } finally {
+      setLoadingPermissions(false);
     }
-    setLoadingPermissions(false);
   };
 
 
@@ -147,7 +152,7 @@ const PurchaseRequest = ({ claimType }) => {
       setRequisitionerListLoaded(true);
     } catch (error) {
       console.error('Error fetching user designations:', error);
-      toast.error('Failed to load user designations list');
+      toast.error(getApiErrorMessage(error));
     }
     finally {
       setLoadRequisitioner(false);
@@ -279,7 +284,7 @@ const PurchaseRequest = ({ claimType }) => {
           });
         } catch (error) {
           console.error("API Error:", error.response ? error.response.data : error.message);
-          toast.error("Error processing request");
+          toast.error(getApiErrorMessage(error));
           setLoading(false)
         }
       }
@@ -316,7 +321,7 @@ const PurchaseRequest = ({ claimType }) => {
             }
             else {
               setLoading(false)
-              toast.error("Error while saving data", {
+              toast.error('Error while saving data', {
                 toastId: "prmanage_error"
               });
             }
@@ -406,14 +411,14 @@ const PurchaseRequest = ({ claimType }) => {
   useEffect(() => {
     if (idFromURL == null) {
       setApproverShow(false);
+    } else if (currentStage === "Under Approval") {
+      setApproverShow(true);
+    } else if (value == 3 && stagelist?.some(item => item.currentStage == "Under Approval")) {
+      setApproverShow(true);
+    } else {
+      setApproverShow(false);
     }
-    else if (value == 3) {
-      if (stagelist?.some(item => item.currentStage == "Under Approval")) {
-        setApproverShow(true);
-      }
-      // setApproverShow(true);
-    }
-  }, [value, idFromURL]);
+  }, [value, idFromURL, currentStage, stagelist]);
 
   useEffect(() => {
     const urlparams = {
@@ -772,6 +777,7 @@ const PurchaseRequest = ({ claimType }) => {
   const [preview, setPreview] = useState(true)
   //approval related
   const [eventAppList, setEventAppList] = useState([]);
+  const hasAnyApproval = eventAppList?.some(x => x.approved === true);
   const [approverInWorkflow, setApproverInWorkflow] = useState([]);
   const [wfupdate, setwfUpdate] = useState([false]);
   const handleEventAppList = useCallback((arr, updatedvalue) => {
@@ -930,12 +936,118 @@ const PurchaseRequest = ({ claimType }) => {
     }
   };
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [recallConfirmOpen, setRecallConfirmOpen] = useState(false);
+  const [excelMenuAnchor, setExcelMenuAnchor] = useState(null);
+  const [downloadingPRReport, setDownloadingPRReport] = useState(false);
+  const [downloadingPRPDF, setDownloadingPRPDF] = useState(false);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+
+  const handleRecall = async () => {
+    setRecallConfirmOpen(false);
+    try {
+      const data = { eventId: idFromURL, eventType: 'PR' };
+      const qp = buildQueryParams(data);
+      const res = await apiClient.getres(`api/ApprovalAction/Recall?${qp}`, atoken);
+      if (res) {
+        toast.success('PR Recalled Successfully', { toastId: 'pr_recall' });
+        window.location.reload();
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error), { toastId: 'handleRecall_error' });
+    }
+  };
+
+  const [TemplateTitle, setTemplateTitle] = useState('');
+
+  const handleSaveTemplate = async () => {
+    if (!TemplateTitle.trim()) {
+      toast.error('Please enter a valid template name');
+      return;
+    }
+    if (!idFromURL) {
+      toast.error('PR ID must be there to create template');
+      return;
+    }
+    try {
+      const data = {
+        templateTitle: TemplateTitle.trim(),
+        subject: formik?.values?.prSubject?.trim(),
+        eventType: 'PR',
+        eventId: idFromURL,
+        customerId: customerid,
+        eventTypeId: 0,
+      };
+      const res = await apiClient.postres('/api/EventTemplate/Add', data, atoken);
+      if (res) {
+        toast.success('Template saved successfully');
+        setTemplateDialogOpen(false);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error), { toastId: 'handleSaveTemplate_error' });
+    }
+  };
+
+  const handleDownloadClosedPRExcel = async () => {
+    setExcelMenuAnchor(null);
+    setDownloadingPRReport(true);
+    try {
+      const res = await apiClient.api.get(`/api/PRManage/ManagePRReportExcel/${idFromURL}`, {
+        headers: { Authorization: `Bearer ${atoken}` },
+        responseType: 'blob',
+      });
+      if (res?.data) {
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `PR_Report_${idFromURL}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setDownloadingPRReport(false);
+    }
+  };
+
+  const handleDownloadClosedPRPDF = async () => {
+    setExcelMenuAnchor(null);
+    setDownloadingPRPDF(true);
+    try {
+      const res = await apiClient.api.get(`/api/PRManage/ManagePRReportPDF/${idFromURL}`, {
+        headers: { Authorization: `Bearer ${atoken}` },
+        responseType: 'blob',
+      });
+      if (res?.data) {
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `PR_Report_${idFromURL}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setDownloadingPRPDF(false);
+    }
+  };
 
   const handleMenuClick = (item) => {
-    setSelectedMenuItem(item);
-    setAnchorEl(null); // Close the menu after selection
+    setAnchorEl(null);
     if (item === "Cancel") {
-      handleCancel(); // <-- modal open
+      handleCancel();
+    } else if (item === "Save as Templates") {
+      setTemplateTitle(formik?.values?.prSubject || '');
+      setTemplateDialogOpen(true);
+    } else if (item === "Recall PR") {
+      setRecallConfirmOpen(true);
+    } else {
+      setSelectedMenuItem(item);
     }
   };
 
@@ -1054,7 +1166,7 @@ const PurchaseRequest = ({ claimType }) => {
     }
     catch (error) {
       console.error("Upload error", error);
-      toast.error("An error occurred during file upload");
+      toast.error(getApiErrorMessage(error));
     }
     finally {
 
@@ -1157,6 +1269,20 @@ const PurchaseRequest = ({ claimType }) => {
                             </div>
                           </MenuItem>
                         }
+                        {idFromURL && currentStage === 'Under Approval' && !hasAnyApproval &&
+                          <MenuItem onClick={() => handleMenuClick('Recall PR')}>
+                            <div>
+                              <span className="text-capitalize">Recall PR</span>
+                            </div>
+                          </MenuItem>
+                        }
+                        {idFromURL && (currentStage === 'Close' || currentStage === 'Consumed') && (
+                          <MenuItem onClick={(e) => { setAnchorEl(null); setExcelMenuAnchor(e.currentTarget); }}>
+                            <div>
+                              <span className="text-capitalize">Download Report</span>
+                            </div>
+                          </MenuItem>
+                        )}
                         <MenuItem onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
                           <div>
                             <span className="text-capitalize">Cancel</span>
@@ -1205,7 +1331,7 @@ const PurchaseRequest = ({ claimType }) => {
                     />
                   )}
                   {idFromURL &&
-                    !["Under Approval", "Draft"].includes(currentStage.trim()) && (
+                    !["Draft"].includes(currentStage.trim()) && (
                       <Tab
                         value={4}
                         label={<span className="section-heading">Recent Queries</span>}
@@ -1512,7 +1638,7 @@ const PurchaseRequest = ({ claimType }) => {
                                 />
                               </div>}
 
-                              {/* <div className="col-12 col-md-6 col-lg-3 mb-2">
+                              <div className="col-12 col-md-6 col-lg-3 mb-2">
                                 <FormGroup>
                                   <FormControlLabel
                                     control={
@@ -1529,7 +1655,7 @@ const PurchaseRequest = ({ claimType }) => {
                                     sx={{ alignItems: 'center', height: '100%' }}
                                   />
                                 </FormGroup>
-                              </div> */}
+                              </div>
                             </div>
                           </form>
                         </div>
@@ -2181,6 +2307,50 @@ const PurchaseRequest = ({ claimType }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Recall PR confirmation dialog */}
+      <Dialog open={recallConfirmOpen} onClose={() => setRecallConfirmOpen(false)}>
+        <DialogTitle>Recall PR</DialogTitle>
+        <DialogContent style={{ minWidth: '300px' }}>
+          <DialogContentText>Are you sure you want to recall this PR from approval?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRecallConfirmOpen(false)}>No</Button>
+          <Button onClick={handleRecall} autoFocus>Yes</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Save as Template dialog */}
+      <Dialog open={templateDialogOpen} onClose={() => setTemplateDialogOpen(false)}>
+        <DialogTitle>Save as Template</DialogTitle>
+        <DialogContent style={{ minWidth: '340px' }}>
+          <DialogContentText>Enter a name for this template:</DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Template Name *"
+            type="text"
+            fullWidth
+            value={TemplateTitle}
+            onChange={(e) => setTemplateTitle(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTemplateDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleSaveTemplate} disabled={!idFromURL}>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Download Report submenu */}
+      <Menu anchorEl={excelMenuAnchor} open={Boolean(excelMenuAnchor)} onClose={() => setExcelMenuAnchor(null)}>
+        <MenuItem onClick={handleDownloadClosedPRExcel} disabled={downloadingPRReport}>
+          <span>Download Excel</span>
+        </MenuItem>
+        <MenuItem onClick={handleDownloadClosedPRPDF} disabled={downloadingPRPDF}>
+          <span>Download PDF</span>
+        </MenuItem>
+      </Menu>
+
       <Modal
         show={purchaseOrgModal}
         backdrop="static"
