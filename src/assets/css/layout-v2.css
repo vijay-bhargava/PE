@@ -736,8 +736,8 @@
    ============================================================ */
 .v2-main-content {
   padding: 20px;
-  min-height: 100vh;
-  /* margin-top: var(--v2-header-height); */
+  min-height: calc(100vh - var(--v2-header-height));
+  margin-top: var(--v2-header-height);
   transition: margin-left var(--v2-transition);
   background: #f3f4f6;
   font-family: var(--v2-font-family);
