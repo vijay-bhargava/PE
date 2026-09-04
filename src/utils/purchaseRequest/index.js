@@ -87,13 +87,13 @@ export const getPRManageFind = async (data, atoken, pageNumber = 1, pageSize = 1
     console.log(error)
   }
 }
-export const getPRAdvanceFind = async (data, atoken) => {
+export const getPRAdvanceFind = async (data, atoken, pageNumber = 1, pageSize = 1000) => {
   const queryParams = Object.entries(data)
     .filter(([key, value]) => value !== null && value !== undefined && value !== '' && value !== 0)
     .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
     .join('&');
   try {
-    const ENDPOINT = `${domain}api/PRManage/FindAdvnceSearch?${queryParams}`;
+    const ENDPOINT = `${domain}api/PRManage/Find?${queryParams}&pageNumber=${pageNumber}&pageSize=${pageSize}`;
     const headers = {
       accept: "application/json",
       "Content-Type": "application/json",
@@ -101,11 +101,12 @@ export const getPRAdvanceFind = async (data, atoken) => {
     };
     const response = await axios.get(ENDPOINT, { headers });
     if (response?.status === 200) {
-      return response?.data?.result;
+      return response?.data;
     }
 
   } catch (error) {
-    console.log(error)
+    console.log(error);
+    throw error;
   }
 }
 export const PRItemServiceAdd = async (data, atoken) => {
@@ -123,6 +124,7 @@ export const PRItemServiceAdd = async (data, atoken) => {
     }
   } catch (error) {
     console.log(error)
+    throw error;
   }
 }
 
@@ -148,6 +150,7 @@ export const PRMultipleAdd = async (data, prId, atoken) => {
     }
   } catch (error) {
     console.log(error)
+    throw error;
   }
 }
 
@@ -166,6 +169,7 @@ export const PRItemServiceUpdate = async (data, atoken) => {
     }
   } catch (error) {
     console.log(error)
+    throw error;
   }
 }
 
@@ -189,6 +193,7 @@ export const getPRItemServiceFind = async (data, atoken) => {
 
   } catch (error) {
     console.log(error)
+    throw error;
   }
 }
 
@@ -207,6 +212,7 @@ export const PRItemServiceDelete = async (data, atoken) => {
     }
   } catch (error) {
     console.log(error)
+    throw error;
   }
 }
 
@@ -232,11 +238,12 @@ export const getItemCategory = async (data, atoken) => {
 
   } catch (error) {
     console.log(error)
+    throw error;
   }
 }
 export const FindItemCategory = async (data, atoken) => {
 
-const queryParams = Object.entries(data)
+  const queryParams = Object.entries(data)
     .filter(([key, value]) => value !== null && value !== undefined && value !== '')
     .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
     .join('&');
@@ -254,32 +261,34 @@ const queryParams = Object.entries(data)
 
   } catch (error) {
     console.log(error)
+    throw error;
   }
 }
 
 export const FindItemType = async (data, atoken) => {
-  
-  const queryParams = Object.entries(data)
-      .filter(([key, value]) => value !== null && value !== undefined && value !== '')
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-      .join('&');
-    try {
-      const ENDPOINT = `${domain}api/ItemType/Find?${queryParams}`;
-      const headers = {
-        accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${atoken}`,
-      };
-      
-      const response = await axios.get(ENDPOINT, { headers });
-      
-      if (response?.status === 200) {
-        return response?.data?.result;
-      }
 
-    } catch (error) {
-      console.log(error)
+  const queryParams = Object.entries(data)
+    .filter(([key, value]) => value !== null && value !== undefined && value !== '')
+    .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+    .join('&');
+  try {
+    const ENDPOINT = `${domain}api/ItemType/Find?${queryParams}`;
+    const headers = {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${atoken}`,
+    };
+
+    const response = await axios.get(ENDPOINT, { headers });
+
+    if (response?.status === 200) {
+      return response?.data?.result;
     }
+
+  } catch (error) {
+    console.log(error)
+    throw error;
+  }
 }
 
 
@@ -382,7 +391,7 @@ export const FindPlantStorage = async (data, atoken) => {
     .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
     .join('&');
   try {
-    
+
     const ENDPOINT = `${domain}api/StorageLocation/Find?${queryParams}`;
     const headers = {
       accept: "application/json",
@@ -484,7 +493,7 @@ export const buildQueryParams = (data) => {
 export const buildMultiParamQueryParams = (data) => {
   const queryParams = Object.entries(data)
     .filter(([_, value]) => value !== null && value !== undefined && value !== "")
-    .flatMap(([key, value]) => 
+    .flatMap(([key, value]) =>
       Array.isArray(value)
         ? value.map(v => `${encodeURIComponent(key)}=${encodeURIComponent(v)}`)
         : [`${encodeURIComponent(key)}=${encodeURIComponent(value)}`]

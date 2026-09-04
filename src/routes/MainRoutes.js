@@ -24,7 +24,7 @@ import OrganisationProfile from "../pages/Settings/OrganisationSetup/Organisatio
 import ManageStageList from "../pages/Settings/ManageStage/ManageStageList";
 import UserManage from "../pages/Settings/OrganisationSetup/UserManage";
 import CustomerList from "../pages/MasterData/CustomerSetup/CustomerListV2";
-import ManagePR from "../pages/Configuration/PurchaseRequest/ManagePR";
+import ManagePR from "../pages/Configuration/PurchaseRequest/ManagePRV2";
 import PurchaseRequest from "../pages/Configuration/PurchaseRequest/PurchaseRequest";
 
 import { bid_list, managePR_list, manageParticipants_list, managerfi_list, managerfq_list, managenfa_list, purchaseRequest_list, registerParticipants_list, rfq_list, nfa_list } from "./claimlist";
