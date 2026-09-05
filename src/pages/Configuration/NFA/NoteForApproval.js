@@ -1529,9 +1529,11 @@ const NoteForApproval = ({ claimType, breadcrumb }) => {
     handleMenuClose();
   }, [handleMenuClose]);
 
+  const [wfFetched, setWfFetched] = useState(false);
   const handleEventAppList = useCallback((arr, updatedvalue) => {
     setEventAppList(arr);
-    setApproverInWorkflow(updatedvalue)
+    setApproverInWorkflow(updatedvalue);
+    setWfFetched(true);
   }, []);
 
   const handleCreatePO = async () => {
@@ -1592,8 +1594,8 @@ const NoteForApproval = ({ claimType, breadcrumb }) => {
                           Cancel
                         </button>
                         {idFromURL && currentStage === 'Draft' && (
-                          <button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Templates')}>
-                            Save as Templates
+                          <button type="button" className="pe-btn pe-btn--secondary" onClick={handleClickOpen}>
+                            Save as Template
                           </button>
                         )}
                         {idFromURL && currentStage !== 'Draft' && currentStage !== 'Approved' && (
@@ -1924,6 +1926,8 @@ const NoteForApproval = ({ claimType, breadcrumb }) => {
           formik={formik}
           userDetail={userDetail}
           atoken={atoken}
+          wfFetched={wfFetched}
+          eventAppList={eventAppList}
           historyLoading={historyLoading}
           historyGraph={historyGraph}
           panelAttachLoading={panelAttachLoading}
@@ -2069,22 +2073,21 @@ const NoteForApproval = ({ claimType, breadcrumb }) => {
       <PEModal
         open={open}
         onClose={handleClose}
-        size="sm"
+        size="xs"
         title="Save As"
-        bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
-        bodyClassName="d-flex flex-column"
+        bodyStyle={{ padding: '16px 20px' }}
         footer={
           <>
-            <button className="pe-btn pe-btn--ghost" onClick={handleClose}>Cancel</button>
+            <button className="rfq-v2-event-btn rfq-v2-event-btn-ghost" onClick={handleClose}>Cancel</button>
             <button className="pe-btn pe-btn--primary" onClick={handleSaveTemplate} disabled={!idFromURL}>Save</button>
           </>
         }
       >
+        <label className="pe-field-label">NFA Template Title</label>
         <TextFieldCell
-          id="password"
-          name="password"
-          label="NFA Template Title"
-          placeholder=""
+          id="nfa-template-title"
+          name="nfa-template-title"
+          placeholder="Enter template title"
           value={TemplateTitle}
           onChange={(e) => setTemplateTitle(e.target.value)}
           maxLength={100}

@@ -8,9 +8,10 @@
 #mainRightContant.v2-main-content:has(.rfq-v2-page) {
   box-sizing: border-box;
   height: calc(100vh - var(--v2-header-height));
+  margin-top: var(--v2-header-height);
   min-height: 0;
-  /* margin-top: var(--v2-header-height); */
   overflow: hidden;
+  padding: 0;
 }
 
 .rfq-v2-page {

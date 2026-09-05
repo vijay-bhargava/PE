@@ -5,6 +5,7 @@ import {
 } from 'react-icons/hi';
 import { formatDateViaTimeZone, formatoption } from '../../utils/common/utility';
 import StatusBadge from '../../components/StatusBadge';
+import CommonTooltip from '../../components/commonTooltip';
 import { PETableSimple } from '../../components/RFQ/PETable';
 import '../../assets/css/manage-rfq-v2.css';
 import '../../assets/css/design-system.css';
@@ -57,10 +58,7 @@ const fmtQty = (q, uom) => {
 	return `${display} ${uom ?? ''}`.trim();
 };
 
-const pct = (part, total) => (total > 0 ? Math.round((Number(part) / Number(total)) * 100) : 0);
-
 /* ──── data helpers ────────────────────────────────────────────────────────────────── */
-
 const getItemASNs = (shipments, item) =>
 	(shipments ?? []).filter(s =>
 		(s.shipmentDetails ?? []).some(d => {
@@ -70,17 +68,6 @@ const getItemASNs = (shipments, item) =>
 			);
 			return matchByItemNo || matchByPoDetail;
 		})
-	);
-
-const getItemGRNs = (shipments, item) =>
-	(shipments ?? []).flatMap(s =>
-		(s.shipmentDetails ?? []).filter(d => {
-			const matchByItemNo = d.itemNo != null && (String(d.itemNo) === String(item?.itemNo) || String(d.itemNo) === String(item?.itemCode));
-			const matchByPoDetail = (d.poCreationDetailId != null || d.poItemId != null) && (
-				String(d.poCreationDetailId ?? d.poItemId) === String(item?.id ?? item?.poCreationDetailId ?? item?.poItemId)
-			);
-			return matchByItemNo || matchByPoDetail;
-		}).map(d => ({ ...d, _asnId: s.id, _asnStatus: s.status, _shippingDate: s.shippingDate }))
 	);
 
 const getItemConditions = (itemConditions, item) =>
@@ -393,12 +380,7 @@ const POItemList = ({
 }) => {
 	const isDraft = String(currentStage ?? '').toLowerCase().includes('draft');
 	const [expandedId, setExpandedId] = useState(null);
-	const [activeTabPerItem, setActiveTabPerItem] = useState({});
 	const [itemDetailData, setItemDetailData] = useState({});
-
-	const handleToggleItem = (item) => {
-		setExpandedId(prev => prev === item.id ? null : item.id);
-	};
 
 	const handleExpandToggle = (key) => {
 		setExpandedId(prev => prev === key ? null : key);
@@ -522,25 +504,31 @@ const POItemList = ({
 		},
 		{
 			key: 'itemCode', label: 'Item Code',
-			renderCell: (v) => <span style={{ fontWeight: 600, color: '#1976d2', fontSize: 12 }}>{v ?? ''}</span>,
+			renderCell: (v) => <span style={{ fontWeight: 600, fontSize: 12 }}>{v ?? ''}</span>,
 		},
 		{
 			key: 'lineItemNo', label: 'Item No',
-			renderCell: (v) => <span style={{ fontWeight: 600, color: '#1976d2', fontSize: 12 }}>{v ?? ''}</span>,
+			renderCell: (v) => <span style={{ fontWeight: 600, fontSize: 12 }}>{v ?? ''}</span>,
 		},
 		{
 			key: 'itemName', label: 'Item Name',
-			renderCell: (v) => <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a' }}>{v ?? ''}</span>,
+			renderCell: (v) => (
+				<CommonTooltip title={v || ''} placement="bottom">
+					<span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{v ?? ''}</span>
+				</CommonTooltip>
+			),
 		},
 		{
 			key: 'itemDesc', label: 'Description',
 			renderCell: (v, row) => (
-				<div>
-					<div style={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a' }}>{v ?? ''}</div>
-					{row.materialCode && (
-						<div style={{ fontSize: 11, color: '#888' }}>MAT-{row.materialCode} &nbsp;|&nbsp; {row.uom ?? ''}</div>
-					)}
-				</div>
+				<CommonTooltip title={v || ''} placement="bottom">
+					<div style={{ overflow: 'hidden' }}>
+						<div style={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v ?? ''}</div>
+						{row.materialCode && (
+							<div style={{ fontSize: 11, color: '#888' }}>MAT-{row.materialCode} &nbsp;|&nbsp; {row.uom ?? ''}</div>
+						)}
+					</div>
+				</CommonTooltip>
 			),
 		},
 		{

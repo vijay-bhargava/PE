@@ -28,6 +28,9 @@ const NFAWorkflowPanel = ({
   formik,
   userDetail,
   atoken,
+  // workflow empty state
+  wfFetched,
+  eventAppList,
   // history
   historyLoading,
   historyGraph,
@@ -141,21 +144,34 @@ const NFAWorkflowPanel = ({
         <div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
           {/* Workflow tab */}
           {approvershow && workflowPanelTab === 'workflow' && (
-            <EventApprovalBox
-              requestCell={requestCell}
-              handleEventAppList={handleEventAppList}
-              wfupdate={wfupdate}
-              action={true}
-              stagelist={stagelist}
-              accessLevel={accessLevel}
-              Version={parseInt(formik?.values?.Version)}
-              permissionManager={permissionManager}
-              eventCode={tempDataEditData?.[0]?.eventCode}
-              eventSubject={tempDataEditData?.[0]?.subject}
-              startDate={tempDataEditData?.[0]?.startDate}
-              endDate={tempDataEditData?.[0]?.endDate}
-              currentStage={currentStage}
-            />
+            <>
+              <EventApprovalBox
+                requestCell={requestCell}
+                handleEventAppList={handleEventAppList}
+                wfupdate={wfupdate}
+                action={true}
+                stagelist={stagelist}
+                accessLevel={accessLevel}
+                Version={parseInt(formik?.values?.Version)}
+                permissionManager={permissionManager}
+                eventCode={tempDataEditData?.[0]?.eventCode}
+                eventSubject={tempDataEditData?.[0]?.subject}
+                startDate={tempDataEditData?.[0]?.startDate}
+                endDate={tempDataEditData?.[0]?.endDate}
+                currentStage={currentStage}
+              />
+              {(requestCell?.EventId === 0 || (wfFetched && (!eventAppList || eventAppList.length === 0))) && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 24px', textAlign: 'center' }}>
+                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2C9.24 2 7 4.24 7 7v2H5c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-9c0-1.1-.9-2-2-2h-2V7c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3v2H9V7c0-1.66 1.34-3 3-3zm0 9c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z" fill="#9ca3af"/>
+                    </svg>
+                  </div>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: '#111827', marginBottom: 6 }}>No Approvers Configured</div>
+                  <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>No approval workflow has been set up for this event.</div>
+                </div>
+              )}
+            </>
           )}
 
           {/* History tab */}
@@ -164,7 +180,16 @@ const NFAWorkflowPanel = ({
               {historyLoading ? (
                 <div className="rfq-dv2-panel-loading">Loading history…</div>
               ) : historyGraph.length === 0 ? (
-                <div className="rfq-dv2-panel-empty">No history found.</div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 24px', textAlign: 'center' }}>
+                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7V3zm8 0v5h-5l1.85-1.85A7.003 7.003 0 0 0 13 5V3a9.003 9.003 0 0 1 5.65 2L21 3z" fill="#9ca3af"/>
+                      <path d="M12 8v4l3 3-1.41 1.41L10 13V8h2z" fill="#9ca3af"/>
+                    </svg>
+                  </div>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: '#111827', marginBottom: 6 }}>No History Available</div>
+                  <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>No activity has been recorded for this event yet.</div>
+                </div>
               ) : (
                 <div className="rfq-dv2-stage-graph">
                   {historyGraph.map((stage, i) => {

@@ -4,7 +4,7 @@ const CommonTooltip = styled(({ className, ...props }) => (
   <Tooltip {...props} classes={{ popper: className }} />
 ))(({ theme }) => ({
   [`& .${tooltipClasses.tooltip}`]: {
-    fontSize: '14px',
+    fontSize: '12px',
     maxWidth: '500px',
     backgroundColor: 'common.black',
     '& .MuiTooltip-arrow': {
