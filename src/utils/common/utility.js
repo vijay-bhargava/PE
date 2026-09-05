@@ -307,7 +307,8 @@ export const GetNFACondition = async (data, atoken) => {
 
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -339,7 +340,7 @@ export const getEventStage = async (data, atoken) => {
 	} catch (error) {
 		console.log(error);
 	}
-}; 
+};
 
 export const getuserlist = async (data, atoken) => {
 	try {
@@ -351,7 +352,7 @@ export const getuserlist = async (data, atoken) => {
 		};
 
 		const response = await axios.get(ENDPOINT, { headers });
-		
+
 		return response?.data?.result;
 	} catch (error) {
 		console.log(error);
@@ -550,28 +551,28 @@ export const DeleteEventApprover = async (data, atoken) => {
 };
 
 export const getCurrency = async (data, atoken) => {
-  try {
-    const ENDPOINT = `${domain}api/Currency/Find`;
+	try {
+		const ENDPOINT = `${domain}api/Currency/Find`;
 
-    const headers = {
-      accept: "application/json",
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${atoken}`,
-    };
+		const headers = {
+			accept: "application/json",
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${atoken}`,
+		};
 
-    const response = await axios.get(ENDPOINT, {
-      headers,
-      params: {
-        IsActive: true,
-      },
-    });
+		const response = await axios.get(ENDPOINT, {
+			headers,
+			params: {
+				IsActive: true,
+			},
+		});
 
-    if (response?.status === 200) {
-      return response?.data?.result;
-    }
-  } catch (error) {
-    console.log(error);
-  }
+		if (response?.status === 200) {
+			return response?.data?.result;
+		}
+	} catch (error) {
+		console.log(error);
+	}
 };
 
 export const getWorkFlowList = async (data, atoken) => {
@@ -641,7 +642,8 @@ export const FindDepartmentList = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -666,7 +668,8 @@ export const getBusinessUnit = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -691,7 +694,8 @@ export const getUserDepartment = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -717,7 +721,8 @@ export const getUserDepartmentList = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -745,7 +750,8 @@ export const getBusinessUnitList = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -846,7 +852,8 @@ export const getUserDesignation = async (data, atoken) => {
 		var isActive = true;
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -972,7 +979,8 @@ export const getRFQManageFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -996,7 +1004,7 @@ export const getRFQManageFindById = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			return response?.data;
 		}
 	} catch (error) {
 		console.log(error);
@@ -1063,7 +1071,8 @@ export const getRFQItemServiceFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -1117,7 +1126,8 @@ export const getLibraryOrgEntityFind = async (data, atoken) => {
 
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -1141,7 +1151,8 @@ export const getCommercialLibFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -1182,7 +1193,8 @@ export const getQuestionsLibFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -1786,20 +1798,20 @@ export const filteroptionDialingCode = createFilterOptions({
 
 //Auctions
 export const getAuctionManageFind = async (data, atoken, pageNumber = 1, pageSize = 10) => {
-	
+
 	// const queryParams = Object.entries(data)
 	// 	.filter(
 	// 		([key, value]) => value !== null && value !== undefined && value !== ""
 	// 	)
 	// 	.map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
 	// 	.join("&");
-	 const paramString = Object.entries(data)
-        .filter(([key, value]) => value !== null && value !== undefined && value !== "")
-        .map(([key, value]) => `parameters[${key}]=${encodeURIComponent(value)}`)
-        .join("&");
+	const paramString = Object.entries(data)
+		.filter(([key, value]) => value !== null && value !== undefined && value !== "")
+		.map(([key, value]) => `parameters[${key}]=${encodeURIComponent(value)}`)
+		.join("&");
 	try {
 		//const ENDPOINT = `${domain}api/AuctionManage/Find?${queryParams}`;
-		
+
 		const ENDPOINT = `${domain}api/AuctionManage/Find?${paramString}&pageNumber=${pageNumber}&pageSize=${pageSize}`;
 		const headers = {
 			accept: "application/json",
@@ -1807,9 +1819,9 @@ export const getAuctionManageFind = async (data, atoken, pageNumber = 1, pageSiz
 			Authorization: `Bearer ${atoken}`,
 		};
 		const response = await axios.get(ENDPOINT, { headers });
-		
+
 		if (response?.status === 200) {
-			
+
 			// return response?.data?.result;
 			return response?.data;
 
@@ -1888,7 +1900,8 @@ export const getAuctionItemServiceFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -1935,24 +1948,24 @@ export const getReportColumns = async (data, atoken) => {
 };
 
 export const getRFQSummaryReport = async (params, atoken) => {
-    try {
-       
-        
-        const ENDPOINT = `${domain}api/RFQManage/RFQSummaryReport?${params}`;
-      const headers = {
-        accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${atoken}`,
-        };
- 
-        const response = await axios.get(ENDPOINT, { headers });
- 
-        if (response?.status === 200) {
-            return response?.data;
-        }
-    } catch (error) {
-        console.error('Error in getRFQSummaryReport:', error);
-    }
+	try {
+
+
+		const ENDPOINT = `${domain}api/RFQManage/RFQSummaryReport?${params}`;
+		const headers = {
+			accept: "application/json",
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${atoken}`,
+		};
+
+		const response = await axios.get(ENDPOINT, { headers });
+
+		if (response?.status === 200) {
+			return response?.data;
+		}
+	} catch (error) {
+		console.error('Error in getRFQSummaryReport:', error);
+	}
 };
 // export const getRFQSummaryReport = async (data, atoken) => {
 
@@ -1973,87 +1986,87 @@ export const getRFQSummaryReport = async (params, atoken) => {
 // };
 
 export const getRFQSavingSummaryReport = async (data, atoken) => {
-    try {
-        const ENDPOINT = `${domain}api/RFQManage/RFQSavingSummaryReport `;
-        const headers = {
-            accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${atoken}`,
-        };
-        const response = await axios.get(ENDPOINT, { headers });
-        if (response?.status === 200) {
-            return response?.data;
-        }
-    } catch (error) {
-        console.log(error);
-    }
+	try {
+		const ENDPOINT = `${domain}api/RFQManage/RFQSavingSummaryReport `;
+		const headers = {
+			accept: "application/json",
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${atoken}`,
+		};
+		const response = await axios.get(ENDPOINT, { headers });
+		if (response?.status === 200) {
+			return response?.data;
+		}
+	} catch (error) {
+		console.log(error);
+	}
 };
 export const getRFQSummaryDetailedReport = async (data, atoken) => {
-    try {
-        const ENDPOINT = `${domain}api/RFQManage/RFQSummaryDetailedReport `;
-        const headers = {
-            accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${atoken}`,
-        };
-        const response = await axios.get(ENDPOINT, { headers });
-        if (response?.status === 200) {
-            return response?.data;
-        }
-    } catch (error) {
-        console.log(error);
-    }
+	try {
+		const ENDPOINT = `${domain}api/RFQManage/RFQSummaryDetailedReport `;
+		const headers = {
+			accept: "application/json",
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${atoken}`,
+		};
+		const response = await axios.get(ENDPOINT, { headers });
+		if (response?.status === 200) {
+			return response?.data;
+		}
+	} catch (error) {
+		console.log(error);
+	}
 };
 
 export const getBIDSummaryReport = async (data, atoken) => {
- 
-    try {
-        const ENDPOINT = `${domain}api/AuctionManage/SummaryReport`;
-        const headers = {
-            accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${atoken}`,
-        };
-        const response = await axios.get(ENDPOINT, { headers });
-        if (response?.status === 200) {
-            return response?.data;
-        }
-    } catch (error) {
-        console.log(error);
-    }
+
+	try {
+		const ENDPOINT = `${domain}api/AuctionManage/SummaryReport`;
+		const headers = {
+			accept: "application/json",
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${atoken}`,
+		};
+		const response = await axios.get(ENDPOINT, { headers });
+		if (response?.status === 200) {
+			return response?.data;
+		}
+	} catch (error) {
+		console.log(error);
+	}
 };
 export const getBIDSavingSummaryReport = async (data, atoken) => {
-    try {
-        const ENDPOINT = `${domain}api/AuctionManage/SavingSummaryReport`;
-        const headers = {
-            accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${atoken}`,
-        };
-        const response = await axios.get(ENDPOINT, { headers });
-        if (response?.status === 200) {
-            return response?.data;
-        }
-    } catch (error) {
-        console.log(error);
-    }
+	try {
+		const ENDPOINT = `${domain}api/AuctionManage/SavingSummaryReport`;
+		const headers = {
+			accept: "application/json",
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${atoken}`,
+		};
+		const response = await axios.get(ENDPOINT, { headers });
+		if (response?.status === 200) {
+			return response?.data;
+		}
+	} catch (error) {
+		console.log(error);
+	}
 };
 
 export const getBIDSummaryDetailedReport = async (data, atoken) => {
-    try {
-        const ENDPOINT = `${domain}api/AuctionManage/SummaryDetailedReport`;
-        const headers = {
-            accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${atoken}`,
-        };
-        const response = await axios.get(ENDPOINT, { headers });
-        if (response?.status === 200) {
-            return response?.data;
-        }
-    } catch (error) {
-        console.log(error);
-    }
+	try {
+		const ENDPOINT = `${domain}api/AuctionManage/SummaryDetailedReport`;
+		const headers = {
+			accept: "application/json",
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${atoken}`,
+		};
+		const response = await axios.get(ENDPOINT, { headers });
+		if (response?.status === 200) {
+			return response?.data;
+		}
+	} catch (error) {
+		console.log(error);
+	}
 };
 export const PE_CHATBOT_API = `https://peaichatbot.azurewebsites.net/chatbot/ask/`
 export const PE_CHATBOT_Web_API = `https://peaichatbot.azurewebsites.net/chatbot/askweb/`
@@ -2355,7 +2368,8 @@ export const getEventDetails = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -2379,7 +2393,8 @@ export const getNFAProjectList = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -2401,7 +2416,8 @@ export const getNFAConditionList = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -2425,14 +2441,15 @@ export const getNFASpendList = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
 	}
 }
 
-export const getNFAManageFind = async (data, atoken) => {
+export const getNFAManageFind = async (data, atoken, pageNumber = 1, pageSize = 10) => {
 	const queryParams = Object.entries(data)
 		.filter(
 			([key, value]) => value !== null && value !== undefined && value !== ""
@@ -2440,7 +2457,7 @@ export const getNFAManageFind = async (data, atoken) => {
 		.map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
 		.join("&");
 	try {
-		const ENDPOINT = `${domain}api/NFAManage/Find?${queryParams}`;
+		const ENDPOINT = `${domain}api/NFAManage/Find?${queryParams}&pageNumber=${pageNumber}&pageSize=${pageSize}`;
 		const headers = {
 			accept: "application/json",
 			"Content-Type": "application/json",
@@ -2448,7 +2465,8 @@ export const getNFAManageFind = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -2472,7 +2490,8 @@ export const getNFAManageFindById = async (data, atoken) => {
 		};
 		const response = await axios.get(ENDPOINT, { headers });
 		if (response?.status === 200) {
-			return response?.data?.result;
+			const d = response?.data;
+			return Array.isArray(d) ? d : d?.result;
 		}
 	} catch (error) {
 		console.log(error);
@@ -2497,25 +2516,25 @@ export const cleanAndConvertToArray = (str) => {
 
 export const getOnlyDateFormatPatternLocale = (userDetail) => {
 
-    const locale = userDetail?.dateLocale || defaultlocale;
+	const locale = userDetail?.dateLocale || defaultlocale;
 
-    const formatMapping = {
-        'en-US': 'MM/DD/YYYY',
-        'en-GB': 'DD/MM/YYYY',
-        'fr-FR': 'DD/MM/YYYY',
-        'de-DE': 'DD.MM.YYYY',
-        'ja-JP': 'YYYY/MM/DD',
-        'es-ES': 'DD/MM/YYYY',
-        'it-IT': 'DD/MM/YYYY',
-        'ar-SA': 'DD/MM/YYYY',
-        'ko-KR': 'YYYY.MM.DD',
-        'lv-LV': 'DD.MM.YYYY',
-        'fr-CA': 'YYYY-MM-DD'
-    };
+	const formatMapping = {
+		'en-US': 'MM/DD/YYYY',
+		'en-GB': 'DD/MM/YYYY',
+		'fr-FR': 'DD/MM/YYYY',
+		'de-DE': 'DD.MM.YYYY',
+		'ja-JP': 'YYYY/MM/DD',
+		'es-ES': 'DD/MM/YYYY',
+		'it-IT': 'DD/MM/YYYY',
+		'ar-SA': 'DD/MM/YYYY',
+		'ko-KR': 'YYYY.MM.DD',
+		'lv-LV': 'DD.MM.YYYY',
+		'fr-CA': 'YYYY-MM-DD'
+	};
 
-    const dateformat = formatMapping[locale] || 'DD/MM/YYYY';
+	const dateformat = formatMapping[locale] || 'DD/MM/YYYY';
 
-    return dateformat;   // <-- only date format returned
+	return dateformat;   // <-- only date format returned
 };
 
 

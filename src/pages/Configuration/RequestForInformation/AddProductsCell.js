@@ -20,8 +20,8 @@ import { UploadOutlined } from '@mui/icons-material';
 import { getFileName, uploadFilesOnAzure, uploadFilesOnAzure2, validateFileSize } from '../../../utils/common';
 import { uploadFilesOnAzureURL } from '../../../utils/manageParticipants';
 
-const AddProductsCell = ({ idFromURL, UOMMaster, callbackItemAdd, itemEditTempData, handleUomList ,action,accesslevel}) => {
-  const [{ atoken, rtoken, customerid,customersuffix, userDetail }, dispatch] = useStateValue();
+const AddProductsCell = ({ idFromURL, UOMMaster, callbackItemAdd, itemEditTempData, handleUomList, action, accesslevel }) => {
+  const [{ atoken, rtoken, customerid, customersuffix, userDetail }, dispatch] = useStateValue();
   const apiClient = new ApiClient(customersuffix);
   const [loadingSubmit, setLoadingSubmit] = useState(false)
   const [UomModal, setUomModal] = useState(false);
@@ -34,8 +34,8 @@ const AddProductsCell = ({ idFromURL, UOMMaster, callbackItemAdd, itemEditTempDa
 
   useEffect(() => {
     PullItemCateogory();
- 
-}, [atoken, customerid]);
+
+  }, [atoken, customerid]);
   const validationSchema = yup.object().shape({
     itemName: yup
       .string('Enter Item/Service Name')
@@ -47,8 +47,8 @@ const AddProductsCell = ({ idFromURL, UOMMaster, callbackItemAdd, itemEditTempDa
     itemDesc: yup
       .string('Enter Description')
       .required('Description is required'),
-    
-      quantity: yup.number()
+
+    quantity: yup.number()
       .min(0.01, 'Quantity must be greater than 0') // Ensure quantity is greater than 0
       .required('Quantity is required')
       .nullable(),
@@ -104,19 +104,19 @@ const AddProductsCell = ({ idFromURL, UOMMaster, callbackItemAdd, itemEditTempDa
         poVendorName: sanitizeInput(values?.poVendorName),
         poUnitRate: values?.poUnitRate != '' ? values?.poUnitRate : 0,
         poDate: values?.poDate,
-        poValue: values?.poValue != '' ? values?.poValue : 0,    
+        poValue: values?.poValue != '' ? values?.poValue : 0,
         itemRefId: itemEditTempData && itemEditTempData?.itemRefId > 0 ? itemEditTempData?.itemRefId : 0,
-        itemCategory:values?.itemCategory,
+        itemCategory: values?.itemCategory,
         itemImage: values?.itemImage,
         itemFile: values?.itemFile
-        
+
       };
 
 
       setLoadingSubmit(true)
       if (data && data?.id == 0) {
         try {
-          RFQItemServiceAdd(data, atoken,accesslevel).then((res) => {
+          RFQItemServiceAdd(data, atoken, accesslevel).then((res) => {
             setLoadingSubmit(false);
             if (res && res > 0) {
               callbackItemAdd(res)
@@ -125,8 +125,8 @@ const AddProductsCell = ({ idFromURL, UOMMaster, callbackItemAdd, itemEditTempDa
         } catch (error) {
           console.error("Error during form submission:", error);
           toast.error("An error occurred while saving the data. Please try again.", {
-     		    toastId: "itemdelete1_error"
-    	});
+            toastId: "itemdelete1_error"
+          });
           setLoadingSubmit(false);
         }
       }
@@ -137,8 +137,8 @@ const AddProductsCell = ({ idFromURL, UOMMaster, callbackItemAdd, itemEditTempDa
             callbackItemAdd(res)
           } else {
             toast.error("An error occurred while updating the data. Please try again.", {
-     		    toastId: "itemdelete2_error"
-    	});
+              toastId: "itemdelete2_error"
+            });
             setLoadingSubmit(false);
           }
         });
@@ -154,7 +154,7 @@ const AddProductsCell = ({ idFromURL, UOMMaster, callbackItemAdd, itemEditTempDa
       setuom(selectedOption?.uom || "");
     }
   };
-  
+
 
   // const handleUomChange = (e) => {
   //   const selectedValue = e.target.value;
@@ -174,157 +174,157 @@ const AddProductsCell = ({ idFromURL, UOMMaster, callbackItemAdd, itemEditTempDa
       formik.setFieldValue(e.target.name, value);
     }
   };
-  
-  const handleItemPOSearch = async (value) => {
-    
-    const selectedValue =value
- 
-    const res = await apiClient.get(
-        `api/poconfirm/Find?CustomerId=${parseInt(customerid)}&POCreationDetails_ItemDesc=${selectedValue}`,
-        atoken
-    );
- 
 
-  //   if(res) {
-  //     console.log("poconfirm",res?.result);
- 
-      
-  //     formik.setFieldValue("poNumber", res?.result[0].poNumber);
-  //     formik.setFieldValue("poVendorName", res?.result[0]?.vendorName);      
-  //     //formik.setFieldValue("poUnitRate", res?.result?[0]?.poCreationDetails[0].materialPONetPrice);
-  //    // formik.setFieldValue("poDate", res?.result[0]?.pO_Date);      
-  //     formik.setFieldValue("poValue", res?.result[0]?.poAmount);
-  //  }
-if (res) {
-     
-    const lastElement = res.result[res.result.length - 1]; // Get the last element
-    if(lastElement){
-      formik.setFieldValue("poNumber", lastElement?.poNumber);
-      formik.setFieldValue("poVendorName", lastElement?.vendorName);
-      formik.setFieldValue("poValue", lastElement?.poAmount)
-      formik.setFieldValue("poDate", lastElement?.pO_Date ? new Date(lastElement?.pO_Date) : null);
-      const materialPONetPrice = lastElement?.poCreationDetails[0]?.materialPONetPrice;
-      formik.setFieldValue("poUnitRate", materialPONetPrice ? parseFloat(materialPONetPrice) : 0);
+  const handleItemPOSearch = async (value) => {
+
+    const selectedValue = value
+
+    const res = await apiClient.get(
+      `api/poconfirm/Find?CustomerId=${parseInt(customerid)}&POCreationDetails_ItemDesc=${selectedValue}`,
+      atoken
+    );
+
+
+    //   if(res) {
+    //     console.log("poconfirm",res?.result);
+
+
+    //     formik.setFieldValue("poNumber", res?.result[0].poNumber);
+    //     formik.setFieldValue("poVendorName", res?.result[0]?.vendorName);      
+    //     //formik.setFieldValue("poUnitRate", res?.result?[0]?.poCreationDetails[0].materialPONetPrice);
+    //    // formik.setFieldValue("poDate", res?.result[0]?.pO_Date);      
+    //     formik.setFieldValue("poValue", res?.result[0]?.poAmount);
+    //  }
+    if (res) {
+
+      const lastElement = res.result[res.result.length - 1]; // Get the last element
+      if (lastElement) {
+        formik.setFieldValue("poNumber", lastElement?.poNumber);
+        formik.setFieldValue("poVendorName", lastElement?.vendorName);
+        formik.setFieldValue("poValue", lastElement?.poAmount)
+        formik.setFieldValue("poDate", lastElement?.pO_Date ? new Date(lastElement?.pO_Date) : null);
+        const materialPONetPrice = lastElement?.poCreationDetails[0]?.materialPONetPrice;
+        formik.setFieldValue("poUnitRate", materialPONetPrice ? parseFloat(materialPONetPrice) : 0);
+      }
     }
-}
 
   };
-  
+
   const [itemCatAllList, setItemCatAllList] = useState([]);
   const [CategoryModal, setCategoryModal] = useState(false);
-  
+
   const PullItemCateogory = () => {
 
     var data = {
-        CustomerId: customerid,
+      CustomerId: customerid,
     };
     FindItemCategory(data, atoken).then((resp) => {
 
-        setItemCatAllList(resp);
+      setItemCatAllList(resp);
     });
-};
-const handleCategoryList = (array) => {
+  };
+  const handleCategoryList = (array) => {
     setItemCatAllList(array);
-};
+  };
   const CloseCategoryModal = () => setCategoryModal(false);
   const [category, setcategory] = useState("");
   const handleItemCategoryChange = (event, value) => {
     if (value && value.id === "new") {
-        setCategoryModal(true); 
-        setcategory(""); 
+      setCategoryModal(true);
+      setcategory("");
     } else {
-        const selectedOption = itemCatAllList.find(option => option.categoryDescription === value?.categoryDescription);
+      const selectedOption = itemCatAllList.find(option => option.categoryDescription === value?.categoryDescription);
 
-        // Set the Formik value and local state
-        formik.setFieldValue("itemCategory", selectedOption?.categoryDescription || "");
-        setcategory(selectedOption?.categoryDescription || "");
+      // Set the Formik value and local state
+      formik.setFieldValue("itemCategory", selectedOption?.categoryDescription || "");
+      setcategory(selectedOption?.categoryDescription || "");
     }
-};
-
-//file upload changes
-const handleItemImageChange = (event) => {
-  
-  if (!validateFileSize(event)) {
-    return;
-}
-  const file = event.target.files[0];
-  UploadItemImage(file);
-};
-
-const UploadItemImage=async (file)=>{
-  
-  if(!file){
-    return;
-  }
-  // Define the data object for upload
-  const data = {
-    RequestedBy: "customer",
-    EventType: "RFQ",
-    CustomerId: customerid,
-    Description: "Itemimage",
   };
 
-  // Upload the file to Azure and get the return path
-  try {
-    
-    const url = await uploadFilesOnAzureURL(data, file, atoken);
-    formik.setFieldValue("itemImage",url)
-  } catch (error) {
-   
-    formik.setFieldValue("itemImage","")
-  }
+  //file upload changes
+  const handleItemImageChange = (event) => {
 
-}
-const handleItemAttachmentChange = (event) => {
-  if (!validateFileSize(event)) {
-    return;
-}
-  const file = event.target.files[0];
-  UploadItemAttachment(file);
-};
-
-const UploadItemAttachment=async (file)=>{
-  
-  if(!file){
-    return;
-  }
-  // Define the data object for upload
-  const data = {
-    RequestedBy: "customer",
-    EventType: "RFQ",
-    CustomerId: customerid,
-    Description: "Itemfile",
+    if (!validateFileSize(event)) {
+      return;
+    }
+    const file = event.target.files[0];
+    UploadItemImage(file);
   };
 
-  // Upload the file to Azure and get the return path
-  try {
-    
-    const url = await uploadFilesOnAzure2(data, file, atoken);
-    formik.setFieldValue("itemFile",url.blobName)
-  } catch (error) {
-   
-    formik.setFieldValue("itemFile","")
-  }
+  const UploadItemImage = async (file) => {
 
-}
+    if (!file) {
+      return;
+    }
+    // Define the data object for upload
+    const data = {
+      RequestedBy: "customer",
+      EventType: "RFQ",
+      CustomerId: customerid,
+      Description: "Itemimage",
+    };
+
+    // Upload the file to Azure and get the return path
+    try {
+
+      const url = await uploadFilesOnAzureURL(data, file, atoken);
+      formik.setFieldValue("itemImage", url)
+    } catch (error) {
+
+      formik.setFieldValue("itemImage", "")
+    }
+
+  }
+  const handleItemAttachmentChange = (event) => {
+    if (!validateFileSize(event)) {
+      return;
+    }
+    const file = event.target.files[0];
+    UploadItemAttachment(file);
+  };
+
+  const UploadItemAttachment = async (file) => {
+
+    if (!file) {
+      return;
+    }
+    // Define the data object for upload
+    const data = {
+      RequestedBy: "customer",
+      EventType: "RFQ",
+      CustomerId: customerid,
+      Description: "Itemfile",
+    };
+
+    // Upload the file to Azure and get the return path
+    try {
+
+      const url = await uploadFilesOnAzure2(data, file, atoken);
+      formik.setFieldValue("itemFile", url.blobName)
+    } catch (error) {
+
+      formik.setFieldValue("itemFile", "")
+    }
+
+  }
 
   return (
-   
+
     <div>
       <form onSubmit={formik.handleSubmit} autoComplete="off">
-      <input
-        id="itemimagefile"
-        className="d-none"
-        type="file"
-        accept="image/jpeg,image/gif,image/png"										
-        onChange={handleItemImageChange}
-      />
-      <input
-        id="itemattachmentfile"
-        className="d-none"
-        type="file"
-        onChange={handleItemAttachmentChange}
-      />
+        <input
+          id="itemimagefile"
+          className="d-none"
+          type="file"
+          accept="image/jpeg,image/gif,image/png"
+          onChange={handleItemImageChange}
+        />
+        <input
+          id="itemattachmentfile"
+          className="d-none"
+          type="file"
+          onChange={handleItemAttachmentChange}
+        />
         <div className='row mt-2'>
           <div className='col-12 col-md-6 mb-4'>
             <TextField
@@ -377,11 +377,11 @@ const UploadItemAttachment=async (file)=>{
               id="itemCode"
               name="itemCode"
               label="Item Code "
-              inputProps={{ 
+              inputProps={{
                 maxLength: 50,
                 pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
               }}
-             
+
               value={formik.values.itemCode}
               // onChange={formik.handleChange}
               onChange={(e) => {
@@ -562,106 +562,106 @@ const UploadItemAttachment=async (file)=>{
                 const value = e.target.value;
                 // Regex to allow up to 7 digits in total, including up to 4 digits after the decimal point
                 if (value === "" || /^[0-9]{1,8}(\.[0-9]{0,4})?$/.test(value)) {
-                    if (value !== "" && parseFloat(value) > 0) {
-                        formik.setFieldValue("quantity", parseFloat(value));
-                    } else if (value === "") {
-                        formik.setFieldValue("quantity", "");
-                    }
+                  if (value !== "" && parseFloat(value) > 0) {
+                    formik.setFieldValue("quantity", parseFloat(value));
+                  } else if (value === "") {
+                    formik.setFieldValue("quantity", "");
+                  }
                 }
-            }}
+              }}
               error={formik.touched.quantity && Boolean(formik.errors.quantity)}
               helperText={formik.touched.quantity && formik.errors.quantity}
             />
           </div>
-          
-          <div className='col-12 col-md-4 mb-4'>
-  <Autocomplete
-    id="uom"
-    name="uom"
-    size="small"
-    className='w-100 f14'
-    options={[
-      ...UOMMaster,
-      { uom: "ADD NEW", id: "new" },
-    ]}
-    value={UOMMaster.find(option => option.uom === formik.values.uom) || null}
-    getOptionLabel={(option) => option.uom ?? ""}
-    onChange={handleUomChange}
-    disabled={!!itemEditTempData.itemRefId} // Disable if itemRefId exists
-    renderOption={(props, option) => (
-      <Box
-        component="li"
-        {...props}
-        style={
-          option.id === "new"
-            ? {
-                fontStyle: "italic",
-                color: "blue",
-                cursor: "pointer",
-                textDecoration: "underline",
-              }
-            : {}
-        }
-      >
-        {option.uom}
-      </Box>
-    )}
-    renderInput={(params) => (
-      <TextField
-        variant="outlined"
-        {...params}
-        label="UOM *"
-        error={formik.touched.uom && Boolean(formik.errors.uom)}
-        helperText={formik.touched.uom && formik.errors.uom}
-      />
-    )}
-  />
-</div>
-<div className='col-12 col-md-6 col-lg-4 mb-3'>
-<Autocomplete
-    id="itemCategory"
-    name="itemCategory"
-    size="small"
 
-    className='w-100 f14'
-    sx={{ width: "100%" }}
-    options={[
-        ...itemCatAllList,
-        { categoryDescription: "ADD NEW", id: "new" },
-    ]}
-    value={itemCatAllList.find(option => option.categoryDescription === formik.values.itemCategory) || null} // Set the value correctly
-    getOptionLabel={(option) => option.categoryDescription ?? ""}
-    onChange={handleItemCategoryChange}
-    renderOption={(props, option) => (
-        <Box
-            component="li"
-            {...props}
-            style={
-                option.id === "new"
-                    ? {
+          <div className='col-12 col-md-4 mb-4'>
+            <Autocomplete
+              id="uom"
+              name="uom"
+              size="small"
+              className='w-100 f14'
+              options={[
+                ...UOMMaster,
+                { uom: "ADD NEW", id: "new" },
+              ]}
+              value={UOMMaster.find(option => option.uom === formik.values.uom) || null}
+              getOptionLabel={(option) => option.uom ?? ""}
+              onChange={handleUomChange}
+              disabled={!!itemEditTempData.itemRefId} // Disable if itemRefId exists
+              renderOption={(props, option) => (
+                <Box
+                  component="li"
+                  {...props}
+                  style={
+                    option.id === "new"
+                      ? {
                         fontStyle: "italic",
                         color: "blue",
                         cursor: "pointer",
                         textDecoration: "underline",
-                    }
-                    : {}
-            }
-        >
-            {option.categoryDescription}
-        </Box>
-    )}
-    renderInput={(params) => (
-        <TextField
-            variant="outlined"
-            {...params}
-            label="Item Category"
-            shrink={true}
-            error={formik.touched.itemCategory && Boolean(formik.errors.itemCategory)}
-            helperText={formik.touched.itemCategory && formik.errors.itemCategory}
-        />
-    )}
-/>
-</div>
+                      }
+                      : {}
+                  }
+                >
+                  {option.uom}
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  variant="outlined"
+                  {...params}
+                  label="UOM *"
+                  error={formik.touched.uom && Boolean(formik.errors.uom)}
+                  helperText={formik.touched.uom && formik.errors.uom}
+                />
+              )}
+            />
+          </div>
+          <div className='col-12 col-md-6 col-lg-4 mb-3'>
+            <Autocomplete
+              id="itemCategory"
+              name="itemCategory"
+              size="small"
+
+              className='w-100 f14'
+              sx={{ width: "100%" }}
+              options={[
+                ...itemCatAllList,
+                { categoryDescription: "ADD NEW", id: "new" },
+              ]}
+              value={itemCatAllList.find(option => option.categoryDescription === formik.values.itemCategory) || null} // Set the value correctly
+              getOptionLabel={(option) => option.categoryDescription ?? ""}
+              onChange={handleItemCategoryChange}
+              renderOption={(props, option) => (
+                <Box
+                  component="li"
+                  {...props}
+                  style={
+                    option.id === "new"
+                      ? {
+                        fontStyle: "italic",
+                        color: "blue",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }
+                      : {}
+                  }
+                >
+                  {option.categoryDescription}
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  variant="outlined"
+                  {...params}
+                  label="Item Category"
+                  shrink={true}
+                  error={formik.touched.itemCategory && Boolean(formik.errors.itemCategory)}
+                  helperText={formik.touched.itemCategory && formik.errors.itemCategory}
+                />
+              )}
+            />
+          </div>
           <div className='col-6 col-md-6 col-lg-4 mb-3'>
             <TextField
               fullWidth
@@ -718,96 +718,96 @@ const UploadItemAttachment=async (file)=>{
               //   format="L hh:mm a"
               />
             </LocalizationProvider>
-            
-          </div>
-    
 
-<div className='col-6 col-md-6 col-lg-4 mb-3'>
-  <TextField
-    fullWidth
-    variant="outlined"
-    InputLabelProps={{
-      shrink: true,
-    }}
-    size="small"
-    className='f14 pointer'
-    id="itemImage"
-    name="itemImage"
-    label="Item Image "
-    inputProps={{
-      maxLength: 50,
-      pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
-    }}
-    value={getFileName(formik?.values?.itemImage)}
-    // onChange={formik.handleChange}
-    
-    disabled={true} 
-    InputProps={{
-      endAdornment: (
-        <>
-       {!formik?.values?.itemImage ?<Tooltip title="Upload Image" className='pointer'>
-          <InputAdornment position="end" >
-          <IconButton onClick={() =>document.getElementById('itemimagefile').click()
-    }>
-       <UploadOutlined/>
-       </IconButton>
-          </InputAdornment>
-          </Tooltip>:<Tooltip title="remove Image" className='pointer'>
-          <InputAdornment position="end">
-          <IconButton onClick={() => formik.setFieldValue("itemImage","")}>
-          <HiOutlineX/>
-          </IconButton>
-          </InputAdornment>
-          </Tooltip>}
-        </>
-      ),
-    }}
-  />
-</div>
-<div className='col-6 col-md-6 col-lg-4 mb-3'>
-  <TextField
-    fullWidth
-    variant="outlined"
-    InputLabelProps={{
-      shrink: true,
-    }}
-    size="small"
-    className='f14'
-    id="itemAttachment"
-    name="itemAttachment"
-    label="Item Attachment "
-    inputProps={{
-      maxLength: 50,
-      pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
-    }}
-    value={getFileName(formik.values.itemFile)}
-   
-    
-    disabled={true} 
-    InputProps={{
-      endAdornment: (
-        <>
-         {!formik?.values?.itemFile ?<Tooltip title="Upload Attachment" className='pointer'>
-          <InputAdornment position="end"  >
-       <IconButton onClick={() =>document.getElementById('itemattachmentfile').click()
-    }>
-       <UploadOutlined/>
-       </IconButton>
-           
-          </InputAdornment>
-          </Tooltip>:<Tooltip title="Remove Attachment" className='pointer'>
-          <InputAdornment position="end" >
-          <IconButton onClick={() => formik.setFieldValue("itemFile","")}>
-          <HiOutlineX/>
-          </IconButton>
-           
-          </InputAdornment>
-          </Tooltip>}
-        </>
-      ),
-    }}
-  />
-</div>
+          </div>
+
+
+          <div className='col-6 col-md-6 col-lg-4 mb-3'>
+            <TextField
+              fullWidth
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              size="small"
+              className='f14 pointer'
+              id="itemImage"
+              name="itemImage"
+              label="Item Image "
+              inputProps={{
+                maxLength: 50,
+                pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
+              }}
+              value={getFileName(formik?.values?.itemImage)}
+              // onChange={formik.handleChange}
+
+              disabled={true}
+              InputProps={{
+                endAdornment: (
+                  <>
+                    {!formik?.values?.itemImage ? <Tooltip title="Upload Image" className='pointer'>
+                      <InputAdornment position="end" >
+                        <IconButton onClick={() => document.getElementById('itemimagefile').click()
+                        }>
+                          <UploadOutlined />
+                        </IconButton>
+                      </InputAdornment>
+                    </Tooltip> : <Tooltip title="remove Image" className='pointer'>
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => formik.setFieldValue("itemImage", "")}>
+                          <HiOutlineX />
+                        </IconButton>
+                      </InputAdornment>
+                    </Tooltip>}
+                  </>
+                ),
+              }}
+            />
+          </div>
+          <div className='col-6 col-md-6 col-lg-4 mb-3'>
+            <TextField
+              fullWidth
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              size="small"
+              className='f14'
+              id="itemAttachment"
+              name="itemAttachment"
+              label="Item Attachment "
+              inputProps={{
+                maxLength: 50,
+                pattern: '[a-zA-Z0-9-/]*', // This will allow alphabets, numbers, "-" and "/"
+              }}
+              value={getFileName(formik.values.itemFile)}
+
+
+              disabled={true}
+              InputProps={{
+                endAdornment: (
+                  <>
+                    {!formik?.values?.itemFile ? <Tooltip title="Upload Attachment" className='pointer'>
+                      <InputAdornment position="end"  >
+                        <IconButton onClick={() => document.getElementById('itemattachmentfile').click()
+                        }>
+                          <UploadOutlined />
+                        </IconButton>
+
+                      </InputAdornment>
+                    </Tooltip> : <Tooltip title="Remove Attachment" className='pointer'>
+                      <InputAdornment position="end" >
+                        <IconButton onClick={() => formik.setFieldValue("itemFile", "")}>
+                          <HiOutlineX />
+                        </IconButton>
+
+                      </InputAdornment>
+                    </Tooltip>}
+                  </>
+                ),
+              }}
+            />
+          </div>
 
 
           {/* <div className="col-6 col-md-6 mb-4">
@@ -902,7 +902,7 @@ const UploadItemAttachment=async (file)=>{
         </div>
         <hr className='mt-0' />
         <div className='row mt-2'>
-          <div className='col-span-12 mt-2 mb-4'>
+          <div className='col-span-12 mt-4 mb-4'>
             Last PO Details (Optional)
           </div>
           <div className='col-12 col-md-4 mb-4'>
@@ -1057,7 +1057,7 @@ const UploadItemAttachment=async (file)=>{
             />
           </div>
         </div>
-       {action && <div className='text-end'>
+        {action && <div className='text-end'>
           <LoadingButton
             // loading
             variant='outlined'
@@ -1112,37 +1112,37 @@ const UploadItemAttachment=async (file)=>{
           </Modal.Body>
         </Modal>
         <Modal
-                    size="lg"
-                    show={CategoryModal}
-                    backdrop="static"
-                    keyboard={false}
-                    value={"Add NEW CATEGORY"}
-                    className="zindex1280"
-                    backdropClassName="zindex1280"
-                    centered
-                    contentClassName="border-0"
-                    onHide={() => CloseCategoryModal()}
-                >
-                    <Modal.Header className="pt-2 pb-2 bgheaderCards">
-                        <Modal.Title id="modal-heading">
-                            <div className="d-flex align-items-center f14 text-white">
-                                Manage Item Category
-                            </div>
-                        </Modal.Title>
-                        <IconButton
-                            onClick={() => CloseCategoryModal()}
-                            size="small"
-                            edge="start"
-                        >
-                            <HiOutlineX className="f20 text-white" />
-                        </IconButton>
-                    </Modal.Header>
-                    <Modal.Body className="p-0">
-                        <div className="p-3">
-                            <AddPrItemCategory handleCategoryList={handleCategoryList} />
-                        </div>
-                    </Modal.Body>
-                </Modal>
+          size="lg"
+          show={CategoryModal}
+          backdrop="static"
+          keyboard={false}
+          value={"Add NEW CATEGORY"}
+          className="zindex1280"
+          backdropClassName="zindex1280"
+          centered
+          contentClassName="border-0"
+          onHide={() => CloseCategoryModal()}
+        >
+          <Modal.Header className="pt-2 pb-2 bgheaderCards">
+            <Modal.Title id="modal-heading">
+              <div className="d-flex align-items-center f14 text-white">
+                Manage Item Category
+              </div>
+            </Modal.Title>
+            <IconButton
+              onClick={() => CloseCategoryModal()}
+              size="small"
+              edge="start"
+            >
+              <HiOutlineX className="f20 text-white" />
+            </IconButton>
+          </Modal.Header>
+          <Modal.Body className="p-0">
+            <div className="p-3">
+              <AddPrItemCategory handleCategoryList={handleCategoryList} />
+            </div>
+          </Modal.Body>
+        </Modal>
       </form>
     </div>
   )

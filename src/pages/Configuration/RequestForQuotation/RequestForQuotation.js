@@ -3,70 +3,15 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import IconButton from "@mui/material/IconButton";
 import HistoryCell from "../../BaseCells/HistoryCell";
-import PersonOutlined from '@mui/icons-material/PersonOutlined';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 
 // Permission Management Imports
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
-import { Alert ,Card,
-	CardHeader,
-	CardContent,} from '@mui/material';
+import { Button, Menu, Tooltip, createFilterOptions } from "@mui/material";
 
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import {
-	HiOutlineX,
-	HiX,
-	HiPlusSm,
-	HiOutlineDotsHorizontal,
-	HiPencilAlt,
-	HiPlus,
-	HiOutlinePencil,
-	HiDotsVertical,
-	HiOutlineInformationCircle,
-} from "react-icons/hi";
-import { LiaUserSolid } from "react-icons/lia";
-import {
-	Autocomplete,
-	Button,
-	ButtonGroup,
-	Checkbox,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogContentText,
-	DialogTitle,
-	FormControl,
-	FormControlLabel,
-	FormGroup,
-	FormHelperText,
-	FormLabel,
-	Input,
-	InputAdornment,
-	InputLabel,
-	Menu,
-	MenuItem,
-	Radio,
-	RadioGroup,
-	Select,
-	Stack,
-	TextField,
-	Tooltip,
-	Typography,
-	Badge,
-	createFilterOptions,
-} from "@mui/material";
-import { Dropdown, DropdownButton, Modal } from "react-bootstrap";
-import { Badge as BadgeStrap } from "react-bootstrap";
-
-import Drawer from "@mui/material/Drawer";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import Pagination from "@mui/material/Pagination";
 import Box from "@mui/material/Box";
-import TextFieldCell from "../../BaseCells/TextFieldCell";
-import LoadingButton from "@mui/lab/LoadingButton";
-import ProductitemCell from "./ProductitemCell";
-import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import {
 	useLocation,
@@ -75,116 +20,71 @@ import {
 	useSearchParams,
 } from "react-router-dom";
 import {
-	IntegerRegex,
 	InvitedSupplierModal,
 	findObjByValueFromArray,
-	findObjListByValueFromArray,
 	getPayloadWithStage,
 	getStageInfo,
 	handlesaveAttachment,
 	mapQuestionsToSubcategories,
-	menuactionlist,
-	pullMessageCount,
 	downloadExcelTemplate,
+	downloadEventExcelTemplate,
+	getApiErrorMessage,
+	attachmentmodalforevent,
+	eventattachmentmodal,
+	filequeryparam,
+	getPayloadWithFilePath,
 } from "../../../utils/common";
+import { uploadFilesOnAzure } from "../../../utils/documentlibrary";
 import { actionTypes, useStateValue } from "../../../store";
 import {
 	OrgGroupMasterList,
-	RFQCommLibraryAdd,
 	RFQItemServiceDelete,
-	RFQQuestionLibAdd,
-	checkRFQLineItems,
 	checkUTC,
-	downloadSampleEvent,
 	extractTextFromHTML,
-	formatDateViaLocale,
-	formatDateViaTime,
-	formattimeoption,
 	getCurrency,
-	getDateFormatPatteronLocale,
 	getLibraryOrgEntityFind,
 	getPurchaseOrgList,
 	getQuestionsLibFind,
 	getRFQItemServiceFind,
 	getRFQManageFindById,
-	handleFileUploadItem,
-	scrollToTarget,
 	scrollToTargetC,
-	userampm,
 } from "../../../utils/common/utility";
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-
-import { DateTimePicker, LocalizationProvider, MobileDateTimePicker, renderTimeViewClock } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import AddProductsCell from "./AddProductsCell";
-import BoqScreen from "./BoqScreen";
-import { UOMMasterList } from "../../../utils/commerciallibrary";
-import AddQuestionFormCell from "./AddQuestionFormCell";
 import { toast } from "react-toastify";
-import { StageFindAll } from "../../../utils/stagemaster";
-import {
-	BackButton,
-	MemoizedEventStageFlow,
-} from "../../../utils/common/component";
-import NotFoundPage from "../../../components/NotAllowed";
-import { ApiClient, api } from "../../../Apiclient";
+import { MemoizedEventStageFlow } from "../../../utils/common/component";
+import { ApiClient } from "../../../Apiclient";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
 import AttachmentWorkFlow from "../../BaseCells/attachmentworkflow";
-import {
-	ChevronLeft,
-	ChevronRight,
-	Close,
-	DoubleArrow,
-	ExpandMore,
-	KeyboardDoubleArrowLeft,
-	KeyboardDoubleArrowRight,
-	PushPinOutlined,
-} from "@mui/icons-material";
-import EventApprovalBox from "../../BaseCells/eventapprovalbox";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import SelectedSupplierCell from "./SelectedSupplierCell";
-import EventQuestionCell from "../../BaseCells/EventQuestionCell";
 import { sanitizeInput } from "../../../utils/common/santize";
-import PurchaseOrgGrp from "../../../utils/common/PurchaseOrgGrp";
-import PurchaseOrg from "../../../utils/common/PurchaseOrg";
 import GridSkeleton from "../../../components/Skeleton/gridSkeleton";
-import { TbExchange } from "react-icons/tb";
-import ERFQComparative from "./ERFQComparative";
-import RFQGeneralPreview from "./RFQGeneralPreview";
-import RFQActionDrawer from "../../../components/Reports/RFQActionDrawer";
-import EventCommercialScreen from "../../../components/Event/EventCommercialScreen";
-import EventQuestionScreen from "../../../components/Event/EventQuestionScreen";
-import EventAllocationScreen from "../../../components/Event/EventAllocationScreen";
-import QueryList from "../../CommunucationHub/QueryList";
 import { FastApiClient } from "../../../FastApiClient";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import EventSuppliers from "../../../components/Event/EventSuppliers";
-import { FaPaperclip } from "react-icons/fa";
-import FilePresentIcon from '@mui/icons-material/FilePresent';
-import NFASOBEventBoxRFQ from "../NFA/NFASOBEventBoxRFQ"
-import { current } from "@reduxjs/toolkit";
-import AddEditCurrency from "../../../utils/common/AddEditCurrency";
+import RFQItemsTab from "./RFQItemsTab";
+import RFQSupplierTab from "./RFQSupplierTab";
+import RFQGeneralTab from "./RFQGeneralTab";
+import RFQWorkflowPanel from "./RFQWorkflowPanel";
+import RFQCommercialTab from "./RFQCommercialTab";
+import RFQQuestionsTab from "./RFQQuestionsTab";
+import RFQQueryTab from "./RFQQueryTab";
+import RFQAllocationTab from "./RFQAllocationTab";
+import RFQComparativeTab from "./RFQComparativeTab";
+import RFQPreviewTab from "./RFQPreviewTab";
+import RFQDrawers from "./RFQDrawers";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const RequestForQuotation = ({ claimType }) => {
+const RequestForQuotation = ({ claimType, breadcrumb }) => {
 	const fileInputRef = useRef(null);
 	const location = useLocation();
-	const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-	const checkedIcon = <CheckBoxIcon fontSize="small" />;
-
 	const navigate = useNavigate();
 
-	const [{ atoken, rtoken, customerid, roleClaims, customersuffix, userDetail, eventType, eventId, eventCode }, dispatch] =
-		useStateValue();
+	const [{ atoken, customerid, customersuffix, userDetail }, dispatch] = useStateValue();
 	const apiClient = new ApiClient(customersuffix);
 	//ref
-	const EventCommercialScreenRef = React.createRef();
-	const EventQuestionScreenRef = React.createRef();
+	const EventCommercialScreenRef = useRef(null);
+	const EventQuestionScreenRef = useRef(null);
 	const attachmentdrawerref = useRef()
 	//Currency List
 	const [currencyList, setCurrencyList] = useState([]);
@@ -210,19 +110,13 @@ const RequestForQuotation = ({ claimType }) => {
 	const [OrgGroupId, setOrgGroupId] = useState(0);
 	const [modal1, setModal1] = useState(false);
 	const [libraryId, setLibraryId] = useState()
-	const [openQuotes ,setOpenQuotes] = useState(true);
+	const [openQuotes, setOpenQuotes] = useState(true);
 	// RequestForQuotation.jsx (Parent)
 	const [attachmentCount, setAttachmentCount] = useState(0);
-	const NFASOBRFQRef = React.createRef();
+	const NFASOBRFQRef = useRef(null);
 	// Permission Management State
 	const [permissionManager, setPermissionManager] = useState(null);
 	const [loadingPermissions, setLoadingPermissions] = useState(true);
-
-
-	const updateEventLibraryId = (v) => {
-		const { id } = v
-		setLibraryId(id)
-	}
 
 	const handleCloseModal1 = () => setModal1(false);
 
@@ -231,7 +125,7 @@ const RequestForQuotation = ({ claimType }) => {
 		console.log("CloseCurrencyModal called");
 		setOpenCurrencyModal(false);
 	};
-	
+
 	const handleCurrencyList = (list) => {
 		console.log("handleCurrencyList called with:", list);
 		setCurrencyList(list);
@@ -241,7 +135,8 @@ const RequestForQuotation = ({ claimType }) => {
 
 		//getRoles(newValue);
 		setValue(newValue);
-		if (newValue == "6") {
+		if (newValue !== 6 && newValue !== "6") setRfqActionsPortalReady(false);
+		if (newValue === "6") {
 			// if (tabshow)
 			// 	setTabShow(false)
 
@@ -249,20 +144,17 @@ const RequestForQuotation = ({ claimType }) => {
 				setApproverShow(false)
 		}
 		else {
-			if (newValue == "7") {
+			if (newValue === "7") {
 				setSelectedMenuItem("Publish RFQ")
 				setApproverShow(true)
 			}
-			else if (newValue == "9") {
+			else if (newValue === "9") {
 				setSelectedMenuItem("Save")
 			}
 			else {
 				setSelectedMenuItem("Save & Continue")
 			}
 		}
-
-
-
 	};
 
 	// Note: pullMessageCount now handled automatically by MessageCell component on location change
@@ -281,114 +173,50 @@ const RequestForQuotation = ({ claimType }) => {
 
 
 	useEffect(() => {
-
-		console.log("userDetail", userDetail)
-		if (value == "1" && idFromURL == null) {
-			setApproverShow(false);
+		if (idFromURL !== null) {
+			setApproverShow(true);
 		}
-		else if (value == 6) {
-			setApproverShow(false);
-		}
-		else {
-
-		}
-
 	}, [value, idFromURL]);
 
-
-
-	const [isgeneditdisable, setIsGenEditDisable] = useState(true);
-	const [isgrnreadDisabled, setIGenReadDisabled] = useState();
-	const [isitemreadDisabled, setIItemReadDisabled] = useState(true);
-	const [isitemeditDisabled, setIsitemEditDisabled] = useState(true);
-	const [isitemcreateDisabled, setIsitemcreateDisabled] = useState(true);
-	const [ismanagereadDisabled, setIsManageReadDisabled] = useState(true);
-	const [isquerieseadDisabled, setIsQueriesReadDisabled] = useState(true);
-	const [iscomercialseadDisabled, setIsComercialReadDisabled] = useState(true);
 	const [iscomercialeditDisabled, setIsComercialEditDisabled] = useState(true);
-	const [iscomercialcreateDisabled, setIsComercialCreateDisabled] = useState(true);
-	const [isquestionreadDisabled, setIQuestionReadDisabled] = useState(true);
 	const [isquestioneditDisabled, setIsQuestionEditDisabled] = useState(true);
-	const [isquestioncreateitDisabled, setIQuestionCreateDisabled] = useState(true);
-	const [issuppliercreateitDisabled, setIsSupplierCreateDisabled] = useState(true);
-	const [issuppliereditDisabled, setIsSupplierEditDisabled] = useState(true);
-	const [issupplierreadDisabled, setIsSupplierReadDisabled] = useState(true);
+	const [issupplierreadDisabled, setIsSupplierReadDisabled] = useState(false);
 	const [issupplierraccesslevel, Setissupplierraccesslevel] = useState('');
-
-	const [isworkreadDisabled, setisworkReadDisabled] = useState(true);
 	const [isHistoryreadDisabled, setisHistoryReadDisabled] = useState(true);
+	const [isworkreadDisabled, setisworkReadDisabled] = useState(true);
 
-	const getAuditHistoryRoles = async () => {
-		const dataR = {
-			roleId: parseInt(userDetail?.roleId),
-			featureName: "Request for Quotation",
-			claimType: "Audit History",
-		}
+	// Question category states
+	const [allDataList, setAllDataList] = useState([]);
+	const [QuestionCategoryList, setQuestionCategoryList] = useState([]);
+	const [uncategorizedQuestions, setUncategorizedQuestions] = useState([]);
 
-		const queryParams = buildQueryParams(dataR)
-		const res = await apiClient.getres(`/api/auth/UserRoleClaim?${queryParams}`, atoken)
-		if (res) {
-			const data = res?.data
-			console.log("My Roles & My Right")
-			console.table(res?.data)
-			dispatch({ type: actionTypes.SET_RoleClaims, value: data });
-		}
-		const accessLevels = res?.data.map(item => {
-			if (item.claimType === 'Audit History' && item.claimValue === 'Read' && item.accessLevel === 'None') {
-				setisHistoryReadDisabled(false);
-			}
-		}).filter(item => item !== null); // Filter out null values
-	}
-
-	const getworkflowRoles = async () => {
-		const dataR = {
-			roleId: parseInt(userDetail?.roleId),
-			featureName: "Request for Quotation",
-			claimType: "Work Flow",
-		}
-
-		const queryParams = buildQueryParams(dataR)
-		const res = await apiClient.getres(`/api/auth/UserRoleClaim?${queryParams}`, atoken)
-		if (res) {
-			const data = res?.data
-			console.log("My Roles & My Right")
-			console.table(res?.data)
-			dispatch({ type: actionTypes.SET_RoleClaims, value: data });
-		}
-		const accessLevels = res?.data.map(item => {
-
-			if (item.claimType === 'Work Flow' && item.claimValue === 'Read' && item.accessLevel === 'None') {
-				setisworkReadDisabled(false);
-			}
-		}).filter(item => item !== null); // Filter out null values
-	}
 	useEffect(() => {
 		getUserRoleRights();
 	}, []);
 
 	// After permissions load, ensure current tab is accessible — if not, auto-select first accessible tab
-useEffect(() => {
+	useEffect(() => {
 		if (skipAutoTabCheckRef.current) {
 			skipAutoTabCheckRef.current = false;
 			return;
 		}
 		if (loadingPermissions) return;
 
-			const canView = (tab) => {
-				// Treat 'add' or falsy idFromURL as "no saved RFQ yet"
-				const hasExistingId = !!idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL));
-				if (tab === 1)
-					return (
-						(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false) ||
-						(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false) ||
-						(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false)
-					);
-				if (tab === 2) return (permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false) && hasExistingId;
-				if (tab === 3) return (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false) && hasExistingId;
-				if (tab === 4) return (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false) && hasExistingId;
-				if (tab === 5) return (permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false) && hasExistingId;
-				return true;
-			};
+		const canView = (tab) => {
+			// Treat 'add' or falsy idFromURL as "no saved RFQ yet"
+			const hasExistingId = !!idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL));
+			if (tab === 1)
+				return (
+					(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false) ||
+					(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false) ||
+					(permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false)
+				);
+			if (tab === 2) return (permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false) && hasExistingId;
+			if (tab === 3) return (permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false) && hasExistingId;
+			if (tab === 4) return (permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false) && hasExistingId;
+			if (tab === 5) return (permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false) && hasExistingId;
+			return true;
+		};
 
 		if (!canView(value)) {
 			const order = [1, 2, 3, 4, 5, 6, 7, 9];
@@ -398,67 +226,6 @@ useEffect(() => {
 	}, [loadingPermissions, permissionManager, idFromURL, value]);
 
 	const [loading, setLoading] = useState(false);
-	const [allDataList, setAllDataList] = useState([]);
-	const [QuestionCategoryList, setQuestionCategoryList] = useState([]);
-	const [uncategorizedQuestions, setUncategorizedQuestions] = useState([]);
-	const pullCategoryList = async (value) => {
-		var data = {
-			CustomerId: customerid,
-			LibraryId: value?.id ? value?.id : value,
-		};
-		setLoading(true);
-		const queryParams = Object.entries(data)
-			?.filter(
-				([key, value]) => value !== null && value !== undefined && value !== ""
-			)
-			.map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-			.join("&");
-
-		const res = await apiClient.getres(
-			`/api/QCategory/Find?${queryParams}`,
-			atoken
-		);
-		const res2 = await apiClient.getres(
-			`/api/QuestionsLib/Find?${queryParams}`,
-			atoken
-		);
-		const categories = res?.data?.result;
-		const questions = res2?.data?.result;
-		setAllDataList(questions);
-		//console.log("questionsquestionsquestions::", questions);
-		const result = mapQuestionsToSubcategories(categories, questions);
-
-		if (res != "" && res != undefined) {
-			setQuestionCategoryList(result);
-		}
-
-		// Filter out uncategorized questions and set state
-		const uncategorizedQuestions = questions?.filter(
-			(question) => !question.questionCategory
-		);
-		setUncategorizedQuestions(uncategorizedQuestions);
-		setLoading(false);
-	};
-
-	// const getStageRefreshonPurchGroup = () => {
-	// 	StageFindAll(
-	// 		{
-	// 			EventType: "RFQ",
-	// 			CustomerId: customerid,
-	// 			EventId: idFromURL ?? 0,
-	// 			OrgId: OrgId ?? 0,
-	// 			OrgGroupId: OrgGroupId ?? 0,
-	// 		},
-	// 		atoken
-	// 	).then((res) => {
-
-	// 		const result = res?.filter((item) => item.stageSeq > 0);
-	// 		setStageList(result);
-	// 		// setStageList(res);
-	// 		const stagesarray = res?.map((item) => item.currentStage);
-	// 	});
-	// };
-
 
 	const [state, setState] = useState({
 		addProductDrawer: false,
@@ -466,6 +233,7 @@ useEffect(() => {
 		surrogateDrawer: false,
 		openInvoiceApproved: false,
 	});
+
 	const toggleDrawer = (anchor, open) => (event) => {
 		if (
 			event.type === "keydown" &&
@@ -473,15 +241,9 @@ useEffect(() => {
 		) {
 			return;
 		}
-
-
 		setState({ ...state, [anchor]: open });
 		setItemEditTempData([]);
 	};
-
-	const toggleDrawerCallback = useCallback((anchor, open) => {
-		setState({ ...state, [anchor]: open });
-	}, []);
 
 	const [requestCell, setRequestCell] = useState({
 		EventId: 0,
@@ -497,16 +259,8 @@ useEffect(() => {
 		}));
 	};
 
-	const requestApprover = {
-		EventId: idFromURL ?? 0,
-		EventType: "RFQ",
-	};
-	const [width, setWidth] = useState(0);
-
 	//role management
 	const [accessLevel, setAccessLevel] = useState([]);
-
-
 
 	//   general tab form
 	const [invalidCurrencyConversion, setInvalidCurrencyConversion] = useState(false);
@@ -518,56 +272,18 @@ useEffect(() => {
 			.max(200, "Max 200 character")
 			.required("RFQ Subject is required"),
 		description: yup.string().test("valid-desc", function (description) {
-			const { termandcondition } = this.parent;
-			const termandconditionobj = extractTextFromHTML(termandcondition ?? "");
 			const descriptionobj = extractTextFromHTML(description ?? "");
 
 
 			if (descriptionobj.trim().length < 1) {
 				// If the termandcondition is undefined, null, or empty, scroll to target and return an error
-
-
 				return this.createError({
 					path: "description",
 					message: "Description is required", // Custom error message
 				});
-				scrollToTargetC("description")
-
 			}
 			return true;
-			// Validation passes if termandcondition has content
-			// if (termandconditionobj.trim().length < 1) {
-			// 	// If the termandcondition is undefined, null, or empty, scroll to target and return an error
-
-
-			// 	return this.createError({
-			// 		path: "termandcondition",
-			// 		message: "Terms && Condition is required is required", // Custom error message
-			// 	});
-			// 			scrollToTargetC("termandcondition")
-			// 			return true; 
-			// }
-
-
 		}),
-
-		// termandcondition: yup.string().test("valid-tc", function (termandcondition) {
-
-		//      const { description } = this.parent;
-		// 	const termandconditionobj = extractTextFromHTML(termandcondition ?? "");
-		// 	const descriptionobj = extractTextFromHTML(description ?? "");
-
-		// 	if (termandconditionobj.trim().length < 1 && descriptionobj.trim().length > 0) {
-		// 		// If the termandcondition is undefined, null, or empty, scroll to target and return an error
-		// 	//	scrollToTargetC("termandcondition");  // Scroll to the target element
-
-		// 		return this.createError({
-		// 			path: "termandcondition",
-		// 			message: "Terms & Condition is required", // Custom error message
-		// 		});
-		// 	}
-		// 	return true; // Validation passes if termandcondition has content
-		// }),
 		startDate: yup
 			.date()
 			.nullable()
@@ -632,8 +348,21 @@ useEffect(() => {
 					}
 					return true; // if sealedBid is false or dates are not defined, validation passes
 				}
-			)
-
+			),
+		purchGrpId: yup.mixed().nullable().test("purchase-group-required", "Purchase Group is required", function (value) {
+			const { purchOrgId } = this.parent;
+			if (purchOrgId?.id > 0 && (!value || !value.id)) {
+				return false;
+			}
+			return true;
+		}),
+		termandcondition: yup.string().test("valid-tc", "Terms & Conditions is required", function (value) {
+			const text = extractTextFromHTML(value ?? "");
+			if (text.trim().length < 1) {
+				return this.createError({ message: "Terms & Conditions is required" });
+			}
+			return true;
+		}),
 	});
 
 
@@ -724,10 +453,6 @@ useEffect(() => {
 				}
 			}
 
-
-
-
-			const currentdate = new Date();
 			const RFQVersionHistory = values?.RFQVersionHistory.map(x => {
 				return {
 					...x, bidOpeningDate: x.bidOpeningDate ? x.bidOpeningDate?.toISOString() : null, id: x.id
@@ -743,15 +468,15 @@ useEffect(() => {
 				baseCurrency: values.baseCurrency,
 				startDate: values?.startDate ? values?.startDate?.toISOString() : null,
 				endDate: values?.endDate?.toISOString(),
-				purchOrgId: values.purchOrgId?.id != "" ? values.purchOrgId?.id : 0,
-				purchGrpId: values.purchGrpId?.id != "" ? values.purchGrpId?.id : 0,
+				purchOrgId: values.purchOrgId?.id !== "" ? values.purchOrgId?.id : 0,
+				purchGrpId: values.purchGrpId?.id !== "" ? values.purchGrpId?.id : 0,
 				termandcondition: sanitizeInput(values.termandcondition),
 				rfqStatus: values.rfqStatus,
-				openQuotes: values.RFQType == "closed" ? "N" : "Y",
+				openQuotes: values.RFQType === "closed" ? "N" : "Y",
 				RFQType: values.RFQType,
-				bidOpeningDate: (values.bidOpeningDate && values.RFQType == "closed") ? values.bidOpeningDate?.toISOString() : null,
+				bidOpeningDate: (values.bidOpeningDate && values.RFQType === "closed") ? values.bidOpeningDate?.toISOString() : null,
 				boqReq: values.boqReq,
-				requisitioner: values.requisitioner != "" ? values.requisitioner : "",
+				requisitioner: values.requisitioner !== "" ? values.requisitioner : "",
 				multicurrencytList: values.IsMultiCurrency ? inputList : [],
 				technicalApproval: values.technicalApproval,
 				IsMultiCurrency: values.IsMultiCurrency,
@@ -773,84 +498,78 @@ useEffect(() => {
 				orgId,
 				orgGroupId
 			);
-			//console.log("RGQdatapayloaddatapayload", datapayload)
-			if (data?.id > 0) {
+			try {
+				if (data?.id > 0) {
 
-				const res = await apiClient.postres(
-					`/api/RFQManage/Update`,
-					datapayload,
-					atoken
-				);
-				if (res) {
-					toast.success(`RFQ details have been updated successfully.`, {
-						toastId: "rfqmanage_update"
-					});
-					// record saved id to avoid race with state updates
-					lastSavedIdRef.current = data?.id;
-					setIdFromURL(data?.id)
-					skipAutoTabCheckRef.current = true;
-					setValue(2);
-					//setLoading(false)
-				}
-				setLoading(false)
-			}
-			else {
-				const res = await apiClient.postres(
-					`/api/RFQManage/Add`,
-					datapayload,
-					atoken
-				);
-
-				if (res) {
-					// record saved id so parent flow can use it immediately
-					lastSavedIdRef.current = res.data;
-					setIdFromURL(res.data);
-					navigate(`/configuration/manage-rfq/${res.data}?tab=item`)
-					setcommcurrencyList([
-						{
-							id: "0",
-							baseCurrency: "",
-							currencyConversion: "",
-							rfqId: res.data,
-						},
-					]);
-
-
-					updateRequestCell(res.data);
-                      
-					const AttachFiles = attachmentforevent?.map((x) => {
-
-						x.eventId = res.data;
-						x.createdById = userDetail?.id;
-						x.createdByName = userDetail?.name;
-
-						return x;
-					});
-
-					handlesaveAttachment(AttachFiles, res.data, atoken);
-
-
-					toast.success(`RFQ details have been added successfully.`, {
-						toastId: "rfqmanage_update2"
-					});
-					skipAutoTabCheckRef.current = true;
-					setValue(2);
+					const res = await apiClient.postres(
+						`/api/RFQManage/Update`,
+						datapayload,
+						atoken
+					);
+					if (res) {
+						toast.success(`RFQ details have been updated successfully.`, {
+							toastId: "rfqmanage_update"
+						});
+						// record saved id to avoid race with state updates
+						lastSavedIdRef.current = data?.id;
+						setIdFromURL(data?.id)
+						skipAutoTabCheckRef.current = true;
+						setValue(2);
+					}
 					setLoading(false)
 				}
 				else {
-					setLoading(false)
-					toast.error("Error while saving data", {
-						toastId: "rfqmanage_error"
-					});
-				}
-			}
+					const res = await apiClient.postres(
+						`/api/RFQManage/Add`,
+						datapayload,
+						atoken
+					);
 
+					if (res) {
+						// record saved id so parent flow can use it immediately
+						lastSavedIdRef.current = res.data;
+						setIdFromURL(res.data);
+						navigate(`/configuration/manage-rfq/${res.data}?tab=item`)
+						setcommcurrencyList([
+							{
+								id: "0",
+								baseCurrency: "",
+								currencyConversion: "",
+								rfqId: res.data,
+							},
+						]);
+						updateRequestCell(res.data);
+
+						const AttachFiles = attachmentforevent?.map((x) => {
+
+							x.eventId = res.data;
+							x.createdById = userDetail?.id;
+							x.createdByName = userDetail?.name;
+
+							return x;
+						});
+
+						handlesaveAttachment(AttachFiles, res.data, atoken);
+						toast.success(`RFQ details have been added successfully.`, {
+							toastId: "rfqmanage_update2"
+						});
+						skipAutoTabCheckRef.current = true;
+						setValue(2);
+						setLoading(false)
+					}
+					else {
+						setLoading(false)
+						toast.error("Error while saving data", {
+							toastId: "rfqmanage_error"
+						});
+					}
+				}
+			} catch (error) {
+				setLoading(false);
+				toast.error(getApiErrorMessage(error), { toastId: 'rfqmanage_save_error' });
+			}
 		},
 	});
-
-	const stripHtmlTags = (html) => {
-		return html.replace(/<\/?[^>]+(>|$)/g, ""); // Regex to remove HTML tags
-	};
 
 	const [inputList, setInputList] = useState([
 		{ id: "0", baseCurrency: "", currencyConversion: "" },
@@ -858,7 +577,6 @@ useEffect(() => {
 	const [commcurrencyList, setcommcurrencyList] = useState([
 		{ id: "0", baseCurrency: formik.values.baseCurrency, currencyConversion: "1", rfqId: idFromURL },
 	]);
-
 
 	const handleInputChange = (e, index, fieldname) => {
 		let { name, value } = e.target;
@@ -894,27 +612,6 @@ useEffect(() => {
 		setInputList(list);
 	};
 
-
-
-	const handleCurrencyInputChange = (e, index) => {
-		// console.log('pagge', e)
-		const { name, value } = e.target;
-
-		// Defensive check for commcurrencyList
-		if (!commcurrencyList || !Array.isArray(commcurrencyList) || index < 0 || index >= commcurrencyList.length) {
-			return;
-		}
-
-		const list = [...commcurrencyList];
-
-		// Ensure the object at the index exists
-		if (!list[index]) {
-			list[index] = {};
-		}
-
-		list[index][name] = value;
-		setcommcurrencyList(list);
-	};
 	const handleRemoveClick = (index) => {
 		if (!inputList || !Array.isArray(inputList) || index < 0 || index >= inputList.length) {
 			return;
@@ -923,14 +620,7 @@ useEffect(() => {
 		list.splice(index, 1);
 		setInputList(list);
 	};
-	const handleRemoveCurrencyClick = (index) => {
-		if (!commcurrencyList || !Array.isArray(commcurrencyList) || index < 0 || index >= commcurrencyList.length) {
-			return;
-		}
-		const list = [...commcurrencyList];
-		list.splice(index, 1);
-		setcommcurrencyList(list);
-	};
+
 	const handleAddClick = () => {
 		setInputList([
 			...inputList,
@@ -939,17 +629,6 @@ useEffect(() => {
 				baseCurrency: "",
 				currencyConversion: "",
 				rfqId: formik?.values?.id,
-			},
-		]);
-	};
-	const handleAddCurrencyClick = () => {
-		setcommcurrencyList([
-			...commcurrencyList,
-			{
-				id: "0",
-				baseCurrency: "",
-				currencyConversion: "",
-				rfqId: idFromURL,
 			},
 		]);
 	};
@@ -996,7 +675,7 @@ useEffect(() => {
 			OrgMstId: orgMstId,
 		};
 		OrgGroupMasterList(data, atoken).then((res) => {
-			if (res != "" && res != undefined) {
+			if (res !== "" && res !== undefined) {
 				setPurchaseGroupAllList(res || []);
 			}
 		});
@@ -1040,37 +719,39 @@ useEffect(() => {
 		getRFQManageFindById(data, atoken).then((res) => {
 			if (res && res?.length > 0) {
 				//console.log("res getRFQManageFindById", res);
+
+				// Set tempDataEditData FIRST so the component always exits skeleton state
+				setTempDataEditData(res);
+
 				setEventHeaderDetails(res?.[0]);
 				dispatch({ type: actionTypes.SET_EVENTCODE, value: res[0]?.eventCode });
 
-				if (res?.[0]?.userAccess.length > 0) {
-					const userAccess = res?.[0]?.userAccess.map(x => {
-						return ({ ...x, claimValue: JSON.parse(x.claimValue) })
-					})
+				if (res?.[0]?.userAccess?.length > 0) {
+					try {
+						const userAccess = res?.[0]?.userAccess.map(x => {
+							return ({ ...x, claimValue: typeof x.claimValue === 'string' ? JSON.parse(x.claimValue) : x.claimValue })
+						})
+						setAccessLevel(userAccess)
+					} catch (e) {
+						console.warn("[RFQ] userAccess parse failed, using raw:", e.message);
+						setAccessLevel(res?.[0]?.userAccess);
+					}
 
-					setAccessLevel(userAccess)
-
-					// Initialize Permission Manager with user access data
+					// Initialize Permission Manager with RFQ-level userAccess
 					const permManager = new PermissionManager(res?.[0]?.userAccess);
 					setPermissionManager(permManager);
 				}
-
-
-
-				setTempDataEditData(res);
 
 				if (res?.[0]?.id && res?.[0]?.id > 0) {
 					formik.setFieldValue("id", res?.[0]?.id);
 				}
 				if (res?.[0]?.version && res?.[0]?.version > 0) {
 					formik.setFieldValue("Version", res?.[0]?.version);
-					const sameVersion = res?.[0]?.rfqVersionHistory?.find(x => x.version == res?.[0]?.version);
-					setOpenQuotes(sameVersion.openQuotes == "Y" ? true : false);
+					const sameVersion = res?.[0]?.rfqVersionHistory?.find(x => x.version === res?.[0]?.version);
+					setOpenQuotes(sameVersion?.openQuotes === "Y" ? true : false);
+					// Reload items with the confirmed version (avoids stale formik value race)
+					pullRFQItemServiceFind(Id, res?.[0]?.version);
 				}
-
-
-
-
 
 				if (res?.[0]?.subject) {
 					formik.setFieldValue("subject", res?.[0]?.subject);
@@ -1082,10 +763,7 @@ useEffect(() => {
 					formik.setFieldValue("requisitioner", res?.[0]?.requisitioner);
 				}
 
-
-
 				if (res?.[0]?.startDate) {
-
 
 					const startDate = checkUTC(res?.[0]?.startDate)
 					const currentDate = new Date();
@@ -1099,12 +777,7 @@ useEffect(() => {
 				if (res?.[0]?.endDate) {
 
 					const endDate = checkUTC(res?.[0]?.endDate)
-
-
-
 					formik.setFieldValue("endDate", dayjs(endDate).tz(userDetail?.timeZone));
-
-
 					formik_ApproveReject.setFieldValue("endDate", new Date(endDate));
 				}
 				if (res?.[0]?.bidOpeningDate) {
@@ -1121,14 +794,11 @@ useEffect(() => {
 					formik.setFieldValue("boqReq", res?.[0]?.boqReq);
 				}
 
-				if (res?.[0]?.baseCurrency && res?.[0]?.baseCurrency != "") {
+				if (res?.[0]?.baseCurrency && res?.[0]?.baseCurrency !== "") {
 					formik.setFieldValue("baseCurrency", res?.[0]?.baseCurrency);
 				}
 
 				formik.setFieldValue("IsMultiCurrency", res?.[0]?.isMultiCurrency ?? false);
-
-
-
 
 				if (
 					res?.[0]?.multicurrencytList &&
@@ -1141,7 +811,7 @@ useEffect(() => {
 						formik.setFieldValue("multicurrencylist", currencyList);
 					}
 				}
-				if (res?.[0]?.technicalApproval && res?.[0]?.technicalApproval != "") {
+				if (res?.[0]?.technicalApproval && res?.[0]?.technicalApproval !== "") {
 					formik.setFieldValue(
 						"technicalApproval",
 						res?.[0]?.technicalApproval
@@ -1152,7 +822,7 @@ useEffect(() => {
 					formik.setFieldValue("termandcondition", res?.[0]?.termandCondition);
 				}
 				if (res?.[0]?.openQuotes) {
-					const value = res?.[0]?.openQuotes == "N" ? true : false
+					const value = res?.[0]?.openQuotes === "N" ? true : false
 					formik.setFieldValue("sealedBid", value);
 				}
 
@@ -1162,8 +832,6 @@ useEffect(() => {
 				}
 
 				if (res[0]?.rfqVersionHistory && res[0]?.rfqVersionHistory?.length > 0) {
-
-
 					const rfqVersionHistorydata = res[0]?.rfqVersionHistory.map((item) => {
 						const bidOpeningDate = checkUTC(item.bidOpeningDate)
 						return {
@@ -1175,17 +843,10 @@ useEffect(() => {
 					formik.setFieldValue("RFQVersionHistory", rfqVersionHistorydata);
 
 				}
-
-
-
-
 				if (res[0]?.stage) {
 					setCurrentStage(res[0]?.stage);
-
-
+					dispatch({ type: actionTypes.SET_STAGE, value: res[0]?.stage });
 				}
-
-
 			}
 		});
 	};
@@ -1215,35 +876,27 @@ useEffect(() => {
 
 	};
 
-	// Fetch UOM List 
-	// const pullUOMMasterList = () => {
-	// 	var data = {
-	// 		CustomerId: customerid,
-	// 		IsActive: true,
-	// 	};
-	// 	UOMMasterList(data, atoken).then((res) => {
-	// 		setUOMMaster(res);
-	// 	});
-	// };
-
 	const handleUomList = (array) => {
 		setUOMMaster(array);
 	};
-	const pullRFQItemServiceFind = (refid) => {
+	// versionOverride: pass an explicit version when calling right after pullgetRFQManageFind
+	// (avoids stale formik.values.Version due to async setFieldValue)
+	const pullRFQItemServiceFind = (refid, versionOverride) => {
+		const ver = versionOverride !== undefined
+			? parseInt(versionOverride)
+			: parseInt(formik?.values?.Version);
 		var data = {
 			RFQId: refid,
-			Version: parseInt(formik?.values?.Version),
+			// undefined is excluded from query params by the builder → server uses default behavior.
+			// Do NOT fall back to 1: that would filter to version-1 items only on multi-version RFQs.
+			Version: isNaN(ver) ? undefined : ver,
 			CustomerId: customerid,
 		};
 
-
 		getRFQItemServiceFind(data, atoken).then((res) => {
-
 			if (res && res?.length > 0) {
-
 				setrfqItemsList(res);
-			}
-			else {
+			} else {
 				setrfqItemsList([]);
 			}
 		});
@@ -1263,10 +916,6 @@ useEffect(() => {
 			//console.log("response getLibraryOrgEntityFind", res);
 			if (res && res?.length > 0) {
 				setGeneraltermsDDl(res);
-				console.log(
-					"tempDataEditData?-----0--0-0-0-",
-					tempDataEditData?.[0]?.rfqTermsCondition
-				);
 				if (
 					tempDataEditData?.[0] &&
 					tempDataEditData?.[0]?.rfqTermsCondition &&
@@ -1327,15 +976,11 @@ useEffect(() => {
 
 					if (uniqueMappedRecords && uniqueMappedRecords?.length) {
 						const updatedrecord = res?.filter(
-							(x) => x.id == uniqueMappedRecords?.[0]
+							(x) => x.id === uniqueMappedRecords?.[0]
 						);
-
-
 						if (updatedrecord?.length > 0) {
-
 							setSelectedQuesDll(updatedrecord[0]);
 							const { id } = updatedrecord[0]
-
 							setLibraryId(id)
 						}
 					}
@@ -1348,15 +993,6 @@ useEffect(() => {
 
 	//to set question for edit
 	const [questionforedit, setQuestionForEdit] = useState(null);
-	const handleSelectedEditQuestion = (question) => {
-
-		setQuestionForEdit(question)
-		setState({ ...state, qusDrawer: true })
-	}
-	const handleSelectedQArray = (value) => {
-
-		setSelectedQuesionArray(value);
-	};
 
 	const pullCommercialLibFind = async (selectedItems) => {
 		//console.log("selectedItems", selectedItems?.id);
@@ -1403,7 +1039,6 @@ useEffect(() => {
 				modifiedRes?.length
 			) {
 
-
 				const updatedArray = modifiedRes?.map((item) => {
 
 					const matchingItem = tempDataEditData?.[0]?.rfqTermsCondition?.find(
@@ -1430,22 +1065,6 @@ useEffect(() => {
 	};
 
 	const [selectedQuesDll, setSelectedQuesDll] = useState();
-	const pullQuestionsLibFind = (selectedItem) => {
-		//console.log("selectedItems", selectedItem);
-		var data = {
-			CustomerId: customerid,
-			LibraryId: selectedItem?.id,
-		};
-		//console.log("request id getCommercialLibFind", data);
-		getQuestionsLibFind(data, atoken).then((res) => {
-			//console.log("response getCommercialLibFind", res);
-			if (res && res?.length > 0) {
-
-				setSelectedQuesionArray(res);
-				// setCommercialLibFind(res)
-			}
-		});
-	};
 
 	const callbackQuesAddCustom = useCallback(
 		(quesData, questionforedit) => {
@@ -1459,7 +1078,7 @@ useEffect(() => {
 
 				const obj = selectedQuesionArray.map((x) => {
 
-					if (x.id == questionforedit.id) {
+					if (x.id === questionforedit.id) {
 						return quesData
 					}
 					else return x
@@ -1473,122 +1092,6 @@ useEffect(() => {
 		},
 		[selectedQuesionArray]
 	);
-
-
-	const [selectedcommercialterm, setSelectedCommercialTerm] = useState(null);
-	//it is for opening modal of commercial term currency
-	const handleChangeCom = (index, value, x, openmodal) => {
-
-		const item = commercialLibFind[index];
-		if (openmodal) {
-			setModal1(true)
-		}
-		// Check if the valuetype is "Currency" to open the modal
-		if (item.valuetype === "Currency") {
-			const list = [...commercialLibFind];
-			if (value) {
-				list[index]["level"] = value;
-			}
-
-			//to handle selected dependent formula field
-			if (value == "item") {
-				const selectedFieldGroup = list[index].fieldNameGroup.split(',');
-				// Iterate through the list to update dependent fields
-				list.forEach(item => {
-					if (selectedFieldGroup.includes(item.fieldName)) {
-						item.isSelected = true; // Set isSelected to the same value
-						item.level = "item"
-					}
-				});
-
-
-			}
-
-			setCommercialLibFind(list);
-			// set object for commecial  term
-
-			setSelectedCommercialTerm(x);
-			if (x?.rfqTermCurrency && x?.rfqTermCurrency?.length > 0) {
-				setcommcurrencyList(x?.rfqTermCurrency);
-			}
-			//setModal1(true);
-
-		} else {
-			const list = [...commercialLibFind];
-			list[index]["level"] = value;
-
-			//to handle selected dependent formula field
-			if (value == "item") {
-				const selectedFieldGroup = list[index].fieldNameGroup.split(',');
-				// Iterate through the list to update dependent fields
-				list.forEach(item => {
-					if (selectedFieldGroup.includes(item.fieldName)) {
-						item.isSelected = true; // Set isSelected to the same value
-						item.level = "item"
-					}
-				});
-
-
-			}
-			// Get the fieldNameGroup of the selected item
-
-			setCommercialLibFind(list);
-			setModal1(false);
-		}
-	};
-	//to handle multicurrency submit modal for commercial term
-	const handlecurrencytermmodal = () => {
-		//console.log();
-		const updatedlist = commercialLibFind.map((x, i) => {
-			if (x.termsId == selectedcommercialterm?.termsId) {
-				x.rfqTermCurrency = commcurrencyList;
-			}
-			return x;
-		});
-		setCommercialLibFind(updatedlist);
-		setModal1(false);
-		setSelectedCommercialTerm(null);
-		setcommcurrencyList([
-			{ id: "0", baseCurrency: "", currencyConversion: "" },
-		]);
-	};
-
-	const handleChangeComQues = (index, value) => {
-
-		const list = [...commercialLibFind];
-		list[index]["requirement"] = value;
-		setCommercialLibFind(list);
-	};
-
-
-
-	//to autoselect required formula field
-	const handleComItemCheck = (index, value) => {
-
-		const list = [...commercialLibFind];
-
-
-
-		// Set isSelected for the selected item
-		list[index]["isSelected"] = value;
-
-
-
-
-
-		setCommercialLibFind(list);
-	};
-
-
-	const handleComItemAllCheck = (value) => {
-
-		//console.log("value", value);
-		const list = commercialLibFind?.map((component) => ({
-			...component,
-			isSelected: value,
-		}));
-		setCommercialLibFind(list);
-	};
 
 	const [itemEditTempData, setItemEditTempData] = useState([]);
 	const handleEditItem = useCallback((dataItem) => {
@@ -1636,214 +1139,22 @@ useEffect(() => {
 		});
 	};
 
-	// const saveRFQCommLibraryAdd = () => {
-
-	// 	const selectedCommTerms = commercialLibFind?.filter(
-	// 		(s) => s.isSelected == true
-	// 	);
-
-
-
-	// 	//to handle commercial currency on formula
-
-	// 	const commercialfieldlist = selectedCommTerms.filter(x => x.level === "item").map(x => x.fieldName);
-	// 	const selectedCommTermsItemLevel = selectedCommTerms.filter(x => x.level === "item");
-
-	// 	const isValid = selectedCommTermsItemLevel.some((x) => {
-	// 		if (x.formulavalue) {
-
-	// 			const fieldNameGroup = Array.from(x.fieldNameGroup.split(",")).filter(x => x != "Price");
-	// 			let notIncluded = fieldNameGroup.filter(element => !commercialfieldlist.includes(element));
-	// 			if (notIncluded.length == 1) {
-	// 				if (notIncluded[0]?.trim() == "") {
-	// 					notIncluded = [];
-	// 				}
-	// 			}
-	// 			if (notIncluded?.length > 0) {
-	// 				toast.error(`Required formula fields:[${notIncluded.join(",")}] missing for ${x.name}.Item added at item level must have all required fields included in formula.`, {
-	// 					toastId: "commercialtermerror"
-	// 				});
-	// 				return true; // Indicates a failure
-	// 			}
-	// 		}
-	// 		return false; // No failure found for this item
-	// 	});
-
-	// 	if (isValid) {
-	// 		return; // Early exit if validation failed
-	// 	}
-
-
-	// 	const hasUnfilledCurrency = selectedCommTerms.some((item) => {
-	// 		return item.valuetype === "Currency" && (!item.rfqTermCurrency || item.rfqTermCurrency?.length === 0);
-	// 	});
-
-	// 	if (hasUnfilledCurrency) {
-	// 		selectedCommTerms.forEach((item) => {
-
-	// 			if (item?.valuetype === "Currency") {
-	// 				if (!item.rfqTermCurrency) {
-	// 					item.rfqTermCurrency = [{
-	// 						id: "0",
-	// 						baseCurrency: formik?.values?.baseCurrency,
-	// 						currencyConversion: "1",
-	// 						rfqId: idFromURL,
-	// 					}]
-	// 				}
-	// 			}
-	// 		})
-
-	// 	}
-	// 	if (selectedCommTerms && selectedCommTerms?.length) {
-	// 		const hasEmptyLevel = selectedCommTerms.some((s) => !s.level);
-
-
-	// 		if (hasEmptyLevel) {
-	// 			toast.error("Please select Type for selected terms", {
-	// 				toastId: "rfqmanage_terms"
-	// 			});
-	// 		} else {
-	// 			RFQCommLibraryAdd(selectedCommTerms, idFromURL, atoken).then((res) => {
-	// 				if (res) {
-	// 					//console.log("RFQCommLibraryAdd -response ", res);
-	// 					toast.success(`Data Saved Successfully`, {
-	// 						toastId: "rfqmanage_comm"
-	// 					});
-	// 					if (idFromURL && idFromURL > 0) {
-	// 						pullgetRFQManageFind(idFromURL);
-	// 						setValue(4);
-	// 					}
-	// 				}
-	// 				else {
-	// 					toast.error(`Error  while saving data`, {
-
-	// 						toastId: "rfqerror_comm"
-	// 					});
-	// 				}
-
-
-
-	// 				//}
-	// 			});
-	// 		}
-	// 	} else {
-	// 		setValue(4);
-	// 	}
-	// };
-
-	// const saveRFQQuestionLibAdd = () => {
-	// 	//console.log("selectedQuesionArray", selectedQuesionArray);
-
-	// 	const QuesionArray = selectedQuesionArray?.map((obj) => ({
-	// 		id: 0,
-	// 		rfqId: idFromURL,
-	// 		questionId: obj?.id ? obj?.id : 0,
-	// 		questionDescription: obj?.questionDescription
-	// 			? obj?.questionDescription
-	// 			: "",
-	// 		questionRequirement: obj?.questionRequirement
-	// 			? obj?.questionRequirement
-	// 			: "",
-	// 		attachement: obj?.attachement ? obj?.attachement : false,
-	// 		attachedFileName: obj?.attachedFileName ? obj?.attachedFileName : "",
-	// 		optionType: obj?.optionType ? obj?.optionType : false,
-	// 		weightage: obj?.weightage ? obj?.weightage : 0,
-	// 		mandatory: obj?.mandatory ? obj?.mandatory : false,
-	// 		questionRequirement: obj?.questionRequirement
-	// 			? obj?.questionRequirement
-	// 			: "",
-	// 		isActive: obj?.isActive ? obj?.isActive : false,
-	// 		libraryId: obj?.libraryId ? obj?.libraryId : 0,
-	// 		libraryEntity: obj?.libraryEntity ? obj?.libraryEntity : "",
-	// 		questioncategoryId: obj?.questioncategoryId ? obj?.questioncategoryId : 0,
-	// 		questionCategory: obj?.questionCategory ? obj?.questionCategory : "",
-	// 		questionSubcategoryId: obj?.questionSubcategoryId
-	// 			? obj?.questionSubcategoryId
-	// 			: 0,
-	// 		questionSubCategory: obj?.questionSubCategory
-	// 			? obj?.questionSubCategory
-	// 			: "",
-	// 		//questionOption: obj?.questionOption && obj?.questionOption?.length > 0 ? obj?.questionOption : [],
-	// 		questionOption:
-	// 			obj?.questionOption && obj?.questionOption?.length > 0
-	// 				? obj.questionOption.map(({ id, ...rest }) => ({ ...rest }))
-	// 				: [],
-	// 		// rfqqUestion: obj?.questionDescription ? obj?.questionDescription : "",
-	// 	}));
-	// 	if (QuesionArray && QuesionArray?.length > 0) {
-	// 		//console.log("call QuesionArray api request", QuesionArray);
-	// 		setLoading(true)
-	// 		RFQQuestionLibAdd(QuesionArray, idFromURL, atoken).then((res) => {
-	// 			//console.log("RFQQuestionLibAdd -response ", res);
-	// 			toast.success(`Data Saved Successfully`, {
-	// 				toastId: "rfqmanage_Qlib"
-	// 			});
-	// 			//if (res && res > 0) {
-	// 			// reload temp data
-	// 			if (idFromURL && idFromURL > 0) {
-	// 				pullgetRFQManageFind(idFromURL);
-	// 				setValue(5);
-	// 				setLoading(false)
-	// 			}
-
-	// 			//}
-	// 		});
-	// 	} else {
-	// 		setValue(5);
-	// 	}
-	// };
 	//to fetch master data alias list data
 	useEffect(() => {
-
 		if (atoken, customerid) {
 			PullPurchaseOrgAll();
-			// PullUserDesignation();
-			// pullUOMMasterList();
-
 		}
-
 	}, [atoken, customerid]);
 
 
 	useEffect(() => {
-
 		const data = queryParams.get("CommId")?.trim();
 		if (data) {
 			dispatch({ type: actionTypes.SET_CommId, value: parseInt(data) });
 		}
-
-		// const pullMessageList = async () => {
-
-		// 	var data = {
-		// 		CustomerId: customerid,
-		// 		SortingColumn: "Id",
-		// 		EventId: pageSlug,
-		// 		EventType: "RFQ",
-		// 		CommDetails_CommParticipantUser_UserId: userDetail?.id,
-
-		// 	};
-		// 	const queryParams = buildQueryParams(data)
-		// 	const res = await apiClient.getres(`api/Communication/FindByCommId?${queryParams}`, atoken)
-
-		// 	if (res) {
-		// 		const data = res?.data?.result ?? []
-
-		// 		dispatch({ type: actionTypes.SET_Notificationlist, value: data });
-		// 	}
-
-
-		// }
-
-		// if (pageSlug) {
-		// 	pullMessageList() // Removed automatic call - now triggered only on bell icon click
-		// }
-
-
-
-
 	}, []);
-	useEffect(() => {
 
+	useEffect(() => {
 		if (formik.values.purchOrgId?.id) {
 			PullPurchaseGroupAll(formik.values.purchOrgId?.id);
 		}
@@ -1851,20 +1162,6 @@ useEffect(() => {
 			setPurchaseGroupAllList([])
 		}
 	}, [formik.values.purchOrgId]);
-
-	// useEffect(() => {
-
-	// 	if (formik.values.purchGrpId && idFromURL) {
-	// 		getStageRefreshonPurchGroup();
-	// 	}
-	// }, [formik.values.purchGrpId, idFromURL]);
-
-	// useEffect(() => {
-
-	// 	pullgetCurrency();
-	// }, [atoken]);
-
-
 
 	const { pageSlug, supplierid } = useParams();
 
@@ -1917,7 +1214,7 @@ useEffect(() => {
 
 		// Only switch to the summary/report view for approval/forward actions when
 		// we have an existing RFQ id (not when creating a new one)
-		if ((actionTypeParam == "approval" || actionTypeParam == "Forward") && newIdFromURL && newIdFromURL !== "add") {
+		if ((actionTypeParam === "approval" || actionTypeParam === "Forward") && newIdFromURL && newIdFromURL !== "add") {
 			setValue(6);
 		}
 
@@ -1964,52 +1261,13 @@ useEffect(() => {
 		}
 	}, [idFromURL, purchaseAllList, location, requisitionerList]);
 
-
-
 	useEffect(() => {
-        pullgetCurrency();
-    }, [atoken]);
-
- 
-
-	const saveRFQLineItems = async (exceldata) => {
-		const data = exceldata?.map((rfqitem, index) => {
-			const i = (rfqItemsList?.length + index + 1).toString();
-			return {
-				...rfqitem,
-				customerId: customerid,
-				rfqId: idFromURL,
-				poDate: new Date(rfqitem?.poDate),
-				srno: i,
-			};
-		});
-
-
-		const res = await apiClient.postres(
-			`/api/RFQItemService/${idFromURL}/AddItems`,
-			data,
-			atoken
-		);
-
-		if (res) {
-			callbackItemAdd(res);
-			toast.success("Data Saved successfully", {
-				toastId: "RFQItemService_add"
-			});
-		}
-	};
+		pullgetCurrency();
+	}, [atoken]);
 
 	const handleSaveContinue = async () => {
-		debugger
-		if (value == 1) {
+		if (value === 1) {
 
-			const currentDate = new Date();
-			if (formik.values.purchOrgId?.id > 0 && !formik.values.purchGrpId) {
-				toast.error("Please fill Purchase Group.", {
-					toastId: "rfq_purchOrgId_error"
-				});
-				return;
-			}
 			if (formik.values.IsMultiCurrency) {
 				if (inputList?.length === 0) {
 					toast.error("Please add multi-currency details.", {
@@ -2024,7 +1282,7 @@ useEffect(() => {
 
 			// Validate the form first
 			const errors = await formik.validateForm();
-			
+
 			// If there are validation errors, mark all fields as touched and stop
 			if (Object.keys(errors).length > 0) {
 				// Mark all fields as touched to show validation errors
@@ -2037,9 +1295,8 @@ useEffect(() => {
 					purchGrpId: true,
 					termandcondition: true,
 				});
-				
-				// Show error toast for user feedback
-			
+
+				toast.error("Please fill all required fields.", { toastId: "rfq_validation_error" });
 				return;
 			}
 
@@ -2049,7 +1306,7 @@ useEffect(() => {
 			// Only advance to Items/Services if submission was successful
 			// The onSubmit handler will set setValue(2) if successful
 		}
-		if (value == 2) {
+		if (value === 2) {
 			if (rfqItemsList?.length < 1) {
 				toast.error("please add items to continue", {
 					toastId: "additems_error"
@@ -2058,7 +1315,7 @@ useEffect(() => {
 			}
 			setValue(3);
 		}
-		if (value == 3) {
+		if (value === 3) {
 			//saveRFQCommLibraryAdd();
 
 			const res = await EventCommercialScreenRef?.current?.saveRFQCommercialLibrary();
@@ -2066,7 +1323,7 @@ useEffect(() => {
 				setValue(4);
 			}
 		}
-		if (value == 4) {
+		if (value === 4) {
 			const res = await EventQuestionScreenRef?.current?.saveEventQuestion();
 			if (res) {
 				setValue(5);
@@ -2074,7 +1331,7 @@ useEffect(() => {
 			//saveRFQQuestionLibAdd();
 		}
 
-		if (value == 5) {
+		if (value === 5) {
 			saveSelectedSuppliers();
 			setApproverShow(true)
 		}
@@ -2124,22 +1381,8 @@ useEffect(() => {
 		}
 	};
 
-
-	const handlecheckpreview = async () => {
-		//to check formik validity dynamically
-		if (!formik.isValid) {
-			toast.error("Please make sure all required fields are properly filled.", {
-				toastId: "preview_error"
-			});
-			setValue(1);
-			return false;
-		}
-
-		return true;
-	};
-
 	const checkApprovers = () => {
-		
+
 		if (!stagelist || stagelist.length === 0) {
 			toast.error("Error: No stages found in workflow.");
 			return false;
@@ -2148,16 +1391,16 @@ useEffect(() => {
 
 
 		for (const stage of isStageRequired) {
-			
-			const matchingWorkflow = approverInWorkflow?.find(workflow => workflow.stage == stage.wfname);
+
+			const matchingWorkflow = approverInWorkflow?.find(workflow => workflow.stage === stage.wfname);
 
 			if (!matchingWorkflow) {
 				toast.error(`No workflow found for stage "${stage.wfname}".`);
 				return false;
 			}
 
-			// if ((!matchingWorkflow.approvers || matchingWorkflow.approvers.length == 0) && stage.required) {
-			if ((matchingWorkflow.approvers && matchingWorkflow.approvers.length == 0)) {
+			// if ((!matchingWorkflow.approvers || matchingWorkflow.approvers.length === 0) && stage.required) {
+			if ((matchingWorkflow.approvers && matchingWorkflow.approvers.length === 0)) {
 				toast.error(`The mandatory  workflow "${stage.wfname}" has no approvers.`);
 				return false;
 			}
@@ -2167,7 +1410,7 @@ useEffect(() => {
 	};
 
 	const handleErrorRFQSubmit = () => {
-		
+
 		const currentDate = new Date();
 
 		if (!formik.values.startDate) {
@@ -2216,29 +1459,23 @@ useEffect(() => {
 			setApproverShow(false)
 			return false;
 		}
-
-
-
-
 		return true;
 	}
 
 	const handleRFQSubmit = async () => {
-		
+
 		setLoading(true)
 		const isSubmit = handleErrorRFQSubmit();
 		if (!isSubmit) {
 			setLoading(false);
 			return;
 		}
-		
+
 		const isApprovers = checkApprovers();
 		if (!isApprovers) {
 			setLoading(false);
 			return;
 		}
-
-
 
 		const data = {
 			activityId: activityId,
@@ -2276,33 +1513,36 @@ useEffect(() => {
 
 		};
 
-		const ressupp = await apiClient.postres(
-			`/api/RFQVendorInvite/${idFromURL}/Add`,
-			invitedSuppliers,
-			atoken
-		);
+		try {
+			const ressupp = await apiClient.postres(
+				`/api/RFQVendorInvite/${idFromURL}/Add`,
+				invitedSuppliers,
+				atoken
+			);
 
+			const res = await apiClient.postres(
+				`/api/RFQManage/RFQSubmit`,
+				datapayload,
+				atoken
+			);
 
-
-		const res = await apiClient.postres(
-			`/api/RFQManage/RFQSubmit`,
-			datapayload,
-			atoken
-		);
-
-		if (res) {
-			toast.success("RFQ Published Successfully", {
-				toastId: "submit_published"
-			});
-			navigate(`/configuration/manage-rfq`);
+			if (res) {
+				toast.success("RFQ Published Successfully", {
+					toastId: "submit_published"
+				});
+				navigate(`/configuration/manage-rfq`);
+			}
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: 'rfq_submit_error' });
+		} finally {
+			setLoading(false);
 		}
-		setLoading(false);
 	};
 
 	// useEffect(() => {
 
 	// 	if (
-	// 		(value == 1 || value == 6) &&
+	// 		(value === 1 || value === 6) &&
 	// 		idFromURL &&
 	// 		tempDataEditData &&
 	// 		tempDataEditData?.length > 0
@@ -2318,16 +1558,23 @@ useEffect(() => {
 
 	useEffect(() => {
 
-		if (value == 2 && idFromURL) {
-			pullRFQItemServiceFind(idFromURL);
+		if (value === 2 && idFromURL) {
+			// Only call if pullgetRFQManageFind has already completed (tempDataEditData is set).
+			// If tempDataEditData is not yet loaded, pullgetRFQManageFind will call
+			// pullRFQItemServiceFind(id, version) directly once it finishes — no duplicate needed.
+			// This prevents a race where the no-version call overwrites correctly loaded items.
+			if (tempDataEditData && tempDataEditData.length > 0) {
+				const resolvedVersion = tempDataEditData?.[0]?.version || formik?.values?.Version;
+				pullRFQItemServiceFind(idFromURL, resolvedVersion);
+			}
 		}
-		if (value == 3) {
+		if (value === 3) {
 			pullLibraryOrgEntityFind();
 		}
-		if (value == 4) {
+		if (value === 4) {
 			pullLibraryOrgEntityFindQues();
 		}
-		if (value == 5) {
+		if (value === 5) {
 
 
 			getTotalSupplier();
@@ -2335,16 +1582,10 @@ useEffect(() => {
 		}
 	}, [idFromURL, value]);
 
-
 	//tab2
-
-
-
 	const fastapiclient = new FastApiClient();
 
-
 	const handleItemsUpload = async (file) => {
-
 		const data = {
 			templateId: 3,
 			customerId: parseInt(customerid),
@@ -2428,9 +1669,17 @@ useEffect(() => {
 		}
 	}
 
+	const downloadEventItemsExcel = async () => {
+		await downloadEventExcelTemplate({
+			eventType: 'RFQ',
+			eventId: idFromURL,
+			customerId: customerid,
+			templateId: 3,
+			fileName: `RFQ_Event_template_${new Date().getTime()}.xlsx`,
+		});
+	};
 
 	const downloadItemsExcel = async () => {
-		debugger
 		await downloadExcelTemplate({
 			customerId: customerid,
 			templateId: 3,
@@ -2451,7 +1700,7 @@ useEffect(() => {
 			`/api/ItemCategory/Find?${queryParams}`,
 			atoken
 		);
-		
+
 		if (res) {
 			setCategoryList(res?.data?.result || []);
 		}
@@ -2465,20 +1714,23 @@ useEffect(() => {
 		}
 		const queryParams = buildQueryParams(obj);
 
-		const res = await apiClient.getres(
-			`/api/rolemanagement/GetUserRoleRights?${queryParams}`,
-			atoken
-		);
-		
-		if (res) {
-			const permManager = new PermissionManager(res?.data);
-			setPermissionManager(permManager);
-			setLoadingPermissions(false);
-		} else {
+		try {
+			const res = await apiClient.getres(
+				`/api/rolemanagement/GetUserRoleRights?${queryParams}`,
+				atoken
+			);
+
+			if (res?.data) {
+				const permManager = new PermissionManager(Array.isArray(res.data) ? res.data : []);
+				setPermissionManager(permManager);
+			}
+		} catch (e) {
+			console.warn("[RFQ] getUserRoleRights failed:", e.message);
+		} finally {
 			setLoadingPermissions(false);
 		}
 	};
-  
+
 	const handleSupplierWithCategory = async (selectedCategory) => {
 		const obj = {
 			CustomerId: customerid,
@@ -2495,11 +1747,9 @@ useEffect(() => {
 		if (res.data?.length > 0) {
 			const data = res.data;
 			const emails = data?.map((item) => item.email);
-			const resetSuppliers = totalSupplier?.map((supplier) => {
-				return { ...supplier, isShow: false };
-
-				return supplier;
-			});
+			const resetSuppliers = totalSupplier?.map((supplier) => ({
+				...supplier, isShow: false,
+			}));
 
 			const updatedSuppliers = resetSuppliers?.map((supplier) => {
 				if (emails.includes(supplier.email)) {
@@ -2509,18 +1759,16 @@ useEffect(() => {
 			});
 			setTotalSupplier(updatedSuppliers);
 		} else {
-			const resetSuppliers = totalSupplier?.map((supplier) => {
-				return { ...supplier, isShow: false };
-
-				return supplier;
-			});
+			const resetSuppliers = totalSupplier?.map((supplier) => ({
+				...supplier, isShow: false,
+			}));
 			setTotalSupplier(resetSuppliers);
 		}
 	};
 
 	const [totalSupplier, setTotalSupplier] = useState([]);
 	const getTotalSupplier = async () => {
-		
+
 		setTabLoading(true)
 		const obj = {
 			CustomerId: customerid,
@@ -2535,10 +1783,10 @@ useEffect(() => {
 
 		if (Array.isArray(tempDataEditData) && tempDataEditData.length > 0 && Array.isArray(tempDataEditData[0]?.rfqVendorInvited) && tempDataEditData[0]?.rfqVendorInvited.length > 0) {
 
-			const ids = tempDataEditData[0].rfqVendorInvited?.filter(x => x.version == formik?.values?.Version).map((item) => item.vendorId);
-			const contactids = tempDataEditData[0].rfqVendorInvited.filter(x => x.version == formik?.values?.Version).map((item) => item.contactId);
+			const ids = tempDataEditData[0].rfqVendorInvited?.filter(x => x.version === formik?.values?.Version).map((item) => item.vendorId);
+			const contactids = tempDataEditData[0].rfqVendorInvited.filter(x => x.version === formik?.values?.Version).map((item) => item.contactId);
 
-			setttingSelectedSupplier(ids, true, res?.data, tempDataEditData[0].rfqVendorInvited?.filter(x => x.version == formik?.values?.Version), contactids);
+			setttingSelectedSupplier(ids, true, res?.data, tempDataEditData[0].rfqVendorInvited?.filter(x => x.version === formik?.values?.Version), contactids);
 		} else {
 			const showTotalsupplier = res?.data?.map((supplier) => {
 				return { ...supplier, isShow: true };
@@ -2554,12 +1802,12 @@ useEffect(() => {
 		});
 		const updatedSuppliers = resetSuppliers?.map((supplier) => {
 			// Match by both vendorId and contactId to avoid duplicate contactId issues
-			const matchIndex = ids?.findIndex((vendorId, idx) => 
+			const matchIndex = ids?.findIndex((vendorId, idx) =>
 				supplier.vendorId === vendorId && supplier.contactId === contactids[idx]
 			);
-			
+
 			if (matchIndex !== -1) {
-				const selectedVendor = selectedVendors?.find(v => 
+				const selectedVendor = selectedVendors?.find(v =>
 					v.vendorID === supplier.vendorId && v.contactId === supplier.contactId
 				);
 				return { ...supplier, isSelected: value, rfqLoadingFactor: selectedVendor?.rfqLoadingFactor };
@@ -2619,7 +1867,7 @@ useEffect(() => {
 		list[index]["subject"] = tempDataEditData?.[0]?.subject;
 		//list[index]["companyName"] = userDetail.customerName;
 
-		const selectedList = list?.filter((s) => s.isSelected == true);
+		const selectedList = list?.filter((s) => s.isSelected === true);
 		if (selectedList?.length > 75) {
 			toast.info(`You can select only 75 suppliers`, {
 				toastId: "suppliermax_info"
@@ -2629,16 +1877,6 @@ useEffect(() => {
 		setTotalSupplier(list);
 
 		setSelectedSupplier(selectedList);
-	};
-	const [selectAll, setSelectAll] = useState(true);
-	const handleSelectAllSuppliers = (selectAll) => {
-		const updatedList = totalSupplier?.map((supplier) => ({
-			...supplier,
-			isSelected: selectAll,
-		}));
-		setTotalSupplier(updatedList);
-
-		setSelectedSupplier(selectAll ? updatedList : []);
 	};
 
 	const clearSelectedSupplier = async (x, value) => {
@@ -2666,36 +1904,30 @@ useEffect(() => {
 		const list = [...totalSupplier];
 		list[index]["isSelected"] = value;
 		setTotalSupplier(list);
-		const selectedList = list?.filter((s) => s?.isSelected == true);
+		const selectedList = list?.filter((s) => s?.isSelected === true);
 
 		setSelectedSupplier(selectedList);
 	};
 
 	const clearALLSelectedSupplier = async () => {
-
-		//to remove all  supplier from given event 
+		//to remove all  supplier from given event
 		const data = {
 			RFQId: idFromURL
-
 		}
+
 		const queryparam = buildQueryParams(data);
 		const res = await apiClient.put(`/api/RFQVendorInvite/Delete?${queryparam}`, null, atoken)
 		if (res) {
 			toast.error("All Suppliers removed Successfully From Event", {
 				toastId: "abheedel"
 			})
-
 		}
-
 
 		const list = totalSupplier?.map((item) => ({ ...item, isSelected: false }));
 		setTotalSupplier(list);
-
 		setSelectedSupplier([]);
-
-
-
 	};
+
 	const saveSelectedSuppliers = async () => {
 		const enddate = formik?.values?.endDate?.toISOString();
 		const data = InvitedSupplierModal(
@@ -2727,183 +1959,61 @@ useEffect(() => {
 		);
 
 		if (res) {
-
 			pullgetRFQManageFind(idFromURL)
 			setRFQPreview(true)
 			setValue(7)
-
 			setSelectedMenuItem("Publish RFQ")
 			toast.success(`Suppliers saved successfully`, {
 				toastId: "supplierinvitation_succ"
 			});
-
 		}
 	};
 
-	//loading factor code start
+	// loading factor modal state
 	const [storeVId, setStoreVId] = useState('');
+	const [filteredLoadingFactors, setFilteredLoadingFactors] = useState([]);
+	const [loadingFactors, setLoadingFactors] = useState([]);
 	const [factorDesc, setFactorDesc] = useState('');
 	const [loadingOn, setLoadingOn] = useState('');
-
-	const queryParams = new URLSearchParams(location.search);
 	const [factorType, setFactorType] = useState('');
 	const [factorPerc, setFactorPerc] = useState(0);
 	const [loadingAmount, setLoadingAmount] = useState(0);
-	const [loadingFactors, setLoadingFactors] = useState([]);
-	//console.log("loadingFactors::", loadingFactors)
 	const [editIndex, setEditIndex] = useState(null);
-	const [filteredLoadingFactors, setFilteredLoadingFactors] = useState([]);
-	//console.log("filteredLoadingFactors::", filteredLoadingFactors)
 	const [errors, setErrors] = useState({});
-
-
-	const [approvershow, setApproverShow] = useState(true)
-	const handleApprover = (booleanvalue) => {
-		setApproverShow(booleanvalue)
-	}
-
-
+	const [loadingupdatebtn, setLoadingUpdateBtn] = useState(false);
+	const [isUpdated, setIsUpdated] = useState(false);
+	const [loadingModal, setLoadingModal] = useState(false);
 
 	const validationSchemaloading = yup.object({
-		factorDesc: yup.string()
-			.required('Reason of Loading Factor is required'),
-		factorType: yup.string()
-			.required('Loading Type is required'),
-		// loadingOn: yup.string()
-		// 	.required('Loading On is required')
+		factorDesc: yup.string().required('Reason of Loading Factor is required'),
+		factorType: yup.string().required('Loading Type is required'),
 	});
 
-
-
-	const handleLoadingFactorClick = (vendor, index) => {
-
-		const vendorId = vendor?.vendorId;
-		const rfqLoadingFactor = vendor?.rfqLoadingFactor;
-		setStoreVId(vendorId);
-		setupdatesupplieronloading(0)
-		// Find all entries for the vendor in the rfqVendorInvited array
-		//const vendorDataArray = tempDataEditData?.[0]?.rfqVendorInvited?.filter(v => v.vendorId === vendorId);
-
-
-		//abheedev correction in handling loading factor
-		const vendorDataArray = selectedSupplier?.filter(v => v.vendorId === vendorId);
-
-
-
-		// Flatten the rfqLoadingFactor arrays from all found vendor entries
-		let vendorLoadingFactors = vendorDataArray?.flatMap(vendorData => vendorData.rfqLoadingFactor) || [];
-		if (!vendorLoadingFactors[0]) {
-			vendorLoadingFactors = []
-		}
-
-
-		const combinedLoadingFactors = [
-			...vendorLoadingFactors,
-			...loadingFactors?.filter(factor => factor.vendorId === vendorId)
-		]?.filter((factor, index, self) =>
-			index === self?.findIndex((f) => (
-				f.factorId === factor.factorId
-			))
-		);
-
-
-
-		setFilteredLoadingFactors(rfqLoadingFactor ?? []);
-		setFactorDesc('');
-		setFactorType('');
-		setLoadingOn('');
-		setFactorPerc(0);
-		setLoadingAmount(0);
-		setErrors({});
-		// Open the modal
-		setLoadingModal(true);
-	};
-
-	const [isUpdated, setIsUpdated] = useState(false);
-	const handleLoadingFactorNew = (vendor) => {
-
-		const vendorId = vendor?.vendorId;
-		const newLoadingFactors = JSON.parse(vendor?.loadingFactors);
-		setStoreVId(vendorId);
-		setupdatesupplieronloading(0)
-		// Find all entries for the vendor in the rfqVendorInvited array
-		//const vendorDataArray = tempDataEditData?.[0]?.rfqVendorInvited?.filter(v => v.vendorId === vendorId);
-
-
-		//abheedev correction in handling loading factor
-		const vendorDataArray = selectedSupplier?.filter(v => v.vendorId === vendorId);
-
-		const rfqLoadingFactor = newLoadingFactors?.map((item) => ({
-			rfqId: parseInt(idFromURL),
-			version: vendor.version,
-			customerId: vendor.customerId,
-			vendorId: vendorId,
-			factorDesc: item.FactorDesc,
-			factorType: item.FactorType,
-			...(item.FactorType === 'A'
-				? { loadingAmount: parseFloat(item.LoadingAmount) }
-				: { factorPerc: parseFloat(item.FactorPerc) }),
-			loadingOn: "RFQ"
-		}));
-		// let loadingFactors = JSON.parse(response?.loadingFactors);
-
-
-
-		// Flatten the rfqLoadingFactor arrays from all found vendor entries
-		let vendorLoadingFactors = vendorDataArray?.flatMap(vendorData => vendorData.rfqLoadingFactor) || [];
-		if (!vendorLoadingFactors[0]) {
-			vendorLoadingFactors = []
-		}
-
-
-		const combinedLoadingFactors = [
-			...vendorLoadingFactors,
-			...loadingFactors?.filter(factor => factor.vendorId === vendorId)
-		]?.filter((factor, index, self) =>
-			index === self?.findIndex((f) => (
-				f.factorId === factor.factorId
-			))
-		);
-
-
-
-		setFilteredLoadingFactors(rfqLoadingFactor ?? []);
-		setFactorDesc('');
-		setFactorType('');
-		setLoadingOn('');
-		setFactorPerc(0);
-		setLoadingAmount(0);
-		setErrors({});
-		// Open the modal
-		setLoadingModal(true);
-	};
-	const validateForm = (values) => {
+	const validateLoadingForm = (values) => {
 		try {
 			validationSchemaloading.validateSync(values, { abortEarly: false });
-			return null; // No errors
+			return null;
 		} catch (err) {
-			const errors = err.inner.reduce((acc, error) => {
+			return err.inner.reduce((acc, error) => {
 				acc[error.path] = error.message;
 				return acc;
 			}, {});
-			return errors;
 		}
 	};
 
 	const handleAddLoadingFactor = () => {
-		setLoadingUpdateBtn(true)
+		setLoadingUpdateBtn(true);
 		const formValues = {
 			factorDesc,
 			factorType,
-			//factorPerc,
 			...(factorType === 'A' ? { loadingAmount } : { factorPerc }),
-			loadingOn
+			loadingOn,
 		};
-		const validationErrors = validateForm(formValues);
+		const validationErrors = validateLoadingForm(formValues);
 		if (validationErrors) {
 			setErrors(validationErrors);
-			setLoadingUpdateBtn(false)
-			return; // Stop further processing if there are validation errors
+			setLoadingUpdateBtn(false);
+			return;
 		}
 
 		const newLoadingFactor = {
@@ -2911,115 +2021,139 @@ useEffect(() => {
 			version: formik?.values?.Version,
 			customerId: customerid,
 			vendorId: storeVId,
-			factorDesc: factorDesc,
-			factorType: factorType,
-			//factorPerc: parseFloat(factorPerc),
+			factorDesc,
+			factorType,
 			...(factorType === 'A' ? { loadingAmount: parseFloat(loadingAmount) } : { factorPerc: parseFloat(factorPerc) }),
 			loadingOn: "RFQ",
 		};
 
 		let updatedLoadingFactors;
-
 		if (editIndex !== null) {
 			updatedLoadingFactors = [...filteredLoadingFactors];
 			updatedLoadingFactors[editIndex] = newLoadingFactor;
-			setEditIndex(null); // Reset edit index after update
+			setEditIndex(null);
 		} else {
 			updatedLoadingFactors = [...filteredLoadingFactors, newLoadingFactor];
 		}
 
 		setLoadingFactors(updatedLoadingFactors);
-
-		// Filter and update the factors for the current vendor
-		const vendorLoadingFactors = updatedLoadingFactors?.filter(factor => factor.vendorId === storeVId);
+		const vendorLoadingFactors = updatedLoadingFactors?.filter(f => f.vendorId === storeVId);
 		setFilteredLoadingFactors(vendorLoadingFactors ?? []);
 
-		//for updating rfqloadingfactor into supplier
-		const updatedSuppliers = selectedSupplier.map((supplier) => {
+		const updatedSuppliers = selectedSupplier.map(supplier => {
 			if (supplier.id === storeVId) {
 				const existingFactors = supplier.rfqLoadingFactor || [];
 				if (editIndex !== null) {
-					// Update the specific factor if in edit mode
 					existingFactors[editIndex] = newLoadingFactor;
 				} else {
-					// Add a new loading factor
 					existingFactors.push(newLoadingFactor);
 				}
 				return { ...supplier, rfqLoadingFactor: existingFactors };
 			}
 			return supplier;
 		});
-
 		setSelectedSupplier(updatedSuppliers);
 
-		// Clear the form fields after adding or editing
 		setFactorDesc('');
 		setFactorType('');
 		setFactorPerc(0);
 		setLoadingOn('');
 		setLoadingAmount('');
 		setErrors({});
-		setLoadingUpdateBtn(true)
+		setLoadingUpdateBtn(true);
 	};
 
 	const handleDeleteLoadingFactor = (index) => {
-		setLoadingUpdateBtn(true)
-		// Remove the loading factor at the specified index
+		setLoadingUpdateBtn(true);
 		const updatedLoadingFactors = filteredLoadingFactors?.filter((_, i) => i !== index);
 		setLoadingFactors(updatedLoadingFactors);
-
-		// Update the filtered loading factors for the currently selected vendor
-		const vendorLoadingFactors = updatedLoadingFactors?.filter(factor => factor.vendorId === storeVId);
+		const vendorLoadingFactors = updatedLoadingFactors?.filter(f => f.vendorId === storeVId);
 		setFilteredLoadingFactors(vendorLoadingFactors ?? []);
 
-		const updatedSuppliers = selectedSupplier.map((supplier) => {
+		const updatedSuppliers = selectedSupplier.map(supplier => {
 			if (supplier.id === storeVId) {
-				// Initialize rfqLoadingFactor to an empty array if it is undefined
 				const existingFactors = supplier.rfqLoadingFactor || [];
-				// Filter out the loading factor at the specified index
 				const updatedFactors = existingFactors?.filter((_, i) => i !== index);
 				return { ...supplier, rfqLoadingFactor: updatedFactors };
 			}
 			return supplier;
 		});
-
 		setSelectedSupplier(updatedSuppliers);
 	};
-	const [loadingupdatebtn, setLoadingUpdateBtn] = useState(false)
+
 	const handleEditLoadingFactor = (index) => {
-		setLoadingUpdateBtn(true)
-		// Check if loadingFactors array is defined and has the requested index
+		setLoadingUpdateBtn(true);
 		if (filteredLoadingFactors && filteredLoadingFactors.length > index) {
 			const factor = filteredLoadingFactors[index];
 			setFactorDesc(factor.factorDesc || '');
 			setFactorType(factor.factorType || '');
-			//setFactorPerc(factor.factorPerc || 0);
 			if (factor.factorType === 'A') {
-				setLoadingAmount(factor.loadingAmount || 0); // Set loadingAmount for Absolute type
+				setLoadingAmount(factor.loadingAmount || 0);
 			} else {
-				setFactorPerc(factor.factorPerc || 0); // Set factorPerc for Percentage type
+				setFactorPerc(factor.factorPerc || 0);
 			}
 			setLoadingOn(factor.loadingOn || '');
 			setEditIndex(index);
-		} else if (tempDataEditData && tempDataEditData[0]?.rfqVendorInvited) {
-			// Handle case when loading factors are coming from tempDataEditData
-			const vendorData = tempDataEditData[0].rfqVendorInvited.find(v => v.vendorId === storeVId);
-			if (vendorData && vendorData.rfqLoadingFactor && vendorData.rfqLoadingFactor.length > index) {
-				const factor = vendorData.rfqLoadingFactor[index];
-				setFactorDesc(factor.factorDesc || '');
-				setFactorType(factor.factorType || '');
-				setFactorPerc(factor.factorPerc || 0);
-				setLoadingOn(factor.loadingOn || '');
-				setEditIndex(index);
-			} else {
-				console.error('Loading factor data not found or index out of bounds');
-			}
-		} else {
-			console.error('Loading factors or temp data is not properly defined');
 		}
 	};
 
-	//loading factor code end
+	const updateSupplierLoadingFactor = async () => {
+		try {
+			setIsUpdated(false);
+			filteredLoadingFactors.forEach(x => { x.id = 0; });
+			const data = { VendorId: storeVId, Version: formik?.values?.Version };
+			const queryParamsLF = buildQueryParams(data);
+			const res = await apiClient.postres(
+				`/api/RFQManage/${idFromURL}/RFQLoadingFactor?${queryParamsLF}`,
+				filteredLoadingFactors,
+				atoken
+			);
+			if (res) {
+				toast.success("Loading factor updated successfully", { toastId: "loading_factor_update" });
+				setLoadingUpdateBtn(false);
+				setLoadingModal(false);
+				setupdatesupplieronloading(1);
+				setIsUpdated(true);
+			}
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: "loading_factor_error" });
+		} finally {
+			setLoadingUpdateBtn(false);
+		}
+	};
+	const rfqReportActionsRef = useRef(null);
+	const [rfqActionsPortalReady, setRfqActionsPortalReady] = useState(false);
+	const [erfqActiveSubTab, setErfqActiveSubTab] = useState(0);
+	const [approvershow, setApproverShow] = useState(true);
+	const handleApprover = (booleanvalue) => setApproverShow(booleanvalue);
+
+	const queryParams = new URLSearchParams(location.search);
+
+	const handleLoadingFactorClick = (vendor) => {
+		setStoreVId(vendor?.vendorId);
+		setupdatesupplieronloading(0);
+		setFilteredLoadingFactors(vendor?.rfqLoadingFactor ?? []);
+		setLoadingModal(true);
+	};
+
+	const handleLoadingFactorNew = (vendor) => {
+		const newFactors = JSON.parse(vendor?.loadingFactors ?? '[]').map((item) => ({
+			rfqId: parseInt(idFromURL),
+			version: vendor.version,
+			customerId: vendor.customerId,
+			vendorId: vendor?.vendorId,
+			factorDesc: item.FactorDesc,
+			factorType: item.FactorType,
+			...(item.FactorType === 'A'
+				? { loadingAmount: parseFloat(item.LoadingAmount) }
+				: { factorPerc: parseFloat(item.FactorPerc) }),
+			loadingOn: 'RFQ',
+		}));
+		setStoreVId(vendor?.vendorId);
+		setupdatesupplieronloading(0);
+		setFilteredLoadingFactors(newFactors);
+		setLoadingModal(true);
+	};
 
 	const validationSchemaApprover = yup.object().shape({
 		status: yup.string().required("status is required"),
@@ -3028,7 +2162,7 @@ useEffect(() => {
 		enableReinitialize: true,
 		initialValues: {
 			rfqId: parseInt(idFromURL),
-			status: actionType == "Forward" ? "Forward" : "Approved",
+			status: actionType === "Forward" ? "Forward" : "Approved",
 			approveComment: "",
 			activityId: parseInt(activityId),
 			startDate: null,
@@ -3040,9 +2174,8 @@ useEffect(() => {
 			//no need to send startdate and enddate in other case
 			delete values?.startDate
 			delete values?.endDate
-			const currentDate = new Date();
 
-			if (actionType == 'Forward') {
+			if (actionType === 'Forward') {
 				const datapayload = getPayloadWithStage(
 					"currentStage",
 					currentStage,
@@ -3061,8 +2194,6 @@ useEffect(() => {
 					});
 					navigate(`/app`);
 				}
-
-
 				setLoading(false)
 				return
 			}
@@ -3070,7 +2201,7 @@ useEffect(() => {
 			const stageInfo = getStageInfo(currentStage, stagelist);
 
 			let IsApproved = false;
-			if (values?.status == "Approved") {
+			if (values?.status === "Approved") {
 				IsApproved = true
 			}
 			else {
@@ -3091,10 +2222,7 @@ useEffect(() => {
 
 			}
 
-			if (actionType == 'approval') {
-
-
-
+			if (actionType === 'approval') {
 				const res = await apiClient.postres(
 					`/api/ApprovalAction/ApprovalAction`,
 					actionData,
@@ -3106,14 +2234,8 @@ useEffect(() => {
 					});
 					navigate(`/app`);
 				}
-
 			}
-
-
 			else {
-
-
-
 				const res = await apiClient.postres(
 					`/api/ApprovalAction/ApprovalAction`,
 					actionData,
@@ -3125,7 +2247,6 @@ useEffect(() => {
 					});
 					navigate(`/app`);
 				}
-
 			}
 			setLoading(false)
 		},
@@ -3140,34 +2261,11 @@ useEffect(() => {
 		setEventAppList(arr);
 		setApproverInWorkflow(updatedvalue)
 	}, []);
-	const handleWorkFlowUpdate = useCallback(() => {
-		setwfUpdate((prev) => !prev);
-	}, []);
-
-
-	const VendorfilterOptions = createFilterOptions({
-		matchFrom: "any",
-		stringify: (option) => `${option.contactPerson} ${option.email} `,
-	});
 
 	const [pageCount, setPageCount] = React.useState(10);
 
 	//pagination for total suppliers
 	const [pageTS, setPageTS] = React.useState(1);
-	const [totalpageTS, setTotalPageTS] = React.useState(3);
-	useEffect(() => {
-
-		handlePaginationTS();
-		setTotalPageTS(
-			Math.ceil(totalSupplier?.filter((x) => x.isShow)?.length / pageCount)
-		);
-	}, [pageTS, totalSupplier]);
-
-	const handlePaginationTS = (event, value) => {
-		if (value) {
-			setPageTS(value);
-		}
-	};
 
 	//pagination for selected suppliers
 	const [pageSS, setPageSS] = React.useState(1);
@@ -3186,7 +2284,7 @@ useEffect(() => {
 		}
 
 		//to set default purchase group when purchase group length is 1 
-		if (!idFromURL && purchaseAllList && purchaseAllList.length == 1) {
+		if (!idFromURL && purchaseAllList && purchaseAllList.length === 1) {
 			formik.setFieldValue("purchOrgId", purchaseAllList[0])
 		}
 
@@ -3200,51 +2298,17 @@ useEffect(() => {
 			formik.setFieldValue("purchGrpId", updatedvalue);
 		}
 		//to set default purchase group when purchase group length is 1 
-		if (!idFromURL && purchaseGroupAllList && purchaseGroupAllList.length == 1) {
+		if (!idFromURL && purchaseGroupAllList && purchaseGroupAllList.length === 1) {
 			formik.setFieldValue("purchGrpId", purchaseGroupAllList[0])
 		}
 
 	}, [OrgGroupId, purchaseGroupAllList])
-
 
 	useEffect(() => {
 
 		handlePaginationSS();
 		setTotalPageSS(Math.ceil(selectedSupplier?.length / pageCount));
 	}, [pageSS, selectedSupplier]);
-
-
-
-
-	//stage handling
-	// useEffect(() => {
-	// 	let urlparams = {};
-	// 	if (idFromURL) {
-	// 		
-	// 		urlparams = {
-	// 			EventType: "RFQ",
-	// 			CustomerId: customerid,
-	// 			EventId: idFromURL,
-	// 			OrgId: formik.values.purchOrgId?.id || 0,
-	// 			OrgGroupId: formik.values.purchGrpId?.id || 0,
-	// 			Version: parseInt(formik?.values?.Version)
-	// 		}
-
-	// 		getEventStages(urlparams);
-
-	// 	}
-	// 	else {
-	// 		urlparams = {
-	// 			EventType: "RFQ",
-	// 			CustomerId: customerid,
-	// 			EventId: 0,
-	// 			OrgId: 0,
-	// 			OrgGroupId: 0,
-
-	// 		}
-	// 		getEventStages(urlparams);
-	// 	}
-	// }, [idFromURL]);
 
 	useEffect(() => {
 		const urlparams = {
@@ -3266,18 +2330,25 @@ useEffect(() => {
 		if (stagelist && stagelist.length > 0) {
 			return;
 		}
+		// pageSlug is synchronously available from useParams() at mount time.
+		// idFromURL cannot be used here because it starts as null and is set via
+		// setIdFromURL() inside another useEffect — so it's always null when this runs.
+		// When an existing RFQ is open, the [idFromURL] effect fetches event-specific stages.
+		// Running this generic (EventId: 0) call in parallel races and can overwrite the
+		// correct stagelist with template stages, causing wrong stage display in both the
+		// status dropdown and workflow panel (EventApprovalBox also receives stagelist).
+		if (pageSlug && pageSlug !== 'add') {
+			return;
+		}
 		const urlparams = {
 			EventType: "RFQ",
 			CustomerId: customerid,
 			EventId: 0,
 			OrgId: 0,
 			OrgGroupId: 0,
-
 		}
 		getEventStages(urlparams);
 	}, [])
-
-
 
 	const getEventStages = async (urlparams) => {
 		const queryParams = buildQueryParams(urlparams)
@@ -3285,27 +2356,21 @@ useEffect(() => {
 		if (res?.data?.result.length > 0) {
 
 			const result = res?.data?.result?.filter((item) => item.stageSeq > 0)
-			
 			setStageList(result);
-
-			const stagesarray = result?.map((item) => item.currentStage);
+			// stagearray intentionally stays ['Draft'] — it represents editable stages only,
+			// not all workflow stages. Overwriting it from EventStageFind breaks the
+			// read-only vs editable branch logic in the Overview tab.
+			// const stagesarray = result?.map((item) => item.currentStage);
 		}
 	}
-
-
-
-
-
 
 	//handle as per role
 	useEffect(() => {
 
-		if (accessLevel?.find(x => x.claimType == "Work Flow")?.claimValue?.Read == "N") {
+		if (accessLevel?.find(x => x.claimType === "Work Flow")?.claimValue?.Read === "N") {
 			setApproverShow(false)
 		}
 	}, [])
-
-
 
 	//to handle param url query params based tab selection on initial loading
 	useEffect(() => {
@@ -3317,6 +2382,7 @@ useEffect(() => {
 		}
 
 	}, [])
+
 	const handleTabQueries = (tabValue) => {
 
 		switch (tabValue) {
@@ -3338,7 +2404,6 @@ useEffect(() => {
 		}
 		setValue(6);
 		setTabShow(false);
-
 	}
 
 	const handlePaginationSS = (event, value) => {
@@ -3346,7 +2411,7 @@ useEffect(() => {
 			setPageSS(value);
 		}
 	};
-	const [showTable, setShowTable] = useState(false);
+
 	const [rfqpreview, setRFQPreview] = useState(true);
 
 	const handleClearAll = async () => {
@@ -3373,12 +2438,12 @@ useEffect(() => {
 
 		setAttachmentCount(count);
 	};
-	
+
 	// Debug: Track modal state changes
 	useEffect(() => {
 		console.log("OpenCurrencyModal state changed to:", OpenCurrencyModal);
 	}, [OpenCurrencyModal]);
-	
+
 	useEffect(() => {
 		console.log("modal1 state changed to:", modal1);
 	}, [modal1]);
@@ -3407,21 +2472,165 @@ useEffect(() => {
 	};
 	const [purchaseOrgModal, setPurchaseOrgModal] = useState(false);
 	const [purchaseOrgGrpModal, setPurchaseOrgGrpModal] = useState(false);
-	const [loadingModal, setLoadingModal] = useState(false);
 	const ClosePurcgaseOrgModal = () => setPurchaseOrgModal(false);
 	const ClosePurcgaseOrgGrpModal = () => setPurchaseOrgGrpModal(false);
-	const [age, setAge] = React.useState('');
 
 	const [anchorEl, setAnchorEl] = React.useState(null);
+	const [statusAnchorEl, setStatusAnchorEl] = React.useState(null);
+	const [workflowPanelTab, setWorkflowPanelTab] = useState("workflow");
 
-	const handleClick = (event) => {
-		// Handle the main button click
-		console.log("Main button clicked");
+	// ── Fetch right-panel tab data when tab switches ─────────────────────────
+	// NOTE: must be AFTER workflowPanelTab declaration to avoid temporal dead zone
+	useEffect(() => {
+		if (!approvershow) return;
+		if (workflowPanelTab === 'history' && idFromURL) {
+			fetchPanelHistory();
+		}
+		if (workflowPanelTab === 'attachments') {
+			fetchPanelAttachments();
+		}
+	}, [workflowPanelTab, approvershow, idFromURL]);
+
+	// ── Right panel: History tab state ──────────────────────────────────────
+	const [historyAudit, setHistoryAudit] = useState([]);
+	const [historyGraph, setHistoryGraph] = useState([]);
+	const [historyLoading, setHistoryLoading] = useState(false);
+	const [historySelectedItem, setHistorySelectedItem] = useState(null);
+
+	const fetchPanelHistory = async () => {
+		if (!idFromURL) return;
+		setHistoryLoading(true);
+		const params = new URLSearchParams({ CustomerId: customerid, EventType: 'RFQ', EventId: idFromURL }).toString();
+		const res = await apiClient.getres(`api/ReportConfig/AuditReport?${params}`, atoken);
+		if (res?.data) {
+			const audit = res.data?.changeAudit || [];
+			const graph = res.data?.stategraph || [];
+			setHistoryAudit(audit);
+			setHistoryGraph(graph);
+			if (audit.length > 0) {
+				const latest = [...audit].sort((a, b) => new Date(b.actionDate) - new Date(a.actionDate))[0];
+				setHistorySelectedItem(latest);
+			}
+		}
+		setHistoryLoading(false);
+	};
+
+	// ── Right panel: Attachments tab state ──────────────────────────────────
+	const [panelSavedAttach, setPanelSavedAttach] = useState([]);
+	const [panelAttachLoading, setPanelAttachLoading] = useState(false);
+	const [panelAttachDesc, setPanelAttachDesc] = useState('');
+	const [panelAttachFile, setPanelAttachFile] = useState(null);
+	const [panelAttachError, setPanelAttachError] = useState('');
+	const [panelAttachAdding, setPanelAttachAdding] = useState(false);
+	const [panelHasCheckboxChanged, setPanelHasCheckboxChanged] = useState(false);
+	const [panelIsUpdating, setPanelIsUpdating] = useState(false);
+	const panelFileInputRef = useRef(null);
+
+	const fetchPanelAttachments = async () => {
+		setPanelAttachLoading(true);
+		setPanelHasCheckboxChanged(false);
+		if (idFromURL) {
+			const params = buildQueryParams({ EventType: 'RFQ', EventId: idFromURL, VendorId: 0 });
+			const res = await apiClient.getres(`/api/eventattachment/Find?${params}`, atoken);
+			const resData = res?.data?.result || [];
+			if (resData.length > 0) {
+				const mapped = attachmentmodalforevent(resData, idFromURL, 'RFQ');
+				setPanelSavedAttach(mapped);
+				handleattachmentforevent(mapped);
+				handleAttachmentCount(mapped.length);
+			} else {
+				setPanelSavedAttach([]);
+				handleattachmentforevent([]);
+				handleAttachmentCount(0);
+			}
+		} else {
+			const payload = buildQueryParams({ CustomerId: customerid, eventtype: 'RFQ', isactive: 'true' });
+			const res = await apiClient.getres(`/api/Doclib/Find?${payload}`, atoken);
+			const resData = res?.data?.result || [];
+			if (resData.length > 0) {
+				const mapped = eventattachmentmodal(resData, 0, 'RFQ');
+				setPanelSavedAttach(mapped);
+				handleattachmentforevent(mapped);
+				handleAttachmentCount(mapped.length);
+			} else {
+				setPanelSavedAttach([]);
+				handleattachmentforevent([]);
+				handleAttachmentCount(0);
+			}
+		}
+		setPanelAttachLoading(false);
+	};
+
+	const addPanelAttachment = async () => {
+		const descToUse = panelAttachDesc.trim();
+		if (!descToUse) {
+			setPanelAttachError('Please enter a description for the attachment.');
+			return;
+		}
+		if (!panelAttachFile?.file) {
+			setPanelAttachError('Please choose a file to upload.');
+			return;
+		}
+		setPanelAttachError('');
+		setPanelAttachAdding(true);
+		try {
+			const filedata = filequeryparam({ EventType: 'RFQ', EventId: idFromURL, Description: 'General', CustomerId: customerid });
+			const path = await uploadFilesOnAzure(filedata, panelAttachFile.file, atoken);
+			if (!path) return;
+			const payload = getPayloadWithFilePath('fileNamePath', path, {
+				eventId: idFromURL, eventType: 'RFQ',
+				attachmentDescription: descToUse,
+				attachment: panelAttachFile.file.name,
+				docRefId: 0, createdById: userDetail?.id, createdByName: userDetail?.name,
+			});
+			const res = await apiClient.postres(`/api/eventattachment/${idFromURL}/AddMultiple`, { attachments: [payload] }, atoken);
+			if (res) {
+				setPanelAttachDesc('');
+				setPanelAttachFile(null);
+				if (panelFileInputRef.current) panelFileInputRef.current.value = '';
+				fetchPanelAttachments();
+			}
+		} catch (e) {
+			setPanelAttachError('Upload failed. Please try again.');
+		} finally {
+			setPanelAttachAdding(false);
+		}
+	};
+
+	const updatePanelAttachments = async () => {
+		if (!panelSavedAttach.length) return;
+		setPanelIsUpdating(true);
+		try {
+			const files = panelSavedAttach.map(x => ({
+				...x,
+				eventId: idFromURL,
+				createdById: userDetail?.id,
+				createdByName: userDetail?.name,
+			}));
+			const res = await apiClient.postres(`/api/eventattachment/UpdateAttachments`, files, atoken);
+			if (res) {
+				toast.success('Attachments updated successfully.', { toastId: 'panel_attach_update' });
+				setPanelHasCheckboxChanged(false);
+			}
+		} catch (e) {
+			toast.error('Failed to update attachments.');
+		} finally {
+			setPanelIsUpdating(false);
+		}
+	};
+
+	const deletePanelAttachment = async (index, id) => {
+		const res = await apiClient.postres(`/api/eventattachment/${id}/Delete`, null, atoken);
+		if (res) {
+			const updated = panelSavedAttach.filter((_, i) => i === index);
+			setPanelSavedAttach(updated);
+			handleattachmentforevent(updated);
+		}
 	};
 
 	const handleMenuClick = (item) => {
 
-		if (item != "Save as Templates" && item != "Cancel" && item != "Approverforward") {
+		if (item !== "Save as Templates" && item !== "Cancel" && item !== "Approverforward") {
 			setSelectedMenuItem(item);
 		}
 
@@ -3429,13 +2638,13 @@ useEffect(() => {
 		handleSelectButtonGroup(item)
 	};
 
-	const handleMenuOpen = (event) => {
-		setAnchorEl(event.currentTarget);
+	const [selectedMenuItem, setSelectedMenuItem] = useState("Save & Continue");
+	const handleStatusMenuOpen = (event) => {
+		setStatusAnchorEl(event.currentTarget);
 	};
 
-	const [selectedMenuItem, setSelectedMenuItem] = useState("Save & Continue");
-	const handleMenuClose = () => {
-		setAnchorEl(null);
+	const handleStatusMenuClose = () => {
+		setStatusAnchorEl(null);
 	};
 	// RFQ Template Title
 	const [TemplateTitle, setTemplateTitle] = useState("")
@@ -3465,12 +2674,9 @@ useEffect(() => {
 		}
 	}
 
-	const handleSelectChange = (event) => {
-		setAge(event.target.value);
-	};
 	const CloseLoadingModal = () => setLoadingModal(false);
 
-	//all actions related to supplier 
+	//all actions related to supplier
 	const [selectedAction, setSelectedAction] = useState("")
 	const validationSchemaSurrogate = yup.object().shape({
 
@@ -3479,200 +2685,7 @@ useEffect(() => {
 			.required('Please enter your email')
 			.email('Enter a valid email'),
 	});
-	// 	const formik_Action = useFormik({
-	// 		enableReinitialize: true,
-	// 		initialValues: {
-	// 			supplier: null,
-	// 			name: "",
-	// 			email: "",
-	// 			Reason: ""
-	// 		},
-	// 		validationSchema: selectedAction == "Surrogate RFQ" ? validationSchemaSurrogate : "",
-	// 			onSubmit: async (values) => {
-	// 	if (!values?.supplier) {
-	// 		toast.error(`Please Select Supplier`, {
-	// 			toastId: "surrogatetoasterror"
-	// 		});
-	// 		return;
-	// 	}
 
-	// 	const v = values?.supplier;
-
-	// 	// Common structure
-	// 	const rfqVendorDetails = {
-	// 		rfqId: pageSlug,
-	// 		emailId: v?.email,
-	// 		remarks: values?.Reason,
-	// 		vendorId: v?.vendorId,
-	// 		contactId: v?.contactId,
-	// 		customerId: customerid,
-	// 		version: v?.lastVersion
-	// 	};
-
-	// 	if (selectedAction == "Surrogate RFQ") {
-	// 		const payload = {
-	// 			name: values?.name,
-	// 			vendorId: v?.vendorId,
-	// 			VendorDetailId: v?.id,
-	// 			email: values?.email,
-	// 			rfqId: pageSlug,
-	// 			reason: values?.Reason,
-	// 			stages: {
-	// 				eventType: "RFQ",
-	// 				currentStage: "Surrogate",  // Action-specific value
-	// 				nextStage: "Surrogate",
-	// 				orgId: 0,
-	// 				orgGroupId: 0
-	// 			},
-	// 			supplierActionType: "" // always empty
-	// 		};
-
-	// 		const res = await apiClient.postres(`/api/RFQManage/RFQSurrogate`, payload, atoken);
-	// 		if (res) {
-	// 			setState({ ...state, surrogateDrawer: false });
-	// 			toast.success(`Suppliers surrogated successfully`, { toastId: "surrogatetoast" });
-	// 			formik_Action.resetForm();
-	// 		}
-
-	// 	} else {
-	// 		const currentStage =
-	// 			selectedAction === "Send Reminder" ? "Reminder" :
-	// 			selectedAction === "Reopen Quotes" ? "Re open" : "";
-
-	// 		const payload = {
-	// 			rfqVendorDetails: [rfqVendorDetails],
-	// 			supplierActionType: "", // always empty
-	// 			stages: {
-	// 				eventType: "RFQ",
-	// 				currentStage, // dynamic value: Reminder or Reopen
-	// 				nextStage: currentStage,
-	// 				orgId: 0,
-	// 				orgGroupId: 0
-	// 			}
-	// 		};
-
-	// 		const res = await apiClient.postres(`/api/RFQManage/${pageSlug}/RFQInvitationVersion`, payload, atoken);
-	// 		if (res) {
-	// 			setState({ ...state, surrogateDrawer: false });
-	// 			toast.success(
-	// 				currentStage === "Reminder"
-	// 					? "Reminder sent successfully"
-	// 					: "Quotes reopened successfully",
-	// 				{ toastId: "surrogatetoast" }
-	// 			);
-	// 			formik_Action.resetForm();
-	// 		}
-	// 	}
-	// },
-
-	// 	});
-
-	// 
-
-
-	// 		if (!values?.supplier) {
-	// 			toast.error(`Please Select Supplier`, {
-	// 				toastId: "surrogatetoasterror"
-	// 			})
-	// 			return
-	// 		}
-
-	// 		if (selectedAction == "Surrogate RFQ") {
-	// 			const payload = {
-	// 				"name": values?.name,
-	// 				"vendorId": values?.supplier?.vendorId,
-	// 				"VendorDetailId": values?.supplier?.id,
-	// 				"email": values?.email,
-	// 				"rfqId": pageSlug,
-	// 				"reason": values?.Reason,
-	// 				"stages": {
-	// 					"eventType": "RFQ",
-	// 					"currentStage": "Surrogate",
-	// 					"nextStage": "Surrogate",
-	// 					"orgId": 0,
-	// 					"orgGroupId": 0
-	// 				}
-	// 			}
-
-	// 			const res = await apiClient.postres(`/api/RFQManage/RFQSurrogate`, payload, atoken)
-	// 			if (res) {
-	// 				setState({ ...state, ["surrogateDrawer"]: false })
-	// 				toast.success(`suppliers surrogated successfully`, {
-	// 					toastId: "surrogatetoast"
-	// 				})
-	// 				formik_Action.resetForm();
-	// 				return;
-
-	// 			}
-
-	// 		}
-	// 		else if (selectedAction == "Send Reminder") {
-
-	// 			const v = values?.supplier;
-	// 			const rfqVendorDetails = {
-	// 				"rfqId": pageSlug,
-	// 				"emailId": v?.email,
-	// 				"remarks": values?.Reason,
-	// 				"vendorId": v?.vendorId,
-	// 				"contactId": v?.contactId,
-	// 				"customerId": customerid,
-	// 				"version": v?.lastVersion
-	// 			}
-
-	// 			const payload = {
-	// 				"rfqVendorDetails": [rfqVendorDetails],
-	// 				"supplierActionType": "Reminder",
-
-	// 			}
-	// 			const res = await apiClient.postres(`/api/RFQManage/${pageSlug}/RFQInvitationVersion`, payload, atoken)
-	// 			if (res) {
-	// 				setState({ ...state, ["surrogateDrawer"]: false })
-	// 				toast.success(`Reminder sent successfully`, {
-	// 					toastId: "surrogatetoast"
-	// 				})
-	// 				formik_Action.resetForm();
-	// 				return;
-
-	// 			}
-
-	// 		}
-
-	// 		else if (selectedAction == "Reopen Quotes") {
-
-	// 			const v = values?.supplier;
-	// 			const rfqVendorDetails = {
-	// 				"rfqId": pageSlug,
-	// 				"emailId": v?.email,
-	// 				"remarks": values?.Reason,
-	// 				"vendorId": v?.vendorId,
-	// 				"contactId": v?.contactId,
-	// 				"customerId": customerid,
-	// 				"version": v?.lastVersion
-	// 			}
-	// 			const payload = {
-	// 				"rfqVendorDetails": [rfqVendorDetails],
-	// 				"supplierActionType": "ReOpen",
-
-	// 			}
-	// 			const res = await apiClient.postres(`/api/RFQManage/${pageSlug}/RFQInvitationVersion`, payload, atoken)
-	// 			if (res) {
-	// 				setState({ ...state, ["surrogateDrawer"]: false })
-	// 				toast.success(`Quotes reopened successfully`, {
-	// 					toastId: "surrogatetoasts"
-	// 				})
-	// 				formik_Action.resetForm();
-	// 				return;
-
-	// 			}
-
-	// 		}
-
-
-
-
-
-	// 	},
-	// });
 	const formik_Action = useFormik({
 		enableReinitialize: true,
 		initialValues: {
@@ -3681,7 +2694,7 @@ useEffect(() => {
 			email: "",
 			Reason: ""
 		},
-		validationSchema: selectedAction == "Surrogate RFQ" ? validationSchemaSurrogate : "",
+		validationSchema: selectedAction === "Surrogate RFQ" ? validationSchemaSurrogate : "",
 		onSubmit: async (values) => {
 			if (!values?.supplier) {
 				toast.error(`Please Select Supplier`, {
@@ -3767,13 +2780,13 @@ useEffect(() => {
 	const handleSupplierSurrogate = (v, action) => {
 
 		setState({ ...state, surrogateDrawer: true });
-		if (action == "Surrogate") {
+		if (action === "Surrogate") {
 			setSelectedAction("Surrogate RFQ")
 		}
-		else if (action == "Reminder") {
+		else if (action === "Reminder") {
 			setSelectedAction("Send Reminder")
 		}
-		else if (action == "Reopen") {
+		else if (action === "Reopen") {
 
 			setSelectedAction("Reopen Quotes")
 		}
@@ -3805,8 +2818,6 @@ useEffect(() => {
 			subject: formik?.values?.subject,
 			description: formik?.values?.description,
 			Version: formik?.values?.Version + 1,
-
-
 		}
 
 		const res = await apiClient.postres(`/api/RFQManage/Update`, payload, atoken)
@@ -3827,17 +2838,12 @@ useEffect(() => {
 	const [confirmEventUpdate, setConfirmEventUpdate] = useState(false);
 	const [confirmClearAllItems, setConfirmClearAllItems] = useState(false)
 	const [updatesupplieronloading, setupdatesupplieronloading] = useState(1)
+
 	const handleCloseEventUpdate = (value) => {
-
 		setConfirmEventUpdate(false);
-
-
 	};
 	const handleOpenEventUpdate = useCallback((value) => {
-
 		setConfirmEventUpdate(true);
-
-
 	}, []);
 
 
@@ -3850,8 +2856,8 @@ useEffect(() => {
 	const handleSaveasDraft = async () => {
 		await handleSaveContinue()
 		navigate(`/configuration/manage-rfq`);
-
 	}
+
 	const handleButtonGroup = () => {
 
 		switch (selectedMenuItem) {
@@ -3872,7 +2878,6 @@ useEffect(() => {
 			default:
 				return ""
 		}
-
 	}
 
 	const handleApproverForward = async () => {
@@ -3901,7 +2906,6 @@ useEffect(() => {
 			});
 			navigate(`/app`);
 		}
-
 	}
 
 	const handleSelectButtonGroup = (selectedMenuItem) => {
@@ -3922,18 +2926,22 @@ useEffect(() => {
 				return handleCreateNFA()
 			case "Send Mail to suppliers":
 				return handleSendMailtoSuppliers()
+			case "Save as Draft":
+				return handleSaveasDraft()
+			case "Publish RFQ":
+				return handleRFQSubmit()
 			default:
 				return ""
 		}
-
 	}
 
 	const handleCreateNFA = () => {
 		//logic for create nfa
 	}
+
 	const handleSendMailtoSuppliers = async () => {
 		//logic for send mail to suppliers
-		
+
 		// const data = {
 		// 	rfqid: idFromURL,
 		// 	stage: "RFQ Close Email",
@@ -3955,6 +2963,7 @@ useEffect(() => {
 		//logic for save allocation
 		const res = await NFASOBRFQRef?.current?.saveSOBDetails();
 	}
+
 	const handleSendAllocationEmail = async () => {
 
 		const data = {
@@ -3973,61 +2982,26 @@ useEffect(() => {
 	const handleSaveAndClose = async () => {
 		//logic for save and close
 		const res1 = await NFASOBRFQRef?.current?.saveSOBDetails();
-		if(res1){
+		if (res1) {
 			handleSendAllocationEmail();
 			handleApproverForward();
 		}
 	}
 
 	const handleTab = (booleanvalue) => {
-
 		// setTabShow(booleanvalue)
-
 		// if (booleanvalue) {
 		// 	setValue(1)
 		// }
-
-
 	}
 
 	const handleClearAllItems = (value) => {
 		if (value) {
 			handleClearAll()
-
-
 		} else {
 			setConfirmClearAllItems(false);
 		}
 	};
-
-	//Update loading factor for supplier
-	const updateSupplierLoadingFactor = async () => {
-		setIsUpdated(false);
-
-
-		filteredLoadingFactors.forEach(x => {
-			x.id = 0
-		})
-		const data = {
-			VendorId: storeVId,
-			Version: formik?.values?.Version,
-		}
-		const queryParams = buildQueryParams(data)
-		// const res = await apiClient.getres(`/api/auth/UserRoleClaim?${queryParams}`, atoken)
-		const res = await apiClient.postres(`/api/RFQManage/${idFromURL}/RFQLoadingFactor?${queryParams}`, filteredLoadingFactors, atoken)
-		if (res) {
-			toast.success("loading Factor updated successfully", {
-				toastId: "loading_factor_update"
-			})
-			setLoadingUpdateBtn(false)
-			setLoadingModal(false)
-			setupdatesupplieronloading(1)
-			setIsUpdated(true);
-		}
-
-	}
-
-
 
 	const handleBaseCurrency = () => {
 		console.log("handleBaseCurrency called, loading currencies...");
@@ -4036,6 +3010,7 @@ useEffect(() => {
 		}
 		setModal1(true);
 	}
+
 	const handleRequisitionerChange = (value) => {
 		if (value === null) {
 			formik.setFieldValue('requisitioner', '');
@@ -4061,176 +3036,198 @@ useEffect(() => {
 		}
 	};
 
+	// Derive dropdown steps from the same stagelist used by the horizontal stepper
+	const rfqStatusSteps = Array.isArray(stagelist) && stagelist.length > 0
+		? stagelist.map(s => s.stageName || s.currentStage).filter(Boolean)
+		: ["Draft"];
 
+	const normalizedCurrentStage = (currentStage || "Draft").trim();
+	const currentStatusIndex = Math.max(
+		0,
+		rfqStatusSteps.findIndex(
+			(step) => step.toLowerCase() === normalizedCurrentStage.toLowerCase()
+		)
+	);
+
+	const formatRfqDateTime = (value) => {
+		if (!value) return "-";
+		const parsed = dayjs(value);
+		return parsed.isValid() ? parsed.format("DD-MM-YY HH:mm") : "-";
+	};
+
+	const isNewRFQ = !idFromURL || idFromURL === "add";
+	const isSaveContinueHeaderDisabled =
+		loading ||
+		(value === 9
+			? currentStage !== "Allocation"
+			: isNewRFQ
+				? false
+				: !stagearray.includes(currentStage));
+	const showTabSaveContinue =
+		!actionType &&
+		(isNewRFQ || normalizedCurrentStage.toLowerCase() === "draft");
 
 	//##return
 	return (
 		<>
-			<div className="mainContainer d-flex rfq-modern-shell" style={{ overflow: 'hidden' }}>
-				<div className={`leftContent ${approvershow ? "col-9" : "col-12"} d-flex flex-column`}>
-					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ height: 'calc(130vh - 120px)', overflow: 'hidden' }}>
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3" style={{ flexShrink: 0 }}>
-							<div className="d-flex align-items-center">
-								<BackButton
-									title={
-										tempDataEditData?.[0].eventCode
-											? <span className="page-heading">{tempDataEditData[0].eventCode}</span>
-											: idFromURL
-												? <span className="page-heading">RFQ ({idFromURL})</span>
-												: <span className="page-heading">Request for Quotation</span>
-									}
-									modal={currentStage === "Draft"}
-								/>
+			<div className="mainContainer d-flex rfq-modern-shell">
+				<div className="leftContent d-flex flex-column">
+					<div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ overflow: 'hidden', minHeight: 0 }}>
+						<div className="rfq-dv2-page-head border-bottom mb-3" style={{ flexShrink: 0 }}>
+							{/* ── Row 1: breadcrumb + action buttons ── */}
+							<div className="rfq-dv2-head-top">
+								{breadcrumb}
+								{/* Action Buttons */}
+								<div className="rfq-dv2-actions">
+									{!loading ? (
+										<>
+											{/* Cancel — always first */}
+											<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost" onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
+												Cancel
+											</button>
+
+											{/* Secondary actions */}
+											{stagearray.includes(currentStage) && (
+												<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Draft')}>
+													Save as Draft
+												</button>
+											)}
+											{idFromURL && currentStage && currentStage !== 'Draft' && (
+												<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Save as Templates')}>
+													Save as Template
+												</button>
+											)}
+											{currentStage === 'Allocation' && value === "9" && (
+												<button type="button" className="rfq-dv2-action-btn pe--secondary" onClick={() => handleMenuClick('Save & Close')}>
+													Save &amp; Close
+												</button>
+											)}
+											{currentStage === 'Awarded' && (
+												<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Send Mail to suppliers')}>
+													Send Mail to suppliers
+												</button>
+											)}
+											{currentStage === 'Awarded' && (
+												<button type="button" className="rfq-dv2-action-btn pe-btn--secondary" onClick={() => handleMenuClick('Create NFA')}>
+													Create NFA
+												</button>
+											)}
+											{idFromURL && currentStage && currentStage !== 'Draft' && (() => {
+												const stageInfo = getStageInfo(currentStage, stagelist);
+												if (!actionType && (currentStage === 'Technical Approval' || (currentStage === 'Forward for Approval' && stageInfo?.nextStage !== 'Technical Approval'))) {
+													return (
+														<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Approverforward')}>
+															Forward for approval
+														</button>
+													);
+												}
+												return null;
+											})()}
+
+											{/* Primary action — always last */}
+											{value === 7 && (
+												<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={() => handleMenuClick('Publish RFQ')}>
+													Publish RFQ
+												</button>
+											)}
+											{currentStage === 'Draft' && value !== 7 && (
+												<button
+													type="button"
+													className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
+													onClick={handleButtonGroup}
+													disabled={(!idFromURL || idFromURL === 'add') ? false : !stagearray.includes(currentStage)}
+												>
+													{value === 5 ? "Save Suppliers" : "Save & Continue"}
+												</button>
+											)}
+											{currentStage === 'Allocation' && value === "9" && (
+												<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" onClick={() => handleMenuClick('Save')}>
+													Save
+												</button>
+											)}
+										</>
+									) : (
+										<button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" disabled>
+											{value === 6 ? "Publishing..." : "Saving..."}
+										</button>
+									)}
+								</div>
 							</div>
-							{/* Stage Flow - centered between title and buttons */}
-							<div className="d-flex justify-content-center flex-grow-1">
+
+							{/* Stage flow — visible in non-v2 layout, hidden via CSS in v2 shell */}
+							<div className="rfq-dv2-stage-flow-wrap">
 								<MemoizedEventStageFlow
 									stagelist={stagelist}
 									currentStage={currentStage}
 								/>
 							</div>
-							{/* Action Button*/}
-							<div className="d-flex align-items-center gap-2">
-								{!loading ? (
-									actionType === 'Forward' ||
-										(value === 6 && currentStage !== 'Technical Approval' && currentStage !== 'Open' && actionType === 'approval') ? (
-										<Button
+
+							{/* ── Row 2: meta info ── */}
+							<div className="rfq-dv2-head-bottom">
+								<div className="rfq-dv2-meta-row">
+									<span className="rfq-dv2-meta-item">
+										<span className="rfq-dv2-meta-label">Status</span>
+										<button
 											type="button"
-											size="small"
-											className="button-text text-white"
-											variant="contained"
-											onClick={toggleDrawer("openInvoiceApproved", true)}
+											className={`rfq-dv2-status-pill ${normalizedCurrentStage.toLowerCase() === "draft" ? "is-draft" : ""}`}
+											onClick={handleStatusMenuOpen}
 										>
-											Action
-										</Button>
-									) : (
-										<ButtonGroup variant="contained">
-											<Button
-												variant="contained"
-												className="p-2 pt-1 pb-1"
-												onClick={handleButtonGroup}
-												sx={{ padding: '2px 8px', minHeight: '28px', lineHeight: '1' }}
-												disabled={value == 9 ? currentStage != 'Allocation' : !stagearray.includes(currentStage)}
-											>
-												<span className="text-capitalize">{selectedMenuItem}</span>
-											</Button>
-
-											<Button
-												variant="contained"
-												className="button-text text-white"
-												onClick={handleMenuOpen}
-												sx={{ padding: '2px 8px', minHeight: '28px', lineHeight: '1' }}
-											>
-												<ExpandMore />
-											</Button>
-
-											<Menu
-												anchorEl={anchorEl}
-												open={Boolean(anchorEl)}
-												onClose={handleMenuClose}
-											>
-												{value === "7" && (
-													<MenuItem onClick={() => handleMenuClick('Publish RFQ')}>
-														<div>
-															<span className="text-capitalize">
-																Submit
-															</span>
-														</div>
-													</MenuItem>
-												)}
-
-												{currentStage == 'Draft' && value !== "7" && (
-													<MenuItem onClick={() => handleMenuClick('Save & Continue')}>
-														<div>
-															<span className="text-capitalize">
-																{value === 5 ? "Save Suppliers" : "Save & Continue"}
-															</span>
-														</div>
-													</MenuItem>
-												)}
-												{currentStage == 'Allocation' && value == "9" && (
-													<MenuItem onClick={() => handleMenuClick('Save')}>
-														<div>
-															<span className="text-capitalize"> Save </span>
-														</div>
-													</MenuItem>
-												)}
-												{currentStage == 'Allocation' && value == "9" && (
-													<MenuItem onClick={() => handleMenuClick('Save & Close')}>
-														<div>
-															<span className="text-capitalize"> Save & Close </span>
-														</div>
-													</MenuItem>
-												)}
-
-												{currentStage == 'Awarded' && (
-													<MenuItem onClick={() => handleMenuClick('Send Mail to suppliers')}>
-														<div>
-															<span className="text-capitalize"> Send Mail to suppliers </span>
-														</div>
-													</MenuItem>
-												)}
-												{currentStage == 'Awarded' && (
-													<MenuItem onClick={() => handleMenuClick('Create NFA')}>
-														<div>
-															<span className="text-capitalize"> Create NFA </span>
-														</div>
-													</MenuItem>
-												)}
-
-												{stagearray.includes(currentStage) && (
-													<MenuItem onClick={() => handleMenuClick('Save as Draft')}>
-														<div>
-															<span className="text-capitalize">Save as Draft</span>
-														</div>
-													</MenuItem>
-												)}
-
-												{idFromURL && currentStage && currentStage !== 'Draft' && (
-													<MenuItem onClick={() => handleMenuClick('Save as Templates')}>
-														<div>
-															<span className="text-capitalize">Save as Templates</span>
-														</div>
-													</MenuItem>
-												)}
-
-												{idFromURL && currentStage && currentStage !== 'Draft' && (() => {
-													const currentStageObj = stagelist?.find(item => item.currentStage === currentStage);
-													const currentIndex = stagelist?.findIndex(item => item.stageSeq === currentStageObj?.stageSeq);
-													const stageInfo = getStageInfo(currentStage, stagelist);
-
-													if (!actionType && (currentStage === 'Technical Approval' || (currentStage == 'Forward for Approval' && stageInfo?.nextStage != 'Technical Approval'))) {
-														return (
-															<MenuItem onClick={() => handleMenuClick('Approverforward')}>
-																<div>
-																	<span className="text-capitalize">Forward for approval</span>
-																</div>
-															</MenuItem>
-														);
-													}
-
-													return null;
-												})()}
-
-												<MenuItem onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
-													<div>
-														<span className="text-capitalize">Cancel</span>
+											<span className="rfq-dv2-status-dot" />
+											{normalizedCurrentStage}
+										</button>
+									</span>
+									{formik?.values?.endDate && (
+										<span className="rfq-dv2-meta-item">
+											<span className="rfq-dv2-meta-label">End Date/Time:</span>{" "}
+											<span className="rfq-dv2-meta-value">{formatRfqDateTime(formik?.values?.endDate)}</span>
+										</span>
+									)}
+									<span className="rfq-dv2-meta-item">
+										<span className="rfq-dv2-meta-label">Requisitioner:</span>{" "}
+										<span className="rfq-dv2-meta-value">{formik?.values?.requisitioner || "-"}</span>
+									</span>
+								</div>
+								<Menu
+									anchorEl={statusAnchorEl}
+									open={Boolean(statusAnchorEl)}
+									onClose={handleStatusMenuClose}
+									classes={{ paper: "rfq-dv2-status-menu-paper" }}
+									anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+									transformOrigin={{ vertical: "top", horizontal: "left" }}
+									PaperProps={{
+										style: {
+											width: 280,
+											minWidth: 280,
+											maxWidth: 280,
+											overflow: "hidden",
+										}
+									}}
+								>
+									<div className="rfq-dv2-status-menu">
+										<div className="rfq-dv2-status-menu-title">RFQ Status</div>
+										<div className="rfq-dv2-status-menu-list">
+											{rfqStatusSteps.map((step, index) => {
+												const stepClass =
+													index < currentStatusIndex
+														? ""
+														: index === currentStatusIndex
+															? "is-current"
+															: "is-future";
+												return (
+													<div key={step} className={`rfq-dv2-status-step ${stepClass}`}>
+														<span className="rfq-dv2-status-step-icon" />
+														<span>{step}</span>
 													</div>
-												</MenuItem>
-											</Menu>
-										</ButtonGroup>
-									)
-								) : (
-									<Button className="button-text text-white">
-										{value === 6 ? "Publishing..." : "Submit..."}
-									</Button>
-								)}
-
+												);
+											})}
+										</div>
+									</div>
+								</Menu>
 							</div>
 						</div>
 
 						{/* Tab Navigation and Icons Header */}
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3">
+						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 bg-grey" style={{ flexShrink: 0 }}>
 							{/* Tab Navigation */}
 							<Box sx={{
 								flexGrow: 1,
@@ -4276,7 +3273,7 @@ useEffect(() => {
 											disabled={!idFromURL}
 										/>
 									)}
-									{idFromURL && currentStage.trim() == "Draft" && (
+									{idFromURL && currentStage.trim() === "Draft" && (
 										<Tab
 											value={7}
 											label={<span className="section-heading">Preview</span>}
@@ -4285,7 +3282,7 @@ useEffect(() => {
 									)}
 									{idFromURL && (
 										(currentStage.trim() !== "Under Pre Approval" && currentStage.trim() !== "Draft") ||
-										formik?.values?.Version != 1
+										formik?.values?.Version !== 1
 									) && (
 											<Tab
 												value={6}
@@ -4300,7 +3297,7 @@ useEffect(() => {
 											disabled={!idFromURL}
 										/>
 									)}
-									{idFromURL && (currentStage.trim() == "Allocation" || currentStage.trim() == "Awarded") && stagelist?.some(item => item.currentStage == "Allocation") && (
+									{idFromURL && (currentStage.trim() === "Allocation" || currentStage.trim() === "Awarded") && stagelist?.some(item => item.currentStage === "Allocation") && (
 										<Tab
 											value={9}
 											label={<span className="section-heading">Allocation</span>}
@@ -4310,9 +3307,25 @@ useEffect(() => {
 								</Tabs>
 							</Box>
 
+							{false && showTabSaveContinue && (
+								<div className="rfq-dv2-tab-save-action">
+									<Button
+										type="button"
+										size="small"
+										className="rfq-dv2-save-continue-btn"
+										onClick={handleSaveContinue}
+										disabled={isSaveContinueHeaderDisabled}
+									>
+										{value === 5 ? "Save Suppliers" : "Save & Continue"}
+									</Button>
+								</div>
+							)}
+
+							{value === 6 && <div ref={(el) => { rfqReportActionsRef.current = el; if (el && !rfqActionsPortalReady) setRfqActionsPortalReady(true); }} style={{ display: 'flex', alignItems: 'center' }} />}
+
 							{/* Top-right icons: History, Attachment, and Approval */}
 							{/* <div className="d-flex align-items-center gap-2"> */}
-							<div className={`d-flex align-items-center gap-2`}>
+							<div className="d-flex align-items-center gap-2 rfq-dv2-tab-actions" aria-hidden="true">
 								{(
 									<AttachmentWorkFlow
 										eventtype={`RFQ`}
@@ -4321,15 +3334,15 @@ useEffect(() => {
 										handleattachmentforevent={handleattachmentforevent}
 										ref={attachmentdrawerref}
 										onCountChange={handleAttachmentCount}
-													permissionManager={effectivePermissionManager}
+										permissionManager={effectivePermissionManager}
 									/>
 								)}
 
-								{ idFromURL && (
-									<HistoryCell eventtype={`RFQ`} eventId={idFromURL} 
-									permissionManager={effectivePermissionManager}
+								{idFromURL && (
+									<HistoryCell eventtype={`RFQ`} eventId={idFromURL}
+										permissionManager={effectivePermissionManager}
 									/>
-									
+
 								)}
 								{idFromURL && (<Tooltip title="Show/Hide Approvers">
 									<IconButton
@@ -4348,2949 +3361,348 @@ useEffect(() => {
 						</div>
 
 						{/* Tab Content */}
-						<div className="flex-grow-1 p-2 hidden-scrollbar" style={{
-							height: 'calc(100% - 60px)'
-						}}>
+						<div className="flex-grow-1 hidden-scrollbar" style={{ overflowY: value === 2 || value === 5 || value === 6 || value === 8 || value === 9 ? 'hidden' : 'auto', padding: value === 6 || value === 8 || value === 9 ? '0' : '20px 16px 16px', display: value === 2 || value === 5 || value === 6 || value === 8 || value === 9 ? 'flex' : 'block', flexDirection: value === 2 || value === 5 || value === 6 || value === 8 || value === 9 ? 'column' : undefined }}>
 							{/* General Tab Content */}
 							{value === 1 && (
-								<div>
-									{showGeneralAccessDenied && (
-										<div className="p-4">
-											<Alert severity="error">
-												<div className="d-flex align-items-center">
-													<HiOutlineX className="me-2 f18" />
-													Access Denied: You don't have permission to view General settings.
-												</div>
-											</Alert>
-										</div>
-									)}
-									{!showGeneralAccessDenied && stagearray.includes(currentStage) ? (
-										<>
-											{/* Permission Control for General Tab */}
-											{(() => {
-												const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false;
-												const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false;
-												const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false;
-												const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.REMOVE) ?? false;
-
-
-
-												return (
-													<div>
-														{/* Permission Status Alert */}
-													
-
-
-														<div className="row mb-3">
-															<div className="col-12">
-																<TextFieldCell
-																	size="small"
-																	label="Subject *"
-																	name="subject"
-																	id="subject"
-																	value={formik.values.subject}
-																	onChange={formik.handleChange}
-																	onBlur={formik.handleBlur}
-																	error={formik.touched.subject && Boolean(formik.errors.subject)}
-																	helperText={formik.touched.subject && formik.errors.subject}
-																	disabled={!canEdit}
-																	className="w-100"
-																/>
-															</div>
-														</div>
-
-
-														<div className="row mb-3">
-															<div className="col-12">
-																<div className="f12 text-muted mb-1">
-																	<span>Description *</span>
-																	<ReactQuill
-																		theme="snow"
-																		value={formik.values.description || ''}
-																		onChange={(content) => formik.setFieldValue('description', content)}
-																		readOnly={!canEdit}
-																		placeholder="Enter description..."
-																		style={{ backgroundColor: !canEdit ? '#f5f5f5' : 'white' }}
-																	/>
-																</div>
-															</div>
-														</div>
-
-														<LocalizationProvider dateAdapter={AdapterDayjs}>
-															<div className="row mt-4 mb-2">
-																{/* Requisitioner */}
-																<div className="col-12 col-md-4 col-lg-4">
-																	<Autocomplete
-																		id="requisitioner"
-																		name="requisitioner"
-																		size="small"
-																		className="w-100 f14"
-																		loading={loadRequisitioner}
-																		onOpen={() => {
-																			// Call pullUsersList when dropdown opens
-																			PullUserDesignation();
-																		}}
-																		options={requisitionerList ? requisitionerList.map(item => item.name) : []}
-																		getOptionLabel={(option) => option}
-																		value={formik.values.requisitioner || ''}
-																		onChange={(event, value) => handleRequisitionerChange(value)}
-																		renderInput={(params) => (
-																			<TextField
-																				{...params}
-																				label="Requisitioner"
-																				variant="outlined"
-																				error={formik.touched.requisitioner && Boolean(formik.errors.requisitioner)}
-																				helperText={formik.touched.requisitioner && formik.errors.requisitioner}
-																				InputLabelProps={{ shrink: true }}
-																			/>
-																		)}
-																	/>
-																</div>
-
-																{/* Start Date */}
-																<div className="col-12 col-md-4 col-lg-4">
-																	<MobileDateTimePicker
-																		label="Start Date/Time"
-																		name="startDate"
-																		id="startDate"
-																		value={formik.values?.startDate}
-																		onChange={(newValue) => formik.setFieldValue("startDate", newValue)}
-																		minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-																		timezone={userDetail?.timeZone}
-																		format={getDateFormatPatteronLocale(userDetail)}
-																		ampm={userampm(userDetail)}
-																		className="w-100 f14"
-																		slotProps={{
-																			textField: {
-																				variant: "outlined",
-																				size: "small",
-																				InputLabelProps: { shrink: true },
-																				error: formik.touched?.startDate && Boolean(formik.errors?.startDate),
-																				helperText: formik.touched?.startDate && formik.errors?.startDate,
-																			},
-																			actionBar: {
-																				actions: ["clear", "cancel", "accept"],
-																			},
-																		}}
-																	/>
-																</div>
-
-																{/* End Date */}
-																<div className="col-12 col-md-4 col-lg-4">
-																	<MobileDateTimePicker
-																		label="End Date/Time *"
-																		name="endDate"
-																		id="endDate"
-																		value={formik.values.endDate}
-																		onChange={(newValue) => formik.setFieldValue("endDate", newValue)}
-																		minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-																		timezone={userDetail?.timeZone}
-																		format={getDateFormatPatteronLocale(userDetail)}
-																		ampm={userampm(userDetail)}
-																		className="w-100 f14"
-																		slotProps={{
-																			textField: {
-																				variant: "outlined",
-																				size: "small",
-																				InputLabelProps: { shrink: true },
-																				error: formik.touched.endDate && Boolean(formik.errors.endDate),
-																				helperText: formik.touched.endDate && formik.errors.endDate,
-																			},
-																			actionBar: {
-																				actions: ["clear", "cancel", "accept"],
-																			},
-																		}}
-																	/>
-																</div>
-															</div>
-														</LocalizationProvider>
-
-														<div className="row mt-4 mb-2">
-															{/* Purchase Org */}
-															{purchaseAllList && (
-																<div className="col-12 col-md-4 col-lg-4 mb-2">
-																	<Autocomplete
-																		id="purchOrgId"
-																		name="purchOrgId"
-																		size="small"
-																		className="w-100 f14"
-																		options={(() => {
-																			// If user is non-admin (roleId !== 1), show only their assigned org
-																			if (userDetail?.roleId !== 1 && userDetail?.purchOrgId) {
-																				const userOrg = purchaseAllList.find(org => org.id === userDetail.purchOrgId);
-																				return userOrg ? [userOrg] : [];
-																			}
-																			// If admin (roleId === 1), show all orgs + "Add New"
-																			return [...purchaseAllList, { id: "new", orgName: "Add New" }];
-																		})()}
-																		value={formik.values.purchOrgId}
-																		getOptionLabel={(option) => option.orgName ?? ""}
-																		onChange={(e, value) => {
-																			if (value?.id === "new") {
-																				setPurchaseOrgModal(true);
-																				formik.setFieldValue("purchGrpId", null);
-																				return;
-																			}
-																			if (value) {
-																				formik.setFieldValue("purchOrgId", value);
-																				formik.setFieldValue("purchGrpId", null);
-																			} else {
-																				formik.setFieldValue("purchOrgId", null);
-																				formik.setFieldValue("purchGrpId", null);
-																			}
-																			setPurchaseGroupAllList([]);
-																		}}
-																		renderOption={(props, option) => (
-																			<Box
-																				component="li"
-																				{...props}
-																				style={
-																					option.id === "new"
-																						? {
-																							fontStyle: "italic",
-																							color: "blue",
-																							cursor: "pointer",
-																							textDecoration: "underline",
-																						}
-																						: {}
-																				}
-																			>
-																				{option.orgName}
-																			</Box>
-																		)}
-																		renderInput={(params) => (
-																			<TextField
-																				{...params}
-																				variant="outlined"
-																				label="Purchase Org"
-																				InputLabelProps={{ shrink: true }}
-																			/>
-																		)}
-																	/>
-																</div>
-															)}
-
-															{/* Purchase Group */}
-															{purchaseGroupAllList && (
-																<div className="col-12 col-md-4 col-lg-4 mb-2">
-																	<Autocomplete
-																		id="purchGrpId"
-																		name="purchGrpId"
-																		size="small"
-																		className="w-100 f14"
-																		options={[
-																			...purchaseGroupAllList,
-																			{ id: "new", groupName: "Add New" },
-																		]}
-																		value={formik.values?.purchGrpId}
-																		getOptionLabel={(option) => option?.groupName ?? ""}
-																		onChange={(e, value) => {
-																			if (value?.id === "new") {
-																				setPurchaseOrgGrpModal(true);
-																				return;
-																			}
-																			formik.setFieldValue("purchGrpId", value);
-																		}}
-																		renderOption={(props, option) => (
-																			<Box
-																				component="li"
-																				{...props}
-																				style={
-																					option.id === "new"
-																						? {
-																							fontStyle: "italic",
-																							color: "blue",
-																							cursor: "pointer",
-																							textDecoration: "underline",
-																						}
-																						: {}
-																				}
-																			>
-																				{option.groupName}
-																			</Box>
-																		)}
-																		renderInput={(params) => (
-																			<TextField
-																				{...params}
-																				variant="outlined"
-																				label="Purchase Group"
-																				InputLabelProps={{ shrink: true }}
-																			/>
-																		)}
-																	/>
-																</div>
-															)}
-															{/* Show Price to Technical Approver */}
-															{stagelist?.some(item => item.currentStage == "Technical Approval") &&
-																(<div className="col-12 col-md-4 col-lg-4 mb-2">
-																	<FormGroup>
-																		<FormControlLabel
-																			control={
-																				<Checkbox
-																					//disabled={false}
-																					checked={formik?.values?.showPriceTech == true}
-																				/>
-																			}
-																			id="sealedBid"
-																			label={<span className="f13 muted">Show Price to Technical Approver</span>}
-																			labelPlacement={"end"}
-																			name="sealedBid"
-																			value={formik.values.showPriceTech}
-																			onChange={(e) => {
-																				const newValue = e.target.checked ? true : false;
-																				formik.setFieldValue("showPriceTech", newValue);
-																			}}
-																		/>
-																	</FormGroup>
-																</div>)
-															}
-														</div>
-
-
-
-														<div className="col-12 mb-1">
-															<FormControl className="w-100">
-																<FormLabel id="baseCurrency">
-																	<span className="f13">
-																		Select Currency Mode
-																	</span>
-																</FormLabel>
-																<RadioGroup
-																	row
-																	aria-labelledby="baseCurrency"
-																	name="baseCurrency"
-																	value={formik.values.IsMultiCurrency}
-																	onChange={(e) => {
-
-																		formik.setFieldValue(
-																			"IsMultiCurrency",
-																			e.target.value == "true" ? true : false
-																		);
-																		formik.setFieldValue(
-																			"baseCurrency",
-																			formik?.values?.baseCurrency || userDetail?.defaultCurrency
-																		);
-																	}}
-																>
-																	<FormControlLabel
-																		value={false}
-																		control={<Radio />}
-																		label={
-																			<span >
-																				Base Currency{" "}
-																				{userDetail &&
-																					userDetail?.defaultCurrency ? (
-																					<span className="f12 text-primary pointer" onClick={handleBaseCurrency}>
-																						({`${formik?.values?.baseCurrency || userDetail?.defaultCurrency}`})
-																					</span>
-																				) : (
-																					<span></span>
-																				)}
-																			</span>
-																		}
-																	/>
-																	<FormControlLabel
-																		value={true}
-																		control={<Radio />}
-																		label="Multiple Currency"
-																	/>
-																</RadioGroup>
-															</FormControl>
-															{
-																formik.values.IsMultiCurrency ? (
-																	<>
-																		<div className="row">
-																			<div className="col-12">
-																				<div className="row">
-																					<div className="col-12 col-lg-12 mt-3">
-																						{inputList?.map((x, i) => {
-
-																							return (
-																								<div
-																									className="row  d-flex align-items-center w-100 mb-3"
-																									key={i}
-																								>
-																									<div className="col-lg-4 col-12">
-																										<Autocomplete
-																											id={"baseCurrency" + i}
-																											name="baseCurrency"
-																										options={[
-																											...(currencyList?.filter(cl => cl.currencyNm !== (formik?.values?.baseCurrency || userDetail?.defaultCurrency)) || []),
-																											{ currencyNm: "Add New", id: "new" }
-																										]}
-																										getOptionLabel={(option) => option.currencyNm}
-																										loading={loadCurrency}
-																										onOpen={() => {
-																											// Call pullgetCurrency when dropdown opens
-																											if (currencyList.length === 0)
-																												pullgetCurrency();
-																										}}
-																										onChange={(event, value) => {
-																											if (value && value.id === "new") {
-																												setOpenCurrencyModal(true);
-																											} else {
-																												handleInputChange({ target: { value: value ? value?.currencyNm : "", name: "baseCurrency" } }, i);
-																											}
-																										}}
-																										//value={currencyList?.find(cl => cl.currencyNm === x.baseCurrency) || null} // Set the value from the currency list
-																										value={
-																											currencyList.find(
-																												(option) => option.currencyNm === x.baseCurrency
-																											) || { currencyNm: x.baseCurrency }
-																										}
-																										renderInput={(params) => (
-																											<TextField
-																												{...params}
-																												InputLabelProps={{
-																													shrink: true,
-																												}}
-																												name="baseCurrency"
-																												label="Select Currency *"
-																												variant="outlined"
-																												size="small"
-																												className="w-100 f14"
-																											/>
-																										)}
-																										renderOption={(props, option) => (
-																											<Box
-																												component="li"
-																												{...props}
-																												key={option.id || option.currencyNm}
-																												style={
-																													option.id === "new"
-																														? {
-																															fontStyle: "italic",
-																															color: "blue",
-																															cursor: "pointer",
-																															textDecoration: "underline",
-																														}
-																														: {}
-																												}
-																											>
-																												{option.currencyNm}
-																											</Box>
-																										)}
-																									/>
-
-																									</div>
-																									<div className="col-lg-4 col-12">
-																										<TextField
-																											variant="outlined"
-																											InputLabelProps={{
-																												shrink: true,
-																											}}
-
-																											className={`w-100 ${x && x.baseCurrency && x.currencyConversion && !isNaN(parseFloat(x.currencyConversion)) && parseFloat(x.currencyConversion) <= 0 ? 'invalid-input' : ''}`}
-																											required
-
-																											id={`currency-conversion-${i}`}
-																											label="Enter currency conversion factor"
-																											value={x.currencyConversion}
-																											size="small"
-																											name="currencyConversion"
-																											placeholder=""
-																											onChange={(e) => handleInputChange(e, i, "currencyConversion")}
-																										/>
-																									</div>
-																									{x.id > 0 ? (
-																										<>
-																											<div className="col-lg-1 col-6 ms-0 ps-0 ">
-																												<Button
-																													disabled={
-																														inputList?.length ==
-																														1
-																													}
-																													variant="standard"
-																													color="error"
-																													size="medium"
-																													onClick={() =>
-																														handleRemoveClick(i)
-																													}
-																												>
-																													<HiOutlineX className="text-danger" />
-																												</Button>
-																											</div>
-																										</>
-																									) : (
-																										<>
-																											{inputList.length !==
-																												1 && (
-																													<div className="col-lg-1 col-6 ms-0 ps-0 ">
-																														<Button
-																															variant="standard"
-																															color="error"
-																															size="medium"
-																															onClick={() =>
-																																handleRemoveClick(
-																																	i
-																																)
-																															}
-																														>
-																															<HiOutlineX className="text-danger" style={{ fontSize: "0.975rem" }} />
-																														</Button>
-																													</div>
-																												)}
-																										</>
-																									)}
-																									{inputList?.length ? (
-																										<>
-																											{inputList.length - 1 ===
-																												i && (
-																													<div className="col-lg-2 col-6 pe-0 ms-0 ps-0 currencyButton" >
-																														<Button
-																															variant="outlined"
-																															disabled={
-																																(x.currencyConversion ==
-																																	"") ||
-																																(x.baseCurrency ==
-																																	"")
-
-																															}
-																															size="small"
-																															color="primary"
-																															className="f11"
-																															onClick={
-																																handleAddClick
-																															}
-																														>
-																															+ Add More
-																														</Button>
-																													</div>
-																												)}
-																										</>
-																									) : null}
-
-																								</div>
-																							);
-																						})}
-																					</div>
-																				</div>
-																			</div>
-																		</div>
-																	</>
-																) : (
-																	<></>
-																)}
-														</div>
-														<div className="col-12 mb-1">
-															<div className="f12 text-muted mb-1">
-																<span>Terms & Conditions *</span>
-																{idFromURL && (
-																	<span>
-																		<Tooltip title="Attachments">
-																			<IconButton
-
-																				size="small"
-																				className="border-primary  bg-white"
-																				onClick={() => {
-
-																					if (attachmentdrawerref.current) {
-																						attachmentdrawerref?.current?.handledrawer()
-																					}
-																				}}
-																			>
-
-																				<Badge
-																					style={{ padding: "0px 4px", fontSize: "10px" }}
-																					// badgeContent={attachmentCount}
-																					// color={attachmentCount > 0 ? "success" : "info"}
-																					badgeContent={attachmentforevent?.filter(a => a.fileType === "TC").length || 0}
-																					color={attachmentforevent?.some(a => a.fileType === "TC") ? "success" : "info"}
-																				>
-																					<FilePresentIcon className="f16" />
-																				</Badge>
-																			</IconButton>
-																		</Tooltip>
-																	</span>
-																)}
-
-
-
-															</div>
-
-
-															<ReactQuill
-																id="termandcondition"
-																theme="snow"
-																preserveWhitespace
-																className=""
-																value={formik.values.termandcondition}
-																onChange={(value) => {
-																	const termandcondition = extractTextFromHTML(value);
-																	const length = termandcondition.length;
-																	if (length <= 2000) {
-																		formik.setFieldValue(
-																			"termandcondition",
-																			value
-																		);
-																	} else {
-																		formik.setFieldValue(
-																			"termandcondition",
-																			formik.values.termandcondition
-																		);
-																		toast.error('Term and Condition greater than 2000 character is not allowed', {
-																			toastId: "t&cerr"
-																		});
-																	}
-																}}
-
-															/>
-															{formik.values.termandcondition != "0" && extractTextFromHTML(formik.values.termandcondition)?.length != "0" && <div
-																style={{
-																	fontSize: "0.8em",
-																	color: "grey",
-																	textAlign: "end",
-																}}
-															>
-																{`${extractTextFromHTML(formik.values.termandcondition)?.length || ""
-																	}/2000`}{" "}
-
-															</div>}
-															{formik.touched.termandcondition &&
-																Boolean(formik.errors.termandcondition) ? (
-																<>
-																	<FormHelperText className="text-danger">
-																		{formik.errors.termandcondition}
-																	</FormHelperText>
-																</>
-															) : (
-																<></>
-															)}
-														</div>
-														<div className="col-12 mb-4 d-flex">
-															<div className="col-12 col-md-2 col-lg-2 mt-4">
-																<FormGroup>
-																	<FormControlLabel
-																		control={
-																			<Checkbox
-																				//disabled={false}
-																				checked={formik?.values?.RFQType == "closed"}
-																			/>
-																		}
-																		id="sealedBid"
-																		label={<span className="f14 muted">Sealed Bid</span>}
-																		labelPlacement={"end"}
-																		name="sealedBid"
-																		value={formik.values.RFQType}
-																		onChange={(e) => {
-
-																			const newValue = e.target.checked ? "closed" : "open";
-																			formik.setFieldValue("RFQType", newValue);
-
-																			if (newValue === "open") {
-																				formik.setFieldValue("bidOpeningDate", null);
-
-
-
-																			}
-
-																			//versionhistoryhandling
-																			const currentVersion = formik.values.Version;
-																			const updatedHistory = [...(formik.values.RFQVersionHistory || [])];
-
-																			const index = updatedHistory?.findIndex(
-																				(entry) => entry.version === currentVersion
-																			);
-																			if (newValue === "open") {
-
-
-																				if (index !== -1) {
-																					// Update existing version entry
-																					updatedHistory[index].bidOpeningDate = null;
-																					updatedHistory[index].OpenQuotes = 'Y';
-																					updatedHistory[index].autoOpenEnabled = false;
-
-																				}
-																			}
-																			else {
-
-																				if (index !== -1) {
-																					// Update existing version entry
-
-																					updatedHistory[index].OpenQuotes = 'N';
-
-
-																				}
-
-																			}
-
-
-
-																		}}
-																	/>
-																</FormGroup>
-															</div>
-															{/* <div className="col-12 col-md-2 col-lg-2 mt-4 ms-3">
-																<FormGroup>
-																	<FormControlLabel
-																		control={
-																			<Checkbox
-																				checked={formik.values.boqReq === true}
-																			/>
-																		}
-																		id="boqReq"
-																		label={<span className="f14 muted">BOQ</span>}
-																		labelPlacement={"end"}
-																		name="boqReq"
-																		onChange={(e) => formik.setFieldValue("boqReq", e.target.checked)}
-																	/>
-																</FormGroup>
-															</div>  */}
-															{formik.values.RFQType == "closed" && (
-																<>
-																	<div className="col-12 col-md-6 col-lg-4 mt-4 ms-0 ps-0 me-2">
-																		<LocalizationProvider dateAdapter={AdapterDayjs}>
-																			<MobileDateTimePicker
-																				disabled={!(formik.values.RFQType === "closed")}
-																				variant="outlined"
-																				label={`Bid Open Date/Time`}
-																				size="small"
-																				name="bidOpeningDate"
-																				id="bidOpeningDate"
-																				timezone={userDetail?.timeZone}
-																				minDateTime={dayjs(new Date().toISOString()).tz(userDetail?.timeZone)}
-																				//value={formik.values.bidOpeningDate ?? null}
-																				value={formik.values?.bidOpeningDate}
-																				className="w-100 f14 "
-																				slotProps={{
-																					textField: {
-																						variant: "outlined",
-																						size: "small",
-																						InputLabelProps: { shrink: true },
-																						error: formik.touched.bidOpeningDate && Boolean(formik.errors.bidOpeningDate),
-																						helperText: formik.touched.bidOpeningDate && formik.errors.bidOpeningDate,
-																					},
-																					actionBar: {
-																						actions: ["clear", "cancel", "accept"],
-																					},
-																				}}
-																				onChange={(newValue) => {
-																					formik.setFieldValue("bidOpeningDate", newValue);
-
-																					const currentVersion = formik.values.Version;
-																					const updatedHistory = [...(formik.values.RFQVersionHistory || [])];
-
-																					const index = updatedHistory?.findIndex(
-																						(entry) => entry.version == currentVersion
-																					);
-
-																					if (index !== -1) {
-																						// Update existing version entry
-																						updatedHistory[index].bidOpeningDate = newValue;
-																					}
-
-
-																					formik.setFieldValue("RFQVersionHistory", updatedHistory);
-																				}}
-
-
-																				format={getDateFormatPatteronLocale(userDetail)}
-																				ampm={userampm(userDetail)}
-
-																			/>
-																		</LocalizationProvider>
-																	</div>
-																	{/* <div className="col-12 col-md-6 col-lg-4 mt-4 me-2">
-																		<FormGroup>
-																			<FormControlLabel
-																				control={
-																					<Checkbox
-																						checked={formik.values.RFQVersionHistory?.find(x => x.version == formik.values?.Version)?.autoOpenEnabled == true}
-																					/>
-																				}
-																				id="AutoOpenEnabled"
-																				label={<span className="f14 muted ">Auto Open</span>}
-																				labelPlacement={"end"}
-																				name="Auto Open Enabled"
-																				value={formik.values.RFQVersionHistory?.find(x => x.version == formik.values?.Version)?.autoOpenEnabled == true}
-																				onChange={(e) => {
-
-																					const newValue = e.target.checked ? true : false;
-
-																					const currentVersion = formik.values.Version;
-																					const updatedHistory = [...(formik.values.RFQVersionHistory || [])];
-
-																					const index = updatedHistory?.findIndex(
-																						(entry) => entry.version === currentVersion
-																					);
-
-																					if (index !== -1) {
-																						// Update existing version entry
-																						updatedHistory[index].autoOpenEnabled = newValue;
-																					}
-
-																					formik.setFieldValue("RFQVersionHistory", updatedHistory);
-																				}}
-																			/>
-																		</FormGroup>
-																	</div> */}
-																</>
-
-
-
-															)}
-
-
-
-														</div>
-													</div>
-												);
-											})()}
-										</>
-									) : (
-										(() => {
-											const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false;
-											const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false;
-											const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false;
-											const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.REMOVE) ?? false;
-
-
-
-								if (showGeneralAccessDenied || !idFromURL || idFromURL === 'add') {
-									return null;
-								}
-
-								return (
-									<RFQGeneralPreview
-										formik={formik}
-										inputList={inputList}
-										purchaseAllList={purchaseAllList}
-										purchaseGroupAllList={purchaseGroupAllList}
-									/>
-									);
-											})()
-										
-									)}
-								</div>
+								<RFQGeneralTab
+									canRead={effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false}
+									canEdit={effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false}
+									canCreate={effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false}
+									canRemove={effectivePermissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.REMOVE) ?? false}
+									showGeneralAccessDenied={showGeneralAccessDenied}
+									formik={formik}
+									inputList={inputList}
+									loadRequisitioner={loadRequisitioner}
+									requisitionerList={requisitionerList}
+									purchaseAllList={purchaseAllList}
+									purchaseGroupAllList={purchaseGroupAllList}
+									stagelist={stagelist}
+									currencyList={currencyList}
+									loadCurrency={loadCurrency}
+									stagearray={stagearray}
+									currentStage={currentStage}
+									idFromURL={idFromURL}
+									userDetail={userDetail}
+									attachmentforevent={attachmentforevent}
+									handleRequisitionerChange={handleRequisitionerChange}
+									PullUserDesignation={PullUserDesignation}
+									handleBaseCurrency={handleBaseCurrency}
+									pullgetCurrency={pullgetCurrency}
+									handleInputChange={handleInputChange}
+									handleAddClick={handleAddClick}
+									handleRemoveClick={handleRemoveClick}
+									handletabEdit={handletabEdit}
+									setApproverShow={setApproverShow}
+									setWorkflowPanelTab={setWorkflowPanelTab}
+									setPurchaseOrgModal={setPurchaseOrgModal}
+									setPurchaseGroupAllList={setPurchaseGroupAllList}
+									setPurchaseOrgGrpModal={setPurchaseOrgGrpModal}
+									setOpenCurrencyModal={setOpenCurrencyModal}
+								/>
 							)}
 
 							{/* Items/Services Tab Content */}
 							{value === 2 && (
-								<div>
-									{(() => {
-										// Permission control for Items/Services tab
-										const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false;
-										const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.EDIT) ?? false;
-										const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.CREATE) ?? false;
-										const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.REMOVE) ?? false;
-
-										// If permissions finished loading and no read permission, deny access completely
-										if (!loadingPermissions && !canRead) {
-											return (
-												<div className="p-4">
-													<Alert severity="error">
-														<div className="d-flex align-items-center">
-															<HiOutlineX className="me-2 f18" />
-															Access Denied: You don't have permission to view Items/Services.
-														</div>
-													</Alert>
-												</div>
-											);
-										}
-
-										if (formik.values.boqReq === true) {
-											return (
-												<BoqScreen 
-													idFromURL={idFromURL}
-													eventType="RFQ"
-													CurrentVersion={formik?.values?.Version}
-													stage={currentStage}
-													boqReq={formik.values.boqReq}
-													onUploadSuccess={() => {
-														pullRFQItemServiceFind(idFromURL);
-													}}
-												/>
-											);
-										}
-										return (
-											<div className="mb-5">
-												{/* Permission Alert for Items/Services Tab */}
-												{permissionManager && (
-													<div className="pb-0">
-													
-													</div>
-												)}
-
-												<div className="p-3 pt-0">
-													<div className="">
-														<div className="text-end">
-															{/* Add New Button - controlled by CREATE permission */}
-															<Button
-																variant="text"
-																size="large"
-																startIcon={<HiPlusSm />}
-																className="text-capitalize blue-text font-normal"
-																onClick={toggleDrawer("addProductDrawer", true)}
-																disabled={(!stagearray.includes(currentStage)) || !canCreate}
-															>
-																Add New
-															</Button>
-
-															{/* Clear All Button - controlled by REMOVE permission */}
-															{rfqItemsList?.length > 0 && canRemove && (
-																<Tooltip title="Clear All">
-																	<IconButton
-																		size="small"
-																		className="ms-2 me-3"
-																		color="error"
-																		onClick={() => setConfirmClearAllItems(true)}
-																		disabled={!stagearray.includes(currentStage)}
-																	>
-																		<HiOutlineX />
-																	</IconButton>
-																</Tooltip>
-															)}
-
-															<Dropdown align="end" className="d-inline-block">
-																<Dropdown.Toggle
-																	as="div"
-																	id="gt"
-																	className="round-edit remove-tringle"
-																	role="button"
-																>
-																	<IconButton
-																		size="medium"
-																		className="shadow-sm"
-																		disabled={(!stagearray.includes(currentStage)) || (!canCreate && !canEdit)}
-																	>
-																		<HiOutlineDotsHorizontal className="f17" />
-																	</IconButton>
-																</Dropdown.Toggle>
-																<Dropdown.Menu className="ddl-menu">
-																	{/* Pull PR Data - controlled by CREATE permission */}
-																	<MenuItem
-																		className="f14"
-																		disabled={(!stagearray.includes(currentStage)) || !canCreate}
-																	>
-																		Pull PR Data
-																	</MenuItem>
-																	{/* Excel Upload - controlled by CREATE permission */}
-																	<MenuItem
-																		className="f14"
-																		disabled={(!stagearray.includes(currentStage)) || !canCreate}
-																		onClick={() => canCreate && document.getElementById('itemuploadid').click()}
-																		
-																	>
-																		Excel Upload
-																	</MenuItem>
-																	{/* Excel Template - controlled by READ permission */}
-																	<MenuItem
-																		className="f14"
-																		onClick={downloadItemsExcel}
-																		disabled={(!stagearray.includes(currentStage)) || !canRead}
-																	>
-																		Excel Template
-																	</MenuItem>
-																</Dropdown.Menu>
-															</Dropdown>
-														</div>
-													</div>
-
-													<div className="">
-														<ProductitemCell
-															action={stagearray.includes(currentStage) && canEdit}
-															itemsList={rfqItemsList}
-															handleEditItem={canEdit ? handleEditItem : () => { }}
-															handleDeleteItem={canRemove ? handleDeleteItem : () => { }}
-															eventType="RFQ"
-															CurrentVersion={formik?.values?.Version}
-															readOnly={!canEdit}
-															showEditButton={canEdit}
-															showDeleteButton={canRemove}
-														/>
-													</div>
-												</div>
-											</div>
-										);
-									})()}
+								<div className="rfq-items-tab-content" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+									<RFQItemsTab
+										loadingPermissions={loadingPermissions}
+										canRead={effectivePermissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false}
+										canEdit={effectivePermissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.EDIT) ?? false}
+										canCreate={effectivePermissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.CREATE) ?? false}
+										canRemove={effectivePermissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.REMOVE) ?? false}
+										stagearray={stagearray}
+										currentStage={currentStage}
+										rfqItemsList={rfqItemsList}
+										boqReq={formik.values.boqReq}
+										idFromURL={idFromURL}
+										rfqVersion={formik?.values?.Version}
+										downloadItemsExcel={downloadItemsExcel}
+										downloadEventItemsExcel={downloadEventItemsExcel}
+										setConfirmClearAllItems={setConfirmClearAllItems}
+										toggleDrawer={toggleDrawer}
+										handleEditItem={handleEditItem}
+										handleDeleteItem={handleDeleteItem}
+										pullRFQItemServiceFind={pullRFQItemServiceFind}
+									/>
 								</div>
 							)}
 
 							{/* Commercial Terms Tab Content */}
 							{value === 3 && (
-								<div>
-									{(() => {
-										const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false;
-										const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false;
-										const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.CREATE) ?? false;
-										const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.REMOVE) ?? false;
-
-										// Show permission status
-										return (
-											<>
-												{effectivePermissionManager && (
-													<div className="pb-0">
-													
-													</div>
-												)}
-												<EventCommercialScreen
-													EventType="RFQ"
-													EventId={idFromURL}
-													LibraryType="CommercialLibrary"
-													EventGeneralDetails={formik?.values}
-													ref={EventCommercialScreenRef}
-													Action={stagearray.includes(currentStage)}
-													Version={formik?.values?.Version}
-													currencyList={currencyList}
-													commercialedit={iscomercialeditDisabled}
-													permissionManager={effectivePermissionManager}
-												/>
-											</>
-										);
-									})()}
-								</div>
+								<RFQCommercialTab
+									effectivePermissionManager={effectivePermissionManager}
+									idFromURL={idFromURL}
+									formik={formik}
+									stagearray={stagearray}
+									currentStage={currentStage}
+									currencyList={currencyList}
+									EventCommercialScreenRef={EventCommercialScreenRef}
+									iscomercialeditDisabled={iscomercialeditDisabled}
+								/>
 							)}
 
 							{/* Questions Tab Content */}
 							{value === 4 && (
-								<div className="mb-5">
-									{(() => {
-										const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false;
-										const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) ?? false;
-										const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false;
-										const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false;
-
-										// Show permission status
-										return (
-											<>
-												{effectivePermissionManager && (
-													<div className="pb-0">
-                                                        
-													</div>
-												)}
-												<EventQuestionScreen
-													props={{
-														eventid: idFromURL,
-														eventtype: "RFQ",
-														librarytype: "QuestionLibrary",
-														action: stagearray.includes(currentStage),
-														supplierid: supplierid,
-														Version: formik?.values?.Version,
-														editquestion: isquestioneditDisabled,
-														stagelist: stagelist,
-														permissionManager: permissionManager,
-														requestCell:requestCell
-													}}
-													ref={EventQuestionScreenRef}
-												/>
-											</>
-										);
-									})()}
-								</div>
+								<RFQQuestionsTab
+									idFromURL={idFromURL}
+									supplierid={supplierid}
+									formik={formik}
+									stagearray={stagearray}
+									currentStage={currentStage}
+									isquestioneditDisabled={isquestioneditDisabled}
+									stagelist={stagelist}
+									permissionManager={permissionManager}
+									requestCell={requestCell}
+									EventQuestionScreenRef={EventQuestionScreenRef}
+								/>
 							)}
 
-
-							{value == 5 && currentStage.trim() == "Draft" ? (
-								<>
-									{(() => {
-										const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false;
-										const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.EDIT) ?? false;
-										const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-										const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
-
-										// Show permission status
-										return (
-											<>
-												{effectivePermissionManager && (
-													<div className="pb-0">
-                                                        
-													</div>
-												)}
-											</>
-										);
-									})()}
-
-									{tabloading ? <GridSkeleton /> :
-										<>
-											{!issupplierreadDisabled === false &&
-												<div className="p-2 pt-0">
-													<div className="row">
-														<div className="col-12">
-															<div className="">
-																<div className="row align-items-center">
-																	<div className="col-12 col-md-12">
-																		<div className="row mt-2">
-																			<div className="col-12 col-md-6 col-lg-6 mb-3">
-																				<Autocomplete
-																					disablePortal
-																					id=""
-																					size="small"
-																					options={categoryList ?? []}
-																					fullWidth
-																					renderInput={(params) => (
-																						<TextField
-																							{...params}
-																							InputLabelProps={{
-																								shrink: true,
-																							}}
-																							label="Category"
-																						/>
-																					)}
-																					onOpen={() => {
-																						// Call API when dropdown opens
-																						if (categoryList.length === 0) {
-																							getCategorylist();
-																						}
-																					}}
-																					getOptionLabel={(option) =>
-																						option.itemCategory ?? ""
-																					}
-																					value={selectedCategory}
-																					onChange={(e, newvalue) => {
-																						setSelectedCategory(newvalue);
-																						handleSupplierWithCategory(newvalue);
-																					}}
-																				/>
-																			</div>
-
-																			<div className="col-12 col-md-6 col-lg-6 mb-3">
-																				<Autocomplete
-																					id="searchvendorbyname"
-																					options={
-																						totalSupplier?.filter(
-																							(x) => !x.isSelected
-																						) ?? []
-																					}
-																					filterOptions={VendorfilterOptions}
-																					getOptionLabel={(option) => ""}
-																					renderOption={(
-																						props,
-																						option,
-																						{ selected }
-																					) => (
-																						<li {...props}>
-																							{currentStage == "Draft" && (() => {
-																								const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-																								return (
-																									<Checkbox
-																										icon={icon}
-																										checkedIcon={checkedIcon}
-																										style={{ marginRight: 8 }}
-																										disabled={!canCreate}
-																									/>
-																								);
-																							})()}
-																							{`${option.contactPerson} | ${option.email} | ${option?.companyName}` ??
-																								""}
-																						</li>
-																					)}
-																					size="small"
-																					fullWidth
-																					renderInput={(params) => (
-																						<TextField
-																							{...params}
-																							InputLabelProps={{
-																								shrink: true,
-																							}}
-																							label="Search User from Supplier by Name"
-																						/>
-																					)}
-																					onChange={(e, newvalue) => {
-																						if (newvalue) {
-																							const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-																							if (canCreate) {
-																								handleSelectedSupplier(
-																									newvalue,
-																									e.target.checked
-																								);
-																							}
-																						}
-																					}}
-																				/>
-																			</div>
-
-
-
-																		</div>
-																	</div>
-
-																</div>
-															</div>
-														</div>
-													</div>
-													<div className="row mt-3 item-Table">
-														<div className="col-12 col-md-12 col-lg-6">
-															<div className="bg-white rounded-default shadow-sm">
-																<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-																	<div className="p-2">
-																		<div className="d-flex align-items-center">
-																			Total Suppliers{" "}
-																			<div className="supplierCount">
-																				{
-																					totalSupplier?.filter((x) => x.isShow)
-																						?.length
-																				}
-																			</div>{" "}
-																			{selectedCategory && (
-																				<Badge pill bg="success" text="dark">
-																					{selectedCategory?.categoryName}
-																				</Badge>
-																			)}
-																		</div>
-
-																	</div>
-
-																</div>
-																<hr className="m-0" />
-																<div className="row">
-																	<div className="col-12">
-																		{(() => {
-																			const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false;
-
-																			if (!canRead) {
-																				return (
-																					<div className="p-3">
-																						<Alert severity="warning">
-																							You don't have permission to view suppliers data.
-																						</Alert>
-																					</div>
-																				);
-																			}
-
-																			return totalSupplier
-																				?.filter((x) => x.isShow)
-																				.slice(
-																					(pageTS - 1) * pageCount,
-																					pageTS * pageCount
-																				)
-																				.map((x, i) => (
-																					<div
-																						className="d-flex border-bottom align-items-center m-0 p-1 pt-0 pb-0"
-																						key={i}
-																					>
-																						{!stagearray.includes(currentStage) &&
-
-																							<Tooltip title={x?.contactPerson}>
-																								<IconButton
-																									size="medium"
-																									className="bg-white ms-0 ps-0 pe-0 me-0"
-
-																								>
-																									<LiaUserSolid className="f17 text-primary" />
-																								</IconButton>
-																							</Tooltip>
-
-																						}
-																						<div className="flex-grow-1 ms-2 text-truncate">
-																							<div className="text-truncate f12">
-																								{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
-																							</div>
-																						</div>
-																						{stagearray.includes(currentStage) && (() => {
-																							const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-																							const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
-
-																							return x?.isSelected == true ? (
-																								<Checkbox
-																									size="small"
-																									checked={x?.isSelected}
-																									disabled={!canRemove}
-																									onChange={(e) =>
-																										handleSelectedSupplier(
-																											x,
-																											e.target.checked
-																										)
-																									}
-																								/>
-																							) : (
-																								<Checkbox
-																									size="small"
-																									checked={false}
-																									disabled={!canCreate}
-																									onChange={(e) =>
-																										handleSelectedSupplier(
-																											x,
-																											e.target.checked
-																										)
-																									}
-																								/>
-																							);
-																						})()}
-
-																					</div>
-																				));
-																		})()}
-																	</div>
-																</div>
-															</div>
-
-															<div className="pagination_wrapper mb-3 mt-3">
-																<div className="d-flex align-items-center">
-																	<div className="flex-grow-1 d-none d-md-block">
-
-																	</div>
-																	<div className="">
-																		<Stack spacing={2}>
-																			<Pagination
-																				count={totalpageTS}
-																				page={pageTS}
-																				onChange={handlePaginationTS}
-																			/>
-																		</Stack>
-																	</div>
-																</div>
-															</div>
-														</div>
-														<div className="col-12 col-md-12 col-lg-6 border-start">
-															<div className="bg-white rounded shadow-sm">
-																<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-																	<div className="p-2">
-																		<div className="d-flex align-items-center">
-																			Selected Suppliers{" "}
-																			<div className="supplierCount">
-																				{selectedSupplier?.length}
-																			</div>
-																		</div>
-
-																	</div>
-																	<div className="">
-
-																		<>
-
-
-
-
-																			{stagearray.includes(currentStage) && (() => {
-																				const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
-																				return (
-																					<LoadingButton
-																						variant="text"
-																						size="small"
-																						className="me-2 rounded-pill"
-																						onClick={clearALLSelectedSupplier}
-																						disabled={!canRemove}
-																					>
-																						<span className="text-capitalize">
-																							Clear All
-																						</span>
-																					</LoadingButton>
-																				);
-																			})()}
-																		</>
-
-
-
-																	</div>
-																</div>
-																<hr className="m-0" />
-																<div className="row">
-																	<div className="col-12">
-																		{(() => {
-																			const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false;
-
-																			if (!canRead) {
-																				return (
-																					<div className="p-3">
-																						<Alert severity="warning">
-																							You don't have permission to view selected suppliers.
-																						</Alert>
-																					</div>
-																				);
-																			}
-
-																			return selectedSupplier
-																				.slice(
-																					(pageSS - 1) * pageCount,
-																					pageSS * pageCount
-																				)
-																				.map((x, i) => {
-
-																					return (
-
-																						<div
-																							className="row border-bottom align-items-center m-0 p-1 pt-0 pb-0"
-																							key={i}
-																						>
-																							<div className="col-md-10">
-																								<div className="d-flex align-items-center ">
-																									{stagearray.includes(currentStage) && (() => {
-																										const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-																										const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
-
-																										return x?.isSelected == true ? (
-																											<Checkbox
-																												size="small"
-																												checked={x?.isSelected}
-																												disabled={!canRemove}
-																												onChange={(e) =>
-																													handleSelectedSupplier(
-																														x,
-																														e.target.checked
-																													)
-																												}
-																											/>
-																										) : (
-																											<Checkbox
-																												size="small"
-																												checked={false}
-																												disabled={!canCreate}
-																												onChange={(e) =>
-																													handleSelectedSupplier(
-																														x,
-																														e.target.checked
-																													)
-																												}
-																											/>
-																										);
-																									})()}
-																									<div className="text-truncate f12">
-																										{`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
-																									</div>
-																								</div>
-																							</div>
-																							<div className="col-md-2 justify-content-end d-flex align-items-center">
-																								<div className="col-md-4  d-flex align-items-center justify-content-end">
-																									<DropdownButton
-																										as={"div"}
-																										key={"end7"}
-																										id={`myacccmenu`}
-																										className="supplieraccmenu "
-																										drop={"start"}
-																										variant="outlined"
-																										style={{
-																											backgroundColor: "white",
-																											color: "#2182cde",
-																										}}
-																										title={
-																											<Tooltip title={"Action"}>
-																												<div
-																													style={{
-																														fontSize: "0.8125rem",
-																														color: "#2A68D3",
-																														fontWeight: "500",
-																													}}
-																												>
-																													<HiDotsVertical />{" "}
-																												</div>
-																											</Tooltip>
-																										}
-																									>
-																										<div className="shadow rounded min-width-200px">
-
-
-																											{x.id != 0 && <MenuItem className="f12 fw500" onClick={() => handleLoadingFactorClick(x, i)}>
-																												Loading Factor
-																											</MenuItem>}
-
-																											{!stagearray.includes(currentStage) && (
-																												<MenuItem className="f12 fw500" onClick={() => handleSupplierAction(x, 'Reopen')}>
-																													Re-Open Quote
-																												</MenuItem>
-																											)}
-
-																										</div>
-																									</DropdownButton>
-
-																								</div>
-
-																								{stagearray.includes(currentStage) && (() => {
-																									const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
-																									return (
-																										<div className="col-md-4">
-																											<IconButton
-																												size="medium"
-																												className="bg-white ms-0 ps-0 pe-0 me-0 pb-1"
-																												disabled={!canRemove}
-																												onClick={() =>
-																													clearSelectedSupplier(
-																														x,
-																														false
-																													)
-																												}
-																											>
-																												<HiX className="f17 text-danger" />
-																											</IconButton>
-																										</div>
-																									);
-																								})()}
-																							</div>
-																						</div>
-																					)
-																				}
-																				);
-																		})()}
-																	</div>
-																</div>
-															</div>
-															<div className="pagination_wrapper mb-3 mt-3">
-																<div className="d-flex align-items-center">
-																	<div className="flex-grow-1 d-none d-md-block">
-
-																	</div>
-																	<div className="">
-																		<Stack spacing={2}>
-																			<Pagination
-																				count={totalpageSS}
-																				page={pageSS}
-																				onChange={handlePaginationSS}
-																			/>
-																		</Stack>
-																	</div>
-																</div>
-															</div>
-														</div>
-													</div>
-												</div>}
-
-											{((value === 5) && (issupplierreadDisabled === false)) &&
-												<NotFoundPage
-													heading={`You Are Not Allowed To View Supplier Tab`}
-													body1={`contact your Administrator for view rights`}
-												/>}
-
-										</>
-									}
-
-
-								</>
-							) : (
-								<>
-
-								</>
+							{value === 5 && (
+								<RFQSupplierTab
+									tabloading={tabloading}
+									issupplierreadDisabled={issupplierreadDisabled}
+									effectivePermissionManager={effectivePermissionManager}
+									permissionManager={permissionManager}
+									categoryList={categoryList}
+									selectedCategory={selectedCategory}
+									totalSupplier={totalSupplier}
+									selectedSupplier={selectedSupplier}
+									stagearray={stagearray}
+									currentStage={currentStage}
+									pageTS={pageTS}
+									pageCount={pageCount}
+									pageSS={pageSS}
+									setPageTS={setPageTS}
+									setPageSS={setPageSS}
+									setPageCount={setPageCount}
+									setSelectedCategory={setSelectedCategory}
+									handleSupplierWithCategory={handleSupplierWithCategory}
+									handleSelectedSupplier={handleSelectedSupplier}
+									clearALLSelectedSupplier={clearALLSelectedSupplier}
+									clearSelectedSupplier={clearSelectedSupplier}
+									handleLoadingFactorClick={handleLoadingFactorClick}
+									handleSupplierAction={handleSupplierAction}
+									getCategorylist={getCategorylist}
+									updatesupplieronloading={updatesupplieronloading}
+									totalpageSS={totalpageSS}
+									handlePaginationSS={handlePaginationSS}
+									issupplierraccesslevel={issupplierraccesslevel}
+									EventHeaderDetails={EventHeaderDetails}
+									formik={formik}
+								/>
 							)}
-
-							{/* {to handle supplier after rfq submitted} */}
-							{value == 5 && currentStage.trim() != "Draft" &&
-								<>
-									{(() => {
-										const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.READ) ?? false;
-										const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.EDIT) ?? false;
-										const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.CREATE) ?? false;
-										const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.SUPPLIERS, ACTIONS.REMOVE) ?? false;
-
-										// Show permission status
-										return (
-											<>
-												{effectivePermissionManager && (
-													<div className="pb-0">
-                                                    
-													</div>
-												)}
-											</>
-										);
-									})()}
-
-									<EventSuppliers
-										updatesupplieronloading={updatesupplieronloading}
-										selectedSupplier={selectedSupplier}
-										stagearray={stagearray}
-										currentStage={currentStage}
-										handleSelectedSupplier={handleSelectedSupplier}
-										handleLoadingFactorClick={handleLoadingFactorClick}
-										handleSupplierAction={handleSupplierAction}
-										clearSelectedSupplier={clearSelectedSupplier}
-										pageSS={pageSS}
-										pageCount={pageCount}
-										totalpageSS={totalpageSS}
-										handlePaginationSS={handlePaginationSS}
-										issupplierraccesslevel={issupplierraccesslevel}
-										CurrentVersion={formik?.values?.Version}
-										versionhistory={EventHeaderDetails?.versionhistory}
-										permissionManager={effectivePermissionManager}
-
-									/>
-								</>
-							}
-							{value == 6 && idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL)) &&
-
-								<ERFQComparative key={"ERFQComparative"} accessLevel={accessLevel} handleTab={handleTab}
-
-									actions={{
-										rfqid: idFromURL,
-										categoryList: categoryList,
-										selectedsupplier: selectedSupplier,
-										enddate: formik?.values?.endDate?.toISOString(),
-										activityId: activityId,
-										actionType: actionType,
-										handleDraftEvent: handleDraftEvent,
-										rfqtype: formik?.values?.RFQType,
-										sealedBid: openQuotes,
-										EventHeaderDetails: EventHeaderDetails,
-										approvershow: approvershow,
-										handleApprover: handleApprover,
-										rfqheaderversion: formik?.values?.Version,
-										purchaseAllList: purchaseAllList,
-										purchaseGroupAllList: purchaseGroupAllList,
-										currentStage: currentStage,
-										filteredSupplier: handlefilteredSupplier,
-										stagelist: stagelist,
-										eventSubject: formik?.values?.subject,
-										inputList: inputList,
-										purchOrgId: formik.values?.purchOrgId,
-										purchGrpId: formik.values?.purchGrpId,
-										updatesupplieronloading: updatesupplieronloading,
-										stagearray: stagearray,
-										handleSelectedSupplier: handleSelectedSupplier,
-										handleLoadingFactorClick: handleLoadingFactorClick,
-										handleSupplierAction: handleSupplierAction,
-										clearSelectedSupplier: clearSelectedSupplier,
-										pageSS: pageSS,
-										pageCount: pageCount,
-										totalpageSS: totalpageSS,
-										handlePaginationSS: handlePaginationSS,
-										issupplierraccesslevel: issupplierraccesslevel,
-										versionhistory: EventHeaderDetails?.versionhistory,
-										RFQVersionHistory: formik?.values?.RFQVersionHistory,
-										handleLoadingFactorNew: handleLoadingFactorNew,
-										isUpdated: isUpdated,
-										permissionManager: permissionManager,
-										isNFA: false
-									}}
-								/>}
-
-
-							{value == 8 &&
-								<QueryList
-									pageSlug={pageSlug}
-									key={"QueryList"}
+							{value === 6 && idFromURL && idFromURL !== "add" && !isNaN(parseInt(idFromURL)) && (
+								<RFQComparativeTab
+									idFromURL={idFromURL}
 									accessLevel={accessLevel}
-									fromEventPage={true} // or better: fromEventPage={true}
-									EventId={pageSlug} // assuming pageSlug is RFQ ID
-									EventType={"RFQ"} // set the event type
+									handleTab={handleTab}
+									headerActionsRef={rfqActionsPortalReady ? rfqReportActionsRef : null}
+									onSubTabChange={setErfqActiveSubTab}
+									categoryList={categoryList}
+									selectedSupplier={selectedSupplier}
+									formik={formik}
+									activityId={activityId}
+									actionType={actionType}
+									handleDraftEvent={handleDraftEvent}
+									openQuotes={openQuotes}
+									EventHeaderDetails={EventHeaderDetails}
+									approvershow={approvershow}
+									handleApprover={handleApprover}
+									purchaseAllList={purchaseAllList}
+									purchaseGroupAllList={purchaseGroupAllList}
+									currentStage={currentStage}
+									handlefilteredSupplier={handlefilteredSupplier}
+									stagelist={stagelist}
+									inputList={inputList}
+									updatesupplieronloading={updatesupplieronloading}
+									stagearray={stagearray}
+									handleSelectedSupplier={handleSelectedSupplier}
+									handleLoadingFactorClick={handleLoadingFactorClick}
+									handleSupplierAction={handleSupplierAction}
+									clearSelectedSupplier={clearSelectedSupplier}
+									pageSS={pageSS}
+									pageCount={pageCount}
+									totalpageSS={totalpageSS}
+									handlePaginationSS={handlePaginationSS}
+									issupplierraccesslevel={issupplierraccesslevel}
+									handleLoadingFactorNew={handleLoadingFactorNew}
+									isUpdated={isUpdated}
 									permissionManager={permissionManager}
 								/>
-							}
-							{value == 9 &&
-								<EventAllocationScreen
-									props={{
-										eventId: 0,
-										nfaEventId: idFromURL,
-										nfaEventType: 'RFQ',
-										Version: formik?.values?.Version,
-										nfaEventVersion: formik?.values?.Version,
-										currentStage: "Allocation",
-										permissionManager: effectivePermissionManager
-									}}
-									 ref={NFASOBRFQRef}
-								/>
-							}
-							{value == 7 && rfqpreview && !showGeneralAccessDenied && idFromURL && idFromURL !== 'add' && (
-								<div className="custom-fix">
-									{accessLevel?.find(x => x.claimType == "General")?.claimValue?.Read != "N" &&
-										<>
-											<div className="card shadow-sm border-0 mb-3" style={{ borderRadius: '8px' }}>
-												<div className="card-body p-4">
-													<div className="d-flex justify-content-between align-items-center mb-3" id="generaldetails">
-																											<Typography
-														  sx={{
-															mb: 3,
-															color: '#1976d2',
-															fontWeight: 400,
-															fontSize: '14px' // set font size to 14px
-														  }}
-														>
-														  📝 RFQ General Details
-														</Typography>
-														{/* <h5 className="preview-section-heading text-dark-blue mb-0">RFQ General Details</h5> */}
-														{stagearray.includes(currentStage) && (
-															<IconButton
-																size="small"
-																className="bg-light"
-																onClick={() => handletabEdit(1)}
-															>
-																<HiPencilAlt className="f17 text-primary" />
-															</IconButton>
-														)}
-													</div>
-
-													<RFQGeneralPreview formik={formik} inputList={inputList}
-														purchaseAllList={purchaseAllList}
-														purchaseGroupAllList={purchaseGroupAllList}
-														customClassName="none"
-													/>
-												</div>
-											</div>
-										</>
-									}
-
-	{accessLevel?.find(x => x.claimType == "Item Service")?.claimValue?.Read !== "N" && (
-  <>
-    {/* === SAME STYLE AS RFQ GENERAL DETAILS === */}
-    <div className="d-flex justify-content-between align-items-center mb-3" id="rfqitemsdetails">
-      <Typography
-        sx={{
-          mb: 3,
-          color: "#1976d2",
-          fontWeight: 400,
-          fontSize: "14px" // same size
-        }}
-      >
-        📝 RFQ Items Details
-      </Typography>
-
-      {stagearray.includes(currentStage) && (
-        <IconButton
-          size="small"
-          className="bg-light"
-          onClick={() => handletabEdit(2)}
-        >
-          <HiPencilAlt className="f17 text-primary" />
-        </IconButton>
-      )}
-    </div>
-
-    {/* CARD WITHOUT HEADER */}
-    <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-      <CardContent sx={{ p: 2 }}>
-        {formik.values.boqReq === true ? (
-          <BoqScreen 
-            idFromURL={idFromURL}
-            eventType="RFQ"
-            CurrentVersion={formik?.values?.Version}
-            stage={currentStage}
-            boqReq={formik.values.boqReq}
-            readOnly={true}
-          />
-        ) : (
-          <ProductitemCell
-            action={false}
-            itemsList={rfqItemsList}
-            handleEditItem={handleEditItem}
-            handleDeleteItem={handleDeleteItem}
-          />
-        )}
-      </CardContent>
-    </Card>
-  </>
-)}
-
-
-
-	{
-  accessLevel?.find(x => x.claimType == "Commercial Terms")?.claimValue?.Read !== "N" && (
-    <>
-
-      {/* === SAME STYLE HEADING LIKE “RFQ General Details” === */}
-      <div className="d-flex justify-content-between align-items-center mb-3" id="rfqcommercialdetails">
-        <Typography
-          sx={{
-            mb: 3,
-            color: "#1976d2",
-            fontWeight: 400,
-            fontSize: "14px" // SAME STYLE
-          }}
-        >
-          📝 RFQ Commercial Details
-        </Typography>
-
-        {stagearray.includes(currentStage) && (
-          <IconButton
-            size="small"
-            className="bg-light"
-            onClick={() => handletabEdit(3)}
-          >
-            <HiPencilAlt className="f17 text-primary" />
-          </IconButton>
-        )}
-      </div>
-
-      {/* === CARD WITHOUT HEADER === */}
-      <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-        <CardContent sx={{ p: 2 }}>
-
-          {/* Permissions Info */}
-					{(() => {
-						const canRead = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.READ) ?? false;
-						const canEdit = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.EDIT) ?? false;
-						const canCreate = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.CREATE) ?? false;
-						const canRemove = effectivePermissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_TERMS, ACTIONS.REMOVE) ?? false;
-
-						return (
-							<>
-								{effectivePermissionManager && (
-									<Alert severity="info" sx={{ mb: 2 }}>
-										<div className="d-flex align-items-center">
-											<PersonOutlined className="me-2" />
-											Commercial Terms tab permissions:
-											{canRead && <span className="badge bg-success ms-1">Read</span>}
-											{canEdit && <span className="badge bg-warning ms-1">Edit</span>}
-											{canCreate && <span className="badge bg-primary ms-1">Create</span>}
-                      {canRemove && <span className="badge bg-danger ms-1">Remove</span>}
-                    </div>
-                  </Alert>
-                )}
-              </>
-            );
-          })()}
-
-          {/* Component Body */}
-          <EventCommercialScreen
-            EventType="RFQ"
-            EventId={idFromURL}
-            LibraryType="CommercialLibrary"
-            Version={formik?.values?.Version}
-            EventGeneralDetails={formik?.values}
-            Action={false}
-            currencyList={currencyList}
-            ref={EventCommercialScreenRef}
-									permissionManager={effectivePermissionManager}
-          />
-
-        </CardContent>
-      </Card>
-
-    </>
-  )
-}
-
-
-
-{
-  accessLevel?.find(x => x.claimType == "Questions")?.claimValue?.Read !== "N" && (
-    <>
-
-      {/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
-      <div className="d-flex justify-content-between align-items-center mb-3" id="rfqquestions">
-        <Typography
-          sx={{
-            mb: 3,
-            color: "#1976d2",
-            fontWeight: 400,
-            fontSize: "14px" // SAME LOOK
-          }}
-        >
-          📝 RFQ Questions
-        </Typography>
-
-        {stagearray.includes(currentStage) && (
-          <IconButton
-            size="small"
-            className="bg-light"
-            onClick={() => handletabEdit(4)}
-          >
-            <HiPencilAlt className="f17 text-primary" />
-          </IconButton>
-        )}
-      </div>
-
-      {/* === CARD WITHOUT HEADER === */}
-      <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-        <CardContent sx={{ p: 2 }}>
-
-          {/* Permissions Info */}
-          {(() => {
-            const canRead = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.READ) ?? false;
-            const canEdit = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) ?? false;
-            const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false;
-            const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? false;
-
-            return (
-              <>
-              
-              </>
-            );
-          })()}
-
-          {/* Component */}
-          <EventQuestionScreen
-            props={{
-              eventid: idFromURL,
-              eventtype: "RFQ",
-              librarytype: "QuestionLibrary",
-              action: false,
-              supplierid: supplierid,
-              Version: formik?.values?.Version,
-              editquestion: isquestioneditDisabled,
-              stagelist: stagelist,
-              permissionManager: permissionManager,
-			  requestCell: requestCell
-            }}
-            ref={EventQuestionScreenRef}
-          />
-
-        </CardContent>
-      </Card>
-
-    </>
-  )
-}
-
-
-	{
-  accessLevel?.find(x => x.claimType == "Invite Vendor")?.claimValue?.Read !== "N" && (
-    <>
-
-      {/* === SAME STYLE HEADING LIKE OTHER SECTIONS === */}
-      <div className="d-flex justify-content-between align-items-center mb-3" id="invitedsuppliers">
-        <Typography
-          sx={{
-            mb: 3,
-            color: "#1976d2",
-            fontWeight: 400,
-            fontSize: "14px" // SAME STYLE
-          }}
-        >
-          📝 Invited Suppliers
-        </Typography>
-
-        {stagearray.includes(currentStage) && (
-          <IconButton
-            size="small"
-            className="bg-light"
-            onClick={() => handletabEdit(5)}
-          >
-            <HiPencilAlt className="f17 text-primary" />
-          </IconButton>
-        )}
-      </div>
-
-      {/* === CARD WITHOUT HEADER === */}
-      <Card sx={{ mb: 3, boxShadow: 2, borderRadius: "8px" }}>
-        <CardContent sx={{ p: 2 }}>
-          <div className="row">
-            <div className="col-12">
-              <SelectedSupplierCell selectedsupplier={selectedSupplier} />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-    </>
-  )
-}
-
-
-								</div>
 							)}
 
+							{value === 8 && (
+								<RFQQueryTab
+									pageSlug={pageSlug}
+									accessLevel={accessLevel}
+									permissionManager={permissionManager}
+								/>
+							)}
+							{value === 9 && (
+								<RFQAllocationTab
+									idFromURL={idFromURL}
+									formik={formik}
+									effectivePermissionManager={effectivePermissionManager}
+									NFASOBRFQRef={NFASOBRFQRef}
+								/>
+							)}
+							{value === 7 && (
+								<RFQPreviewTab
+									rfqpreview={rfqpreview}
+									showGeneralAccessDenied={showGeneralAccessDenied}
+									idFromURL={idFromURL}
+									formik={formik}
+									inputList={inputList}
+									purchaseAllList={purchaseAllList}
+									purchaseGroupAllList={purchaseGroupAllList}
+									stagearray={stagearray}
+									currentStage={currentStage}
+									accessLevel={accessLevel}
+									rfqItemsList={rfqItemsList}
+									currencyList={currencyList}
+									supplierid={supplierid}
+									stagelist={stagelist}
+									permissionManager={permissionManager}
+									requestCell={requestCell}
+									selectedSupplier={selectedSupplier}
+									handletabEdit={handletabEdit}
+									EventCommercialScreenRef={EventCommercialScreenRef}
+									EventQuestionScreenRef={EventQuestionScreenRef}
+									isquestioneditDisabled={isquestioneditDisabled}
+									effectivePermissionManager={effectivePermissionManager}
+									handleEditItem={handleEditItem}
+									handleDeleteItem={handleDeleteItem}
+								/>
+							)}
 						</div>
 					</div>
 				</div>
 
 				{/* Right content - Approval Section */}
-				<div className={`rightContent ${approvershow ? "col-3" : "d-none"}`}>
-					<div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column ms-3 approver-panel" style={{ border: "1px solid #ddd", borderTop: "none", height: 'calc(100vh - 120px)', maxHeight: '100%', overflow: 'hidden' }}>
-						<div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2 flex-shrink-0">
-							<div className="section-heading mb-0 pb-4">Approval Workflow</div>
-							<IconButton
-								onClick={() => handleApprover(false)}
-								size="small"
-								className="text-muted"
-							>
-								<HiOutlineX className="f16" />
-							</IconButton>
-						</div>
-						<div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
-							{approvershow && (
-								<EventApprovalBox
-									requestCell={requestCell}
-									handleEventAppList={handleEventAppList}
-									wfupdate={wfupdate}
-									action={true}
-									stagelist={stagelist}
-									accessLevel={accessLevel}
-									Version={parseInt(formik?.values?.Version)}
-									permissionManager={permissionManager}
-									eventCode={tempDataEditData?.[0]?.eventCode}
-									eventSubject={tempDataEditData?.[0]?.subject}
-									startDate={tempDataEditData?.[0]?.startDate}
-									endDate={tempDataEditData?.[0]?.endDate}
-									currentStage={currentStage}
-								/>
-							)}
-						</div>
-
-					</div>
-				</div>
+				<RFQWorkflowPanel
+					approvershow={approvershow}
+					workflowPanelTab={workflowPanelTab}
+					setWorkflowPanelTab={setWorkflowPanelTab}
+					actionType={actionType}
+					currentStage={currentStage}
+					normalizedCurrentStage={normalizedCurrentStage}
+					stagearray={stagearray}
+					formik_ApproveReject={formik_ApproveReject}
+					toggleDrawer={toggleDrawer}
+					requestCell={requestCell}
+					handleEventAppList={handleEventAppList}
+					wfupdate={wfupdate}
+					stagelist={stagelist}
+					accessLevel={accessLevel}
+					permissionManager={permissionManager}
+					effectivePermissionManager={effectivePermissionManager}
+					tempDataEditData={tempDataEditData}
+					formik={formik}
+					userDetail={userDetail}
+					atoken={atoken}
+					historyLoading={historyLoading}
+					historyGraph={historyGraph}
+					historyAudit={historyAudit}
+					panelAttachLoading={panelAttachLoading}
+					panelAttachDesc={panelAttachDesc}
+					setPanelAttachDesc={setPanelAttachDesc}
+					panelAttachError={panelAttachError}
+					setPanelAttachError={setPanelAttachError}
+					panelAttachFile={panelAttachFile}
+					setPanelAttachFile={setPanelAttachFile}
+					panelSavedAttach={panelSavedAttach}
+					setPanelSavedAttach={setPanelSavedAttach}
+					panelHasCheckboxChanged={panelHasCheckboxChanged}
+					setPanelHasCheckboxChanged={setPanelHasCheckboxChanged}
+					panelIsUpdating={panelIsUpdating}
+					panelAttachAdding={panelAttachAdding}
+					panelFileInputRef={panelFileInputRef}
+					addPanelAttachment={addPanelAttachment}
+					deletePanelAttachment={deletePanelAttachment}
+					updatePanelAttachments={updatePanelAttachments}
+					handleattachmentforevent={handleattachmentforevent}
+				/>
 			</div>
 
-			<React.Fragment key="topaddProduct">
-				<Drawer
-					anchor="right"
-					open={state["addProductDrawer"]}
-
-				>
-					<Box sx={{ width: { xs: 480, sm: 580, md: 820 } }}>
-						<div className="flex flex-col">
-							<Box className="bgheaderNotificationCards">
-								<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-									<div className="ms-3 text-white">Add Product</div>
-									<div>
-										<IconButton
-											onClick={toggleDrawer("addProductDrawer", false)}
-											size="small"
-											edge="start"
-											sx={{ mr: 1 }}
-										>
-											<HiOutlineX className="f20 text-white" />
-										</IconButton>
-									</div>
-								</div>
-							</Box>
-							<div className="h50px"></div>
-							<Box sx={{ flexGrow: 1, p: 2, mt: 2 }}>
-								<AddProductsCell
-									idFromURL={idFromURL}
-									UOMMaster={UOMMaster}
-									callbackItemAdd={callbackItemAdd}
-									itemEditTempData={itemEditTempData}
-									handleUomList={handleUomList}
-									action={stagearray.includes(currentStage)}
-									accesslevel={accessLevel?.itemservice?.created}
-									Version={formik?.values?.Version}
-
-								/>
-							</Box>
-						</div>
-					</Box>
-				</Drawer>
-			</React.Fragment>
-			<React.Fragment key="qusDrawertr">
-				<Drawer
-					anchor="right"
-					open={state["qusDrawer"]}
-
-				>
-					<Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-						<div className="flex flex-col">
-							<Box className="bgheaderCards">
-								<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-									<div className="ms-3 text-white">Add Question</div>
-									<div>
-										<IconButton
-											onClick={toggleDrawer("qusDrawer", false)}
-											size="small"
-											edge="start"
-											sx={{ mr: 1 }}
-										>
-											<HiOutlineX className="f20 text-white" />
-										</IconButton>
-									</div>
-								</div>
-							</Box>
-							<div className="h50px"></div>
-							<Box sx={{ flexGrow: 1, p: 2, mt: 2 }}>
-								<AddQuestionFormCell
-									idFromURL={idFromURL}
-									callbackQuesAddCustom={callbackQuesAddCustom}
-									libraryId={libraryId}
-									questionforedit={questionforedit}
-								/>
-
-							</Box>
-						</div>
-					</Box>
-				</Drawer>
-			</React.Fragment>
-			<React.Fragment key="setSurrogate">
-				<Drawer
-					anchor="right"
-					open={state["surrogateDrawer"]}
-
-				>
-					<Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-						<div className="flex flex-col">
-							<Box className="bgheaderCards">
-								<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-									<div className="ms-3 text-white">{selectedAction}</div>
-									<div>
-										<IconButton
-											onClick={toggleDrawer("surrogateDrawer", false)}
-											size="small"
-											edge="start"
-											sx={{ mr: 1 }}
-										>
-											<HiOutlineX className="f20 text-white" />
-										</IconButton>
-									</div>
-								</div>
-							</Box>
-							<div className="h50px"></div>
-
-							<Box sx={{ flexGrow: 1, p: 2, mt: 2 }}>
-								<form onSubmit={formik_Action.handleSubmit} autoComplete="off">
-									<div className="row mt-2">
-										<div className="col-12 col-md-12 mb-4">
-											<TextFieldCell
-												id="supplierselected"
-												name="supplierselected"
-												label="Supplier *"
-												placeholder=""
-												maxLength={100}
-												value={`${formik_Action.values.supplier?.contactPerson} | ${formik_Action.values.supplier?.emailId} | ${formik_Action.values.supplier?.companyName}`}
-
-												disabled
-											/>
-										</div>
-										{selectedAction == "Surrogate RFQ" &&
-											<>
-												<div className="col-12 col-md-6 mb-4">
-													<TextFieldCell
-														id="name"
-														name="name"
-														label="Surrogator Name"
-														placeholder=""
-														maxLength={100}
-														value={formik_Action.values.name}
-														onChange={(e) => {
-
-															formik_Action.setFieldValue("name", e.target?.value)
-														}}
-														error={
-															formik_Action.touched.name &&
-															Boolean(formik_Action.errors.name)
-														}
-														helperText={
-															formik_Action.touched.name &&
-															formik_Action.errors.name
-														}
-														InputProps={{
-															endAdornment: formik_Action.values.name && (
-																<InputAdornment position="end">
-																	<Typography
-																		variant="body2"
-																		color="textSecondary"
-																	>
-																		{formik_Action.values?.name?.length}/200
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-
-													/>
-												</div>
-												<div className="col-12 col-md-6 mb-4">
-													<TextFieldCell
-														id="email"
-														name="email"
-														label="Surrogator Email *"
-														placeholder=""
-														maxLength={100}
-														value={formik_Action.values.email}
-														onChange={(e) => {
-
-															formik_Action.setFieldValue("email", e.target?.value)
-														}}
-														error={
-															formik_Action.touched.email &&
-															Boolean(formik_Action.errors.email)
-														}
-														helperText={
-															formik_Action.touched.email &&
-															formik_Action.errors.email
-														}
-														InputProps={{
-															endAdornment: formik_Action.values.email && (
-																<InputAdornment position="end">
-																	<Typography
-																		variant="body2"
-																		color="textSecondary"
-																	>
-																		{formik_Action.values?.email?.length}/200
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-
-													/>
-												</div>
-											</>
-										}
-										<div className="col-12 col-md-12 mb-4">
-											<TextFieldCell
-												multiline
-												rows={3}
-												id="Reason"
-												name="Reason"
-												label="Remark"
-												placeholder=""
-												maxLength={200}
-												value={formik_Action.values.Reason}
-												onChange={(e) => {
-
-													formik_Action.setFieldValue("Reason", e.target?.value)
-												}}
-												error={
-													formik_Action.touched.Reason &&
-													Boolean(formik_Action.errors.Reason)
-												}
-												helperText={
-													formik_Action.touched.Reason &&
-													formik_Action.errors.Reason
-												}
-												InputProps={{
-													endAdornment: formik_Action.values.Reason && (
-														<InputAdornment position="end">
-															<Typography
-																variant="body2"
-																color="textSecondary"
-															>
-																{formik_Action.values?.Reason?.length}/200
-															</Typography>
-														</InputAdornment>
-													),
-												}}
-											/>
-										</div>
-									</div>
-									<hr className="mt-0" />
-
-									<div className="text-end">
-										<LoadingButton
-
-											variant="outlined"
-
-											color="primary"
-											className="me-3 text-capitalize"
-											size="small"
-										>
-											Reset
-										</LoadingButton>
-										<LoadingButton
-
-											variant="contained"
-											type="submit"
-											color="primary"
-											className="text-capitalize"
-											size="small"
-										>
-											Submit
-										</LoadingButton>
-									</div>
-								</form>
-							</Box>
-
-						</div>
-					</Box>
-				</Drawer>
-			</React.Fragment>
-			<React.Fragment key="key4">
-
-				<Drawer anchor="right" open={state["openInvoiceApproved"]}>
-					<form onSubmit={formik_ApproveReject.handleSubmit} autoComplete="off">
-						<Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-							<div className="flex flex-col">
-								<Box className="bgheaderCards">
-									<div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-										<div className="ms-3 text-white">Approval Action</div>
-										<div>
-											<IconButton
-												onClick={toggleDrawer("openInvoiceApproved", false, [])}
-												size="small"
-												edge="start"
-												sx={{ mr: 1 }}
-											>
-												<HiOutlineX className="f20 text-white" />
-											</IconButton>
-										</div>
-									</div>
-								</Box>
-								<div className="h50px"></div>
-								<div className="p-3">
-									<div className="row ">
-										<div className="col-12 col-md-12 col-lg-12">
-											<div className="mb-4 textblue f14"></div>
-											<div className="row">
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="isApproved"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														name="isApproved"
-														select
-														className="mb-2"
-														fullWidth
-														size="small"
-														label="Status"
-														variant="outlined"
-														value={formik_ApproveReject.values?.status}
-														onChange={(e) => {
-
-															formik_ApproveReject.setFieldValue(
-																"status",
-																e.target.value
-															)
-														}
-
-														}
-
-														error={
-															formik_ApproveReject.touched.status &&
-															Boolean(formik_ApproveReject.errors.status)
-														}
-														helperText={
-															formik_ApproveReject.touched.status &&
-															formik_ApproveReject.errors.status
-														}
-													>
-														{actionType != "Forward" && menuactionlist.filter(x => x.value != "Forward").map((x) => {
-
-															return (<MenuItem value={x.value}>{x.label}</MenuItem>)
-
-														})
-
-														}
-														{actionType == "Forward" && menuactionlist.filter(x => x.value == "Forward").map((x) => {
-
-															return (<MenuItem value={x.value}>{x.label}</MenuItem>)
-
-														})
-
-														}
-
-													</TextField>
-												</div>
-
-												<div className="col-12 col-md-4 col-lg-12 mb-4">
-													<TextField
-														id="approveComment"
-														InputLabelProps={{
-															shrink: true,
-														}}
-														multiline
-														rows={3}
-														name="approveComment"
-														className="w-100 f14"
-														size="small"
-														label="Comment "
-														variant="outlined"
-														inputProps={{ maxLength: 200 }}
-														value={formik_ApproveReject?.values?.approveComment}
-														onChange={(e) =>
-															formik_ApproveReject.setFieldValue(
-																"approveComment",
-																e.target.value
-															)
-														}
-														InputProps={{
-															endAdornment: formik_ApproveReject?.values?.approveComment && (
-																<InputAdornment position="end">
-																	<Typography variant="body2" color="textSecondary">
-																		{formik_ApproveReject?.values?.approveComment?.length}/200
-																	</Typography>
-																</InputAdornment>
-															),
-														}}
-													/>
-
-												</div>
-
-											</div>
-
-										</div>
-									</div>
-									<div className="row">
-										<div className="col-12 text-end">
-											<LoadingButton
-												loading={loading}
-												color="primary"
-												size="medium"
-												className="text-white text-capitalize mb-3 mr-3"
-												variant="contained"
-												type="submit"
-											>
-												<span>Submit</span>
-											</LoadingButton>
-
-										</div>
-									</div>
-								</div>
-							</div>
-						</Box>
-					</form>
-				</Drawer>
-			</React.Fragment>
-
-			<Dialog open={confirmDelete} onClose={handleCloseDelete}>
-				<DialogTitle id="">{"Are you sure?"}</DialogTitle>
-				<DialogContent style={{ minWidth: "300px" }}>
-					<DialogContentText id="">You want to delete.</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={handleCloseDelete}>No</Button>
-					<Button onClick={() => removeItemData(removeItem)} autoFocus>
-						Yes
-					</Button>
-				</DialogActions>
-			</Dialog>
-			<Dialog open={modalcancelOpen} onClose={() => handleCancelRFQModal(false)}>
-				<DialogTitle>{"Are you sure?"}</DialogTitle>
-				<DialogContent style={{ minWidth: "300px" }}>
-					<DialogContentText>
-						Do you want to cancel this rfq? Unsaved changes will be lost.
-					</DialogContentText>
-					<TextField
-						autoFocus
-						margin="dense"
-						label="Enter reason *"
-						type="text"
-						fullWidth
-						value={cancelReason}
-						onChange={handleCancelInputChange}
-						error={Boolean(rfqerror)} // Show error state
-						helperText={rfqerror} // Display error message
-					/>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => handleCancelRFQModal(false)}>No</Button>
-					<Button onClick={() => handleCancelRFQModal(true)} autoFocus>
-						Yes
-					</Button>
-				</DialogActions>
-			</Dialog>
-			{/* <Modal
-				size="xl"
-				show={purchaseOrgModal}
-				backdrop="static"
-				keyboard={false}
-				value={"Add NEW CATEGORY"}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={() => ClosePurcgaseOrgModal()}
-			> */}
-			<Modal
-  show={purchaseOrgModal}
-  dialogClassName="modal-custom-mdlg"
-  backdrop="static"
-  keyboard={false}
-  centered
-  contentClassName="border-0"
-  onHide={ClosePurcgaseOrgModal}
->
-
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => ClosePurcgaseOrgModal()}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<PurchaseOrg isModal={true} handlepurchaseorgList={handlepurchaseorgList} />
-					</div>
-				</Modal.Body>
-			</Modal>
-			<Modal
-				size="md"
-				show={loadingModal}
-				backdrop="static"
-				keyboard={false}
-				value={"Loading"}
-				className="zindex1280 loading-factor-modal"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={() => CloseLoadingModal()}
-			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-							Loading Factor
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => CloseLoadingModal()}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-3" style={{ maxHeight: 'calc(100vh - 200px)', overflow: 'visible' }}>
-					<div>
-						<div className="row g-3">
-
-							<div className="col-md-3 ">
-								<FormControl fullWidth>
-									<InputLabel id="factorType" variant="outlined"
-										InputLabelProps={{
-											shrink: true,
-										}}>Loading Type</InputLabel>
-									<Select
-										labelId="factorType"
-										id="factorType"
-										name="factorType"
-										value={factorType}
-										label="Loading Type"
-										onChange={(e) => {
-											setFactorType(e?.target?.value)
-										}}
-										error={!!errors.factorType}
-										size="small"
-
-									>
-										<MenuItem value='A'>Absolute</MenuItem>
-										<MenuItem value='P'>Percentage</MenuItem>
-									</Select>
-									{errors.factorType &&
-										<div className="error-message" style={{ color: 'red', fontSize: '12px' }}>
-											{errors.factorType}
-										</div>
-									}
-
-								</FormControl>
-							</div>
-
-							<div className="col-md-3  mt-3">
-								{factorType === 'A' ? (
-									<TextField
-										id="loadingAmount"
-										name="loadingAmount"
-										label="Loading Amount"
-										variant="outlined"
-										value={loadingAmount}
-										onChange={(e) => {
-											const value = e?.target?.value;
-											const regex = /^-?[0-9]*\.?[0-9]*$/; // allow negative numbers
-											if (regex.test(value)) {
-												setLoadingAmount(value);
-											}
-										}}
-										inputProps={{
-											maxLength: 9,
-											inputMode: 'decimal',
-											pattern: "-?[0-9]*",
-										}}
-										InputProps={{
-											endAdornment: (
-												<InputAdornment style={{ width: 20 }} position="start">
-													{formik?.values?.baseCurrency}
-												</InputAdornment>
-											),
-										}}
-										onKeyDown={(e) => {
-											if (
-												!/[0-9]/.test(e.key) &&
-												e.key !== 'Backspace' &&
-												e.key !== 'ArrowLeft' &&
-												e.key !== 'ArrowRight' &&
-												e.key !== 'Tab' &&
-												e.key !== '-' // allow minus for Absolute
-											) {
-												e.preventDefault();
-											}
-										}}
-										size="small"
-										error={!!errors.loadingAmount}
-										helperText={errors.loadingAmount}
-									/>
-								) : (
-									<TextField
-										id="factorPerc"
-										name="factorPerc"
-										label="Loading Percent"
-										variant="outlined"
-										value={factorPerc}
-										onChange={(e) => {
-											const value = e?.target?.value;
-											const regex = /^[0-9]*\.?[0-9]{0,3}$/; // Allows up to 3 decimal places
-											if (regex.test(value)) {
-												setFactorPerc(value);
-											}
-										}}
-										inputProps={{
-											maxLength: 7, // e.g. 100.000 (6 chars + 1 extra buffer)
-											inputMode: 'decimal',
-											step: '0.001', // for mobile numeric keyboard precision
-											pattern: "[0-9]*\\.?[0-9]{0,3}",
-										}}
-										InputProps={{
-											endAdornment: (
-												<InputAdornment style={{ width: 20 }} position="start">
-													%
-												</InputAdornment>
-											),
-										}}
-										onKeyDown={(e) => {
-											if (
-												!/[0-9]/.test(e.key) &&
-												e.key !== 'Backspace' &&
-												e.key !== 'ArrowLeft' &&
-												e.key !== 'ArrowRight' &&
-												e.key !== 'Tab' &&
-												e.key !== '.' // allow decimal point
-											) {
-												e.preventDefault();
-											}
-										}}
-										onPaste={(e) => {
-											const paste = e.clipboardData.getData('text');
-											const regex = /^[0-9]*\.?[0-9]{0,3}$/;
-											if (!regex.test(paste)) {
-												e.preventDefault();
-											}
-										}}
-										size="small"
-										error={!!errors.factorPerc}
-										helperText={errors.factorPerc}
-									/>
-
-
-								)}
-							</div>
-
-							<div className="col-md-6">
-								<TextField
-									id="factorDesc"
-									name="factorDesc"
-									value={factorDesc}
-									label="Reason Of Loading Factor"
-									variant="outlined"
-									onChange={(e) => {
-										setFactorDesc(e?.target?.value)
-									}}
-									error={!!errors.factorDesc}
-									helperText={errors.factorDesc}
-									size="small"
-
-									InputLabelProps={{
-										shrink: true,
-									}}
-								/>
-								<span className="mt-2">
-
-									<IconButton variant="outlined" onClick={handleAddLoadingFactor}>
-										<HiPlus />
-									</IconButton>
-								</span>
-							</div>
-
-
-
-						</div>
-
-						<div className="mt-3" style={{ overflow: 'visible' }}>
-							<table className="loading-factor-table">
-								<thead>
-									<tr>
-										<th>Reason</th>
-										<th>Loading Type</th>
-										<th>Loading Factor</th>
-										<th>Actions</th>
-									</tr>
-								</thead>
-								<tbody>
-									{filteredLoadingFactors?.map((factor, index) => (
-										<tr key={index}>
-											<td>{factor?.factorDesc}</td>
-											<td>{factor.factorType === 'A' ? 'Absolute' : 'Percentage'}</td>
-
-											{/* Conditionally display loadingAmount for Absolute type, and factorPerc for Percentage */}
-											<td>
-												{factor.factorType === 'A'
-													? factor.loadingAmount
-													: `${factor.factorPerc}%`
-												}
-											</td>
-
-											{/* Conditionally display based on loadingOn */}
-											{/* <td>{factor?.loadingOn === 'rfq' ? 'RFQ' : 'Item-Wise'}</td> */}
-
-											<td>
-												<HiOutlineX
-													className="me-2"
-													style={{ color: "#2A68D3", cursor: 'pointer' }}
-													onClick={() => handleDeleteLoadingFactor(index)}
-												/>
-												<HiOutlinePencil
-													style={{ color: "#2A68D3", cursor: 'pointer' }}
-													onClick={() => handleEditLoadingFactor(index)}
-												/>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-							{loadingupdatebtn && filteredLoadingFactors && filteredLoadingFactors?.length >= 0 && <div className="row mt-2">
-								<div className="col-md-12 text-end">
-									<LoadingButton
-
-										variant="contained"
-										type="button"
-										color="primary"
-										className="text-capitalize"
-										size="small"
-										onClick={updateSupplierLoadingFactor}
-									>
-										Update
-									</LoadingButton>
-								</div>
-							</div>}
-
-						</div>
-					</div>
-				</Modal.Body>
-			</Modal>
-			<Modal
-  show={purchaseOrgGrpModal}
-  dialogClassName="modal-custom-mdlg"
-  backdrop="static"
-  keyboard={false}
-  centered
-  contentClassName="border-0"
-  onHide={ClosePurcgaseOrgGrpModal}
->
-	
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => ClosePurcgaseOrgGrpModal()}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<PurchaseOrgGrp />
-					</div>
-				</Modal.Body>
-			</Modal>
-			<Dialog open={open} onClose={handleClose}>
-				<DialogTitle className="pb-0 f14">Save As</DialogTitle>
-				<DialogContent className="pb-0">
-					<DialogContentText style={{ width: "320px" }}>
-						&nbsp;
-					</DialogContentText>
-					<TextFieldCell
-						id="password"
-						name="password"
-						label="RFQ Template Title"
-						placeholder=""
-						value={TemplateTitle}
-						onChange={(e) => {
-							setTemplateTitle(e.target.value)
-						}}
-						maxLength={100}
-					/>
-				</DialogContent>
-				<DialogActions className="pt-0">
-					<Button
-						onClick={handleClose}
-						className="text-muted text-capitalize"
-						style={{ fontSize: "0.75rem" }}
-					>
-						Cancel
-					</Button>
-					<Button onClick={handleSaveTemplate} className="text-capitalize " style={{ fontSize: "0.75rem" }} disabled={!idFromURL}>
-						Save
-					</Button>
-				</DialogActions>
-			</Dialog>
-			{confirmEventUpdate && (
-				<Dialog open={confirmEventUpdate} onClose={() => handleCloseEventUpdate(false)}>
-					<DialogTitle>{"Are you sure?"}</DialogTitle>
-					<DialogContent style={{ minWidth: "300px" }}>
-						<DialogContentText>
-							Are you sure you want to update the event? This action may trigger a reinitiation of the RFQ process.
-						</DialogContentText>
-					</DialogContent>
-					<DialogActions>
-						<Button onClick={() => handleCloseEventUpdate(false)}>Cancel</Button>
-						<LoadingButton
-							loading={loading}
-							onClick={handleDraftEvent} autoFocus>
-							Yes
-						</LoadingButton>
-					</DialogActions>
-				</Dialog>
-
-			)}
-
-
-
-
-			<input className="d-none" id="itemuploadid" ref={fileInputRef} type="file" onChange={handleFileChange} />
-
-
-
-			<Dialog open={confirmClearAllItems} onClose={() => handleClearAllItems(false)}>
-				<DialogTitle>{"Are you sure?"}</DialogTitle>
-				<DialogContent style={{ minWidth: "300px" }}>
-					<DialogContentText>
-						Are you sure you want to delete all Items ?
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => handleClearAllItems(false)}>No</Button>
-					<Button onClick={() => handleClearAllItems(true)} autoFocus>
-						Yes
-					</Button>
-				</DialogActions>
-			</Dialog>
-
-			{/* {basecurrency} */}
-			<Modal
-				size="sm"
-				show={modal1}
-				backdrop="static"
-				keyboard={false}
-				centered
-				className="zindex1270"
-				backdropClassName="zindex1270"
-				onHide={() => handleCloseModal1()}
-				style={{ borderRadius: "5px" }}
-			>
-				<Modal.Header className="bgheaderCards p-2">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14  text-white">
-							Select Base Currency
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => handleCloseModal1()}
-						size="small"
-						edge="start"
-						color="white"
-					>
-						<Close className="text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-2">
-						<div className="row">
-							<div className="col-12 col-lg-12 col-md-12 mt-2 ">
-								<form>
-									<div className="row">
-										<div className="col-12 col-lg-12 col-md-12">
-											<div className="row">
-												<div className="col-12 col-lg-12 mt-3">
-													{
-														<div
-															className="row d-flex align-items-center w-100 mb-3"
-
-														>
-															<div className="col-lg-12 col-12">
-																<TextField
-																	id={"basecurrencymodal"}
-																	InputLabelProps={{
-																		shrink: true,
-																	}}
-																	name="baseCurrency"
-																	select
-																	className="w-100 f14"
-																	size="small"
-																	label="Select Currency *"
-																	variant="outlined"
-																	SelectProps={{
-																		onOpen: () => {
-																			console.log("Select opened, currencyList length:", currencyList.length, "loadCurrency:", loadCurrency);
-																			if (currencyList.length === 0 && !loadCurrency) {
-																				pullgetCurrency();
-																			}
-																		}
-																	}}
-																	value={formik?.values?.baseCurrency}
-																	onChange={(e) => {
-																		const newValue = e.target?.value;
-																		console.log("Base Currency onChange triggered, newValue:", newValue);
-																		if (newValue === "new") {
-																			console.log("Opening currency modal and closing base currency modal...");
-																			handleCloseModal1();
-																			setTimeout(() => {
-																				setOpenCurrencyModal(true);
-																			}, 100);
-																			return;
-																		}
-																		console.log("Setting base currency to:", newValue);
-																		formik.setFieldValue("baseCurrency", newValue);
-																		handleCloseModal1();
-																	}}
-																>
-																	{loadCurrency ? (
-																		<MenuItem>Loading...</MenuItem>
-																	) : [
-																		...(currencyList || []).map((option) => (
-																			<MenuItem
-																				key={option.id}
-																				value={option?.currencyNm}
-																			>
-																				{option?.currencyNm}
-																			</MenuItem>
-																		)),
-																		<MenuItem
-																			key="new"
-																			value="new"
-																			style={{ fontStyle: "italic", color: "blue", cursor: "pointer", textDecoration: "underline" }}
-																		>
-																			Add New
-																		</MenuItem>
-																	]}
-																</TextField>
-															</div>
-
-
-
-														</div>
-													}
-
-
-												</div>
-											</div>
-										</div>
-									</div>
-								</form>
-							</div>
-						</div>
-					</div>
-				</Modal.Body>
-			</Modal>
-			{isUploading && (
-				<div style={{
-					position: 'fixed',
-					top: 0,
-					left: 0,
-					height: '100vh',
-					width: '100vw',
-					backgroundColor: 'rgba(255,255,255,0.6)',
-					backdropFilter: 'blur(3px)',
-					display: 'flex',
-					justifyContent: 'center',
-					alignItems: 'center',
-					zIndex: 9999
-				}}>
-					<div style={{ textAlign: 'center' }}>
-						<div className="spinner-border text-primary mb-2" role="status" style={{ width: '3rem', height: '3rem' }}></div>
-						<div style={{ fontSize: '1.2rem', fontWeight: '500', color: '#333' }}>Please Wait While Uploading...</div>
-					</div>
-
-				</div>
-			)}
-
-			{/* Currency Modal */}
-			<Modal
-				size="lg"
-				show={OpenCurrencyModal}
-				backdrop="static"
-				keyboard={false}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={() => CloseCurrencyModal()}
-			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-							Manage Currency
-						</div>
-					</Modal.Title>
-					<IconButton onClick={() => CloseCurrencyModal()} size="small" edge="start">
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<AddEditCurrency handleCurrencyList={handleCurrencyList} />
-					</div>
-				</Modal.Body>
-			</Modal>
+			<RFQDrawers
+				state={state}
+				toggleDrawer={toggleDrawer}
+				stagearray={stagearray}
+				currentStage={currentStage}
+				formik={formik}
+				idFromURL={idFromURL}
+				itemEditTempData={itemEditTempData}
+				UOMMaster={UOMMaster}
+				callbackItemAdd={callbackItemAdd}
+				handleUomList={handleUomList}
+				accessLevel={accessLevel}
+				callbackQuesAddCustom={callbackQuesAddCustom}
+				libraryId={libraryId}
+				questionforedit={questionforedit}
+				selectedAction={selectedAction}
+				formik_Action={formik_Action}
+				formik_ApproveReject={formik_ApproveReject}
+				normalizedCurrentStage={normalizedCurrentStage}
+				confirmDelete={confirmDelete}
+				handleCloseDelete={handleCloseDelete}
+				removeItem={removeItem}
+				removeItemData={removeItemData}
+				modalcancelOpen={modalcancelOpen}
+				handleCancelRFQModal={handleCancelRFQModal}
+				cancelReason={cancelReason}
+				handleCancelInputChange={handleCancelInputChange}
+				rfqerror={rfqerror}
+				purchaseOrgModal={purchaseOrgModal}
+				ClosePurcgaseOrgModal={ClosePurcgaseOrgModal}
+				handlepurchaseorgList={handlepurchaseorgList}
+				loadingModal={loadingModal}
+				CloseLoadingModal={CloseLoadingModal}
+				storeVId={storeVId}
+				filteredLoadingFactors={filteredLoadingFactors}
+				setupdatesupplieronloading={setupdatesupplieronloading}
+				setIsUpdated={setIsUpdated}
+				factorDesc={factorDesc}
+				setFactorDesc={setFactorDesc}
+				factorType={factorType}
+				setFactorType={setFactorType}
+				factorPerc={factorPerc}
+				setFactorPerc={setFactorPerc}
+				loadingAmount={loadingAmount}
+				setLoadingAmount={setLoadingAmount}
+				loadingOn={loadingOn}
+				setLoadingOn={setLoadingOn}
+				loadingFactorErrors={errors}
+				loadingupdatebtn={loadingupdatebtn}
+				handleAddLoadingFactor={handleAddLoadingFactor}
+				handleDeleteLoadingFactor={handleDeleteLoadingFactor}
+				handleEditLoadingFactor={handleEditLoadingFactor}
+				updateSupplierLoadingFactor={updateSupplierLoadingFactor}
+				purchaseOrgGrpModal={purchaseOrgGrpModal}
+				ClosePurcgaseOrgGrpModal={ClosePurcgaseOrgGrpModal}
+				open={open}
+				handleClose={handleClose}
+				TemplateTitle={TemplateTitle}
+				setTemplateTitle={setTemplateTitle}
+				handleSaveTemplate={handleSaveTemplate}
+				confirmEventUpdate={confirmEventUpdate}
+				handleCloseEventUpdate={handleCloseEventUpdate}
+				loading={loading}
+				handleDraftEvent={handleDraftEvent}
+				fileInputRef={fileInputRef}
+				handleFileChange={handleFileChange}
+				confirmClearAllItems={confirmClearAllItems}
+				handleClearAllItems={handleClearAllItems}
+				modal1={modal1}
+				handleCloseModal1={handleCloseModal1}
+				currencyList={currencyList}
+				loadCurrency={loadCurrency}
+				pullgetCurrency={pullgetCurrency}
+				setOpenCurrencyModal={setOpenCurrencyModal}
+				isUploading={isUploading}
+				OpenCurrencyModal={OpenCurrencyModal}
+				CloseCurrencyModal={CloseCurrencyModal}
+				handleCurrencyList={handleCurrencyList}
+			/>
 		</>
 	);
 };

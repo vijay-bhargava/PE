@@ -1,16 +1,20 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, Button, Checkbox, FormControlLabel, IconButton } from "@mui/material";
-import TextFieldCell from "../../pages/BaseCells/TextFieldCell";
-import { LoadingButton } from "@mui/lab";
-import { HiPencilAlt } from "react-icons/hi";
+import {
+	FormControl,
+	InputAdornment,
+	MenuItem,
+	Select,
+	TextField,
+	Typography,
+} from "@mui/material";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { useStateValue } from "../../store";
 import { toast } from "react-toastify";
 import { ApiClient } from "../../Apiclient";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import MasterFormPanel, { MfpEditBtn } from "../../components/MasterFormPanel/MasterFormPanel";
 
-const AddEditItemType = ({ handleItemTypeList }) => {
+const AddEditItemType = ({ handleItemTypeList, isModal = false }) => {
 	const [{ atoken, customerid, customersuffix }] = useStateValue();
 	const apiClient = new ApiClient(customersuffix);
 
@@ -115,12 +119,21 @@ const AddEditItemType = ({ handleItemTypeList }) => {
 	};
 
 	const columns = [
-		{ field: 'itemType', headerName: 'Item Type', width: 240 },
-		{ field: 'isActive', headerName: 'Status', width: 140, renderCell: (params) => (params.value ? 'Active' : 'Inactive') },
-		{ field: 'action', headerName: 'Action', width: 80, renderCell: (params) => (
-				<IconButton size="small" onClick={() => callbackedit(params.row)}>
-					<HiPencilAlt className="f17 text-primary" />
-				</IconButton>
+		{ field: 'itemType', headerName: 'Item Type', flex: 2, minWidth: 160 },
+		{
+			field: 'isActive',
+			headerName: 'Status',
+			flex: 1,
+			minWidth: 100,
+			renderCell: (params) => (
+				<span className={`badge-status ${params.value ? "badge-active" : "badge-inactive"}`}>
+					{params.value ? 'Active' : 'Inactive'}
+				</span>
+			),
+		},
+		{
+			field: 'action', headerName: 'Action', width: 80, renderCell: (params) => (
+				<MfpEditBtn onClick={() => callbackedit(params.row)} />
 			)
 		}
 	];
@@ -128,59 +141,72 @@ const AddEditItemType = ({ handleItemTypeList }) => {
 	const getRowId = (row) => row.id || row.itemType;
 
 	return (
-		<>
-			<form onSubmit={formik.handleSubmit} autoComplete="off">
-				<div className="row mt-4">
-					<div className="col-12 col-md-6 mb-3">
-						<TextFieldCell
+		<div
+			className={`bg-white rounded-default w-100 d-flex flex-column ${!isModal ? "" : "p-0"}`}
+			style={!isModal ? { height: "90vh" } : { height: "100%" }}
+		>
+			<div className="flex-grow-1" style={{ minHeight: 0 }}>
+				<MasterFormPanel
+					title="Item Type"
+					isModal={true}
+					onReset={clearForm}
+					onSubmit={formik.handleSubmit}
+					loading={loading}
+					columns={columns}
+					rows={list}
+					gridLoading={gridloading}
+					getRowId={getRowId}
+				>
+					<div className="mfp-field mfp-field--md">
+						<label className="pe-field-label">
+							Item Type <span className="rfq-required-star">*</span>
+						</label>
+						<TextField
 							id="itemType"
 							name="itemType"
-							label="Item Type *"
+							variant="outlined"
+							size="small"
+							fullWidth
+							placeholder="Enter item type"
+							label={null}
 							value={formik.values.itemType}
-							onChange={(e) => { setItemTypeValue(e.target.value); formik.setFieldValue('itemType', e.target.value); }}
-							maxLength={200}
+							onChange={(e) => {
+								setItemTypeValue(e.target.value);
+								formik.setFieldValue('itemType', e.target.value);
+							}}
+							inputProps={{ maxLength: 200 }}
+							InputProps={{
+								endAdornment: formik.values.itemType ? (
+									<InputAdornment position="end">
+										<Typography variant="caption" color="textSecondary">
+											{formik.values.itemType.length}/200
+										</Typography>
+									</InputAdornment>
+								) : null,
+							}}
 						/>
 						{formik.errors.itemType && formik.touched.itemType && (
 							<div className="error error-red" style={{ fontSize: '9px' }}>{formik.errors.itemType}</div>
 						)}
 					</div>
 
-					<div className="col-12 col-md-6 mb-3">
-						<FormControlLabel
-							control={<Checkbox checked={formik.values.isActive} onChange={(e) => formik.setFieldValue('isActive', e.target.checked)} />}
-							label="Active"
-						/>
+					<div className="mfp-field mfp-field--sm">
+						<label className="pe-field-label">Status</label>
+						<FormControl fullWidth size="small">
+							<Select
+								variant="outlined"
+								size="small"
+								value={formik.values.isActive}
+								onChange={(e) => formik.setFieldValue('isActive', e.target.value)}
+							>
+								<MenuItem value={true}>Active</MenuItem>
+								<MenuItem value={false}>Inactive</MenuItem>
+							</Select>
+						</FormControl>
 					</div>
-
-					<div className="col-12 text-end">
-						{!loading ? (
-							<>
-								<Button variant="contained" color="primary" onClick={clearForm} sx={{ mr: 2 }}>Reset</Button>
-								<Button variant="outlined" color="primary" type="submit">Submit</Button>
-							</>
-						) : (
-							<LoadingButton loading variant="contained">Submit ...</LoadingButton>
-						)}
-					</div>
-				</div>
-			</form>
-
-			<div className="col-12 mt-3">
-				<DataGrid
-					getRowId={getRowId}
-					rows={list}
-					loading={gridloading}
-					columns={columns}
-					autoHeight
-					rowHeight={40}
-					columnHeaderHeight={40}
-					disableDensitySelector
-					slots={{ toolbar: GridToolbar }}
-					sx={{ border: 'none' }}
-				/>
+				</MasterFormPanel>
 			</div>
-			{/* Using the global ToastContainer from App.js to avoid duplicate toasts */}
-		</>
+		</div>
 	);
 };
 

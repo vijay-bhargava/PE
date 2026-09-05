@@ -1,5 +1,5 @@
 :root {
-  --vz-body-bg: #fafafa;
+  --vz-body-bg: #f5f5f5;
   --vz-header-bg: #fff;
   --vz-header-item-color: #e9ecef;
   --vz-header-bg-dark: #405189;
@@ -18,6 +18,29 @@
   --font-medium: 16px;
   --font-large: 18px;
   --font-small: 12px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.28);
 }
 
 /* Responsive viewport height rules */
@@ -191,11 +214,17 @@ html,
 body {
   background-color: var(--vz-body-bg);
   font-size: 14px !important;
-  font-family: "Montserrat", sans-serif !important;
+  font-family:
+    "Inter",
+    "Roboto",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif !important;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
-  padding-top: 35px;
+  /* padding-top: 30px; */
 }
 
 .text-dark-blue {
@@ -210,6 +239,15 @@ body {
 
 .modal-custom-header .btn svg {
   color: #fff;
+}
+
+/* ── "Add New" option in Autocomplete / Select dropdowns ─────────── */
+.dropdown-add-new {
+  font-weight: 600 !important;
+  font-style: normal !important;
+  color: #374151 !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
 }
 
 .zindex1280 .modal-content {
@@ -505,7 +543,7 @@ a {
   right: 0 !important;
   z-index: 99 !important;
   background-color: var(--vz-primary-color) !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Responsive styles for auction header */
@@ -567,7 +605,7 @@ a {
     flex: 0 0 25% !important;
     max-width: 25% !important;
   }
-  
+
   .chat-open-right.col-md-9 {
     flex: 0 0 75% !important;
     max-width: 75% !important;
@@ -579,42 +617,42 @@ a {
   .auction-header-chat-open .auction-subject-text {
     max-width: 100px !important;
   }
-  
+
   .auction-header-chat-open .f17 {
     font-size: 0.75rem !important;
   }
-  
+
   .auction-header-chat-open .f14 {
     font-size: 0.65rem !important;
   }
-  
+
   .auction-header-chat-open .f20 {
     font-size: 0.85rem !important;
   }
-  
+
   .auction-header-chat-open .auction-timer-input {
     width: 50px !important;
     min-width: 50px !important;
   }
-  
+
   .auction-header-chat-open .auction-control-buttons button {
     min-width: 30px !important;
     padding: 4px !important;
   }
-  
+
   .auction-header-chat-open .auction-control-buttons .f14 {
     font-size: 0.65rem !important;
   }
-  
+
   .auction-header-chat-open .text-white.mx-2 {
     margin-left: 0.15rem !important;
     margin-right: 0.15rem !important;
   }
-  
+
   .auction-header-chat-open .auction-chat-controls {
     padding-left: 0.25rem !important;
   }
-  
+
   .auction-header-chat-open .cardBtn {
     padding: 0.25rem !important;
     min-width: 30px !important;
@@ -626,22 +664,22 @@ a {
   .auction-header-fixed {
     overflow-x: hidden !important;
   }
-  
+
   .auction-header-content {
     max-width: 100%;
     overflow: hidden;
   }
-  
+
   .auction-header-left {
     flex: 0 0 auto;
     max-width: 30%;
   }
-  
+
   .auction-header-right {
     flex: 1 1 auto;
     min-width: 0;
   }
-  
+
   .auction-chat-controls {
     flex: 0 0 auto;
     width: auto !important;
@@ -653,15 +691,15 @@ a {
   .auction-header-chat-open .f17 {
     font-size: 0.85rem !important;
   }
-  
+
   .auction-header-chat-open .f14 {
     font-size: 0.7rem !important;
   }
-  
+
   .auction-header-chat-open .auction-subject-text {
     max-width: 150px !important;
   }
-  
+
   .auction-header-chat-open .auction-timer-input {
     width: 55px !important;
     min-width: 55px !important;
@@ -672,7 +710,7 @@ a {
   .auction-header-chat-open .auction-subject-text {
     max-width: 120px !important;
   }
-  
+
   .auction-header-chat-open .auction-control-buttons button {
     min-width: 35px !important;
     padding: 6px !important;
@@ -684,20 +722,20 @@ a {
   .auction-header-content .f17 {
     font-size: 0.95rem !important;
   }
-  
+
   .auction-header-content .f14 {
     font-size: 0.8rem !important;
   }
-  
+
   .auction-header-content .f20 {
     font-size: 1rem !important;
   }
-  
+
   .auction-timer-input {
     width: 60px !important;
     min-width: 60px !important;
   }
-  
+
   .auction-control-buttons {
     gap: 3px !important;
   }
@@ -709,12 +747,12 @@ a {
     top: 60px !important;
     padding: 0.5rem !important;
   }
-  
+
   .auction-header-content {
     flex-direction: column !important;
     gap: 0.5rem !important;
   }
-  
+
   .auction-header-left,
   .auction-header-right {
     width: 100% !important;
@@ -722,21 +760,21 @@ a {
     text-align: center !important;
     justify-content: center !important;
   }
-  
+
   .auction-subject-text {
     max-width: 200px !important;
   }
-  
+
   .auction-timer-section {
     justify-content: center !important;
     flex-wrap: wrap !important;
     gap: 5px !important;
   }
-  
+
   .auction-header-divider {
     display: none !important;
   }
-  
+
   /* When chat is open on mobile, hide it or adjust */
   .auction-header-chat-open.auction-header-fixed {
     right: 0 !important;
@@ -750,35 +788,35 @@ a {
     top: 50px !important;
     padding: 0.4rem !important;
   }
-  
+
   .auction-header-content .f17 {
     font-size: 0.85rem !important;
   }
-  
+
   .auction-header-content .f14 {
     font-size: 0.75rem !important;
   }
-  
+
   .auction-timer-input {
     width: 50px !important;
     min-width: 50px !important;
   }
-  
+
   .auction-timer-input input {
     padding: 1px 4px !important;
     font-size: 0.8rem !important;
   }
-  
+
   .auction-control-buttons button {
     min-width: 35px !important;
     padding: 5px !important;
     font-size: 1.2rem !important;
   }
-  
+
   .auction-subject-text {
     max-width: 150px !important;
   }
-  
+
   .auction-chat-controls {
     padding-left: 0 !important;
     margin-top: 0.5rem;
@@ -792,39 +830,39 @@ a {
     top: 50px !important;
     padding: 0.3rem !important;
   }
-  
+
   .auction-header-content .f17 {
     font-size: 0.75rem !important;
   }
-  
+
   .auction-header-content .f14 {
     font-size: 0.7rem !important;
   }
-  
+
   .auction-header-content .f15 {
     font-size: 0.7rem !important;
   }
-  
+
   .auction-timer-input {
     width: 45px !important;
     min-width: 45px !important;
   }
-  
+
   .auction-control-buttons button {
     min-width: 30px !important;
     padding: 3px !important;
     font-size: 1rem !important;
   }
-  
+
   .auction-subject-text {
     max-width: 120px !important;
     font-size: 0.7rem !important;
   }
-  
+
   .auction-timer-section {
     gap: 2px !important;
   }
-  
+
   .auction-header-left .f20 {
     font-size: 0.9rem !important;
   }
@@ -883,13 +921,13 @@ a {
   .auction-header-content .row {
     gap: 0;
   }
-  
+
   .auction-header-left,
   .auction-header-right {
     padding-left: 0.15rem;
     padding-right: 0.15rem;
   }
-  
+
   .auction-chat-controls {
     padding-left: 0 !important;
   }
@@ -902,20 +940,20 @@ a {
     right: 0 !important;
     top: 45px !important;
   }
-  
+
   .auction-header-content .row {
     gap: 0.3rem;
   }
-  
+
   .auction-header-left,
   .auction-header-right {
     padding: 0 !important;
   }
-  
+
   .auction-timer-section span {
     margin: 0 1px !important;
   }
-  
+
   .auction-chat-controls {
     width: 100%;
     justify-content: center !important;
@@ -929,7 +967,7 @@ a {
     overflow-x: auto;
     white-space: nowrap;
   }
-  
+
   .auction-header-content {
     min-width: max-content;
   }
@@ -951,7 +989,7 @@ a {
 }
 
 #mainRightContant {
-  padding: 10px;
+  padding: 1px !important;
   background-color: var(--vz-body-bg);
   overflow-x: hidden;
 }
@@ -975,6 +1013,10 @@ a {
 #myacccmenu {
   background-color: inherit !important;
   border: 0px;
+}
+
+#myacccmenu svg {
+  color: #6b7280 !important;
 }
 
 .logo-img {
@@ -1052,6 +1094,56 @@ a {
 
 .zindex1280 {
   z-index: 1280 !important;
+}
+
+.zindex1400 {
+  z-index: 1400 !important;
+}
+
+.zindex1400 .modal-content {
+  overflow: hidden;
+}
+
+/* Auction detail accordion — matches supplier auctionparticipation.css */
+.auctionDetail-accordion {
+  background: #1d6fc3 !important;
+  color: #fff !important;
+  border-radius: 3px 3px 0 0 !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+}
+
+.auctionDetail-accordion .MuiAccordionSummary-expandIconWrapper {
+  color: #fff !important;
+}
+
+.bid-running-text {
+  font-weight: bold;
+  /* animation: bid-pulse 1.5s infinite; */
+  /* transition: all 0.3s ease-in-out; */
+}
+
+@keyframes bid-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.auction-scrollable {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.auction-scrollable::-webkit-scrollbar {
+  display: none;
 }
 
 .chat-contentWrap {
@@ -1233,25 +1325,25 @@ a {
   color: #fff;
 }
 
-.MuiTablePagination-selectLabel,
+/* .MuiTablePagination-selectLabel,
 .MuiTablePagination-displayedRows {
   margin: 0px;
-}
+} */
 
+/* TABLE-OVERRIDE COMMENTED — handled by PETable canonical sx
 .MuiDataGrid-footerContainer {
-  /* border-bottom:1px solid #ccc!important; */
   background-color: #ffffff;
   border-radius: 0 0rem 0.5rem 0.5rem;
-}
+} */
 
 .MuiDataGrid-footerContainer,
 .MuiTablePagination-toolbar {
-  min-height: 35px !important;
+  /* min-height: 35px !important; */
   /* background-color: #ffffff; */
 }
 
 .zebracolor > .odd {
-  background-color: #ddedff;
+  background-color: #f9fafb;
 }
 
 .arrow-right {
@@ -1363,7 +1455,9 @@ a {
   text-decoration: none;
   border-radius: 5px;
   /* Add rounded corners */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
   /* Add box shadow for depth */
   transition: background-color 0.3s ease;
   /* Add transition for smooth hover effect */
@@ -1512,7 +1606,8 @@ a {
   height: 5rem;
   background-color: #f8f9fa;
   z-index: 9999;
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+  box-shadow:
+    rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
     rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
   border-radius: 5px;
   margin-left: 10px;
@@ -1596,7 +1691,8 @@ a {
     height: 5rem;
     background-color: #f8f9fa;
     z-index: 9999;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    box-shadow:
+      rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
       rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
     border-radius: 5px;
     margin-left: 10px;
@@ -1611,7 +1707,8 @@ a {
     height: 5rem;
     background-color: #f8f9fa;
     z-index: 9999;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    box-shadow:
+      rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
       rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
     border-radius: 15px;
   }
@@ -1625,7 +1722,8 @@ a {
     height: 5rem;
     background-color: #f8f9fa;
     z-index: 9999;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    box-shadow:
+      rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
       rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
     border-radius: 5px;
     margin-left: 10px;
@@ -1640,7 +1738,8 @@ a {
     height: 5rem;
     background-color: #f8f9fa;
     z-index: 9999;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    box-shadow:
+      rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
       rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
     border-radius: 5px;
     margin-left: 20px;
@@ -1655,7 +1754,8 @@ a {
     height: 5rem;
     background-color: #f8f9fa;
     z-index: 9999;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    box-shadow:
+      rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
       rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
     border-radius: 5px;
     margin-left: 32px;
@@ -1744,11 +1844,18 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
-  background-color: #007bff;
-  color: #fff;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  padding: 12px 16px;
+  background-color: #ffffff;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  border: 1px solid #ccc;
+  font-family:
+    "Inter",
+    "Roboto",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 .chat-body {
@@ -1756,6 +1863,13 @@ a {
   overflow-y: auto;
   flex-grow: 1;
   background-color: #f5f5f5;
+  font-family:
+    "Inter",
+    "Roboto",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 .chat-input {
@@ -1763,6 +1877,13 @@ a {
   padding: 8px;
   border-top: 1px solid #ddd;
   background-color: #fff;
+  font-family:
+    "Inter",
+    "Roboto",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 .message {
@@ -1818,8 +1939,10 @@ a {
   justify-content: center;
   -webkit-box-align: center;
   align-items: center;
-  box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 1px -2px,
-    rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
+  box-shadow:
+    rgba(0, 0, 0, 0.2) 0px 3px 1px -2px,
+    rgba(0, 0, 0, 0.14) 0px 2px 2px 0px,
+    rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
   overflow: hidden;
   background-color: rgb(26, 39, 66);
   color: rgb(255, 255, 255);
@@ -1834,8 +1957,10 @@ a {
 .css-chatcontainer {
   background-color: rgb(255, 255, 255);
   color: rgb(31, 31, 31);
-  box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
-    rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+  box-shadow:
+    rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
+    rgba(0, 0, 0, 0.14) 0px 3px 4px 0px,
+    rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
   display: flex;
   flex-direction: column;
   transform-origin: right bottom;
@@ -1861,8 +1986,10 @@ a {
   display: flex;
   flex-direction: column;
   border-radius: 16px;
-  box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
-    rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+  box-shadow:
+    rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
+    rgba(0, 0, 0, 0.14) 0px 3px 4px 0px,
+    rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
   background-color: #fff;
   transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: right bottom;
@@ -2086,6 +2213,10 @@ a {
   background-color: white !important;
 }
 
+.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeSmall.css-ls5h3z-MuiButtonBase-root-MuiIconButton-root:hover {
+  border-radius: 6px;
+}
+
 /* Custom dropdown menu aligned under circle */
 .user-dropdown-wrapper {
   position: relative;
@@ -2191,26 +2322,6 @@ a {
   /* Slightly darker on hover */
 }
 
-.invalid-input {
-  position: relative;
-  border-right: 1px solid red !important;
-  border-left: 1px solid red !important;
-  border-bottom: 1px solid red !important;
-  border-radius: 5px;
-}
-
-.invalid-input::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 45%;
-  /* Adjust this to control where the top border starts */
-  width: 55%;
-  /* Adjust this to control how long the top border is */
-  border-top: 1px solid red;
-  /* Set the thickness of the top border */
-}
-
 .capitalize {
   text-transform: capitalize !important;
 }
@@ -2256,8 +2367,10 @@ a {
 }
 
 .MuiSwitch-thumb {
-  box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2),
-    0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0px 2px 1px -1px rgba(0, 0, 0, 0.2),
+    0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+    0px 1px 3px 0px rgba(0, 0, 0, 0.12);
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -2273,17 +2386,9 @@ a {
   color: var(--vz-heading-color) !important;
 }
 
-/* .css-18ajnh0-MuiSvgIcon-root {
-  fill:var(--vz-primary-color)!important;
-} */
-/* .css-1760uza-MuiDataGrid-root .MuiDataGrid-iconSeparator {
-  color: var(--vz-primary-color)!important;
-} */
-/* .css-t89xny-MuiDataGrid-columnHeaderTitle {
-  color:#111;
-} */
 .MuiOutlinedInput-root {
   background-color: white;
+  border-radius: 6px !important;
 }
 
 .css-1turezt-MuiButtonBase-root-MuiButton-root {
@@ -2320,7 +2425,7 @@ a {
 } */
 .MuiButton-textPrimary {
   /* background-color: #1D72C7!important; */
-  color: #000000 !important;
+  color: #000000;
   /* border: 1px solid#1D72C7!important; */
   border-radius: 0.5rem;
 }
@@ -2411,115 +2516,12 @@ a {
   min-height: 20px;
 }
 
-/* Add this to your main CSS or styled component */
-/* .custom-action-menu {
-  position: relative;
-  display: inline-block;
-} */
-
-/* .custom-action-menu {
-  position: relative;
-  overflow: visible;
-  z-index: 999;
-} */
-
-/* .custom-action-icon {
-  cursor: pointer;
-  font-size: 20px;
-  user-select: none;
-  padding: 4px;
-} */
-
-/* .custom-action-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-  border-radius: 4px;
-  min-width: 120px;
-  z-index: 999;
-} */
-/* .custom-action-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 0px;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  min-width: 120px;
-  z-index: 9999;
-} */
-
-/* .custom-action-menu {
-  position: relative;
-  display: inline-block;
-  overflow: visible;
-  z-index: 99;
-}
-
-.custom-action-dropdown {
-  position: absolute;
-  top: 50%;
-  left: 100%;
-  transform: translateY(-50%);
-  margin-left: 4px;
-  background: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  border-radius: 4px;
-  min-width: 120px;
-  z-index: 9999;
-  white-space: nowrap;
-}
-
-.custom-action-icon {
-  cursor: pointer;
-  font-size: 20px;
-  user-select: none;
-  padding: 0;
-  line-height: 1;
-} */
-
-/* .custom-action-dropdown {
-  position: absolute;
-  top: 0;
-  left: 100%;
-  margin-left: 4px;
-  background-color: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-  border-radius: 4px;
-  min-width: 120px;
-  z-index: 9999;
-  white-space: nowrap;
-} */
-
-/* .custom-action-item {
-  padding: 4px 12px;
-  cursor: pointer;
-  font-size: 10px;
-}
-
-.custom-action-item:hover {
-  background-color: #f0f0f0;
-} */
 .custom-action-menu {
   position: relative;
   display: inline-block;
   z-index: 99;
 }
 
-/* .custom-action-button .dropdown-menu {
-  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16);
-  border-radius: 6px;
-  min-width: 150px;
-  padding: 4px 0;
-  border: none;
-} */
 .custom-action-button .dropdown-menu {
   min-width: auto !important;
   width: max-content !important;
@@ -2537,13 +2539,6 @@ a {
   margin: 0 !important;
   line-height: 1 !important;
 }
-
-/* .custom-action-item {
-  font-size: 13px;
-  padding: 6px 16px;
-  cursor: pointer;
-  white-space: nowrap;
-} */
 
 .custom-action-item:hover {
   background-color: #f5f5f5;
@@ -3330,8 +3325,7 @@ a.dropdown-item.custom-dropdown-item:visited {
 }
 
 .qualified-badge {
- 
-  color: #0f5132;            /* Dark green text */
+  color: #0f5132; /* Dark green text */
   font-weight: 600;
   border-radius: 6px;
   font-size: 14px;
@@ -3339,7 +3333,7 @@ a.dropdown-item.custom-dropdown-item:visited {
   display: inline-block;
 }
 .actionpin-wrap button:disabled {
-  opacity: 0.5;       /* button ko fade/blur effect */
+  opacity: 0.5; /* button ko fade/blur effect */
   cursor: not-allowed; /* cursor ko disabled dikhaye */
 }
 
@@ -3353,7 +3347,7 @@ a.dropdown-item.custom-dropdown-item:visited {
 }
 .label-fixed {
   white-space: nowrap;
-  flex-shrink: 0;   
+  flex-shrink: 0;
 }
 .textLigblue {
   color: #1976d2 !important;
@@ -3363,17 +3357,23 @@ a.dropdown-item.custom-dropdown-item:visited {
   width: 75%;
 }
 
-
-
-
 /* Connection Status Loader Animation */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Pulse animation for failed connection indicator */
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }

@@ -1,0 +1,162 @@
+/* ── MasterFormPanel shell ───────────────────────────────────────── */
+.mfp-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 12px;
+  overflow: hidden;
+}
+
+/* ── Page heading (standalone mode only) ─────────────────────────── */
+.mfp-page-header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--pe-border);
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.mfp-page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--pe-text);
+}
+
+/* ── Form section ────────────────────────────────────────────────── */
+.mfp-form-section {
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid var(--pe-border, #dfe3e8);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.mfp-form-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Fields area — each child defines its own width via mfp-field--* */
+.mfp-fields-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 1 1 0;
+  min-width: 0;
+  align-items: flex-start;
+}
+
+/* Field slot helpers */
+.mfp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 120px;
+}
+
+.mfp-field--sm   { flex: 0 0 120px; }
+.mfp-field--md   { flex: 1 1 160px; max-width: 210px; }
+.mfp-field--lg   { flex: 1 1 200px; max-width: 280px; }
+.mfp-field--xl   { flex: 2 1 240px; }
+.mfp-field--full { flex: 1 1 100%; }
+
+/* Horizontal action buttons (Reset + Submit side by side) */
+.mfp-actions-row {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Table section ───────────────────────────────────────────────── */
+.mfp-table-section {
+  flex: 1 1 0;
+  min-height: 160px;
+  border: 1px solid var(--pe-border, #dfe3e8);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Toolbar override (padding/border to match table section) ──── */
+.mfp-toolbar.rfq-v2-toolbar {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--pe-border, #dfe3e8);
+  flex-shrink: 0;
+}
+
+/* ── Table header: Capitalize not UPPERCASE ──────────────────────── */
+.mfp-table-section .MuiDataGrid-columnHeaderTitle {
+  text-transform: capitalize !important;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--pe-muted, #6b7280);
+  letter-spacing: 0.2px;
+}
+
+/* ── Edit icon button ─────────────────────────────────────────────── */
+.mfp-icon-btn {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 8px !important;
+  background: #eff4ff !important;
+  color: #2a68d3 !important;
+  border: 1px solid #c7d9f8 !important;
+  transition: background 0.15s !important;
+}
+
+.mfp-icon-btn:hover {
+  background: #dbeafe !important;
+}
+
+/* ── Required star ───────────────────────────────────────────────── */
+.rfq-required-star {
+  color: #e53935;
+  margin-left: 2px;
+}
+
+/* ── MUI overrides inside form ───────────────────────────────────── */
+.mfp-form-section .MuiOutlinedInput-root {
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.mfp-form-section .MuiOutlinedInput-notchedOutline {
+  border-color: var(--pe-border, #dfe3e8);
+}
+
+.mfp-form-section .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--pe-primary, #1976d2);
+}
+
+.mfp-form-section .MuiInputLabel-root {
+  font-size: 13px;
+}
+
+
+/* ── Modal content uniform sizing ───────────────────────────────── */
+.modal-custom-mdlg .modal-content {
+  height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.modal-custom-mdlg .modal-body {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Square hover effect for modal close buttons */
+.modal-close-btn {
+  border-radius: 8px !important;
+}
+.modal-close-btn:hover {
+  background-color: #f3f4f6 !important;
+}

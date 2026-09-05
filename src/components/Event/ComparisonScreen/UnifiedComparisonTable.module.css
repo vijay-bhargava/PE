@@ -1,24 +1,24 @@
 /* Unified Comparison Table Styles */
 .unifiedComparisonTable {
-  padding: 8px;
   background-color: transparent;
-  overflow: visible;
-  position: relative;
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
 /* Table Container */
 .tableContainer {
   background: #ffffff;
-  border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   overflow-x: auto;
   overflow-y: auto;
-  margin-bottom: 16px;
+  flex: 1;
+  min-height: 0;
   position: relative;
-  max-height: 70vh;
   contain: layout style paint;
   will-change: scroll-position;
+  border: 1px solid #d8dde6;
 }
 
 /* Override MUI Table sticky behavior */
@@ -40,7 +40,7 @@
 }
 
 .tableContainer::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: #c7cbd4;
   border-radius: 4px;
 }
 
@@ -57,73 +57,376 @@
 }
 
 .headerRow {
-  height: 48px;
-}
-
-.headerCell {
-  padding: 8px 12px !important;
-  font-weight: 600 !important;
-  font-size: 11px !important;
-  color: #555555 !important;
-  background: #f8f9fa !important;
-  border-right: 2px solid #e0e0e0 !important;
-  text-align: center !important;
-  min-width: 280px;
-  width: 280px;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 1000 !important;
+  height: 120px;
 }
 
 .headerCellFirst {
   min-width: 280px !important;
   width: 280px !important;
-  max-width: 280px !important;
-  text-align: left !important;
-  background: #f8f9fa !important;
-  border-right: 2px solid #e0e0e0 !important;
-  position: -webkit-sticky !important;
+  background: #f3f4f6 !important;
   position: sticky !important;
-  left: 0 !important;
-  top: 0 !important;
-  z-index: 1001 !important;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1) !important;
-  will-change: transform !important;
-  transform: translateZ(0) !important;
+  left: 0;
+  z-index: 1003 !important;
+  border-right: 1px solid #d6dae1 !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.08);
 }
 
-/* Vendor Header Cells */
-.vendorHeader {
-  position: relative;
+/* =========================
+   ROOT + TABLE CONTAINER
+========================= */
+
+.unifiedComparisonTable {
+  background: #f5f6f8;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
-.vendorName {
-  font-size: 12px !important;
+.tableContainer {
+  background: #ffffff;
+  border: 1px solid #d8dde6;
+  overflow-x: auto;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.tableContainer table {
+  position: relative !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+/* Scrollbar */
+.tableContainer::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+  background: #c7cbd4;
+  border-radius: 4px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.tableHeader {
+  position: sticky !important;
+  top: 0;
+  z-index: 1002 !important;
+  background: #f3f4f6 !important;
+}
+
+.headerRow {
+  height: 120px;
+}
+
+/* Left header */
+.headerCellFirst {
+  min-width: 220px !important;
+  width: 220px !important;
+  background: #f3f4f6 !important;
+  position: sticky !important;
+  left: 0;
+  z-index: 1003 !important;
+  border-right: 1px solid #d6dae1 !important;
+}
+
+.comparisonTitle {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #1f2937;
+}
+
+.comparisonSubTitle {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  color: #7b8794;
   font-weight: 600 !important;
-  color: #2196f3 !important;
-  margin-bottom: 2px !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
 }
 
-.vendorNameContainer {
+/* Vendor Header */
+.vendorHeaderCell {
+  min-width: 300px !important;
+  width: 300px !important;
+  max-width: 300px !important;
+  overflow: hidden !important;
+  padding: 10px !important;
+  background: #ddefff !important;
+  border-right: 1px solid #d6dae1 !important;
+}
+
+.vendorCard {
+  height: 100px;
+  position: relative;
+  /* padding: 12px; */
+}
+
+.rankBadge {
+  position: absolute;
+  top: -5px;
+  right: -3px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
   justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
 }
 
-.vendorSubmission {
-  font-size: 10px !important;
-  color: #888888 !important;
-  font-weight: 400 !important;
+.rankL1 {
+  background: #48a868;
+  color: white;
 }
 
-.summaryHeader {
-  background: #f8f9fa !important;
-  min-width: 120px !important;
-  width: 120px !important;
+.rankL2,
+.rankL3 {
+  background: #4a90e2;
+  color: white;
+}
+
+.vendorLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.vendorNameNew {
+  margin-top: 3px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #000000 !important;
+  cursor: pointer;
+  line-height: 1.2;
+  max-width: 100%;
+  display: block;
+}
+
+.metaGrid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1.8fr;
+  column-gap: 14px;
+  align-items: start;
+}
+
+.metaBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metaLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #7b8794;
+  line-height: 1;
+}
+
+.metaValue {
+  font-size: 12px;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.3;
+}
+
+/* Summary columns */
+.summaryHeaderNew {
+  width: 130px !important;
+  min-width: 130px !important;
+  max-width: 130px !important;
+  background: #f3f4f6 !important;
+  text-align: center !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #000000;
+  border-right: 1px solid #e5e7eb !important;
+}
+
+/* =========================
+   ROWS
+========================= */
+
+.packageRow,
+.itemRow {
+  background: white;
+}
+
+.subRowCell {
+  min-width: 300px !important;
+  width: 300px !important;
+  max-width: 300px !important;
+  overflow: hidden !important;
+  /* padding: 12px 14px !important; */
+  border-right: 1px solid #e5e7eb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  position: sticky !important;
+  left: 0;
+  z-index: 999 !important;
+  background: white !important;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.04);
+}
+
+.dataCell {
+  text-align: left !important;
+  border-right: 1px solid #e5e7eb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  min-width: 300px;
+  width: 300px;
+  max-width: 300px;
+  overflow: hidden;
+  background: white !important;
+  vertical-align: middle !important;
+}
+
+/* =========================
+   PACKAGE ROW
+========================= */
+
+.packageInfoNew {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.packageLabelNew {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+}
+
+/* =========================
+   ITEM ROW
+========================= */
+
+.itemCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.expandBtnNew {
+  width: 28px !important;
+  height: 28px !important;
+  background: #f3f4f6 !important;
+  border-radius: 4px !important;
+}
+
+.expandBtnNew:hover {
+  background: #e5e7eb !important;
+}
+
+.itemCodeNew {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #374151 !important;
+}
+
+.itemNameNew {
+  font-size: 12px !important;
+  color: #374151 !important;
+  margin-top: 4px !important;
+}
+
+/* =========================
+   PRICE
+========================= */
+
+.priceNew {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+}
+
+.summaryPriceNew {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+}
+
+.lowestPrice {
+  color: #2e7d32 !important;
+  font-weight: 700 !important;
+}
+
+.highestPrice {
+  color: #d32f2f !important;
+  font-weight: 700 !important;
+}
+
+.vendorPriceBlock {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.infoIconNew {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #98a2b3;
+}
+
+/* =========================
+   SUMMARY BADGES
+========================= */
+
+.lowestPriceBadge {
+  display: inline-block;
+  padding: 6px 14px;
+  background: #ecfdf3;
+  border-radius: 18px;
+  color: #1f9254;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.savingBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.positiveSaving {
+  color: #1f9254 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.negativeSaving {
+  color: #d92d20 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.savingPercent {
+  font-size: 11px !important;
+  color: #667085 !important;
+}
+
+/* =========================
+   EXPANDED ROW
+========================= */
+
+.expandedRow {
+  background: #fafafa !important;
+}
+
+.firstColumn {
+  position: sticky !important;
+  left: 0;
+  background: #fafafa !important;
+  z-index: 998;
+  padding-left: 50px !important;
+  border-right: 1px solid #e5e7eb !important;
+  border-bottom: 1px solid #e5e7eb !important;
 }
 
 /* Sticky Target Columns */
@@ -337,57 +640,15 @@
   border: none !important;
 }
 
-/* Sub Row Styles - Base styles for first column */
-.subRowCell {
-  padding: 8px 16px 8px 24px !important;
-  font-size: 11px !important;
-  color: #666666 !important;
-  border-right: 2px solid #e0e0e0 !important;
-  border-bottom: 2px solid #e0e0e0 !important;
-  min-width: 280px;
-  width: 280px;
-  max-width: 280px;
-  position: -webkit-sticky !important;
-  position: sticky !important;
-  left: 0 !important;
-  top: 0 !important;
-  z-index: 100 !important;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05) !important;
-  will-change: transform !important;
-  transform: translateZ(0) !important;
-}
-
 /* Package Row Styles */
 .packageRow {
   background-color: #fafafa;
-}
-
-.packageRow .subRowCell {
-  background: #fafafa !important;
-}
-
-.packageInfo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.packageLabel {
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  color: #333333 !important;
 }
 
 .termSpacer {
   width: 28px;
   height: 28px;
   min-width: 28px;
-}
-
-.termName {
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  color: #666666 !important;
 }
 
 .packageSpacer {
@@ -401,33 +662,9 @@
   background-color: #ffffff;
 }
 
-.itemRow .subRowCell {
-  background: #ffffff !important;
-}
-
-.itemInfo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .expandButton {
   padding: 2px !important;
   margin-right: 4px !important;
-}
-
-.itemCode {
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  color: #1976d2 !important;
-  margin-bottom: 2px !important;
-}
-
-.itemName {
-  font-size: 10px !important;
-  color: #333333 !important;
-  margin-bottom: 1px !important;
-  font-weight: 500 !important;
 }
 
 .itemQuantity {
@@ -436,29 +673,17 @@
   font-style: italic !important;
 }
 
-/* Data Cell Styles */
-.dataCell {
-  padding: 8px 12px !important;
-  text-align: center !important;
-  border-right: 2px solid #e0e0e0 !important;
-  border-bottom: 2px solid #e0e0e0 !important;
-  font-size: 11px !important;
-  min-width: 280px;
-  width: 280px;
-  vertical-align: middle !important;
-}
-
 .priceContainer {
   display: flex;
-  flex-direction: column; 
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
 }
-.newPriceContainer{
+.newPriceContainer {
   display: flex;
-  align-items: center;   /* vertical alignment */
-  gap: 8px;              /* space between price & icon */
-  white-space: nowrap;  /* prevents wrapping */
+  align-items: center; /* vertical alignment */
+  gap: 8px; /* space between price & icon */
+  white-space: nowrap; /* prevents wrapping */
 }
 .infoIcon {
   display: flex;
@@ -470,16 +695,33 @@
   font-size: 14px;
 }
 
-.price {
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  color: #333333 !important;
+.priceWithStatus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
 }
 
-.summaryPrice {
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  color: #333333 !important;
+.statusIcon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.successIcon {
+  background: #43a047;
+}
+
+.dangerIcon {
+  background: #d32f2f;
 }
 
 /* Badge Styles */
@@ -539,21 +781,11 @@
   transform: translateZ(0) !important;
 }
 
-.expandedRow .dataCell {
-  background-color: #f9f9f9 !important;
-  border-right: 2px solid #e0e0e0 !important;
-  border-bottom: 2px solid #e0e0e0 !important;
-}
-
 .expandedRow:hover {
   background-color: #f0f0f0 !important;
 }
 
 .expandedRow:hover .firstColumn {
-  background-color: #f0f0f0 !important;
-}
-
-.expandedRow:hover .dataCell {
   background-color: #f0f0f0 !important;
 }
 
@@ -579,15 +811,20 @@
   border-top: 2px solid #e0e0e0;
   background: #fafafa;
   border-radius: 0 0 6px 6px;
+  flex-shrink: 0;
+  padding: 8px 16px;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .headerCell,
-  .dataCell {
-    min-width: 200px;
-    width: 200px;
-  }
+.pagination .MuiTablePagination-root {
+  font-size: 12px !important;
+  color: #6b7280 !important;
+}
+
+.pagination .MuiTablePagination-selectLabel,
+.pagination .MuiTablePagination-displayedRows {
+  font-size: 12px !important;
+  color: #6b7280 !important;
+  margin: 0 !important;
 }
 
 /* Commercial Terms Styles */
@@ -596,9 +833,9 @@
 }
 
 .termName {
-  font-size: 11px !important;
-  color: #666666 !important;
-  font-weight: 500 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #171717 !important;
 }
 
 .termValue {
@@ -639,9 +876,9 @@
 }
 
 /* Ensure summary columns always keep their original color */
-.summaryPrice {
+/* .summaryPrice {
   color: #333333 !important;
-}
+} */
 
 /* Prevent price color classes from affecting summary columns */
 .summaryPrice.lowestPrice,
@@ -658,19 +895,10 @@
   z-index: 1;
 }
 
-/* Ensure commercial terms first column has proper sticky behavior */
-.dataRow .subRowCell {
-  background: #ffffff !important;
-  position: sticky !important;
-  left: 0 !important;
-  z-index: 15 !important;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.08) !important;
-}
-
 .termRemarks {
-  font-size: 9px !important;
-  color: #888888 !important;
-  font-style: italic !important;
+  font-size: 11px !important;
+  color: #959595 !important;
+  font-weight: 500 !important;
 }
 
 .commercialTermContainer {
@@ -684,7 +912,9 @@
   font-size: 11px !important;
   font-weight: 500 !important;
   color: #333333 !important;
-  text-align: center !important;
+  text-align: left !important;
+  display: block;
+  max-width: 100%;
 }
 
 .scoreContainer {
@@ -714,20 +944,4 @@
 .lowScore {
   background: #ffebee !important;
   color: #d32f2f !important;
-}
-
-@media (max-width: 768px) {
-  .headerCell,
-  .dataCell {
-    min-width: 150px;
-    width: 150px;
-  }
-  
-  .vendorName {
-    font-size: 10px !important;
-  }
-  
-  .vendorSubmission {
-    font-size: 8px !important;
-  }
 }

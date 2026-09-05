@@ -1,14 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import {
-  Card,
-  CardContent,
-  Typography,
-  FormControl,
-  Select,
-  MenuItem,
-  Box
-} from '@mui/material';
-import styles from './ExecutiveSummary.module.css';
+import { Typography, FormControl, Select, MenuItem, Box } from '@mui/material';
 
 const SupplierPriceChart = ({ data }) => {
   // Extract unique versions for dropdown
@@ -16,7 +7,7 @@ const SupplierPriceChart = ({ data }) => {
     if (!data?.priceSupplierData || !Array.isArray(data.priceSupplierData)) {
       return [];
     }
-    
+
     const versions = [...new Set(data.priceSupplierData.map(item => item.version))];
     return versions.sort((a, b) => a - b);
   }, [data]);
@@ -60,7 +51,7 @@ const SupplierPriceChart = ({ data }) => {
     // Calculate tooltip position relative to the bar center
     const tooltipX = Math.min(Math.max(barX + barWidth / 2, 100), chartWidth - 100);
     const tooltipY = Math.max(50, chartHeight + 20 - ((bar.price / maxValue) * chartHeight) - 50);
-    
+
     setTooltipPosition({ x: tooltipX, y: tooltipY });
     setHoveredBar(bar);
   };
@@ -76,245 +67,226 @@ const SupplierPriceChart = ({ data }) => {
     }
   }, [availableVersions, selectedVersion]);
 
+  const versionDropdown = (
+    <FormControl size="small" sx={{ minWidth: 100 }}>
+      <Select value={selectedVersion} onChange={handleVersionChange} displayEmpty sx={{ fontSize: '12px', height: '28px' }}>
+        {availableVersions.map((version) => (
+          <MenuItem key={version} value={version} sx={{ fontSize: '12px' }}>V{version}</MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+
   if (chartData.length === 0) {
     return (
-      <Card className={styles.chartCard}>
-        <CardContent sx={{ padding: '12px !important', paddingBottom: '12px !important' }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-            <Typography variant="h6" className={styles.chartTitle}>
-              Supplier Prices
-            </Typography>
-            <FormControl size="small" sx={{ minWidth: 100 }}>
-              <Select
-                value={selectedVersion}
-                onChange={handleVersionChange}
-                displayEmpty
-                sx={{ fontSize: '12px', height: '32px' }}
-              >
-                {availableVersions.map((version) => (
-                  <MenuItem key={version} value={version} sx={{ fontSize: '12px' }}>
-                    V{version}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-          <div style={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography color="text.secondary">
-              No supplier price data available for this version
-            </Typography>
-          </div>
-        </CardContent>
-      </Card>
+      <Box sx={{ p: '12px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ flexShrink: 0, mb: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem' }}>Supplier Prices</Typography>
+          {versionDropdown}
+        </Box>
+        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography color="text.secondary">No supplier price data available for this version</Typography>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <Card className={styles.chartCard}>
-      <CardContent sx={{ padding: '12px !important', paddingBottom: '12px !important' }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-          <Typography variant="h6" className={styles.chartTitle}>
-            Supplier Prices by Version
-          </Typography>
-          <FormControl size="small" sx={{ minWidth: 100 }}>
-            <Select
-              value={selectedVersion}
-              onChange={handleVersionChange}
-              displayEmpty
-              sx={{ fontSize: '12px', height: '32px' }}
-            >
-              {availableVersions.map((version) => (
-                <MenuItem key={version} value={version} sx={{ fontSize: '12px' }}>
-                  V{version}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-        
-        <div className={styles.chartContainer} style={{ overflowX: 'auto' }}>
-          <svg width={chartWidth} height={300} style={{ minWidth: '300px' }}>
-            {/* Y-axis */}
-            <line x1="40" y1="20" x2="40" y2={chartHeight + 20} stroke="#e0e0e0" strokeWidth="1"/>
-            
-            {/* X-axis */}
-            <line x1="40" y1={chartHeight + 20} x2={chartWidth - 20} y2={chartHeight + 20} stroke="#333" strokeWidth="1"/>
-            
-            {/* Horizontal grid lines */}
-            {maxValue > 0 && (() => {
-              const stepSize = maxValue <= 50000 ? Math.ceil(maxValue / 5 / 10000) * 10000 : Math.ceil(maxValue / 5);
-              const gridLines = [];
-              for (let i = stepSize; i <= maxValue; i += stepSize) {
-                // const y = chartHeight + 20 - (i / maxValue) * chartHeight;
-                const y = maxValue > 0
-                    ? chartHeight + 20 - (i / maxValue) * chartHeight
-                    : chartHeight + 20;
-                gridLines.push(
-                  <line key={`grid-${i}`} x1="40" y1={y} x2={chartWidth - 20} y2={y} stroke="#f5f5f5" strokeWidth="1"/>
-                );
-              }
-              return gridLines;
-            })()}
-            
-            {/* Y-axis labels */}
-            {maxValue > 0 && (() => {
-              const stepSize = maxValue <= 50000 ? Math.ceil(maxValue / 5 / 10000) * 10000 : Math.ceil(maxValue / 5);
-              const yLabels = [];
-              for (let i = 0; i <= maxValue; i += stepSize) {
-                yLabels.push(i);
-              }
-              if (yLabels[yLabels.length - 1] !== maxValue) {
-                yLabels.push(maxValue);
-              }
-              
-              return yLabels.map((value, index) => {
-                // const y = chartHeight + 20 - (value / maxValue) * chartHeight;
-                const y = maxValue > 0
-                  ? chartHeight + 20 - (value / maxValue) * chartHeight
-                  : chartHeight + 20;
-                return (
-                  <g key={`y-label-${value}`}>
-                    <line x1="35" y1={y} x2="40" y2={y} stroke="#e0e0e0" strokeWidth="1"/>
-                    <text x="30" y={y + 3} textAnchor="end" fontSize="10" fill="#666">
-                      {value === 0 ? '0' : `${(value / 1000).toFixed(0)}K`}
-                    </text>
-                  </g>
-                );
-              });
-            })()}
-            
-            {/* Supplier bars and labels */}
-            {chartData.map((item, index) => {
-              const x = 70 + index * (barWidth + barSpacing);
-              const centerX = x + barWidth / 2;
-              
-              // Calculate bar height
+    <Box sx={{ p: '12px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ flexShrink: 0, mb: 1 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem' }}>Supplier Prices by Version</Typography>
+        {versionDropdown}
+      </Box>
+      <Box sx={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <svg width="100%" height="100%" viewBox={`0 0 ${chartWidth} 230`} preserveAspectRatio="xMidYMid meet" style={{ minWidth: '280px', display: 'block' }}>
+          {/* Y-axis */}
+          <line x1="40" y1="20" x2="40" y2={chartHeight + 20} stroke="#e0e0e0" strokeWidth="1" />
+
+          {/* X-axis */}
+          <line x1="40" y1={chartHeight + 20} x2={chartWidth - 20} y2={chartHeight + 20} stroke="#333" strokeWidth="1" />
+
+          {/* Horizontal grid lines */}
+          {maxValue > 0 && (() => {
+            const stepSize = maxValue <= 50000 ? Math.ceil(maxValue / 5 / 10000) * 10000 : Math.ceil(maxValue / 5);
+            const gridLines = [];
+            for (let i = stepSize; i <= maxValue; i += stepSize) {
+              // const y = chartHeight + 20 - (i / maxValue) * chartHeight;
+              const y = maxValue > 0
+                ? chartHeight + 20 - (i / maxValue) * chartHeight
+                : chartHeight + 20;
+              gridLines.push(
+                <line key={`grid-${i}`} x1="40" y1={y} x2={chartWidth - 20} y2={y} stroke="#f5f5f5" strokeWidth="1" />
+              );
+            }
+            return gridLines;
+          })()}
+
+          {/* Y-axis labels */}
+          {maxValue > 0 && (() => {
+            const stepSize = maxValue <= 50000 ? Math.ceil(maxValue / 5 / 10000) * 10000 : Math.ceil(maxValue / 5);
+            const yLabels = [];
+            for (let i = 0; i <= maxValue; i += stepSize) {
+              yLabels.push(i);
+            }
+            if (yLabels[yLabels.length - 1] !== maxValue) {
+              yLabels.push(maxValue);
+            }
+
+            return yLabels.map((value, index) => {
+              // const y = chartHeight + 20 - (value / maxValue) * chartHeight;
+              const y = maxValue > 0
+                ? chartHeight + 20 - (value / maxValue) * chartHeight
+                : chartHeight + 20;
+              return (
+                <g key={`y-label-${value}`}>
+                  <line x1="35" y1={y} x2="40" y2={y} stroke="#e0e0e0" strokeWidth="1" />
+                  <text x="30" y={y + 3} textAnchor="end" fontSize="10" fill="#666">
+                    {value === 0 ? '0' : `${(value / 1000).toFixed(0)}K`}
+                  </text>
+                </g>
+              );
+            });
+          })()}
+
+          {/* Supplier bars and labels */}
+          {chartData.map((item, index) => {
+            const x = 70 + index * (barWidth + barSpacing);
+            const centerX = x + barWidth / 2;
+
+            // Calculate bar height
             const barHeight =
               maxValue > 0 && !isNaN(item.price)
                 ? (item.price / maxValue) * chartHeight
-                : 0;              
-              // Format supplier name - split long names
-              const supplierName = item.supplier;
-              const maxCharsPerLine = 12;
-              const words = supplierName.split(' ');
-              const lines = [];
-              let currentLine = '';
-              
-              words.forEach(word => {
-                if ((currentLine + word).length <= maxCharsPerLine) {
-                  currentLine += (currentLine ? ' ' : '') + word;
-                } else {
-                  if (currentLine) lines.push(currentLine);
-                  currentLine = word;
-                }
-              });
-              if (currentLine) lines.push(currentLine);
-              
-              // Limit to 2 lines max
-              if (lines.length > 2) {
-                lines[1] = lines[1].substring(0, 8) + '...';
-                lines.splice(2);
+                : 0;
+            // Format supplier name - split long names
+            const supplierName = item.supplier;
+            const maxCharsPerLine = 12;
+            const words = supplierName.split(' ');
+            const lines = [];
+            let currentLine = '';
+
+            words.forEach(word => {
+              if ((currentLine + word).length <= maxCharsPerLine) {
+                currentLine += (currentLine ? ' ' : '') + word;
+              } else {
+                if (currentLine) lines.push(currentLine);
+                currentLine = word;
               }
-              
-              return (
-                <g key={index}>
-                  {/* X-axis tick */}
-                  <line x1={centerX} y1={chartHeight + 20} x2={centerX} y2={chartHeight + 25} stroke="#333" strokeWidth="1"/>
-                  
-                  {/* Price bar */}
-                  <rect
-                    x={x}
-                    y={chartHeight + 20 - Math.max(0, barHeight)}
-                    width={barWidth}
-                    height={Math.max(0, barHeight)}
-                    fill="#1976d2"
-                    style={{ cursor: 'pointer' }}
-                    onMouseEnter={(e) => handleMouseEnter({ supplier: item.supplier, price: item.price }, e, x)}
-                    onMouseLeave={handleMouseLeave}
-                  />
-                  
-                  {/* Price label on top of bar */}
-                  <text
-                    x={centerX}
-                    y={chartHeight + 20 - Math.max(0, barHeight) - 5}
-                    textAnchor="middle"
-                    fontSize="9"
-                    fill="#333"
-                    fontWeight="500"
-                  >
-                    {(item.price / 1000).toFixed(0)}K
-                  </text>
-                  
-                  {/* Supplier name label - multi-line without rotation */}
-                  {lines.map((line, lineIndex) => {
-                    // Only add hover for the last line if truncated
-                    const isTruncated = lines.length > 1 && lineIndex === 1 && supplierName.length > (maxCharsPerLine + 8);
-                    return (
-                      <text
-                        key={lineIndex}
-                        x={centerX}
-                        y={chartHeight + 45 + lineIndex * 12}
-                        textAnchor="middle"
-                        fontSize="9"
-                        fill="#333"
-                        style={isTruncated ? { cursor: 'pointer' } : {}}
-                        onMouseEnter={isTruncated ? (e) => {
-                          // Show tooltip for truncated label
-                          handleMouseEnter({ supplier: supplierName, price: item.price }, e, x);
-                        } : undefined}
-                        onMouseLeave={isTruncated ? handleMouseLeave : undefined}
-                      >
-                        {line}
-                      </text>
-                    );
-                  })}
-                </g>
-              );
-            })}
+            });
+            if (currentLine) lines.push(currentLine);
 
+            // Limit to 2 lines max
+            if (lines.length > 2) {
+              lines[1] = lines[1].substring(0, 8) + '...';
+              lines.splice(2);
+            }
 
+            return (
+              <g key={index}>
+                {/* X-axis tick */}
+                <line x1={centerX} y1={chartHeight + 20} x2={centerX} y2={chartHeight + 25} stroke="#333" strokeWidth="1" />
 
-            {/* Tooltip */}
-            {hoveredBar && (
-              <g style={{ pointerEvents: 'none' }}>
-                {/* Tooltip background */}
+                {/* Price bar */}
                 <rect
-                  x={tooltipPosition.x - Math.max(120, hoveredBar.supplier.length * 7 / 2)}
-                  y={tooltipPosition.y - 40}
-                  width={Math.max(240, hoveredBar.supplier.length * 7)}
-                  height="35"
-                  fill="rgba(0, 0, 0, 0.8)"
-                  rx="4"
-                  ry="4"
+                  x={x}
+                  y={chartHeight + 20 - Math.max(0, barHeight)}
+                  width={barWidth}
+                  height={Math.max(0, barHeight)}
+                  fill="#1976d2"
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => handleMouseEnter({ supplier: item.supplier, price: item.price }, e, x)}
+                  onMouseLeave={handleMouseLeave}
                 />
-                {/* Supplier name - always show full label in tooltip */}
+
+                {/* Price label on top of bar */}
                 <text
-                  x={tooltipPosition.x}
-                  y={tooltipPosition.y - 25}
+                  x={centerX}
+                  y={chartHeight + 20 - Math.max(0, barHeight) - 5}
                   textAnchor="middle"
-                  fontSize="10"
-                  fill="white"
+                  fontSize="9"
+                  fill="#333"
                   fontWeight="500"
-                  style={{ whiteSpace: 'pre-line' }}
                 >
-                  {hoveredBar.supplier}
+                  {(item.price / 1000).toFixed(0)}K
                 </text>
-                {/* Price value */}
-                <text
-                  x={tooltipPosition.x}
-                  y={tooltipPosition.y - 12}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill="white"
-                >
-                  {hoveredBar.price?.toLocaleString()}
-                </text>
+
+                {/* Supplier name label - multi-line without rotation */}
+                {lines.map((line, lineIndex) => {
+                  // Only add hover for the last line if truncated
+                  const isTruncated = lines.length > 1 && lineIndex === 1 && supplierName.length > (maxCharsPerLine + 8);
+                  return (
+                    <text
+                      key={lineIndex}
+                      x={centerX}
+                      y={chartHeight + 45 + lineIndex * 12}
+                      textAnchor="middle"
+                      fontSize="9"
+                      fill="#333"
+                      style={isTruncated ? { cursor: 'pointer' } : {}}
+                      onMouseEnter={isTruncated ? (e) => {
+                        // Show tooltip for truncated label
+                        handleMouseEnter({ supplier: supplierName, price: item.price }, e, x);
+                      } : undefined}
+                      onMouseLeave={isTruncated ? handleMouseLeave : undefined}
+                    >
+                      {line}
+                    </text>
+                  );
+                })}
               </g>
-            )}
-          </svg>
+            );
+          })}
+
+
+
+          {/* Tooltip */}
+          {hoveredBar && (
+            <g style={{ pointerEvents: 'none' }}>
+              {/* Tooltip background */}
+              <rect
+                x={tooltipPosition.x - Math.max(120, hoveredBar.supplier.length * 7 / 2)}
+                y={tooltipPosition.y - 40}
+                width={Math.max(240, hoveredBar.supplier.length * 7)}
+                height="35"
+                fill="rgba(0, 0, 0, 0.8)"
+                rx="4"
+                ry="4"
+              />
+              {/* Supplier name - always show full label in tooltip */}
+              <text
+                x={tooltipPosition.x}
+                y={tooltipPosition.y - 25}
+                textAnchor="middle"
+                fontSize="10"
+                fill="white"
+                fontWeight="500"
+                style={{ whiteSpace: 'pre-line' }}
+              >
+                {hoveredBar.supplier}
+              </text>
+              {/* Price value */}
+              <text
+                x={tooltipPosition.x}
+                y={tooltipPosition.y - 12}
+                textAnchor="middle"
+                fontSize="10"
+                fill="white"
+              >
+                {hoveredBar.price?.toLocaleString()}
+              </text>
+            </g>
+          )}
+        </svg>
+
+        {/* Legend */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '4px', fontSize: '11px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ width: '12px', height: '12px', backgroundColor: '#1976d2', borderRadius: '2px' }} />
+            Supplier Price
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </Box>
+    </Box>
   );
 };
 

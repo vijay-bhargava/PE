@@ -58,14 +58,14 @@ const ManageBid = () => {
             .withUrl(
                 `${process.env.REACT_APP_API_CALL}StatusHub/?CustomerId=${customerid}`,
                 {
-                accessTokenFactory: () => atoken,
-                headers: {
-                    "X-Tenant": tenant
-                },
-                transport:
-                    signalR.HttpTransportType.WebSockets |
-                    signalR.HttpTransportType.ServerSentEvents |
-                    signalR.HttpTransportType.LongPolling,
+                    accessTokenFactory: () => atoken,
+                    headers: {
+                        "X-Tenant": tenant
+                    },
+                    transport:
+                        signalR.HttpTransportType.WebSockets |
+                        signalR.HttpTransportType.ServerSentEvents |
+                        signalR.HttpTransportType.LongPolling,
                 }
             )
             .withAutomaticReconnect([0, 2000, 5000, 10000])
@@ -188,7 +188,7 @@ const ManageBid = () => {
         setValue(event.target.value);
     };
     const [page, setPage] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize, setPageSize] = useState(25);
     const [totalCount, setTotalCount] = useState(0);
     const [searchMode, setSearchMode] = useState(false); // Track if we're in search mode
     const [quickFilterValue, setQuickFilterValue] = useState(''); // Track search query
@@ -276,7 +276,7 @@ const ManageBid = () => {
                     style={{ cursor: "pointer" }}
                 >
                     <div className='content-text'>
-						{params?.row?.bidsubject}
+                        {params?.row?.bidsubject}
                     </div>
                     <div className='content-text mt-1'>
                         <span>{params?.row.subject}</span>
@@ -378,9 +378,9 @@ const ManageBid = () => {
                                     color="primary"
                                     size="small"
                                     onClick={() => navigateToPage(params)}
-                                    // onClick={() => {
-                                    //     navigate(`/configuration/auction-control/${params?.row.id}`);
-                                    // }}
+                                // onClick={() => {
+                                //     navigate(`/configuration/auction-control/${params?.row.id}`);
+                                // }}
                                 >
                                     <GavelOutlinedIcon className="f22" />
                                 </IconButton>
@@ -413,7 +413,7 @@ const ManageBid = () => {
 
     const [gridloading, setGridloading] = useState(false);
 
-    const pullBidManageFind = (pageNumber = 1, pageSize = 10, isSearch = false) => {
+    const pullBidManageFind = (pageNumber = 1, pageSize = 25, isSearch = false) => {
         var data = {
             CustomerId: customerid,
             SortingColumn: "Id",
@@ -424,16 +424,15 @@ const ManageBid = () => {
         if (!isSearch) {
             setSearchDataLoaded(false);
         }
-        
+
         // If in search mode, fetch all records with a large page size
         const effectivePageSize = isSearch ? 10000 : pageSize;
         const effectivePageNumber = isSearch ? 1 : pageNumber;
-        
+
         getAuctionManageFind(data, atoken, effectivePageNumber, effectivePageSize).then((res) => {
             if (!isSearch) {
                 setGridloading(false);
             }
-            setTotalCount(res.pageMetadata?.totalCount || 0);
             if (isSearch) {
                 setSearchDataLoaded(true);
             }
@@ -441,10 +440,11 @@ const ManageBid = () => {
                 // Filter out items with stage "Cancel" by default
                 const filteredData = res?.result?.filter((item) => item.stage != 'Cancel');
                 setRecorddata(filteredData);
+                const serverTotal = res.pageMetadata?.totalCount;
+                setTotalCount(serverTotal > 0 ? serverTotal : filteredData.length);
             } else {
                 setRecorddata([]);
                 setTotalCount(0);
-
             }
         });
     };

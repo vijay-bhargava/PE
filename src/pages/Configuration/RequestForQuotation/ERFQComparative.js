@@ -1,90 +1,41 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import ReactDOM from "react-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { useStateValue } from "../../../store";
-import LoadingButton from "@mui/lab/LoadingButton";
 import {
-	MenuItem,
-	Tooltip,
-	Accordion,
-	AccordionSummary,
-	AccordionDetails,
-	Box,
-	Tab,
-	Tabs,
-	Menu,
-	Typography,
-	CircularProgress,
-	Alert
+	MenuItem, Tooltip, Box, Tab,
+	Tabs, Menu, CircularProgress, Alert
 } from "@mui/material";
-import { DropdownButton, Fade, Modal, Table } from "react-bootstrap";
-import { useLocation, useNavigate, useParams,useSearchParams } from "react-router-dom";
+import { Table } from "react-bootstrap";
+import PEModal from "../../../components/PEModal";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Button from "@mui/material/Button";
-import Drawer from "@mui/material/Drawer";
-import IconButton from "@mui/material/IconButton";
-import {
-	ChevronLeft,
-	ChevronRight,
-	CommentOutlined,
-	ExpandMore,
-	ExpandMoreOutlined,
-	InfoOutlined,
-	KeyboardDoubleArrowLeft,
-	PushPinOutlined,
-} from "@mui/icons-material";
-import {InputAdornment,TextField} from "@mui/material"
-import {
-	HiChevronDown,
-	HiDotsVertical,
-	HiOutlineX,
-} from "react-icons/hi";
-import { api, ApiClient } from "../../../Apiclient";
+import { ExpandMore } from "@mui/icons-material";
+import { HiOutlineX, } from "react-icons/hi";
+import { ApiClient } from "../../../Apiclient";
 import { toast } from "react-toastify";
-import {
-	downloadFilesOnAzure,
-	findStringByValueFromArray,
-	getFileName,
-	getStageInfo,
-	sumArray,
-	menuactionlist
-} from "../../../utils/common";
-import {
-	buildQueryParams,
-	formatDateViaLocale,
-	formatDateViaTime,
-	formattimeoption,
-	renderHtmlAsText,
-} from "../../../utils/common/utility";
-import { GrAttachment } from "react-icons/gr";
-import RFQSummary from "./RFQSummary";
-import { FastApiClient } from "../../../FastApiClient";
-import SupplierAttachmentCell from "./SupplierAttachmentCell";
-import SupplierTechnicalResponses from "../../../components/Reports/SupplierTechnicalResponses";
+import { findStringByValueFromArray, getStageInfo, sumArray, } from "../../../utils/common";
+import { buildQueryParams, formatDateViaLocale } from "../../../utils/common/utility";
+import { MdOutlineOpenInFull } from "react-icons/md";
 import RFQActionDrawer from "../../../components/Reports/RFQActionDrawer";
-import { FaComment } from "react-icons/fa";
-import WhiteTooltip from "../../../components/whitetooltip";
-import EventQuestionScreen from "../../../components/Event/EventQuestionScreen";
-import { id } from "date-fns/locale";
-import EventFinancialComparativeScreen from "../../../components/Event/EventFinancialComparativeScreen";
-import EventCommercialComparativeScreen from "../../../components/Event/EventCommercialComparativeScreen";
-import { MRT_ToggleFullScreenButton } from "material-react-table";
-import ComparisonScreen from "../../../components/Event/ComparisonScreen/DEMO";
 import { RFQSupplierQuestionsModal } from "../../../utils/modal";
 import ExecutiveSummary from '../../../components/Event/ComparisonScreen/ExecutiveSummary';
 import ComparativeAnalysis from '../../../components/Event/ComparisonScreen/ComparativeAnalysis';
 import CommercialComparative from '../../../components/Event/ComparisonScreen/CommercialComparative';
 import TechnicalComparative from '../../../components/Event/ComparisonScreen/TechnicalComparative';
-import { rfqSummaryData, comparativeAnalysisData, commercialComparativeData, technicalComparativeData, tempData, tempCommercialData, tempTechnicalData } from '../../../components/Event/ComparisonScreen/data/mockData';
+import { tempData, tempCommercialData, tempTechnicalData } from '../../../components/Event/ComparisonScreen/data/mockData';
 import SupplierIndividualReport from "../../../pages/Configuration/RequestForQuotation/SupplierIndividualReport";
-import { use } from "react";
 import LockIcon from "@mui/icons-material/Lock";
 import styles from '../../../components/Event/ComparisonScreen/ExecutiveSummary.module.css';
 import { CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
-import { parse } from "date-fns";
-const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
-	
+import TechnicalComparisonMaximizeView from './TechnicalComparisonMaximizeView';
+import ApprovalConfirmDialog from '../../../components/RFQ/ApprovalConfirmDialog';
+
+const ERFQComparative = ({ accessLevel, handleTab, actions, headerActionsRef, onSubTabChange }) => {
+
 	const navigate = useNavigate();
 	const location = useLocation();
 	const [anchorEl, setAnchorEl] = useState(null); //state to handle  version dropdown open and close
@@ -97,28 +48,23 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	const [rfqItemCommercialList, setRfqItemCommercialList] = useState([]);
 	const [rfqOthersCommercialList, setrfqOthersCommercialList] = useState([]);
 	const apiClient = new ApiClient(customersuffix);
-	const [openSupplier, setOpenSupplier] = useState(false);
-	const [openViewSupplier, setOpenViewSupplier] = useState(false);
 	const [openPoDetail, setOpenPoDetail] = useState(false);
+	const [selectedpodetails, setSelectedPODetails] = useState(null);
+
+	const handleClosePoDetail = () => setOpenPoDetail(false);
+
+	const [expandedSummary, setExpandedSummary] = useState(false);
 	const [openLoadingF, SetLoadingF] = useState(false);
-	const handleCloseLoadingF = () => SetLoadingF(false);
 	const [selectedLoadingF, SetSelectedLoadingF] = useState(null);
+	const handleCloseLoadingF = () => SetLoadingF(false);
 	const handleOpenLoadingF = (v) => {
 		SetLoadingF(true);
 		SetSelectedLoadingF(v);
 	};
-	const [selectedpodetails, setSelectedPODetails] = useState(null);
-	const handleOpenPoDetail = (v) => {
 
-		setOpenPoDetail(true);
-		setSelectedPODetails(v);
-	};
-	const handleClosePoDetail = () => setOpenPoDetail(false);
-	// Accordion state management - replacing tabs
 	const [expandedFinancial, setExpandedFinancial] = useState(false);
 	const [expandedCommercial, setExpandedCommercial] = useState(false);
 	const [expandedTechnical, setExpandedTechnical] = useState(false);
-	const [expandedSummary, setExpandedSummary] = useState(false);
 	const [expandedSupplierAttachments, setExpandedSupplierAttachments] = useState(false);
 
 	const handleAccordionChange = (panel) => (event, isExpanded) => {
@@ -142,13 +88,13 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				break;
 		}
 	};
-	const [reInvite, setreInvite] = useState(0);
-	const [isExpanded, setIsExpanded] = useState(false);
+
+	const [showcommercial, setShowCommercial] = useState(true);
 
 	const { pageSlug, supplierid } = useParams();
 	const [searchParams, setSearchParams] = useSearchParams();
 
-	const [activityId, setActvityId] = useState(0);	
+	const [activityId, setActvityId] = useState(0);
 	const [stageValue, setStageValue] = useState('');
 	const [actionType, setActionType] = useState("");
 	const [idFromURL, setIdFromURL] = useState(null);
@@ -177,7 +123,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		const StageValue = params.get("Stage");
 		setActionType(actionType);
 
-		// if (actionType == "approval" ) {
+		// if (actionType === "approval" ) {
 		// 	tabReport()
 		// }
 		setActvityId(ActivityId ?? 0);
@@ -187,29 +133,64 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	}, [searchParams]);
 
 	const [vendorItemAnalysis, setVendorItemAnalysis] = useState([]);
-	const [vendorRanking, setVendorRanking] = useState([]);
-	const [vendorCommercial, setVendorCommercial] = useState([]);
 	const [version, setVersion] = useState(null);
 	const [currentVersion, setCurrentVersion] = useState(0);
 	const [linewiseItemLowest, setLineWiseItemLowest] = useState([]);
 	const [supplierList, setSupplierList] = useState([]);
 	const [QuestionResponses, setQuestionResponses] = useState([]);
 	const [selectedVersion, setSelectedVersion] = useState(null);
+
+	const downloadPdf = useCallback(async () => {
+		try {
+			let VersionParam;
+			let finalversionparam = false;
+			if (version?.includes("x")) {
+				VersionParam = version.split(".")[0];
+				finalversionparam = true;
+			} else {
+				VersionParam = version;
+			}
+			const reqdata = {
+				version: parseFloat(VersionParam),
+				finalVersion: finalversionparam,
+				isBOQ: actions.EventHeaderDetails?.boqReq ? true : false,
+				activityId: actions?.activityId,
+			};
+			const queryParams = buildQueryParams(reqdata);
+			const response = await apiClient.api.get(
+				`/api/RFQManage/comparison-report/${actions?.rfqid}?${queryParams}`,
+				{
+					responseType: 'blob',
+					headers: { Authorization: `Bearer ${atoken}` },
+				}
+			);
+			const url = window.URL.createObjectURL(new Blob([response.data]));
+			const link = document.createElement("a");
+			link.href = url;
+			link.setAttribute('download', `RFQ_Comparison_Report_${actions?.rfqid}.pdf`);
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			window.URL.revokeObjectURL(url);
+			toast.success(`Report downloaded successfully.`, { autoClose: 2000 });
+		} catch (error) {
+			console.error("Error downloading PDF:", error);
+			toast.error("Error downloading comparison report.", { toastId: "report_download_error", autoClose: 3000 });
+		}
+	}, [atoken, actions?.rfqid, version, apiClient]);
+
 	const RFQcomparativeReport = async () => {
 		let VersionParam;
 		let finalversionparam = false;
 		if (version?.includes("x")) {
 			VersionParam = version.split(".")[0];
 			finalversionparam = true
-
 		}
 		else {
 			VersionParam = version
-
-
 		}
 		var reqdata = {}
-		if (actions.actionType == 'approval' && actions.activityId && actions.currentStage != 'Commercial Approval') {
+		if (actions.actionType === 'approval' && actions.activityId && actions.currentStage !== 'Commercial Approval') {
 			reqdata = {
 				rfqId: parseInt(pageSlug),
 				Version: VersionParam,
@@ -237,8 +218,8 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				setVendorItemAnalysis(vendorItemAnalysisdata);
 			}
 			else {
-				// when supplierid then filter his data only				
-				const filteredsupplier = vendorItemAnalysisdata?.filter(x => x.id == supplierid)
+				// when supplierid then filter his data only
+				const filteredsupplier = vendorItemAnalysisdata?.filter(x => x.id === supplierid)
 				vendorItemAnalysisdata = filteredsupplier;
 
 				setVendorItemAnalysis(vendorItemAnalysisdata);
@@ -247,8 +228,8 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			console.log("vendorItemAnalysisdata", vendorItemAnalysisdata)
 
-			//in order to get linewise lowest  term 
-			const data = vendorItemAnalysisdata?.filter(v => v?.submissionDate != null)[0]
+			//in order to get linewise lowest  term
+			const data = vendorItemAnalysisdata?.filter(v => v?.submissionDate !== null)[0]
 			if (data) {
 
 				const linewiselowest = JSON.parse(data?.vendorItemAnalysis);
@@ -260,10 +241,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				const vendorQuestionAns = vendorItemAnalysisdata?.map((v) => {
 
 					let updatedvendorquestion;
-					if (version != 0)
-						updatedvendorquestion = JSON.parse(v?.vendorQuestionAns)?.filter(x => x.version == version)
+					if (version !== 0)
+						updatedvendorquestion = JSON.parse(v?.vendorQuestionAns)?.filter(x => x.version === version)
 					else {
-						updatedvendorquestion = JSON.parse(v?.vendorQuestionAns)?.filter(x => x.version == currentVersion)
+						updatedvendorquestion = JSON.parse(v?.vendorQuestionAns)?.filter(x => x.version === currentVersion)
 					}
 					// Destructure only the fields you need
 					return {
@@ -274,10 +255,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 				setQuestionResponses(vendorQuestionAns);
 			}
-
-
 			setIsLFUpdated(false);
-
 		}
 	};
 
@@ -294,22 +272,21 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		);
 		let vendorItemAnalysisdata;
 		if (res.status === 200) {
-
 			vendorItemAnalysisdata = res?.data?.result ?? [];
 			setSupplierList(vendorItemAnalysisdata);
 		}
-
 	}
+
 	useEffect(() => {
-		if (actions.actionType == 'Forward') {
+		if (actions.actionType === 'Forward') {
 			GetEventSuppliers();
 		}
 	}, [actions.actionType])
 
 	useEffect(() => {
-		if (supplierList && supplierList?.length > 0 && actions.actionType == 'Forward') {
+		if (supplierList && supplierList?.length > 0 && actions.actionType === 'Forward') {
 			const allNotClosed = supplierList.some(
-				(supplier) => supplier.status == "Closed"
+				(supplier) => supplier.status === "Closed"
 			);
 			if (!allNotClosed) {
 				toast.warning(`No Supplier has quoted so far. You can extend the end date of the RFQ and send reminder to them.`, {
@@ -326,24 +303,17 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			setVersion(actions.rfqheaderversion.toString());
 			setCurrentVersion(actions.rfqheaderversion);
 		}
-		
-
 	}, [actions.rfqheaderversion, location])
 	useEffect(() => {
-		if(actions.nfaEventVersion){
+		if (actions.nfaEventVersion) {
 			setVersion(actions.nfaEventVersion.toString());
 			setCurrentVersion(actions.nfaEventVersion);
 		}
-	},[actions.nfaEventVersion])
+	}, [actions.nfaEventVersion])
 	//useeffect
 	useEffect(() => {
 		if (version) getComparativedetailsVersionWise()
 	}, [version, location]);
-
-
-
-
-
 
 	const getComparativedetailsVersionWise = async () => {
 		await pullRFQHeaderDetails();
@@ -362,41 +332,35 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		}
 	}, [isLFChanged])
 
-
-
 	const [rfqheaderdetails, setRFQHeaderDetails] = useState(null);
 	const [totalItemSum, setTotalItemSum] = useState(0)
 	const [versionhistory, setVersionhistory] = useState(actions.versionhistory)
 	const [versionWiseData, setVersionWiseData] = useState(actions.RFQVersionHistory);
-	
 
 	useEffect(() => {
 		if (versionhistory?.length) {
-			const defaultVersion = versionhistory.find(v => v === "1.x")?? versionhistory[0];
+			const defaultVersion = versionhistory.find(v => v === "1.x") ?? versionhistory[0];
 			if (defaultVersion) {
 				setSelectedVersion(defaultVersion);
 				handleVersionClick(defaultVersion); // optional: auto-load data
 			}
 		}
 	}, [versionhistory]);
+
 	const pullRFQHeaderDetails = async () => {
 
 		let VersionParam;
 		if (version?.includes("x")) {
 			VersionParam = version.split(".")[0];
-
-
 		}
 		else {
 			VersionParam = version
-
 		}
 		var data = {
 			Id: pageSlug,
 			Version: parseInt(version),
-
 		};
-		if (version == 0) {
+		if (version === 0) {
 			delete data?.Version;
 		}
 
@@ -407,33 +371,42 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		);
 
 		if (res) {
+			const result = Array.isArray(res?.data?.result) ? res.data.result : [];
+			const header = result?.[0];
+			setRFQHeaderDetails(result);
 
-			//setCurrentVersion(res?.data?.result[0]?.version)
-			const result = res?.data?.result;
-			setRFQHeaderDetails(result)
-			
-			if (result[0]?.versionhistory?.length != versionhistory?.length) {
-				setVersionhistory(result[0]?.versionhistory)
+			if (!header) {
+				setrfqItemsList([]);
+				setTotalItemSum(0);
+				setRfqItemCommercialList([]);
+				setRFQQuestionList([]);
+				setrfqOthersCommercialList([]);
+				return;
 			}
 
-			setrfqItemsList(result[0]?.rfqParameters);
-			const itemsumarr = sumArray(result[0]?.rfqParameters?.map(x => x.targetPrice * x.quantity))
-			setTotalItemSum(itemsumarr)
+			if (header?.versionhistory?.length !== versionhistory?.length) {
+				setVersionhistory(header.versionhistory);
+			}
+
+			const rfqParameters = Array.isArray(header?.rfqParameters) ? header.rfqParameters : [];
+			setrfqItemsList(rfqParameters);
+			const itemsumarr = sumArray(rfqParameters.map(x => x.targetPrice * x.quantity));
+			setTotalItemSum(itemsumarr);
 
 			setRfqItemCommercialList(
-				res?.data?.result[0]?.rfqItemCommercial.filter((x) => x.level == "item")
+				(Array.isArray(header?.rfqItemCommercial) ? header.rfqItemCommercial : []).filter((x) => x.level === "item")
 			);
-			setRFQQuestionList(res?.data?.result[0]?.rfqQuestionMaster)
+			setRFQQuestionList(Array.isArray(header?.rfqQuestionMaster) ? header.rfqQuestionMaster : []);
 
 			setrfqOthersCommercialList(
-				res?.data?.result[0]?.rfqPackageCommercial
-			)
+				Array.isArray(header?.rfqPackageCommercial) ? header.rfqPackageCommercial : []
+			);
 		}
 	};
 	//handle version change
 	const handleVersionClick = (v) => {
 		setVersion(v);
-		setAnchorEl(null);		
+		setAnchorEl(null);
 		// Refresh data for the currently active tab
 		setTimeout(() => {
 			switch (activeTab) {
@@ -460,33 +433,11 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		setAnchorEl(null);
 	};
 
-	const [reInviteModal, setreInviteModal] = useState(false);
-	//to handle reinvite or same reminder with same modal
-	const [modalType, setModalType] = useState("");
-	const handleModelType = (modeltype) => {
-		switch (modeltype) {
-			case "Reminder":
-				return setModalType("Reminder")
-			case "ReInvite":
-				return setModalType("ReInvite")
-			case "ExtendDate":
-				return setModalType("ExtendDate")
-			default:
-				return ""
-		}
-
-	}
-
-
 	const [searchQuery, setSearchQuery] = useState('');
 
 	// Function to filter vendors based on name and email
-
 	const [filteredVendors, setFilteredVendors] = useState([]);
-
-
 	const [filteredReopenVendors, setFilteredReopenVendors] = useState([]);
-
 
 	useEffect(() => {
 
@@ -497,6 +448,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			return { ...x, reopenremark: "", reoepnchecked: false, reopenShow: true }
 		}))
 	}, [vendorItemAnalysis])
+
 	useEffect(() => {
 
 		const updatedVendors = filteredVendors?.map(v => {
@@ -519,13 +471,9 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				reopenShow: matchesSearch // Set isShow based on the search
 			};
 		});
-
-
 		setFilteredVendors(updatedVendors);
 		setFilteredReopenVendors(updatedreopenVendors);
 	}, [searchQuery]);
-
-
 
 	//handle surrogate and reopen quotes
 	const [actionmodal, setActionModal] = useState({
@@ -534,8 +482,6 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		extenddateSupplierModal: false,
 		opensealedBid: false
 	});
-
-
 
 	const validationSchemaSurrogate = yup.object().shape({
 		// surrogatename: yup
@@ -587,10 +533,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 					toastId: "surrogatetoast"
 				})
 				formik_Surrogate.resetForm();
-
 			}
-
-
 		},
 	});
 
@@ -598,23 +541,22 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		openInvoiceApproved: false,
 	});
 	const toggleDrawer = (anchor, open) => (event) => {
-        if (
-            event.type === "keydown" &&
-            (event.key === "Tab" || event.key === "Shift")
-        ) {
-            return;
-        }
-        setState({ ...state, [anchor]: open });
-    };
+		if (
+			event.type === "keydown" &&
+			(event.key === "Tab" || event.key === "Shift")
+		) {
+			return;
+		}
+		setState({ ...state, [anchor]: open });
+	};
 
-	const handleApprovalActivity = (supplier) => {
+	const handleApprovalActivity = (supplier, action) => {
 		setState({ ...state, ["openInvoiceApproved"]: true });
-		formik_ApproveReject.setFieldValue("vendorId", supplier?.id);
+		formik_ApproveReject.setFieldValue("vendorId", supplier?.id || supplier?.vendorId);
+		if (action === 'Approve') formik_ApproveReject.setFieldValue("status", "Approved");
+		if (action === 'Reject') formik_ApproveReject.setFieldValue("status", "Rejected");
 	}
-	
 
-
-	const fastApiClient = new FastApiClient()
 
 	// Helper function to check if suppliers have potentially submitted attachments
 	// This can be customized based on your specific data structure
@@ -628,10 +570,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			// More specific checks for submitted status
 			// You can customize these conditions based on your data structure
 			const hasSubmittedStatus = v?.status === "Submitted" || v?.status === "Complete";
-			const hasValidSubmission = v?.submissionDate != null;
+			const hasValidSubmission = v?.submissionDate !== null;
 
 			// Return true only if supplier has actually completed submission
-			return hasValidSubmission && (hasSubmittedStatus || v?.responseDate != null);
+			return hasValidSubmission && (hasSubmittedStatus || v?.responseDate !== null);
 		}) || [];
 	};
 
@@ -647,88 +589,18 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		setExpandedSupplierAttachment(isExpanded ? panel : false); // Toggle the accordion
 	};
 
-	// useEffect(() => {
-	// 	if(actions?.activityId && (actions?.currentStage == 'Open' || actions?.currentStage == 'Technical Approval'))
-	// 	{
-	// 		setExpandedTechnical(true);
-	// 	} else {
-	// 		setExpandedFinancial(true);
-	// 	}
-	// },[actions?.activityId,actions?.currentStage])
-
 	useEffect(() => {
-		if (actions.actionType == 'approval' || actions.actionType == 'Forward') {
+		if (actions.actionType === 'approval' || actions.actionType === 'Forward') {
 			setExpandedSummary(true);
 		}
 	}, [actions.actionType])
-
-
-	//to handle tabchange on the basis of access abheedev
-	// useEffect(() => {
-	// 	if (accessLevel?.find(x => x.claimType == "Item Commercial Responses")?.claimValue?.Read != "N") {
-	// 		setValue(0)
-	// 		return;
-	// 	}
-	// 	if (accessLevel?.find(x => x.claimType == "Package Commercial Responses")?.claimValue?.Read != "N") {
-	// 		setValue(1)
-	// 		return;
-	// 	}
-
-	// 	if (accessLevel?.find(x => x.claimType == "Question Responses")?.claimValue?.Read != "N") {
-	// 		setValue(2)
-	// 		return;
-	// 	}
-
-	// 	if (accessLevel?.find(x => x.claimType == "Approval Activity")?.claimValue?.Read != "N") {
-	// 		setValue(3)
-	// 		return;
-	// 	}
-
-
-	const [showcommercial, setShowCommercial] = useState(true);
-
-	// }, [accessLevel])
-	const supplierstatus = (x) => {
-
-		if (x.status == "Open" && x.isTermsAccepted && x.packagePrice) {
-			return "In Process"
-		}
-		else if (x.status == "Open" && x.isTermsAccepted && !x.packagePrice) {
-			return "Intent to Participate"
-		}
-		else if (x.status != "Open") {
-			return x.status
-		}
-		else {
-			return "Not Started"
-		}
-
-	}
-
-	const supplierdate = (x) => {
-
-		if (x.status == "Open" && x.isTermsAccepted && x.packagePrice) {
-			return formatDateViaLocale(x.acceptanceDate, userDetail)
-		}
-		else if (x.status == "Open" && x.isTermsAccepted && !x.packagePrice) {
-
-			return formatDateViaLocale(x.acceptanceDate, userDetail)
-		}
-		else if (x.status != "Open") {
-			return formatDateViaLocale(x.responseDate, userDetail)
-		}
-		else {
-			return ""
-		}
-
-	}
 
 	//to generate excel report for comparative report
 	// API call to fetch financial comparison data
 	const fetchFinancialComparisonData = async (v) => {
 		setIsLoadingFinancialData(true);
 		try {
-			
+
 			let VersionParam;
 			let finalversionparam = false;
 			if (v?.includes("x")) {
@@ -739,7 +611,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			}
 
 			var reqdata = {};
-			if (actions.actionType == 'approval' && actions.activityId && actions.currentStage != 'Commercial Approval') {
+			if (actions.actionType === 'approval' && actions.activityId && actions.currentStage !== 'Commercial Approval') {
 				reqdata = {
 					rfqId: parseInt(pageSlug),
 					Version: VersionParam,
@@ -799,7 +671,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			}
 
 			var reqdata = {};
-			if (actions.actionType == 'approval' && actions.activityId && actions.currentStage != 'Commercial Approval') {
+			if (actions.actionType === 'approval' && actions.activityId && actions.currentStage !== 'Commercial Approval') {
 				reqdata = {
 					rfqId: parseInt(pageSlug),
 					Version: VersionParam,
@@ -843,7 +715,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	const fetchTechnicalComparisonData = async (v) => {
 		setIsLoadingTechnicalData(true);
 		try {
-			
+
 			let VersionParam;
 			let finalversionparam = true;
 			if (v?.includes("x")) {
@@ -854,7 +726,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			}
 
 			var reqdata = {};
-			if (actions.actionType == 'approval' && actions.activityId && actions.currentStage != 'Commercial Approval') {
+			if (actions.actionType === 'approval' && actions.activityId && actions.currentStage !== 'Commercial Approval') {
 				reqdata = {
 					rfqId: parseInt(pageSlug),
 					Version: VersionParam,
@@ -898,7 +770,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	const fetchGeneralData = async () => {
 		setIsLoadingGeneralData(true);
 		try {
-			
+
 			let VersionParam;
 			let finalversionparam = false;
 			if (version?.includes("x")) {
@@ -909,10 +781,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			}
 
 			var reqdata = {
-					rfqId: actions.rfqid,
-					Version: VersionParam,
-					finalversion: actions.isNFA ? true : finalversionparam
-				}
+				rfqId: actions.rfqid,
+				Version: VersionParam,
+				finalversion: actions.isNFA ? true : finalversionparam
+			}
 
 			const queryParams = buildQueryParams(reqdata);
 			// Replace with your actual API endpoint for financial comparison data
@@ -1113,7 +985,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		const uniqueSuppliers = Array.from(new Set(suppliers));
 
 		// Add header row with static fields and dynamic supplier columns
-		const headerRow = ['SrNo', 'ItemCode', 'Short Name', 'ItemDescription', 'Quantity', 'UOM', 'Delivery Location', 'Target/Budget Price', 'Lowest Item Price', 'Savings (wrt Target Price)','Savings (wrt LPP)'];
+		const headerRow = ['SrNo', 'ItemCode', 'Short Name', 'ItemDescription', 'Quantity', 'UOM', 'Delivery Location', 'Target/Budget Price', 'Lowest Item Price', 'Savings (wrt Target Price)', 'Savings (wrt LPP)'];
 
 		// Add supplier columns (2 columns per supplier: Unit Price, Amount)
 		uniqueSuppliers.forEach(supplier => {
@@ -1145,7 +1017,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		const submissionTimeRow = financialSheet.addRow(subHeaderRow);
 
 		// Add third header row with column names
-		const colHeaderRow = ['', '', '', '', '', '', '', '', '','','']; // Empty cells for static fields
+		const colHeaderRow = ['', '', '', '', '', '', '', '', '', '', '']; // Empty cells for static fields
 		uniqueSuppliers.forEach(supplier => {
 			colHeaderRow.push('Unit Price');
 			colHeaderRow.push('Amount');
@@ -1276,7 +1148,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 					const supplierItem = supplier?.vendorItemAnalysis?.find(vendorItem => vendorItem.id === item.id);
 					if (supplierItem?.CommercialItem && Array.isArray(supplierItem.CommercialItem)) {
 						supplierItem.CommercialItem.forEach(commercialItem => {
-							if (commercialItem.Name && commercialItem.IsNetPrice == 'N') {
+							if (commercialItem.Name && commercialItem.IsNetPrice === 'N') {
 								allCommercialTerms.add(commercialItem.Name);
 							}
 						});
@@ -1343,8 +1215,8 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 		// Add package-level commercial terms from rfqOthersCommercialList
 		const packageCommercialTerms = rfqOthersCommercialList?.filter(term =>
-			(term.valuetype == "Currency" || term.valuetype == "Percentage") &&
-			(term.name != term.grandTotalTermName)
+			(term.valuetype === "Currency" || term.valuetype === "Percentage") &&
+			(term.name !== term.grandTotalTermName)
 		) || [];
 
 		packageCommercialTerms.forEach(term => {
@@ -1589,7 +1461,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			if (supplier && supplier.vendorCommercial && Array.isArray(supplier.vendorCommercial)) {
 				supplier.vendorCommercial.forEach(commercial => {
-					if (commercial.Name && commercial.Valuetype != 'Currency' && commercial.Valuetype != 'Percentage') {
+					if (commercial.Name && commercial.Valuetype !== 'Currency' && commercial.Valuetype !== 'Percentage') {
 						allCommercialTerms.add(commercial.TermsName || commercial.Name || commercial.name);
 					}
 				});
@@ -1860,7 +1732,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				}
 
 				var reqdata = {};
-				if (actions.actionType == 'approval' && actions.activityId && actions.currentStage != 'Commercial Approval') {
+				if (actions.actionType === 'approval' && actions.activityId && actions.currentStage !== 'Commercial Approval') {
 					reqdata = {
 						rfqId: parseInt(pageSlug),
 						Version: VersionParam,
@@ -1906,7 +1778,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				}
 
 				var reqdata = {};
-				if (actions.actionType == 'approval' && actions.activityId && actions.currentStage != 'Commercial Approval') {
+				if (actions.actionType === 'approval' && actions.activityId && actions.currentStage !== 'Commercial Approval') {
 					reqdata = {
 						rfqId: parseInt(pageSlug),
 						Version: VersionParam,
@@ -1948,7 +1820,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				}
 
 				var reqdata = {};
-				if (actions.actionType == 'approval' && actions.activityId && actions.currentStage != 'Commercial Approval') {
+				if (actions.actionType === 'approval' && actions.activityId && actions.currentStage !== 'Commercial Approval') {
 					reqdata = {
 						rfqId: parseInt(pageSlug),
 						Version: VersionParam,
@@ -2121,21 +1993,21 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			});
 			column.width = 28;
 		});
-		
+
 		// Create Financial Details sheet using tempData structure (matching original format)
 		if (currentFinancialData) {
-			
+
 			const financialSheet = workbook.addWorksheet('Financial Details');
-			
+
 			// Get unique supplier names from tempData
 			const suppliers = currentFinancialData.suppliers || [];
 			const uniqueSuppliers = suppliers.map(s => s.companyName);
 			const headerRow = [];
 			// Add header row with static fields and dynamic supplier columns (matching original structure)
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq === true) {
 				headerRow.push('SrNo', 'SheetName', 'ItemCode', 'Short Name', 'ItemDescription', 'Quantity', 'UOM', 'Delivery Location', 'Target/Budget Price', 'Lowest Item Price', 'Savings in % (wrt Target Price)', 'Savings in % (wrt LPP)');
 			}
-			else{
+			else {
 				headerRow.push('SrNo', 'ItemCode', 'Short Name', 'ItemDescription', 'Quantity', 'UOM', 'Delivery Location', 'Target/Budget Price', 'Lowest Item Price', 'Savings in % (wrt Target Price)', 'Savings in % (wrt LPP)');
 			}
 
@@ -2151,10 +2023,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			const titleRow = financialSheet.addRow(headerRow);
 			const subHeaderRow = [];
 			// Add second header row with supplier sub-headers and submission time
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq === true) {
 				subHeaderRow.push('', '', '', '', '', '', '', '', '', '', '', '');
 			}
-			else{
+			else {
 				subHeaderRow.push('', '', '', '', '', '', '', '', '', '', '');
 			}
 			uniqueSuppliers.forEach((supplier, index) => {
@@ -2174,10 +2046,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			const submissionTimeRow = financialSheet.addRow(subHeaderRow);
 			const colHeaderRow = [];
 			// Add third header row with column names
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq === true) {
 				colHeaderRow.push('', '', '', '', '', '', '', '', '', '', '', '');
 			}
-			else{
+			else {
 				colHeaderRow.push('', '', '', '', '', '', '', '', '', '', '');
 			}
 			uniqueSuppliers.forEach(supplier => {
@@ -2193,10 +2065,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			// Merge supplier name cells (span across 2 columns for each supplier)
 			uniqueSuppliers.forEach((supplier, index) => {
 				var mergeStartCol = 0;
-				if(actions.EventHeaderDetails?.boqReq == true){
+				if (actions.EventHeaderDetails?.boqReq === true) {
 					mergeStartCol = 13 + (index * 2); // Starting after the 10 static columns (columns A-J, including Delivery Location)
 				}
-				else{
+				else {
 					mergeStartCol = 12 + (index * 2); // Starting after the 9 static columns (columns A-I, including Delivery Location)
 				}
 				const mergeEndCol = mergeStartCol + 1; // Span 2 columns
@@ -2209,10 +2081,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			});
 			var lastPoStartCol = 0;
 			// Merge "Last PO Details" header cell (span across 5 columns: Po No, PO Date, Supplier Name, Unit Rate, PO Value)
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq === true) {
 				lastPoStartCol = 13 + (uniqueSuppliers?.length * 2);
 			}
-			else{
+			else {
 				lastPoStartCol = 12 + (uniqueSuppliers?.length * 2); // After all supplier columns
 			}
 			const lastPoEndCol = lastPoStartCol + 4; // Span 5 columns
@@ -2244,7 +2116,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				const savingsWrtTargetPrice = parseFloat(item?.targetPrice ?? 0) && parseFloat(lowestPrice) ? ((parseFloat(item?.targetPrice ?? 0) - parseFloat(lowestPrice)) / parseFloat(item?.targetPrice ?? 0)) * 100 : 0;
 				const savingsWrtLPP = parseFloat(lowestPrice) && parseFloat(item?.targetPrice ?? 0) ? ((parseFloat(item?.targetPrice ?? 0) - parseFloat(lowestPrice)) / parseFloat(lowestPrice)) * 100 : 0;
 				const row = [];
-				if(actions.EventHeaderDetails?.boqReq == true){
+				if (actions.EventHeaderDetails?.boqReq === true) {
 					debugger
 					row.push(
 						item?.hierarchyCode, // SrNo
@@ -2256,12 +2128,12 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						item?.uom || 'N/A', // UOM
 						item?.plant || 'N/A', // Delivery Location - using default value like original
 						parseFloat(item?.targetPrice ?? 0), // Target/Budget Price as number
-						parseFloat(lowestPrice) || 0 ,// Lowest Item Price as number
+						parseFloat(lowestPrice) || 0,// Lowest Item Price as number
 						savingsWrtTargetPrice.toFixed(4), // Savings (wrt Target Price) as percentage
 						savingsWrtLPP.toFixed(4) // Savings (wrt LPP) as percentage
 					);
 				}
-				else{
+				else {
 					row.push(
 						i + 1, // SrNo
 						item?.itemCode || 'N/A', // ItemCode
@@ -2271,7 +2143,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						item?.uom || 'N/A', // UOM
 						item?.plant || 'N/A', // Delivery Location - using default value like original
 						parseFloat(item?.targetPrice ?? 0), // Target/Budget Price as number
-						parseFloat(lowestPrice) || 0 ,// Lowest Item Price as number
+						parseFloat(lowestPrice) || 0,// Lowest Item Price as number
 						savingsWrtTargetPrice.toFixed(4), // Savings (wrt Target Price) as percentage
 						savingsWrtLPP.toFixed(4) // Savings (wrt LPP) as percentage
 					);
@@ -2327,10 +2199,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 					cell.style = dataRowStyle;
 					var staticColumns = 0;
 					// Bold formatting for minimum unit price columns
-					if(actions.EventHeaderDetails?.boqReq == true){
+					if (actions.EventHeaderDetails?.boqReq === true) {
 						staticColumns = 12; // A to J (including Delivery Location)
 					}
-					else{
+					else {
 						staticColumns = 11; // A to I (including Delivery Location)
 					}
 					const supplierStartCol = staticColumns + 1; // Column J
@@ -2361,7 +2233,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				// Add commercial term rows for this item
 				Array.from(allCommercialTerms).forEach(termName => {
 					const commercialRow = [];
-					if(actions.EventHeaderDetails?.boqReq == true){
+					if (actions.EventHeaderDetails?.boqReq === true) {
 						commercialRow.push(
 							'', // Empty SrNo
 							'', // Empty SheetName
@@ -2378,7 +2250,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 						);
 					}
-					else{
+					else {
 						commercialRow.push(
 							'', // Empty SrNo
 							'', // Empty ItemCode
@@ -2441,21 +2313,21 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				if (lowestPrice === Infinity) lowestPrice = 0;
 				const targetPrice = item?.targetPrice ?? 0;
 				if (!isNaN(targetPrice)) {
-					targetPriceTotal += (parseFloat(targetPrice) * parseFloat(item?.quantity ?? 0)); 
+					targetPriceTotal += (parseFloat(targetPrice) * parseFloat(item?.quantity ?? 0));
 				}
 				if (!isNaN(lowestPrice)) {
-					totalLowestPrice += (parseFloat(lowestPrice) * parseFloat(item?.quantity ?? 0)); 
+					totalLowestPrice += (parseFloat(lowestPrice) * parseFloat(item?.quantity ?? 0));
 				}
 			});
 
 			const totalRow = ['Total'];
 			// Fill empty cells for static columns (2-7) - up to Delivery Location column
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq === true) {
 				for (let i = 2; i <= 8; i++) {
 					totalRow.push('');
 				}
 			}
-			else{
+			else {
 				for (let i = 2; i <= 7; i++) {
 					totalRow.push('');
 				}
@@ -2492,12 +2364,12 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			// Add Loading Factor row
 			const loadingFactorRow = ['Loading Factor'];
 			// Fill empty cells for static columns (2-9)
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq === true) {
 				for (let i = 2; i <= 12; i++) {
 					loadingFactorRow.push('');
 				}
 			}
-			else{
+			else {
 				for (let i = 2; i <= 11; i++) {
 					loadingFactorRow.push('');
 				}
@@ -2518,10 +2390,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			const loadingFactorRowElement = financialSheet.addRow(loadingFactorRow);
 			// Merge cells for "Loading Factor" label across columns A-H
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq === true) {
 				financialSheet.mergeCells(loadingFactorRowElement.number, 1, loadingFactorRowElement.number, 12);
 			}
-			else{
+			else {
 				financialSheet.mergeCells(loadingFactorRowElement.number, 1, loadingFactorRowElement.number, 11);
 			}
 			loadingFactorRowElement.eachCell((cell) => {
@@ -2531,12 +2403,12 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			// Add Amount (Incl. GST/VAT) row
 			const amountInclRow = ['Final Amount'];
 			// Fill empty cells for static columns (2-9)
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq === true) {
 				for (let i = 2; i <= 12; i++) {
 					amountInclRow.push('');
 				}
 			}
-			else{
+			else {
 				for (let i = 2; i <= 11; i++) {
 					amountInclRow.push('');
 				}
@@ -2557,10 +2429,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			const amountInclRowElement = financialSheet.addRow(amountInclRow);
 			// Merge cells for "Amount" label across columns A-H
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq === true) {
 				financialSheet.mergeCells(amountInclRowElement.number, 1, amountInclRowElement.number, 12);
 			}
-			else{
+			else {
 				financialSheet.mergeCells(amountInclRowElement.number, 1, amountInclRowElement.number, 11);
 			}
 			amountInclRowElement.eachCell((cell) => {
@@ -2570,12 +2442,12 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 			// Add Commercial Rank row (footer only) - Show ranking in Amount column
 			const commercialRankRow = ['Commercial Rank'];
 			// Fill empty cells for static columns (2-9)
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq === true) {
 				for (let i = 2; i <= 12; i++) {
 					commercialRankRow.push('');
 				}
 			}
-			else{
+			else {
 				for (let i = 2; i <= 11; i++) {
 					commercialRankRow.push('');
 				}
@@ -2596,10 +2468,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			const commercialRankRowElement = financialSheet.addRow(commercialRankRow);
 			// Merge cells for "Commercial Rank" label across columns A-H
-			if(actions.EventHeaderDetails?.boqReq == true){
+			if (actions.EventHeaderDetails?.boqReq === true) {
 				financialSheet.mergeCells(commercialRankRowElement.number, 1, commercialRankRowElement.number, 12);
 			}
-			else{
+			else {
 				financialSheet.mergeCells(commercialRankRowElement.number, 1, commercialRankRowElement.number, 11);
 			}
 			commercialRankRowElement.eachCell((cell) => {
@@ -2614,7 +2486,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 					maxLength = Math.max(maxLength, cellLength);
 				});
 				if (index < 12) {
-					if (index === (actions.EventHeaderDetails?.boqReq == true ? 4 : 3)) { // ItemDescription column
+					if (index === (actions.EventHeaderDetails?.boqReq === true ? 4 : 3)) { // ItemDescription column
 						column.width = 30;
 					} else {
 						column.width = Math.max(15, maxLength + 2);
@@ -2671,10 +2543,10 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 					let commercialValue = '';
 
 					// Find the vendor response for this term
-					const vendorResponse = term.vendorPackageCommercial?.find(vpc => 
+					const vendorResponse = term.vendorPackageCommercial?.find(vpc =>
 						vpc.vendorId === supplierData.vendorId
 					);
-					
+
 					commercialValue = vendorResponse?.remarks || vendorResponse?.calculateCommValue || 'N/A';
 					commercialRow.push(commercialValue);
 				});
@@ -2771,7 +2643,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			questions.forEach((question, index) => {
 				const questionRow = [
-					index + 1, 
+					index + 1,
 					question.questionDescription || 'N/A',
 					question.questionRequirement || 'N/A'
 				];
@@ -2783,14 +2655,14 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 					let score = 0;
 
 					// Find the vendor response for this question
-					const vendorResponse = question.vendorQuestionResponse?.find(vqr => 
+					const vendorResponse = question.vendorQuestionResponse?.find(vqr =>
 						vqr.vendorId === supplierData.vendorId
 					);
-					
+
 					if (vendorResponse) {
 						answer = vendorResponse.answer || 'No Response';
 						score = vendorResponse.score !== undefined ? vendorResponse.score : 0;
-						
+
 						// Add to total score
 						totalScores[supplierData.vendorId] += score;
 					}
@@ -2856,9 +2728,11 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 		});
 		saveAs(file, 'rfq-comparative-report-new.xlsx');
 	}, [rfqheaderdetails, userDetail, actions, financialComparisonData, commercialComparisonData, technicalComparisonData, version, pageSlug, atoken, apiClient, fetchFinancialComparisonData]);
+
+
 	// Function to handle Loading Factor
 	const loadingFactor = useCallback(async (vendorId) => {
-		const supplier = vendorItemAnalysis.find(s => s.vendorId == vendorId);
+		const supplier = vendorItemAnalysis.find(s => s.vendorId === vendorId);
 		if (supplier) {
 			await actions.handleLoadingFactorNew(supplier);
 		}
@@ -2867,7 +2741,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 	// Function to update score
 	const updateScore = async (updatedvalue) => {
-		
+
 		const data = RFQSupplierQuestionsModal(updatedvalue, actions?.rfqid)
 		if (data) {
 			const res = await apiClient.postres(
@@ -2879,7 +2753,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 				toast.success("Score Updated Successfully", {
 					toastId: "rvqsuc"
 				});
-				fetchTechnicalComparisonData();
+				fetchTechnicalComparisonData(version);
 			}
 		}
 	}
@@ -2889,7 +2763,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 		if (rfqheaderdetails && rfqheaderdetails?.length > 0) {
 
-			const currentrfqversion = rfqheaderdetails[0].rfqVersionHistory.find((x) => x.version == rfqheaderdetails[0].version);
+			const currentrfqversion = rfqheaderdetails[0].rfqVersionHistory.find((x) => x.version === rfqheaderdetails[0].version);
 			if (currentrfqversion) {
 				const openQuotes = currentrfqversion.openQuotes;
 				setOpenQuotes(openQuotes);
@@ -2902,26 +2776,32 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 
 	const [activeTab, setActiveTab] = useState(0);
+	const [isMaximized, setIsMaximized] = useState(false);
+	const [techScoreDirty, setTechScoreDirty] = useState(false);
+	const techUpdateRef = useRef(null);
+	const techResetRef = useRef(null);
+
 	// Handle tab change
 	const handleTabChange = (event, newValue) => {
 		setActiveTab(newValue);
+		onSubTabChange?.(newValue);
 		// Fetch RFQ Summary data when Executive Summary tab (index 0) is clicked
-		if (newValue === 0  && !isLoadingGeneralData && (actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "Y" || actions.rfqtype != "closed")) {
+		if (newValue === 0 && !isLoadingGeneralData && (actions.rfqtype === "closed" && versionWiseData?.find(x => x.version === version)?.openQuotes === "Y" || actions.rfqtype !== "closed")) {
 			fetchGeneralData();
 		}
 
 		// Fetch financial comparison data when Financial Comparison tab (index 1) is clicked
-		if (newValue === 1  && !isLoadingFinancialData && (actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "Y" || actions.rfqtype != "closed")) {
+		if (newValue === 1 && !isLoadingFinancialData && (actions.rfqtype === "closed" && versionWiseData?.find(x => x.version === version)?.openQuotes === "Y" || actions.rfqtype !== "closed")) {
 			fetchFinancialComparisonData(version);
 		}
 
 		// Fetch commercial comparison data when Commercial Comparison tab (index 2) is clicked
-		if (newValue === 2  && !isLoadingCommercialData) {
+		if (newValue === 2 && !isLoadingCommercialData) {
 			fetchCommercialComparisonData(version);
 		}
 
 		// Fetch technical comparison data when Technical Comparison tab (index 3) is clicked
-		if (newValue === 3  && !isLoadingTechnicalData) {
+		if (newValue === 3 && !isLoadingTechnicalData) {
 			fetchTechnicalComparisonData(version);
 		}
 	};
@@ -2954,11 +2834,11 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						</Box>
 					);
 				}
-				if(actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "N" ){
+				if (actions.rfqtype === "closed" && versionWiseData?.find(x => x.version === version)?.openQuotes === "N") {
 					return (
 						<div className={styles.sectionLock}>
-						  <LockIcon className={styles.bigLockIcon} />
-						  <span className={styles.lockText}>RFQ Closed</span>
+							<LockIcon className={styles.bigLockIcon} />
+							<span className={styles.lockText}>RFQ Closed</span>
 						</div>
 					);
 				}
@@ -2989,15 +2869,15 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						</Box>
 					);
 				}
-				if(actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "N"){
+				if (actions.rfqtype === "closed" && versionWiseData?.find(x => x.version === version)?.openQuotes === "N") {
 					return (
 						<div className={styles.sectionLock}>
-						  <LockIcon className={styles.bigLockIcon} />
-						  <span className={styles.lockText}>RFQ Closed</span>
+							<LockIcon className={styles.bigLockIcon} />
+							<span className={styles.lockText}>RFQ Closed</span>
 						</div>
-					); 
+					);
 				}
-				return <ComparativeAnalysis data={financialComparisonData} loadingFactor={loadingFactor} handleSupplierModalOpen={handleSupplierModalOpen}/>;
+				return <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}><ComparativeAnalysis data={financialComparisonData} loadingFactor={loadingFactor} handleSupplierModalOpen={handleSupplierModalOpen} /></Box>;
 			case 2:
 				const canReadCommercial = actions.permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_RESPONSES, ACTIONS.READ) ?? false;
 				const canEditCommercial = actions.permissionManager?.hasPermission(CLAIM_TYPES.COMMERCIAL_RESPONSES, ACTIONS.EDIT) ?? false;
@@ -3024,7 +2904,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						</Box>
 					);
 				}
-				return <CommercialComparative data={commercialComparisonData} handleSupplierModalOpen={handleSupplierModalOpen} />;
+				return <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}><CommercialComparative data={commercialComparisonData} handleSupplierModalOpen={handleSupplierModalOpen} /></Box>;
 			case 3:
 				const canReadTechnical = actions.permissionManager?.hasPermission(CLAIM_TYPES.TECHNICAL_RESPONSES, ACTIONS.READ) ?? false;
 				const canEditTechnical = actions.permissionManager?.hasPermission(CLAIM_TYPES.TECHNICAL_RESPONSES, ACTIONS.EDIT) ?? false;
@@ -3051,16 +2931,23 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						</Box>
 					);
 				}
-				return <TechnicalComparative 
-							data={technicalComparisonData} 
-							updateScore={updateScore} 
-							handleApprovalActivity={handleApprovalActivity} 
+				return (
+					<Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+						<TechnicalComparative
+							data={technicalComparisonData}
+							updateScore={updateScore}
+							handleApprovalActivity={handleApprovalActivity}
 							actionType={actionType}
 							activityId={activityId}
 							handleSupplierModalOpen={handleSupplierModalOpen}
 							isNFA={actions.isNFA}
 							currentStage={actions.currentStage}
-						/>;
+							onScoreDirtyChange={setTechScoreDirty}
+							updateScoreRef={techUpdateRef}
+							resetScoreRef={techResetRef}
+						/>
+					</Box>
+				);
 			default:
 				const canReadSummaryDefault = actions.permissionManager?.hasPermission(CLAIM_TYPES.RFQ_SUMMARY, ACTIONS.READ) ?? false;
 				const canEditSummaryDefault = actions.permissionManager?.hasPermission(CLAIM_TYPES.RFQ_SUMMARY, ACTIONS.EDIT) ?? false;
@@ -3080,11 +2967,11 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 						</div>
 					);
 				}
-				if(actions.rfqtype == "closed" && versionWiseData?.find(x => x.version == version)?.openQuotes == "N" ){
+				if (actions.rfqtype === "closed" && versionWiseData?.find(x => x.version === version)?.openQuotes === "N") {
 					return (
 						<div className={styles.sectionLock}>
-						  <LockIcon className={styles.bigLockIcon} />
-						  <span className={styles.lockText}>RFQ Closed</span>
+							<LockIcon className={styles.bigLockIcon} />
+							<span className={styles.lockText}>RFQ Closed</span>
 						</div>
 					);
 				}
@@ -3105,7 +2992,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	const formik_ApproveReject = useFormik({
 		initialValues: {
 			rfqId: parseInt(idFromURL),
-			status: actionType == "Forward" ? "Forward" : "Approved",
+			status: actionType === "Forward" ? "Forward" : "Approved",
 			approveComment: "",
 			activityId: parseInt(activityId),
 			startDate: null,
@@ -3122,7 +3009,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			const stageInfo = getStageInfo(actions.currentStage, actions.stagelist);
 			let IsApproved = false;
-			if (values?.status == "Approved") {
+			if (values?.status === "Approved") {
 				IsApproved = true
 			}
 			else {
@@ -3143,7 +3030,7 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 
 			}
 
-			if (actionType == 'approval') {
+			if (actionType === 'approval') {
 
 
 
@@ -3167,391 +3054,237 @@ const ERFQComparative = ({ accessLevel, handleTab, actions }) => {
 	// Supplier Individual Summary Modal
 	const [supplierModalOpen, setSupplierModalOpen] = useState(false);
 	const [selectedVendorId, setSelectedVendorId] = useState(null);
-	
+
 	const handleSupplierModalOpen = useCallback(async (vendorId) => {
 		setSelectedVendorId(vendorId);
 		setSupplierModalOpen(true);
-	},[vendorItemAnalysis])
+	}, [vendorItemAnalysis])
 
 	useEffect(() => {
-		if(actions?.rfqid && version){
+		if (actions?.rfqid && version) {
 			fetchGeneralData();
 		}
 	}, [actions?.rfqid, version]);
 
 
+	const actionButtons = actions.isNFA === false ? (
+		<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+			<RFQActionDrawer
+				rfqid={actions?.rfqid}
+				enddate={actions?.enddate}
+				activityId={actions?.activityId}
+				handleDraftEvent={actions?.handleDraftEvent}
+				rfqtype={actions?.rfqtype}
+				Version={actions?.rfqheaderversion}
+				EventHeaderDetails={actions?.EventHeaderDetails}
+				downloadExcel={downloadExcel}
+				downloadpdf={downloadPdf}
+				currentStage={actions?.currentStage}
+			/>
+			<button type="button"
+				className="rfq-v2-tbtn rfq-v2-tbtn-export"
+				onClick={handleClick}
+				aria-controls={Boolean(anchorEl) ? "simple-menu-rfq" : undefined}
+				aria-haspopup="true"
+			>
+				<span>Version {selectedVersion}</span>
+				<span style={{ width: 1, alignSelf: 'stretch', background: '#e5e7eb', }} />
+				<span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+					<ExpandMore style={{ fontSize: 16 }} />
+				</span>
+			</button>
+			<Menu
+				id="simple-menu-rfq"
+				anchorEl={anchorEl}
+				open={Boolean(anchorEl)}
+				onClose={handleClose}
+				sx={{ maxWidth: 500 }}
+			>
+				{versionhistory && versionhistory.map((x) => (
+					<MenuItem
+						key={x}
+						selected={x === selectedVersion}
+						onClick={() => { setSelectedVersion(x); handleVersionClick(x); }}
+					>
+						{`Version ${x}`}
+					</MenuItem>
+				))}
+			</Menu>
+		</Box>
+	) : null;
+
 	return (
 
 		<>
-			<Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-				{/* Sticky Tab Navigation */}
+			{headerActionsRef?.current && ReactDOM.createPortal(actionButtons, headerActionsRef.current)}
+			<Box sx={{
+				display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden',
+			}}>
+				{/* Sticky Sub-Tab Navigation — styled to match main tabs */}
 				<Box
 					sx={{
 						position: 'sticky',
 						top: 0,
 						zIndex: 100,
-						backgroundColor: '#ffffff',
 						borderBottom: 1,
 						borderColor: 'divider',
-						marginBottom: 0,
-						paddingBottom: 0,
-						boxShadow: 'none',
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'space-between',
-						paddingRight: 1
+						paddingRight: 1,
+						backgroundColor: "var(--vz-body-bg)",
 					}}
 				>
 					<Tabs
 						value={activeTab}
 						onChange={handleTabChange}
-						sx={{ minHeight: 32, flex: 1 }}
+						textColor="primary"
+						indicatorColor="primary"
+						className="tabstheme"
+						variant="scrollable"
+						allowScrollButtonsMobile
+						sx={{ flex: 1 }}
 					>
 						<Tab
 							value={0}
-							label="RFQ Summary"
-							sx={{
-								textTransform: 'none',
-								fontWeight: 500,
-								minHeight: 32,
-								fontSize: '13px',
-								padding: '6px 16px'
-							}}
+							label={<span className="section-heading">RFQ Summary</span>}
 						/>
-						{ (actions.actionType == 'approval' && (actions.currentStage == 'Open' || actions.currentStage == 'Technical Approval') ? actions.EventHeaderDetails.showPriceTech : true) && 
+						{(actions.actionType === 'approval' && (actions.currentStage === 'Open' || actions.currentStage === 'Technical Approval') ? actions.EventHeaderDetails.showPriceTech : true) &&
 							(<Tab
 								value={1}
-								label="Financial Comparison"
-								sx={{
-									textTransform: 'none',
-									fontWeight: 500,
-									minHeight: 32,
-									fontSize: '13px',
-									padding: '6px 16px'
-								}}
+								label={<span className="section-heading">Financial Comparison</span>}
 							/>)
 						}
 						<Tab
 							value={2}
-							label="Commercial Comparison"
-							sx={{
-								textTransform: 'none',
-								fontWeight: 500,
-								minHeight: 32,
-								fontSize: '13px',
-								padding: '6px 16px'
-							}}
+							label={<span className="section-heading">Commercial Comparison</span>}
 						/>
 						<Tab
 							value={3}
-							label="Technical Comparison"
-							sx={{
-								textTransform: 'none',
-								fontWeight: 500,
-								minHeight: 32,
-								fontSize: '13px',
-								padding: '6px 16px'
-							}}
+							label={<span className="section-heading">Technical Comparison</span>}
 						/>
 					</Tabs>
-					{actions.isNFA == false && (
-					<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, position: 'relative', zIndex: 1300 }}>
-						<RFQActionDrawer
-							rfqid={actions?.rfqid}
-							enddate={actions?.enddate}
-							activityId={actions?.activityId}
-							handleDraftEvent={actions?.handleDraftEvent}
-							rfqtype={actions?.rfqtype}
-							Version={actions?.rfqheaderversion}
-							EventHeaderDetails={actions?.EventHeaderDetails}
-							downloadExcel={downloadExcel}
-							currentStage={actions?.currentStage}
-						/>
-						<Button
-							aria-controls={Boolean(anchorEl) ? "simple-menu" : undefined}
-							aria-haspopup="true"
-							onClick={handleClick}
-							variant="text"
-							style={{ backgroundColor: "white", color: "#2182cde" }}
-						>
-							<Tooltip title={"Version Control"}>
-								<div
-									style={{
-										fontSize: "0.7125rem",
-										color: "#2A68D3",
-										fontWeight: "500",
-									}}
-								>
-									{`Version ${version}`}
-									<ExpandMore />
-								</div>
-							</Tooltip>
-						</Button>
-						<Menu
-							id="simple-menu"
-							anchorEl={anchorEl}
-							open={Boolean(anchorEl)}
-							onClose={handleClose}
-						>
-							{versionhistory && versionhistory.map((x, i) => {
-
-
-								return (<MenuItem 
-									key={x}
-									selected={x === selectedVersion}
-									onClick={() => {
-										setSelectedVersion(x);
-										handleVersionClick(x);
-									}}>
-										{`Version ${x}`}
-									</MenuItem>)
-
-							})}
-
-
-
-						</Menu>
-					</Box>
-					) }
+					{activeTab === 3 && !actions.isNFA && (
+						<Box sx={{ display: 'flex', gap: 1, px: 1, alignItems: 'center', flexShrink: 0 }}>
+							<Button
+								size="small"
+								variant="outlined"
+								color="primary"
+								disabled={!techScoreDirty}
+								onClick={() => techResetRef.current?.()}
+								sx={{ fontSize: '12px', textTransform: 'none', height: '30px', borderRadius: "6px" }}
+							>
+								Reset Score
+							</Button>
+							<Button
+								size="small"
+								variant="contained"
+								color="primary"
+								disabled={!techScoreDirty}
+								onClick={() => techUpdateRef.current?.()}
+								sx={{ fontSize: '12px', textTransform: 'none', height: '30px', borderRadius: "6px" }}
+							>
+								Update Score
+							</Button>
+						</Box>
+					)}
+					<button
+						type="button"
+						className="pe-icon-btn"
+						title="Maximize"
+						onClick={() => setIsMaximized(true)}
+						style={{ marginLeft: '4px', marginRight: '4px', flexShrink: 0 }}
+					>
+						<MdOutlineOpenInFull style={{ fontSize: '14px' }} />
+					</button>
 				</Box>
 
 				{/* Tab Content */}
-				<Box sx={{ 
-					marginTop: 0, 
+				<Box sx={{
+					backgroundColor: "#F5F5F5",
+					marginTop: 0,
 					paddingTop: 0,
 					flex: 1,
 					minHeight: 0,
-					overflow: 'auto',
-					scrollbarWidth: 'none',
-					'&::-webkit-scrollbar': {
-						display: 'none',
-					},
+					overflow: 'hidden',
 				}}>
 					{renderTabContent()}
 				</Box>
 			</Box>
+
+			{/* ── Maximize / Full-screen Dialog ── */}
+			<TechnicalComparisonMaximizeView
+				open={isMaximized}
+				onClose={() => setIsMaximized(false)}
+				rfqCode={rfqheaderdetails?.[0]?.eventCode || `RFQ-${pageSlug}`}
+				activeTab={activeTab}
+				onTabChange={handleTabChange}
+				actions={actions}
+				techScoreDirty={techScoreDirty}
+				techResetRef={techResetRef}
+				techUpdateRef={techUpdateRef}
+				renderTabContent={renderTabContent}
+			/>
+
 			<>
 				{/* {PO modal} */}
-				<Modal
+				<PEModal
 					size="md"
-					show={openPoDetail}
-					backdrop="static"
-					// keyboard={false}
-					//  className=""
-					// backdropClassName=""
-					centered
-					contentClassName="border-0 rounded"
-					className="zindex1280"
-					backdropClassName="zindex1280"
-					onHide={() => handleClosePoDetail()}
+					open={openPoDetail}
+					onClose={() => handleClosePoDetail()}
+					title="PO Details"
 				>
-					<Modal.Header className="pt-2 pb-2 bgheaderCards">
-						<Modal.Title id="modal-heading">
-							<div className="d-flex align-items-center f14 text-white">
-								PO Details
-							</div>
-						</Modal.Title>
-
-						<IconButton
-							onClick={() => handleClosePoDetail()}
-							size="small"
-							edge="start"
+					<div className="p-3">
+						<div
+							className="row"
+							style={{
+								paddingLeft: ".7rem",
+								paddingRight: ".7rem",
+								paddingTop: ".7rem",
+							}}
 						>
-							<HiOutlineX className="text-white" />
-						</IconButton>
-					</Modal.Header>
-					<Modal.Body className="p-0">
-						<div className="p-3">
-							<div
-								className="row"
-								style={{
-									paddingLeft: ".7rem",
-									paddingRight: ".7rem",
-									paddingTop: ".7rem",
-								}}
-							>
-								{selectedpodetails?.poNumber && <Table striped bordered hover responsive className="mb-0 pb0">
-									<thead>
-										<tr>
-											{/* <th className="f12 fw500">SrNo.</th> */}
-											<th className="f12 fw500"> PO No</th>
-											<th className="f12 fw500">PO Date </th>
-											<th className="f12 fw500">Vendor Name</th>
-											<th className="f12 fw500">Unit Rate</th>
-											{/* <th className="f12 fw500">Po Value</th> */}
-										</tr>
-									</thead>
-									<tbody>
-										<tr>
-											{/* <td className="f12 fw400">1</td> */}
-											<td className="f12 fw400">{selectedpodetails?.poNumber}</td>
-											<td className="f12 fw400">{selectedpodetails?.poDate}</td>
-											<td className="f12 fw400">{selectedpodetails?.poVendorName}</td>
-											{/* <td className="f12 fw400">{selectedpodetails?.poNumber}</td> */}
-											<td className="f12 fw400">
-												{selectedpodetails?.poUnitRate}{" "}
-												<Tooltip title={"Base Currency"}>
-													<span> {rfqheaderdetails && rfqheaderdetails[0]?.baseCurrency}  </span>
-												</Tooltip>
-											</td>
-										</tr>
-									</tbody>
-								</Table>}
-							</div>
+							{selectedpodetails?.poNumber && <Table striped bordered hover responsive className="mb-0 pb0">
+								<thead>
+									<tr>
+										{/* <th className="f12 fw500">SrNo.</th> */}
+										<th className="f12 fw500"> PO No</th>
+										<th className="f12 fw500">PO Date </th>
+										<th className="f12 fw500">Vendor Name</th>
+										<th className="f12 fw500">Unit Rate</th>
+										{/* <th className="f12 fw500">Po Value</th> */}
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										{/* <td className="f12 fw400">1</td> */}
+										<td className="f12 fw400">{selectedpodetails?.poNumber}</td>
+										<td className="f12 fw400">{selectedpodetails?.poDate}</td>
+										<td className="f12 fw400">{selectedpodetails?.poVendorName}</td>
+										{/* <td className="f12 fw400">{selectedpodetails?.poNumber}</td> */}
+										<td className="f12 fw400">
+											{selectedpodetails?.poUnitRate}{" "}
+											<Tooltip title={"Base Currency"}>
+												<span> {rfqheaderdetails && rfqheaderdetails[0]?.baseCurrency}  </span>
+											</Tooltip>
+										</td>
+									</tr>
+								</tbody>
+							</Table>}
 						</div>
-					</Modal.Body>
-				</Modal>
-				{/* Approval Drawer */}
-				<React.Fragment key="key4">
-					<Drawer anchor="right" open={state["openInvoiceApproved"]}>
-						<form onSubmit={formik_ApproveReject.handleSubmit} autoComplete="off">
-							<Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-								<div className="flex flex-col">
-									<Box className="bgheaderCards">
-										<div className="d-flex align-items-center justify-content-between pt-2 pb-2 mt-0">
-											<div className="ms-3 text-white">Approval Action</div>
-											<div>
-												<IconButton
-													onClick={toggleDrawer("openInvoiceApproved", false, [])}
-													size="small"
-													edge="start"
-													sx={{ mr: 1 }}
-												>
-													<HiOutlineX className="f20 text-white" />
-												</IconButton>
-											</div>
-										</div>
-									</Box>
-									<div className="h50px"></div>
-									<div className="p-3">
-										<div className="row ">
-											<div className="col-12 col-md-12 col-lg-12">
-												<div className="mb-4 textblue f14"></div>
-												<div className="row">
-													<div className="col-12 col-md-4 col-lg-12 mb-4">
-														<TextField
-															id="isApproved"
-															InputLabelProps={{
-																shrink: true,
-															}}
-															name="isApproved"
-															select
-															className="mb-2"
-															fullWidth
-															size="small"
-															label="Status"
-															variant="outlined"
-															value={formik_ApproveReject.values?.status}
-															onChange={(e) => {
+					</div>
+				</PEModal>
+				{/* Technical approval confirmation dialog */}
+				<ApprovalConfirmDialog
+					open={state["openInvoiceApproved"]}
+					onClose={toggleDrawer("openInvoiceApproved", false, [])}
+					onSubmit={formik_ApproveReject.handleSubmit}
+					status={formik_ApproveReject.values?.status}
+					stageName="Technical Approval"
+					comment={formik_ApproveReject.values?.approveComment}
+					onCommentChange={(val) => formik_ApproveReject.setFieldValue("approveComment", val)}
+					zIndex={1500}
+				/>
 
-																formik_ApproveReject.setFieldValue(
-																	"status",
-																	e.target.value
-																)
-															}
-
-															}
-
-															error={
-																formik_ApproveReject.touched.status &&
-																Boolean(formik_ApproveReject.errors.status)
-															}
-															helperText={
-																formik_ApproveReject.touched.status &&
-																formik_ApproveReject.errors.status
-															}
-														>
-															{actionType != "Forward" && menuactionlist.filter(x => x.value != "Forward").map((x) => {
-
-																return (<MenuItem value={x.value}>{x.label}</MenuItem>)
-
-															})
-
-															}
-															{actionType == "Forward" && menuactionlist.filter(x => x.value == "Forward").map((x) => {
-
-																return (<MenuItem value={x.value}>{x.label}</MenuItem>)
-
-															})
-
-															}
-
-														</TextField>
-													</div>
-													{/* <div>
-														<h5>Supplier :</h5>
-														{matchedSuppliers.map((supplier) => (
-															<div key={supplier.id}>
-															<label>
-																<input
-																type="checkbox"
-																checked={matchedSuppliers.includes(supplier.id)}
-																onChange={() => handleCheckboxChange(supplier.id)}
-																/>
-																{supplier.tradeName}
-															</label>
-															</div>
-														))}
-													</div> */}
-													<div className="col-12 col-md-4 col-lg-12 mb-4">
-														<TextField
-															id="approveComment"
-															InputLabelProps={{
-																shrink: true,
-															}}
-															multiline
-															rows={3}
-															name="approveComment"
-															className="w-100 f14"
-															size="small"
-															label="Comment "
-															variant="outlined"
-															inputProps={{ maxLength: 200 }}
-															value={formik_ApproveReject?.values?.approveComment}
-															onChange={(e) =>
-																formik_ApproveReject.setFieldValue(
-																	"approveComment",
-																	e.target.value
-																)
-															}
-															InputProps={{
-																endAdornment: formik_ApproveReject?.values?.approveComment && (
-																	<InputAdornment position="end">
-																		<Typography variant="body2" color="textSecondary">
-																			{formik_ApproveReject?.values?.approveComment?.length}/200
-																		</Typography>
-																	</InputAdornment>
-																),
-															}}
-														/>
-
-													</div>
-
-												</div>
-
-											</div>
-										</div>
-										<div className="row">
-											<div className="col-12 text-end">
-												<LoadingButton
-													loading={loading}
-													color="primary"
-													size="medium"
-													className="text-white text-capitalize mb-3 mr-3"
-													variant="contained"
-													type="submit"
-												>
-													<span>Submit</span>
-												</LoadingButton>
-
-											</div>
-										</div>
-									</div>
-								</div>
-							</Box>
-						</form>
-					</Drawer>
-				</React.Fragment>
 				{/* Supplier Individual Report Modal */}
 				<SupplierIndividualReport
 					open={supplierModalOpen}

@@ -1,38 +1,27 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import IconButton from "@mui/material/IconButton";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { HiPlusSm, HiOutlineDotsHorizontal, HiOutlineX } from "react-icons/hi";
-import {
-  Autocomplete,
-  Alert,
-  Button,
-  Divider,
-  Menu,
-  MenuItem,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Box,
-  Drawer,
-} from "@mui/material";
+﻿import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import CommonBottomDrawer from "../CommonBottomDrawer";
+import { HiPlusSm } from "react-icons/hi";
+import { Autocomplete, Divider, MenuItem, TextField, } from "@mui/material";
+import PEModal from "../PEModal";
+import { KeyboardArrowDownOutlined } from "@mui/icons-material";
 import "react-quill/dist/quill.snow.css";
+import "../../assets/css/manage-rfq-v2.css";
+import Dropdown from "react-bootstrap/Dropdown";
 import { useStateValue } from "../../store";
-import { api, ApiClient } from "../../Apiclient";
+import { ApiClient } from "../../Apiclient";
 import { buildQueryParams } from "../../utils/purchaseRequest";
 import { toast } from "react-toastify";
-import { RFQQuestionsModal, RFQQuestionsModalOBJ, RFQSupplierQuestionsModal, SQEQuestionsModal, SQEQuestionsModalOBJ } from "../../utils/modal";
-import { findObjByValueFromArray, SQEAddModal, downloadExcelTemplate } from "../../utils/common";
+import {
+  RFQQuestionsModal, RFQQuestionsModalOBJ, RFQSupplierQuestionsModal,
+  SQEQuestionsModal, SQEQuestionsModalOBJ
+} from "../../utils/modal";
+import { findObjByValueFromArray, downloadExcelTemplate } from "../../utils/common";
 import EventQuestionScreenList from "./EventQuestionScreenList";
 import EventAddQuestionScreen from "./EventAddQuestionScreen";
-import AddUpdateQuestion from "../../pages/Settings/QuestionMaster/AddUpdateQuestion";
-import { CategoryFindAll } from "../../utils/questionlibrary";
 import { FastApiClient } from "../../FastApiClient";
 import { CLAIM_TYPES, ACTIONS } from '../../utils/permissionManager';
-import {getEventApproversFind} from '../../utils/common/utility';
-import { set } from "date-fns";
+import { getEventApproversFind } from '../../utils/common/utility';
+
 const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
 
   const [{ atoken, rtoken, customerid, customersuffix, usertimezone, userdialingcode, roleClaims, userDetail }, dispatch] = useStateValue();
@@ -46,7 +35,6 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
     confirmDialog: false,
     addQuestionDrawer: false
   });
-  const [anchorEl, setAnchorEl] = useState(null);
   const [tempSelectedLibrary, setTempSelectedLibrary] = useState(null); // Temporary state for new selection
 
   useEffect(() => {
@@ -68,24 +56,26 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
     const queryParams = buildQueryParams(params);
     const res = await apiclient.getres(`/api/LibraryOrgEntity/Find?${queryParams}`, atoken);
     if (res) {
-      const result = res?.data?.result?.filter(x => x.libraryType == props.librarytype);
+      const result = res?.data?.result?.filter(x => x.libraryType === props.librarytype);
       setLibrarylist(result);
     }
   };
 
   const getQuestionList = async () => {
 
-    if (props.eventtype == "RFQ") {
+    if (props.eventtype === "RFQ") {
       const params = {
         // CustomerId: customerid,
         RFQId: props.eventid,
-        Version: parseInt(props.Version)
+        Version: isNaN(parseInt(props.Version)) ? undefined : parseInt(props.Version)
       };
       const queryParams = buildQueryParams(params);
       const res = await apiclient.getres(`/api/RFQQuestionLib/Find?${queryParams}`, atoken);
       if (res) {
-        const data = res?.data?.result;
-        setQuestionList([...data])
+        // API may return direct array or { result: [...] }
+        const d = res?.data;
+        const data = Array.isArray(d) ? d : (Array.isArray(d?.result) ? d.result : []);
+        setQuestionList(data)
         const selectedLibrary = findObjByValueFromArray(Librarylist, data[0]?.libraryId, 'id');
         if (selectedLibrary) {
           setSelectedLibrary(selectedLibrary)
@@ -93,7 +83,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
       }
     }
 
-    if (props.eventtype == "VQ") {
+    if (props.eventtype === "VQ") {
       // For VQ, use the correct API format: /api/SQE/{VendorId}/Find
       if (!props.vendorId) {
         setQuestionList([]);
@@ -102,29 +92,29 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
         }
         return;
       }
-      
+
       const res = await apiclient.getres(`/api/SQE/${props.vendorId}/Find`, atoken);
-      
+
       if (res && res.data?.length > 0) {
 
         // Find the specific VQ record that matches the eventid
         const vqRecord = res.data.find(vq => vq.id === parseInt(props.eventid));
-        
+
         if (vqRecord && vqRecord.sqeHeaderDetails) {
           const sqeHeaderDetails = vqRecord.sqeHeaderDetails || [];
-          
+
           // Filter out existing questions without libraryId to avoid duplicates
           const eventquestion = (questionlist ?? []).filter(x => !x.libraryId);
-          
+
           // Set the questions list with the prefilled data
           const finalQuestions = sqeHeaderDetails.length > 0 ? sqeHeaderDetails : eventquestion;
           setQuestionList(finalQuestions);
-          
+
           // Callback to parent with the questions
           if (props.CallbackSelectedQuestionList) {
             props.CallbackSelectedQuestionList(finalQuestions);
           }
-          
+
           // Set the selected library if available
           if (sqeHeaderDetails.length > 0) {
             const firstQuestion = sqeHeaderDetails[0];
@@ -163,8 +153,8 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
     const queryParams = buildQueryParams(params);
     const res = await apiclient.getres(`/api/QuestionsLib/Find?${queryParams}`, atoken);
     if (res) {
-      const questionlibresult = res?.data?.result; //pe.questionmaster table
-      if (questionlibresult == 0) {
+      const questionlibresult = Array.isArray(res?.data?.result) ? res.data.result : []; //pe.questionmaster table
+      if (questionlibresult.length === 0) {
         toast.info(`No Questions Found. Please Select Another Library `, {
           toastid: "noquestionerror"
         })
@@ -174,35 +164,31 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
       }
       let data = [];
 
-      if (props.eventtype == "RFQ") {
+      if (props.eventtype === "RFQ") {
         data = RFQQuestionsModal(questionlibresult, props.eventid)
       }
-      else if (props.eventtype == "VQ") {
+      else if (props.eventtype === "VQ") {
         data = SQEQuestionsModal(questionlibresult, props.eventid) //to map question master modal with SQ Modal.
       }
 
       const eventquestion = (questionlist ?? [])?.filter(x => !x.libraryId)
       setQuestionList([...eventquestion, ...data])
 
-      if (props.eventtype == "VQ") {
+      if (props.eventtype === "VQ") {
         props.CallbackSelectedQuestionList([...eventquestion, ...data])
       }
-
-
     }
-
-
   }
+
   const [isQuestionListLoading, setIsQuestionListLoading] = useState(false);
   //in order to handle event from parent component
   useImperativeHandle(EventQuestionScreenRef, () => ({
     saveEventQuestion: async () => {
-      if(isQuestionListLoading)
-      {
+      if (isQuestionListLoading) {
         return;
       }
       setIsQuestionListLoading(true);
-      if (props.eventtype == "RFQ") {
+      if (props.eventtype === "RFQ") {
         questionlist?.forEach(x => {
           x.id = 0
           x.questionOption?.forEach(v => {
@@ -211,7 +197,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
           x.Version = props?.Version
         })
         const hasTechnicalApproval = props.stagelist.some(stage => stage.currentStage === "Technical Approval");
-        
+
         const isTechApproverPresent = await getEventApproversFind(props.requestCell, atoken).then((res) => {
           return res?.some(item =>
             item.stage?.toLowerCase().includes("technical") ||
@@ -246,29 +232,18 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
             })
             return true
           }
-          // else {
-          //   return false
-          // }
         }
       }
       setIsQuestionListLoading(false);
     }
   }));
 
-  const handleClickAnchor = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleCloseAnchor = () => {
-    setAnchorEl(null);
-  };
-
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     handleExcelUpload(file);
   };
   const handleExcelUpload = async (file) => {
-    if (props?.eventtype == "RFQ") {
+    if (props?.eventtype === "RFQ") {
 
       const data = {
         templateId: 9,
@@ -300,15 +275,12 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
-
       }
-
     }
-
   }
 
   const handleDownloadExcelTemplate = async () => {
-    if (props?.eventtype == "RFQ") {
+    if (props?.eventtype === "RFQ") {
       await downloadExcelTemplate({
         customerId: customerid,
         templateId: 9,
@@ -341,12 +313,10 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
     setOpenComponents(prev => ({ ...prev, [name]: false })); // Close the dialog
   };
 
-
-
   const callbackDeleteQuesFromList = (category, subcategory, questionDescription) => {
-    
+
     setQuestionList((prevQuestions) => {
-      
+
       // Filter out the question based on category, subcategory, and description
       return prevQuestions.filter((item) => {
         // We return only the items that do NOT match the specified category, subcategory, and description
@@ -357,8 +327,8 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
         );
       });
     });
-    
-    if (props.eventtype == "VQ") {
+
+    if (props.eventtype === "VQ") {
       props.CallbackSelectedQuestionList((questionlist) => {
         // Filter out the question based on category, subcategory, and description
         return questionlist.filter((item) => {
@@ -376,106 +346,70 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
   //drawerrelated
 
   const handleAddQuestion = (values) => {
-    
-    if (props?.eventtype == "RFQ") {
-      const newQ = RFQQuestionsModalOBJ(values, props?.eventid);
 
+    if (props?.eventtype === "RFQ") {
+      const newQ = RFQQuestionsModalOBJ(values, props?.eventid);
       setQuestionList([...questionlist, newQ])
       return true;
     }
 
-    if (props?.eventtype == "VQ") {
-      
+    if (props?.eventtype === "VQ") {
       const newQ = SQEQuestionsModalOBJ(values, props.eventid);
-      
       setQuestionList([...questionlist, newQ])
       props.CallbackSelectedQuestionList([...questionlist, newQ])
       //#Anurag_Dev handle close the drawer after the question mapping
       setOpenComponents(prev => ({ ...prev, confirmDialog: false, addQuestionDrawer: false }));
       return true;
     }
-
   }
-
-
-
 
   return (
 
-    <div className="p-3 pt-0 ps-0" style={{ overflow: 'hidden' }}>
-      <div className="d-flex justify-content-between align-items-center">
-        <div className="flex-grow-1">
-          <div className="row mt-4">
-            <input className="d-none" id="itemuploadid" ref={fileInputRef} type="file" onChange={handleFileChange} />
-            <div className="col-12 col-md-8 col-lg-8 pe-0">
-              {props.action && <Autocomplete
-                disablePortal
-                id="combo-box-demo"
-                size="small"
-                options={Librarylist ?? []}
-                className="w-100"
-                fullWidth
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    label="Add Questions From Library"
-                  />
-                )}
-                value={selectedLibrary}
-                getOptionLabel={(option) => option.libraryEntity ?? ""}
-                onChange={handleLibraryChange}
-              //disabled={!props.action}
-              />}
-            </div>
+    <div className="p-3 pt-0 ps-0" style={{ overflow: "hidden" }}>
+      <input className="d-none" id="itemuploadid" ref={fileInputRef} type="file" onChange={handleFileChange} />
+      {props.action && <div className="rfq-question-toolbar">
+        <div className="rfq-question-toolbar-left">
+          <div className="rfq-question-library-field">
+            <Autocomplete
+              disablePortal
+              fullWidth
+              id="combo-box-demo"
+              size="small"
+              className="rfq-question-library-select"
+              options={Librarylist ?? []}
+              renderInput={(params) => (
+                <TextField {...params} InputLabelProps={{ shrink: false }} label="" placeholder="Add from Question Library" />
+              )}
+              value={selectedLibrary}
+              getOptionLabel={(option) => option.libraryEntity ?? ""}
+              onChange={handleLibraryChange}
+              disabled={!props.action}
+            />
           </div>
         </div>
-
-        <div className="text-end">
-          {props.action && (props.permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false) && <Button
-            variant="text"
-            size="large"
-            startIcon={<HiPlusSm />}
-            className="text-capitalize blue-text  font-normal me-3"
-            onClick={() => setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }))}
-          >
-            Add Question
-          </Button>}
-
-          {props.action && (props.eventtype == "RFQ") && <div className="d-inline-block">
-            <IconButton
-              aria-label="more"
-              id="dropdown-custom-components"
-              aria-controls="long-menu"
-              aria-haspopup="true"
-              aria-expanded={Boolean(anchorEl) ? 'true' : undefined}
-              onClick={handleClickAnchor}
-              size="medium"
-              className="shadow-sm"
-            >
-              <MoreVertIcon className="f17" />
-            </IconButton>
-            {<Menu
-              id="long-menu"
-              anchorEl={anchorEl}
-              keepMounted
-              open={Boolean(anchorEl)}
-              onClose={handleCloseAnchor}
-              className="ddl-menu"
-            >
-              <MenuItem className="f14" onClick={() => document.getElementById('itemuploadid').click()}>
-                Excel Upload
-              </MenuItem>
-              <Divider />
-              <MenuItem className="f14" onClick={handleDownloadExcelTemplate}>
-                Excel Template
-              </MenuItem>
-            </Menu>}
-          </div>}
+        <div className="rfq-question-toolbar-right">
+          {props.action && (props.eventtype === "RFQ") && (
+            <Dropdown align="end" className="d-inline-block">
+              <Dropdown.Toggle as="div" id="gt" className="round-edit remove-tringle" role="button">
+                <button type="button" className="pe-btn pe-btn--secondary">
+                  <HiPlusSm /> <span>Bulk Questions</span>
+                  <span className="rfq-question-action-chevron"><KeyboardArrowDownOutlined style={{ fontSize: 16 }} /></span>
+                </button>
+              </Dropdown.Toggle>
+              <Dropdown.Menu className="ddl-menu">
+                <MenuItem className="f14" onClick={() => document.getElementById("itemuploadid").click()}>Excel Upload</MenuItem>
+                <Divider />
+                <MenuItem className="f14" onClick={handleDownloadExcelTemplate}>Excel Template</MenuItem>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
+          {props.action && (props.permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? false) && (
+            <button type="button" className="pe-btn pe-btn--primary" onClick={() => setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }))}>
+              <HiPlusSm /> Blank Question
+            </button>
+          )}
         </div>
-      </div>
+      </div>}
 
       {/* Questions List */}
 
@@ -485,14 +419,14 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
         eventtype={props?.eventtype}
         callbackDeleteQuesFromList={callbackDeleteQuesFromList}
         eventSealed={props?.eventSealed ?? "Y"}
-        vendorId = {props.vendorId}
+        vendorId={props.vendorId}
         currentStage={props.currentStage}
         stagelist={props.stagelist}
         EventHeaderDetails={props.EventHeaderDetails}
         eventSubject={props.eventSubject}
         callbackEditQuesFromList={async (updatedvalue) => {
 
-          if (props?.eventtype == "RFQ") {
+          if (props?.eventtype === "RFQ") {
             const data = RFQSupplierQuestionsModal(updatedvalue, props?.eventid)
             if (data) {
               const res = await apiclient.postres(
@@ -508,10 +442,7 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
               }
             }
           }
-          else if (props?.eventtype == "VQ") {
-
-
-
+          else if (props?.eventtype === "VQ") {
             if (updatedvalue) {
               const res = await apiclient.postres(
                 `/api/SQE/UpdateSQEHeaderDetail`,
@@ -524,14 +455,11 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
                 });
                 props.callback()
               }
-
             }
-
           }
           else {
-
           }
-          }
+        }
         }
         action={props.action}
         questionresponses={props.questionresponses ?? []}
@@ -539,68 +467,36 @@ const EventQuestionScreen = forwardRef(({ props }, EventQuestionScreenRef) => {
       />
 
       {/* overlay component */}
-      <Dialog
+      <PEModal
         open={openComponents.confirmDialog}
         onClose={() => handleCancelChange("confirmDialog")}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
+        size="sm"
+        title="Confirm Library Change"
+        footer={<>
+          <button className="pe-btn pe-btn--ghost" onClick={() => handleCancelChange("confirmDialog")}>No</button>
+          <button className="pe-btn pe-btn--primary" onClick={handleConfirmChange}>Yes</button>
+        </>}
       >
-        <DialogTitle id="alert-dialog-title">
-          {"Confirm Library Change"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to change the library? Doing so will delete all the questions from given library .
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleCancelChange("confirmDialog")} color="primary">
-            No
-          </Button>
-          <Button onClick={handleConfirmChange} color="primary" autoFocus>
-            Yes
-          </Button>
-        </DialogActions>
-      </Dialog>
-      {/*add question component*/}
-      <React.Fragment key="top">
-        <Drawer
-          anchor="right"
-          open={openComponents.addQuestionDrawer}
-          onClose={() => handleCancelChange("addQuestionDrawer")}
-        >
-          <Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-            <div className="flex flex-col">
-              <Box className="bgheaderCards">
-                <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                  <div className="ms-3 text-white">Add Question</div>
-                  <div>
-                    <IconButton
-                      onClick={() => handleCancelChange("addQuestionDrawer")}
-                      size="large"
-                      edge="start"
-                      sx={{ mr: 1 }}
-                    >
-                      <HiOutlineX className="f20 text-white" />
-                    </IconButton>
-                  </div>
-                </div>
-              </Box>
-              <div className="h50px"></div>
-              <Box sx={{ flexGrow: 1, p: 2 }}>
-                <EventAddQuestionScreen
-                  questionlist={questionlist}
-                  eventid={props?.eventid}
-                  eventtype={props?.eventtype}
-                  callback={handleAddQuestion}
-                />
-              </Box>
-            </div>
-          </Box>
-        </Drawer>
-
-      </React.Fragment>
-
+        Are you sure you want to change the library? Doing so will delete all the questions from given library.
+      </PEModal>
+      <CommonBottomDrawer
+        open={openComponents.addQuestionDrawer}
+        onClose={() => handleCancelChange("addQuestionDrawer")}
+        title="Add Question"
+        bodyStyle={{ overflowY: "auto" }}
+        actions={<>
+          <button type="button" className="pe-btn pe-btn--ghost" onClick={() => handleCancelChange("addQuestionDrawer")}>Cancel</button>
+          <button type="reset" form="add-question-form" className="pe-btn pe-btn--secondary">Reset</button>
+          <button type="submit" form="add-question-form" className="pe-btn pe-btn--primary">Add</button>
+        </>}
+      >
+        <EventAddQuestionScreen
+          questionlist={questionlist}
+          eventid={props?.eventid}
+          eventtype={props?.eventtype}
+          callback={handleAddQuestion}
+        />
+      </CommonBottomDrawer>
     </div>
   );
 });

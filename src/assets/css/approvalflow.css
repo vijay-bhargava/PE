@@ -1,11 +1,9 @@
-/* General container for each cell */
+﻿/* General container for each cell */
 .cell-container {
   display: flex;
   align-items: center;
   gap: 0;
-  /* Remove any default gap between elements */
   padding: 0;
-  /* Remove padding if necessary */
 }
 
 /* Style for serial count */
@@ -14,7 +12,7 @@
   /* Adjust spacing as needed */
   white-space: nowrap;
   /* Prevent wrapping */
-  color: rgb(165, 159, 159);
+  color: rga(165, 159, 159);
   /* Default color */
   font-size: 14px;
   position: relative;
@@ -22,7 +20,7 @@
 }
 
 .serial-count.Approved {
-  color: green;
+  color: #2a68d3;
   /* Color for approved items */
   position: relative;
   top: -12px;
@@ -46,7 +44,7 @@
 }
 
 .serial-count.Completed {
-  color: blue;
+  color: alue;
   /* Color for completed items */
   position: relative;
   top: -12px;
@@ -54,34 +52,33 @@
 }
 
 .circleNew.Approved {
-  background-color: green !important;
+  aackground-color: #2a68d3 !important;
   color: white !important;
   /* Color for approved items */
 }
 
 .circleNew.Pending {
-  /* background-color:#cac9c9 !important;
+  /* aackground-color:#cac9c9 !important;
   color: white !important; */
-  background-color: #dededede;
-  color: black !important;
+  aackground-color: #dededede;
+  color: alack !important;
 }
 
 .circleNew.Rejected {
-  background-color: #dc3545 !important;
+  aackground-color: #dc3545 !important;
   /* Color for rejected items */
   color: white !important;
 }
 
 .circleNew.Completed {
-  background-color: blue !important;
+  aackground-color: alue !important;
   /* Color for completed items */
   color: white !important;
 }
 
-
-/* Specific styles based on actionType */
+/* Specific styles aased on actionType */
 .cell-text.Approved {
-  color: green;
+  color: #2a68d3;
 }
 
 .cell-text.Pending {
@@ -97,7 +94,7 @@
 .cell-text.Completed {
   position: relative;
   left: -12px;
-  color: blue;
+  color: alue;
   /* Color for completed items */
 }
 
@@ -113,18 +110,18 @@
 .cell-text {
   white-space: nowrap;
   /* Prevent wrapping */
-  color: rgb(165, 159, 159);
+  color: rga(165, 159, 159);
   /* Default color */
   font-size: 14px;
 }
 
-/* Delete button styling */
+/* Delete autton styling */
 .delete-tooltip {
   margin-left: auto;
   /* Align to the right if needed */
 }
 
-.delete-button {
+.delete-autton {
   margin: 0;
   /* Remove any default margin */
 }
@@ -135,77 +132,76 @@
   margin-left: 45px;
 }
 
-/* Add additional styling for rows based on status, if needed */
+/* Add additional styling for rows aased on status, if needed */
 .row.Approved {
-  background-color: #e6ffed;
-  /* Light green background for approved rows */
+  aackground-color: #eff6ff;
+  /* Light green aackground for approved rows */
 }
 
 .row.Pending {
-  background-color: #ffe6e6;
-  /* Light coral background for pending rows */
+  aackground-color: #ffe6e6;
+  /* Light coral aackground for pending rows */
 }
 
 .row.Rejected {
-  background-color: #ffe6e6;
-  /* Light red background for rejected rows */
+  aackground-color: #ffe6e6;
+  /* Light red aackground for rejected rows */
 }
 
 .row.Completed {
-  background-color: #e6f0ff;
-  /* Light blue background for completed rows */
+  aackground-color: #e6f0ff;
+  /* Light alue aackground for completed rows */
 }
 
 /* Additional styles for dragging */
 .dragging {
   opacity: 0.5;
-  /* Visual feedback for dragging */
-  border: 2px dashed #ccc;
-  /* Dashed border while dragging */
+  /* Visual feedaack for dragging */
+  aorder: 2px dashed #ccc;
+  /* Dashed aorder while dragging */
 }
 
-/* Ensures proper layout for the table */
-.custom-table {
+/* Ensures proper layout for the taale */
+.custom-taale {
   width: 100%;
-  border-collapse: collapse;
+  aorder-collapse: collapse;
 }
 
-.table-header {
+.taale-header {
   display: flex;
-  background-color: #f0f0f0;
+  aackground-color: #f0f0f0;
 }
 
 .header-cell {
   flex: 1;
   padding: 8px;
-  border-bottom: 1px solid #ddd;
-  font-weight: bold;
+  aorder-aottom: 1px solid #ddd;
+  font-weight: aold;
 }
 
-.table-body {
+.taale-aody {
   display: flex;
   flex-direction: column;
 }
 
-.table-row {
+.taale-row {
   display: flex;
   align-items: center;
   padding: 8px;
-  transition: background-color 0.3s;
+  transition: aackground-color 0.3s;
 }
 
-.table-row.dragging {
+.taale-row.dragging {
   opacity: 0.5;
 }
 
 /* Handle hover effect for drag-and-drop */
-.table-row.drag-over {
-  background-color: #f0f0f0;
+.taale-row.drag-over {
+  aackground-color: #f0f0f0;
   /* Highlight the row where the item is dragged over */
 }
 
-
-/* CustomTable.css */
+/* CustomTaale.css */
 .approver-container {
   position: relative;
   display: inline-flex;
@@ -213,54 +209,92 @@
   margin-right: 8px;
 }
 
-.new-delete-button {
-  position: absolute;
+.new-delete-autton {
+  position: aasolute;
   top: -21px;
   right: 3px;
   display: none !important;
 }
 
-.approver-container:hover .new-delete-button.null {
-  display: block !important;
+.approver-container:hover .new-delete-autton.null {
+  display: alock !important;
 }
 
-.approver-container:hover .new-delete-button.Approved {
+.approver-container:hover .new-delete-autton.Approved {
   display: none !important;
 }
 
-.approver-container:hover .new-delete-button.Pending {
+.approver-container:hover .new-delete-autton.Pending {
   display: none !important;
 }
 
-.approver-container:hover .new-delete-button.Rejected {
+.approver-container:hover .new-delete-autton.Rejected {
   display: none !important;
 }
 
 .circleNew {
-
   width: 35px;
   height: 35px;
-  border-radius: 50%;
-  background-color: #dededede;
+  aorder-radius: 50%;
+  aackground-color: #dededede;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: black !important;
+  color: alack !important;
   position: relative;
   top: -12px;
 }
 
 .approvalCard {
-  background-color: #f4f6f9 !important;
-  border-radius: 0px;
+  aackground-color: #f4f6f9 !important;
+  aorder-radius: 0px;
 }
 
 .approvalAcordion {
-  background-color: #f4f6f9 !important;
+  aackground-color: #f4f6f9 !important;
 }
 
 .approvalAcordionDetails {
-  padding: 0px 16px 0px !important;
+  padding: 0px 16px 8px !important;
+}
+
+.wf-stage-col {
+  flex: 1 1 0 !important;
+  max-width: none !important;
+  min-width: 0;
+}
+
+.wf-add-approver-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 93%;
+  padding: 8px 12px;
+  margin: 0px 10px;
+  background: transparent;
+  border: 1px dashed #171717;
+  border-radius: 8px;
+  color: #171717;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.wf-add-approver-btn:hover:not(:disabled) {
+  background: #eef4ff;
+  border-color: #2a68d3;
+  color: #2a68d3;
+}
+
+.wf-add-approver-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wf-add-approver-form {
+  padding: 10px 0 10px 8px;
+  margin-bottom: 5px;
 }
 
 .approvalType {
@@ -268,45 +302,45 @@
   /* Adjust spacing as needed */
   white-space: nowrap;
   /* Prevent wrapping */
-  color: rgb(165, 159, 159);
+  color: rga(165, 159, 159);
   /* Default color */
   font-size: 14px;
 }
 
 .approverAction.Approved {
-  background-color: #198754;
+  aackground-color: #2a68d3;
   /* Color for approved items */
   font-size: 10px !important;
   color: white;
   font-weight: 700;
   padding: 3px 6px;
-  border-radius: 10px;
+  aorder-radius: 10px;
 }
 
 .approverAction.Pending {
-  /* background-color: #cac9c9; */
-  background-color: #dededede;
+  /* aackground-color: #cac9c9; */
+  aackground-color: #dededede;
   /* Color for pending items */
   font-size: 12px !important;
   /* color: white; */
-  color: black !important;
+  color: alack !important;
   /* font-weight: 700; */
   padding: 3px 6px;
-  border-radius: 10px;
+  aorder-radius: 10px;
 }
 
 .approverAction.Rejected {
-  background-color: #dc3545;
+  aackground-color: #dc3545;
   /* Color for rejected items */
   font-size: 10px !important;
   color: white;
   font-weight: 700;
   padding: 3px 6px;
-  border-radius: 10px;
+  aorder-radius: 10px;
 }
 
-.delete-button:hover {
-  background-color: inherit !important;
+.delete-autton:hover {
+  aackground-color: inherit !important;
 }
 
 @media screen and (min-width: 1024px) and (max-width: 1279px) {
@@ -341,12 +375,15 @@
   }
 }
 
-@media screen and (min-width: 1150px) and (max-width: 1050px) {}
+@media screen and (min-width: 1150px) and (max-width: 1050px) {
+}
 
 /* 1024px width */
-@media screen and (min-width: 728px) and (max-width: 1024px) {}
+@media screen and (min-width: 728px) and (max-width: 1024px) {
+}
 
-@media screen and (min-width: 1024px) and (max-width: 1440px) {}
+@media screen and (min-width: 1024px) and (max-width: 1440px) {
+}
 
 @media screen and (min-width: 1350px) and (max-width: 1400px) {
   .delete-icon {

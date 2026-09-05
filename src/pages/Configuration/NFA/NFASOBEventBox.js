@@ -87,14 +87,13 @@ const NFASOBEventBox = ({eventType, eventId,Version, purchaseAllList,purchaseGro
         if (res) {
             
             //setCurrentVersion(res?.data?.result[0]?.version)
-            const result = res?.data?.result;
+            const result = res?.data;
             setEventHeaderDetails(result)
             if (result[0]?.versionhistory?.length != versionhistory?.length) {
                 setVersionhistory(result[0]?.versionhistory)
             }
-            // const itemsumarr = sumArray(result[0]?.rfqParameters?.map(x => x.targetPrice * x.quantity))
             setrfqOthersCommercialList(
-                res?.data?.result[0]?.rfqPackageCommercial
+                result[0]?.rfqPackageCommercial
             )
             setSelectedSupplier(result[0]?.rfqVendorInvited);
             setItemsList(result[0]?.rfqParameters);
@@ -112,7 +111,7 @@ const NFASOBEventBox = ({eventType, eventId,Version, purchaseAllList,purchaseGro
             atoken
         );
         if(res){
-            const result = res?.data?.result;
+            const result = res?.data;
             setVendorDetails(result);
         }
     }

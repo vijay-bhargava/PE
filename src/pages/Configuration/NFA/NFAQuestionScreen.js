@@ -1,46 +1,27 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState, useCallback, useMemo } from "react";
+import {HiPlusSm, HiOutlineX } from "react-icons/hi";
+import { Box, Drawer, Alert } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { HiPlusSm, HiOutlineDotsHorizontal, HiOutlineX } from "react-icons/hi";
-import {
-  Autocomplete,
-  Button,
-  Divider,
-  Menu,
-  MenuItem,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Box,
-  Drawer,
-  Alert,
-} from "@mui/material";
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
+import CommonBottomDrawer from "../../../components/CommonBottomDrawer";
+import { useParams } from "react-router-dom";
 import "react-quill/dist/quill.snow.css";
 import { useStateValue } from "../../../store";
-import { api, ApiClient } from "../../../Apiclient";
+import { ApiClient } from "../../../Apiclient";
 import { buildQueryParams } from "../../../utils/purchaseRequest";
 import { toast } from "react-toastify";
-import { RFQQuestionsModal, RFQQuestionsModalOBJ, RFQSupplierQuestionsModal, SQEQuestionsModal, NFAQuestionsModal, NFAQuestionsModalOBJ } from "../../../utils/modal";
-import { findObjByValueFromArray, SQEAddModal, downloadExcelTemplate } from "../../../utils/common";
+import { NFAQuestionsModalOBJ } from "../../../utils/modal";
+import { findObjByValueFromArray, downloadExcelTemplate, getApiErrorMessage } from "../../../utils/common";
+import PEModal from "../../../components/PEModal";
 // Permission Management Imports
-import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
+import { CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
 // import EventQuestionScreenList from "../../../components/Event/EventQuestionScreenList";
 import NFAQuestionScreenList from './NFAQuestionScreenList'
 import NFAQuestionTabCell from './NFAQuestionTabCell'
 import EventAddQuestionScreen from "../../../components/Event/EventAddQuestionScreen";
-import AddUpdateQuestion from "../../../pages/Settings/QuestionMaster/AddUpdateQuestion";
-import { CategoryFindAll } from "../../../utils/questionlibrary";
 import { FastApiClient } from "../../../FastApiClient";
 
 const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
+
   const [{ atoken, rtoken, customerid, customersuffix, usertimezone, userdialingcode, roleClaims, userDetail }, dispatch] = useStateValue();
   const apiclient = new ApiClient(customersuffix);
   const fastapiclient = new FastApiClient();
@@ -58,9 +39,9 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
     libQuesDrawer: false
   });
   const [libraryWithQuestions, setLibraryWithQuestions] = useState([]);
-  const [hasSubmittedMandatory, setHasSubmittedMandatory] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [tempSelectedLibrary, setTempSelectedLibrary] = useState(null); // Temporary state for new selection
+  const [tempSelectedLibrary, setTempSelectedLibrary] = useState(null);
+  const [libQuesLoading, setLibQuesLoading] = useState(false);
+  const libQuesTabRef = useRef(null);
 
   // Extract permission properties from props
   const { permissionManager, canRead, canEdit, canCreate, canRemove } = props;
@@ -70,7 +51,7 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
   const questionsCanEdit = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.EDIT) ?? true;
   const questionsCanCreate = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.CREATE) ?? true;
   const questionsCanRemove = permissionManager?.hasPermission(CLAIM_TYPES.QUESTIONS, ACTIONS.REMOVE) ?? true;
-  
+
   // Check if current stage is Draft - only allow edits in Draft stage
   const isDraftStage = props.currentStage?.trim() === "Draft";
 
@@ -97,7 +78,7 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
   // useImperativeHandle hook
   useImperativeHandle(NFAQuestionScreenRef, () => ({
     saveEventQuestion: async () => {
-      if (props.eventtype == "NFA") {
+      if (props.eventtype === "NFA") {
         // Validation for mandatory questions
         const invalidMandatoryQuestions = questionlist.filter(q => {
           if (!q.mandatory) return false;
@@ -122,15 +103,16 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
           })
           x.Version = props?.Version
         })
-        const res = await apiclient.postres(`/api/NFAQuestionLib/${props.eventid}/Add`, questionlist, atoken);
-        if (res) {
-          toast.success("Questions Saved Successfully", {
-            toastId: "QS"
-          })
-          return true
-        }
-        else {
-          return false
+        try {
+          const res = await apiclient.postres(`/api/NFAQuestionLib/${props.eventid}/Add`, questionlist, atoken);
+          if (res) {
+            toast.success("Questions Saved Successfully", { toastId: "QS" });
+            return true;
+          }
+          return false;
+        } catch (error) {
+          toast.error(getApiErrorMessage(error), { toastId: "q_save_error" });
+          return false;
         }
       }
     }
@@ -171,44 +153,45 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
     const queryParams = buildQueryParams(params);
     const res = await apiclient.getres(`/api/LibraryOrgEntity/Find?${queryParams}`, atoken);
     if (res) {
-      const result = res?.data?.result?.filter(x => x.libraryType == props.librarytype);
+      const result = res?.data?.result?.filter(x => x.libraryType === props.librarytype);
       setLibrarylist(result);
       updateEventQuestionList(result);
     }
   };
+
   const updateEventQuestionList = async (librarylist) => {
-        
-      if (!Array.isArray(librarylist) || librarylist.length === 0) {
-        return;
-      }
-  
-      const formattedData = [];
-  
-      for (const lib of librarylist) {
+
+    if (!Array.isArray(librarylist) || librarylist.length === 0) {
+      return;
+    }
+
+    const formattedData = [];
+
+    for (const lib of librarylist) {
       const params = {
-          CustomerId: lib.customerId,
-          LibraryId: lib.id,
-          EventType: "NFA",
-          IsActive: true,
+        CustomerId: lib.customerId,
+        LibraryId: lib.id,
+        EventType: "NFA",
+        IsActive: true,
       };
-  
+
       const queryParams = buildQueryParams(params);
-  
+
       try {
-          const res = await apiclient.getres(`/api/QuestionsLib/Find?${queryParams}`, atoken);
-  
-          let questions = [];
-  
-          if (Array.isArray(res?.data?.result) && res.data.result.length > 0) {
-            questions = res.data.result;
-          } 
-          // else {
-          //   toast.info(`No Questions Found in "${lib.libraryEntity}".`, {
-          //       toastId: `noquestion-${lib.id}`,
-          //   });
-          // }
-  
-          formattedData.push({
+        const res = await apiclient.getres(`/api/QuestionsLib/Find?${queryParams}`, atoken);
+
+        let questions = [];
+
+        if (Array.isArray(res?.data?.result) && res.data.result.length > 0) {
+          questions = res.data.result;
+        }
+        // else {
+        //   toast.info(`No Questions Found in "${lib.libraryEntity}".`, {
+        //       toastId: `noquestion-${lib.id}`,
+        //   });
+        // }
+
+        formattedData.push({
           ...lib,
           eventType: "NFA",
           isActive: true,
@@ -217,63 +200,49 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
           orgGroups: [],
           grandTotalTermName: "",
           questions: questions,
-          });
-            
+        });
+
       } catch (error) {
-          console.error(`Error fetching questions for Library ID ${lib.id}:`, error);
-          toast.error(`Error loading questions from "${lib.libraryEntity}".`, {
+        console.error(`Error fetching questions for Library ID ${lib.id}:`, error);
+        toast.error(`Error loading questions from "${lib.libraryEntity}".`, {
           toastId: `errorquestion-${lib.id}`,
-          });
+        });
       }
-      }
-      // ✅ Set final result in state
-      setLibraryWithQuestions(formattedData);
-      return formattedData;
-    };
+    }
+    // ✅ Set final result in state
+    setLibraryWithQuestions(formattedData);
+    return formattedData;
+  };
 
   const getQuestionList = async () => {
-    if (props.eventtype == "NFA") {
-
-      const params = {
-        // CustomerId: customerid,
-        NFAId: props.eventid,
-        Version: parseInt(props.Version)
-
-      };
-      const queryParams = buildQueryParams(params);
-      const res = await apiclient.getres(`/api/NFAQuestionLib/Find?${queryParams}`, atoken);
-      if (res) {
-
-        const data = res?.data?.result;
-
-
-
-        setQuestionList([...data])
-        const selectedLibrary = findObjByValueFromArray(librarylist, data[0]?.libraryId, 'id');
-        if (selectedLibrary) {
-
-          setSelectedLibrary(selectedLibrary)
+    if (props.eventtype === "NFA") {
+      try {
+        const params = {
+          NFAId: props.eventid,
+          Version: parseInt(props.Version)
+        };
+        const queryParams = buildQueryParams(params);
+        const res = await apiclient.getres(`/api/NFAQuestionLib/Find?${queryParams}`, atoken);
+        if (res) {
+          const data = res?.data || [];
+          setQuestionList([...data]);
+          const selectedLibrary = findObjByValueFromArray(librarylist, data[0]?.libraryId, 'id');
+          if (selectedLibrary) {
+            setSelectedLibrary(selectedLibrary);
+          }
         }
-
+      } catch (error) {
+        toast.error(getApiErrorMessage(error), { toastId: "q_fetch_error" });
       }
-
     }
   }
-
-  const handleClickAnchor = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleCloseAnchor = () => {
-    setAnchorEl(null);
-  };
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     handleExcelUpload(file);
   };
   const handleExcelUpload = async (file) => {
-    if (props?.eventtype == "NFA") {
+    if (props?.eventtype === "NFA") {
 
       const data = {
         templateId: 2,
@@ -294,23 +263,18 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
           toast.error(`Errors encountered:\n${allErrors}`, { autoClose: false });
         }
         else {
-
-
           getQuestionList()
           toast.success("File uploaded successfully");
         }
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
-
       }
-
     }
-
   }
 
   const handleDownloadExcelTemplate = async () => {
-    if (props?.eventtype == "NFA") {
+    if (props?.eventtype === "NFA") {
       await downloadExcelTemplate({
         customerId: customerid,
         templateId: 2,
@@ -319,7 +283,6 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
       });
     }
   }
-
 
   const handleCancelChange = (name) => {
     setTempSelectedLibrary(null); // Clear the temporary selection
@@ -340,7 +303,6 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
         );
       });
     });
-
   };
 
   const handleAddQuestion = (values) => {
@@ -360,168 +322,99 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
 
   const handleNewQuestionAdd = async (updatedList) => {
     const formatQuestion = (q) => ({
-        id: 0,
-        questionId: q.id || q.questionId || 0,
-        questionDescription: q.questionDescription || "",
-        attachement: q.attachement || false,
-        attachedFileName: q.attachedFileName || "",
-        optionType: q.optionType || false,
-        weightage: q.weightage || 0,
-        mandatory: q.mandatory || false,
-        questionRequirement: q.questionRequirement || "",
-        isActive: q.isActive ?? true,
-        nfaId: props?.eventid,
-        libraryId: q.libraryId || 0,
-        libraryEntity: q.libraryEntity || "",
-        questionCategory: q.questionCategory || "",
-        questionSubCategory: q.questionSubCategory || "",
-        questionSubcategoryId: q.questionSubcategoryId || 0,
-        questioncategoryId: q.questioncategoryId || 0,
-        autoCalculated: q.autoCalculated ?? null,
-        isMultiOption: q.isMultiOption || false,
-        isMultipleChoice: q.isMultipleChoice || false,
-        version: props?.version || 1,
-        answer: q.answer ?? null,
-        ansAttachements: q.ansAttachements ?? null,
-        questionOption: q.questionOption?.map(opt => ({
-          ...opt,
-          id: 0
-        })) || []
-      });
-    
-      const payload = updatedList?.map(formatQuestion);
-    
-      try {
-        const res = await apiclient.postres(
-          `/api/NFAQuestionLib/${props?.eventid}/Add`,
-          payload,
-          atoken
-        );
-    
-        if (res) {
-          toast.success("Questions Saved Successfully", { toastId: "QS" });
-          return true;
-        } else {
-          toast.error("Failed to save questions");
-          return false;
-        }
-      } catch (error) {
-        console.error("Submission error:", error);
-        toast.error("An error occurred during submission");
+      id: 0,
+      questionId: q.id || q.questionId || 0,
+      questionDescription: q.questionDescription || "",
+      attachement: q.attachement || false,
+      attachedFileName: q.attachedFileName || "",
+      optionType: q.optionType || false,
+      weightage: q.weightage || 0,
+      mandatory: q.mandatory || false,
+      questionRequirement: q.questionRequirement || "",
+      isActive: q.isActive ?? true,
+      nfaId: props?.eventid,
+      libraryId: q.libraryId || 0,
+      libraryEntity: q.libraryEntity || "",
+      questionCategory: q.questionCategory || "",
+      questionSubCategory: q.questionSubCategory || "",
+      questionSubcategoryId: q.questionSubcategoryId || 0,
+      questioncategoryId: q.questioncategoryId || 0,
+      autoCalculated: q.autoCalculated ?? null,
+      isMultiOption: q.isMultiOption || false,
+      isMultipleChoice: q.isMultipleChoice || false,
+      version: props?.version || 1,
+      answer: q.answer ?? null,
+      ansAttachements: q.ansAttachements ?? null,
+      questionOption: q.questionOption?.map(opt => ({
+        ...opt,
+        id: 0
+      })) || []
+    });
+
+    const payload = updatedList?.map(formatQuestion);
+
+    try {
+      const res = await apiclient.postres(
+        `/api/NFAQuestionLib/${props?.eventid}/Add`,
+        payload,
+        atoken
+      );
+
+      if (res) {
+        toast.success("Questions Saved Successfully", { toastId: "QS" });
+        return true;
+      } else {
+        toast.error("Failed to save questions");
         return false;
       }
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error("An error occurred during submission");
+      return false;
+    }
   }
+
   return (
-    <div className="p-3 pt-0 ps-0">
-      <div className="d-flex justify-content-between align-items-center">
+    <div style={{ padding: '16px' }}>
+      <div className="d-flex justify-content-between align-items-center pb-3 border-bottom">
         <div className="flex-grow-1">
           <div className="row mt-2">
             <input className="d-none" id="itemuploadid" ref={fileInputRef} type="file" onChange={handleFileChange} />
-            <div className="col-12 col-md-8 col-lg-8 pe-0">
-              {/* { props.action && <Autocomplete
-                disablePortal
-                id="combo-box-demo"
-                size="small"
-                options={librarylist ?? []}
-                className="w-50"
-                fullWidth
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    label="Add Questions From Library"
-                  />
-                )}
-                value={selectedLibrary}
-                getOptionLabel={(option) => option.libraryEntity ?? ""}
-                onChange={handleLibraryChange}
-                //disabled={!props.action}
-              />} */}
-
-              {/* {props.action && <Button 
-                variant="text"
-                size="small"
-                startIcon={<HiPlusSm />}
-                className="text-capitalize font-normal me-3" 
-                onClick={() => setOpenComponents(prev => ({ ...prev, libQuesDrawer: true }))}
-              >
-                Add Questions from Library
-            </Button>} */}
-            </div>
           </div>
         </div>
 
-        <div className="text-end">
-          {/* {props.action && <Button
-            variant="text"
-            size="small"
-            startIcon={<HiPlusSm />}
-            className="text-capitalize font-normal me-3"
-            onClick={()=> setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }))}
-          >
-            Add More
-          </Button>} */}
-
-          {props.action && isDraftStage && questionsCanEdit && <div className="d-inline-block">
-            <IconButton
-              aria-label="more"
-              id="dropdown-custom-components"
-              aria-controls="long-menu"
-              aria-haspopup="true"
-              aria-expanded={Boolean(anchorEl) ? 'true' : undefined}
-              onClick={handleClickAnchor}
-              size="medium"
-              className="shadow-sm"
+        {props.action && isDraftStage && questionsCanCreate && (
+          <div className="d-flex align-items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              className="pe-btn pe-btn--secondary"
+              onClick={() => document.getElementById('itemuploadid').click()}
             >
-              <MoreVertIcon className="f17" />
-            </IconButton>
-            <Menu
-              id="long-menu"
-              anchorEl={anchorEl}
-              keepMounted
-              open={Boolean(anchorEl)}
-              onClose={handleCloseAnchor}
-              className="ddl-menu"
+              Excel Upload
+            </button>
+            <button
+              type="button"
+              className="pe-btn pe-btn--secondary"
+              onClick={handleDownloadExcelTemplate}
             >
-              {isDraftStage && questionsCanCreate && (
-                <>
-                  <MenuItem className="f14" onClick={() => document.getElementById('itemuploadid').click()}>
-                    Excel Upload
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem className="f14" onClick={handleDownloadExcelTemplate}>
-                    Excel Template
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem className="f14"
-                    onClick={() => {
-                      handleCloseAnchor();
-                      setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }));
-                    }}
-                  >
-                    Add more questions
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem className="f14"
-                    onClick={() => {
-                      handleCloseAnchor();
-                      setOpenComponents(prev => ({ ...prev, libQuesDrawer: true }));
-                    }}
-                  >
-                    Add more questions from Library
-                  </MenuItem>
-                </>
-              )}
-              {(!isDraftStage || !questionsCanCreate) && (
-                <MenuItem className="f14" disabled>
-                  {!isDraftStage ? "Not in Draft Stage" : "No Create Permission"}
-                </MenuItem>
-              )}
-            </Menu>
-          </div>}
-        </div>
+              Excel Template
+            </button>
+            <button
+              type="button"
+              className="pe-btn pe-btn--primary"
+              onClick={() => setOpenComponents(prev => ({ ...prev, addQuestionDrawer: true }))}
+            >
+              <HiPlusSm /> Add Questions
+            </button>
+            <button
+              type="button"
+              className="pe-btn pe-btn--primary"
+              onClick={() => setOpenComponents(prev => ({ ...prev, libQuesDrawer: true }))}
+            >
+             <HiPlusSm /> Add from Library
+            </button>
+          </div>
+        )}
       </div>
       {/* Questions List */}
       <NFAQuestionScreenList
@@ -532,7 +425,7 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
         action={props.action}
         currentStage={props.currentStage}
         isDraftStage={isDraftStage}
-        isSaveButtonDisabled={!(props.currentStage == "Draft")}
+        isSaveButtonDisabled={!(props.currentStage === "Draft")}
         handleQuestionUpdate={handleQuestionUpdate}
         permissionManager={permissionManager}
         canRead={questionsCanRead}
@@ -542,106 +435,88 @@ const NFAQuestionScreen = forwardRef(({ props }, NFAQuestionScreenRef) => {
       />
 
       {/* overlay component */}
-      <Dialog
+      <PEModal
         open={openComponents.confirmDialog}
         onClose={() => handleCancelChange("confirmDialog")}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
+        size="sm"
+        title="Confirm Library Change"
       >
-        <DialogTitle id="alert-dialog-title">
-          {"Confirm Library Change"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to change the library? Doing so will delete all the questions from given library .
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          {/* <Button onClick={()=>handleCancelChange("confirmDialog")} color="primary">
-            No
-          </Button>
-          <Button onClick={handleConfirmChange} color="primary" autoFocus>
-            Yes
-          </Button> */}
-        </DialogActions>
-      </Dialog>
+        <p>Are you sure you want to change the library? Doing so will delete all the questions from given library .</p>
+      </PEModal>
       {/*add question component*/}
       <React.Fragment key="top">
         {/* Add Question Drawer */}
-        <Drawer
-          anchor="right"
+        <CommonBottomDrawer
           open={openComponents.addQuestionDrawer}
           onClose={() => handleCancelChange("addQuestionDrawer")}
+          title="Add Question"
+          actions={
+            <>
+              <button
+                type="button"
+                className="rfq-v2-event-btn rfq-v2-event-btn-ghost"
+                onClick={() => handleCancelChange("addQuestionDrawer")}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="add-question-form"
+                className="rfq-v2-event-btn rfq-v2-event-btn-primary"
+              >
+                Add Question
+              </button>
+            </>
+          }
+          sectionStyle={{ display: "flex", flexDirection: "column" }}
+          bodyStyle={{ padding: "16px", overflowY: "auto", flex: 1 }}
         >
-          <Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-            <div className="flex flex-col">
-              <Box className="bgheaderCards">
-                <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                  <div className="ms-3 text-white">Add Question</div>
-                  <div>
-                    <IconButton
-                      onClick={() => handleCancelChange("addQuestionDrawer")}
-                      size="small"
-                      edge="start"
-                      sx={{ mr: 1 }}
-                    >
-                      <HiOutlineX className="f20 text-white" />
-                    </IconButton>
-                  </div>
-                </div>
-              </Box>
-              <div className="h50px"></div>
-              <Box sx={{ flexGrow: 1, p: 2 }}>
-                <EventAddQuestionScreen
-                  questionlist={questionlist}
-                  eventid={props?.eventid}
-                  eventtype={props?.eventtype}
-                  callback={handleAddQuestion}
-                />
-              </Box>
-            </div>
-          </Box>
-        </Drawer>
-        {/* Lib Ques Drawer (NEW) */}
-        <Drawer
-          anchor="right"
+          <EventAddQuestionScreen
+            questionlist={questionlist}
+            eventid={props?.eventid}
+            eventtype={props?.eventtype}
+            callback={handleAddQuestion}
+          />
+        </CommonBottomDrawer>
+        {/* Library Questions Drawer */}
+        <CommonBottomDrawer
           open={openComponents.libQuesDrawer}
           onClose={() => handleCancelChange("libQuesDrawer")}
+          title="Library Questions"
+          actions={
+            <>
+              <button
+                type="button"
+                className="rfq-v2-event-btn rfq-v2-event-btn-ghost"
+                onClick={() => handleCancelChange("libQuesDrawer")}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="rfq-v2-event-btn rfq-v2-event-btn-primary"
+                disabled={libQuesLoading}
+                onClick={() => libQuesTabRef.current?.handleSubmit()}
+              >
+                {libQuesLoading ? "Saving…" : "Submit Selected Questions"}
+              </button>
+            </>
+          }
+          sectionStyle={{ display: "flex", flexDirection: "column" }}
+          bodyStyle={{ padding: "16px", overflowY: "auto", flex: 1 }}
         >
-          <Box sx={{ width: { xs: 280, sm: 480, md: 720 } }}>
-            <div className="flex flex-col">
-              <Box className="bgheaderCards">
-                <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                  <div className="ms-3 text-white">Library Questions</div>
-                  <div>
-                    <IconButton
-                      onClick={() => handleCancelChange("libQuesDrawer")}
-                      size="small"
-                      edge="start"
-                      sx={{ mr: 1 }}
-                    >
-                      <HiOutlineX className="f20 text-white" />
-                    </IconButton>
-                  </div>
-                </div>
-              </Box>
-              <div className="h50px"></div>
-              <Box sx={{ flexGrow: 1, p: 2 }}>
-                {/* TODO: Replace with actual component or content for library questions */}
-                <NFAQuestionTabCell
-                  questions={nonMandatoryLibraryQuestions}
-                  addedQuestions={questionlist}
-                  eventid={props?.eventid}
-                  eventtype={props?.eventtype}
-                  version={props?.Version}
-                  handleCancelChange={handleCancelChange}
-                />
-              </Box>
-            </div>
-          </Box>
-        </Drawer>
+          <NFAQuestionTabCell
+            ref={libQuesTabRef}
+            questions={nonMandatoryLibraryQuestions}
+            addedQuestions={questionlist}
+            eventid={props?.eventid}
+            eventtype={props?.eventtype}
+            version={props?.Version}
+            handleCancelChange={handleCancelChange}
+            setLoading={setLibQuesLoading}
+          />
+        </CommonBottomDrawer>
       </React.Fragment>
-
     </div>
   );
 });

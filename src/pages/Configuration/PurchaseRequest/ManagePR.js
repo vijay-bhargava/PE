@@ -28,6 +28,7 @@ import {
 	HiOutlineX,
 	HiPlusSm,
 	HiTrash,
+	HiDownload,
 } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { Badge, Dropdown, Modal } from "react-bootstrap";
@@ -49,6 +50,7 @@ import {
 	buildQueryParams,
 	formatDateViaLocale,
 	getEventStage,
+	getEventApproversFind,
 } from "../../../utils/common/utility";
 import {
 	AuctionModalFromPR,
@@ -56,6 +58,7 @@ import {
 	getPayloadWithStage,
 	handlesaveAttachment,
 	fetchAttachmentsFromPRItems,
+	getApiErrorMessage,
 } from "../../../utils/common";
 import { ApiClient } from "../../../Apiclient";
 import { toast } from "react-toastify";
@@ -65,9 +68,37 @@ import { getPurchaseOrgList, OrgGroupMasterList } from "../../../utils/commercia
 import CryptoJS from "crypto-js";
 import { useCookies } from "react-cookie";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider, MobileDateTimePicker } from '@mui/x-date-pickers';
+import { LocalizationProvider, MobileDateTimePicker, DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import { getDateFormatPatteronLocale, userampm } from '../../../utils/common/utility';
+
+const PendingApproverTooltip = ({ getApprovers, children }) => {
+	const [approvers, setApprovers] = React.useState(null);
+	const [loading, setLoading] = React.useState(false);
+	const handleOpen = async () => {
+		if (approvers !== null || loading) return;
+		setLoading(true);
+		try {
+			const list = await getApprovers();
+			setApprovers(list);
+		} catch {
+			setApprovers([]);
+		} finally {
+			setLoading(false);
+		}
+	};
+	const tooltipTitle = loading
+		? 'Loading approvers...'
+		: approvers?.length
+			? `Pending: ${approvers.map(a => a.approverName || a.name || '').join(', ')}`
+			: 'Under Approval';
+	return (
+		<Tooltip title={tooltipTitle} arrow placement="top" onOpen={handleOpen}>
+			<span style={{ display: 'contents' }}>{children}</span>
+		</Tooltip>
+	);
+};
+
 const ManagePR = ({ claimType }) => {
 	const navigate = useNavigate();
 	const [
@@ -83,6 +114,8 @@ const ManagePR = ({ claimType }) => {
 	const [prStatusList, setPrStatusList] = useState([]);
 
 	useEffect(() => {
+		dispatch({ type: actionTypes.SET_EVENTID, value: 0 });
+		dispatch({ type: actionTypes.SET_EVENTTYPE, value: '' });
 		dispatch({ type: actionTypes.SET_Bidtype, value: null });
 		setCookie("pcbt", "", { path: "/", maxAge: 0 });
 
@@ -106,8 +139,8 @@ const ManagePR = ({ claimType }) => {
 		setState({ ...state, [anchor]: open });
 	};
 	const [modal, setModal] = useState(false);
-	const CloseModal = () => setModal(false);
-	const OpenModal = () => setModal(true);
+	const CloseModal = () => { setModal(false); setSelectedTemplate(null); setValue('new'); };
+	const OpenModal = () => { setModal(true); getTemplateList(); };
 	const [showDetails, setShowDetails] = useState({});
 	const [itemmodal, setItemModal] = useState(false);
 
@@ -131,6 +164,83 @@ const ManagePR = ({ claimType }) => {
 	const [value, setValue] = React.useState("new");
 	const handleChange = (event) => {
 		setValue(event.target.value);
+	};
+
+	// Approver cache: prId → pending approvers array
+	const approverCacheRef = React.useRef(new Map());
+	const getApproversForPR = React.useCallback(async (prId) => {
+		try {
+			if (approverCacheRef.current.has(prId)) return approverCacheRef.current.get(prId);
+			const data = { EventId: prId, EventType: 'PR', CustomerId: customerid, Version: 1 };
+			const res = await getEventApproversFind(data, atoken);
+			const pending = Array.isArray(res) ? res.filter(a => !a.status || a.status === 'Pending') : [];
+			approverCacheRef.current.set(prId, pending);
+			return pending;
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: `getApproversForPR_${prId}` });
+			return [];
+		}
+	}, [atoken, customerid]);
+
+	// Template state + handlers
+	const [templatelist, setTemplateList] = useState([]);
+	const [selectedTemplate, setSelectedTemplate] = useState(null);
+
+	const getTemplateList = async () => {
+		try {
+			const data = { CustomerId: customerid, EventType: 'PR' };
+			const queryParams = buildQueryParams(data);
+			const res = await apiClient.getres(`/api/EventTemplate/Find?${queryParams}`, atoken);
+			if (res) setTemplateList(res?.data?.result || []);
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: 'getTemplateList_error' });
+			setTemplateList([]);
+		}
+	};
+
+	const handleTemplateNavigation = async () => {
+		try {
+			if (value !== 'new') {
+				if (!selectedTemplate) { toast.error('Please select a template'); return; }
+				const data = { EventId: selectedTemplate.eventId, EventType: selectedTemplate.eventType };
+				const queryParams = buildQueryParams(data);
+				const res = await apiClient.postres(`/api/PRManage/PRTemplateClone?${queryParams}`, null, atoken);
+				if (res) {
+					const newPRId = res?.data?.[0]?.id;
+					if (newPRId) {
+						CloseModal();
+						navigate(`/configuration/manage-pr/${newPRId}`);
+					} else {
+						toast.error('Failed to clone template. Please try again.', { toastId: 'template_clone_failed' });
+					}
+				}
+			} else {
+				CloseModal();
+				navigate('/configuration/manage-pr/add');
+			}
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: 'handleTemplateNavigation_error' });
+		}
+	};
+
+	// Date range filter states
+	const [filterFromDayjs, setFilterFromDayjs] = useState(null);
+	const [filterToDayjs, setFilterToDayjs] = useState(null);
+	const [filterMode, setFilterMode] = useState(false);
+	const [filterSearchParams, setFilterSearchParams] = useState(null);
+	const [lastSearchParams, setLastSearchParams] = useState(null);
+	const [isExporting, setIsExporting] = useState(false);
+
+	const applyDateRangeFilter = (result, fromDayjs, toDayjs) => {
+		if (!fromDayjs && !toDayjs) return result;
+		return result.filter((item) => {
+			if (!item.createdOn) return false;
+			const createdOnUtc = item.createdOn.endsWith('Z') ? item.createdOn : item.createdOn + 'Z';
+			const created = dayjs(createdOnUtc);
+			if (fromDayjs && created.isBefore(fromDayjs, 'day')) return false;
+			if (toDayjs && created.isAfter(toDayjs, 'day')) return false;
+			return true;
+		});
 	};
 
 	const [recorddata, setRecorddata] = useState([]);
@@ -209,6 +319,21 @@ const ManagePR = ({ claimType }) => {
 			),
 		},
 		{
+			field: "requisitioner",
+			headerName: "Requested By",
+			flex: 1,
+			minWidth: 120,
+			renderCell: (params) => (
+				<div
+					className="content-text"
+					onClick={() => { navigate(`/configuration/manage-pr/${params?.row.id}`); }}
+					style={{ cursor: 'pointer' }}
+				>
+					{params?.formattedValue}
+				</div>
+			),
+		},
+		{
 			field: "stage",
 			headerName: "Status",
 			flex: 1,
@@ -219,7 +344,7 @@ const ManagePR = ({ claimType }) => {
 						? "text-danger"
 						: "text-primary";
 
-				return (
+				const cell = (
 					<div
 						className={`content-text ${statusClass}`}
 						onClick={() => { navigate(`/configuration/manage-pr/${params?.row.id}`); }}
@@ -228,6 +353,15 @@ const ManagePR = ({ claimType }) => {
 						{params?.formattedValue}
 					</div>
 				);
+
+				if (params?.row?.stage === 'Under Approval') {
+					return (
+						<PendingApproverTooltip getApprovers={() => getApproversForPR(params.row.id)}>
+							{cell}
+						</PendingApproverTooltip>
+					);
+				}
+				return cell;
 			},
 		},
 		{
@@ -236,10 +370,7 @@ const ManagePR = ({ claimType }) => {
 			flex: 1,
 			minWidth: 80,
 			renderCell: (params) => {
-				// const allItemsUsed =
-				// 	params?.row?.prItems?.length > 0 &&
-				// 	params?.row?.prItems.every((item) => item?.eventId);
-				const isClose = params?.row?.stage === "Close";
+				const isClose = params?.row?.stage === "Close" || params?.row?.stage === "Consumed";
 				const isSelectable = (params?.row?.stage === "Draft" || params?.row?.stage === "Cancel" || params?.row?.stage === "Under Approval");
 				const isBOQEnabled = params?.row?.boqReq === true;
 				return (
@@ -259,6 +390,27 @@ const ManagePR = ({ claimType }) => {
 				);
 			},
 		},
+		{
+			field: 'refEventCode',
+			headerName: 'Ref Event Code',
+			flex: 1,
+			minWidth: 120,
+			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
+		},
+		{
+			field: 'itemName',
+			headerName: 'Item Name',
+			flex: 1.5,
+			minWidth: 140,
+			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
+		},
+		{
+			field: 'itemStatus',
+			headerName: 'Item Status',
+			flex: 1,
+			minWidth: 100,
+			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
+		},
 	];
 
 
@@ -276,10 +428,10 @@ const ManagePR = ({ claimType }) => {
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
 		},
 		{
-			field: "lineItemNo",
-			headerName: "Item",
+			field: "itemName",
+			headerName: "Item / Service",
 			flex: 1,
-			minWidth: 80,
+			minWidth: 120,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
 		},
 		{
@@ -289,20 +441,6 @@ const ManagePR = ({ claimType }) => {
 			minWidth: 120,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
 		},
-		// {
-		// 	field: "materialDesc",
-		// 	headerName: "Material/Activity Desc",
-		// 	flex: 2,
-		// 	minWidth: 200,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
-		// {
-		// 	field: "materialGrpDesc",
-		// 	headerName: "Material/Activity Grp & Desc",
-		// 	flex: 2,
-		// 	minWidth: 200,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
 		{
 			field: "itemDesc",
 			headerName: "Description",
@@ -327,7 +465,7 @@ const ManagePR = ({ claimType }) => {
 		},
 		{
 			field: "targetPrice",
-			headerName: "Target Price",
+			headerName: "Target Budget Price",
 			flex: 1,
 			minWidth: 100,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
@@ -340,20 +478,6 @@ const ManagePR = ({ claimType }) => {
 			renderCell: (params) => <div className="content-text">{params?.formattedValue ? formatDateViaLocale(params?.formattedValue, userDetail) : ""}</div>,
 		},
 		{
-			field: "glAccount",
-			headerName: "GL Account",
-			flex: 1,
-			minWidth: 100,
-			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		},
-		// {
-		// 	field: "prOrder",
-		// 	headerName: "PR Order",
-		// 	flex: 1,
-		// 	minWidth: 100,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
-		{
 			field: "remarks",
 			headerName: "Remarks",
 			flex: 1,
@@ -365,8 +489,8 @@ const ManagePR = ({ claimType }) => {
 			),
 		},
 		{
-			field: "wbsElement",
-			headerName: "WBS Element",
+			field: "itemType",
+			headerName: "Item Type",
 			flex: 1,
 			minWidth: 100,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
@@ -380,16 +504,20 @@ const ManagePR = ({ claimType }) => {
 		},
 		{
 			field: "eventType",
-			headerName: "Event Type",
+			headerName: "Event Type/ID",
 			flex: 1,
-			minWidth: 100,
-			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
+			minWidth: 130,
+			renderCell: (params) => (
+				<div className="content-text">
+					{params?.row?.eventType}{params?.row?.eventId ? `(${params?.row?.eventId})` : ""}
+				</div>
+			),
 		},
 		{
-			field: "eventId",
-			headerName: "Event ID",
+			field: "refEventCode",
+			headerName: "Ref Event Code",
 			flex: 1,
-			minWidth: 100,
+			minWidth: 120,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
 		},
 		{
@@ -410,13 +538,17 @@ const ManagePR = ({ claimType }) => {
 				</Tooltip>
 			),
 		},
-		// {
-		// 	field: "poText",
-		// 	headerName: "PO Text",
-		// 	flex: 1,
-		// 	minWidth: 120,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
+		{
+			field: "itemStatus",
+			headerName: "Item Status",
+			flex: 1,
+			minWidth: 120,
+			renderCell: (params) => (
+				<Tooltip title={params?.formattedValue || ""}>
+					<div className="content-text">{params?.formattedValue}</div>
+				</Tooltip>
+			),
+		},
 		{
 			field: "poVendorName",
 			headerName: "POVendorName",
@@ -452,20 +584,6 @@ const ManagePR = ({ claimType }) => {
 			minWidth: 120,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue ? formatDateViaLocale(params?.formattedValue, userDetail) : ""}</div>,
 		},
-		// {
-		// 	field: "trackingNumber",
-		// 	headerName: "Tracking Number",
-		// 	flex: 1,
-		// 	minWidth: 150,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
-		// {
-		// 	field: "purchGroup",
-		// 	headerName: "Purchase Group",
-		// 	flex: 1,
-		// 	minWidth: 150,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
 		action && {
 			field: "Action",
 			headerName: "Action",
@@ -473,12 +591,10 @@ const ManagePR = ({ claimType }) => {
 			minWidth: 120,
 			renderCell: (params) => (
 				<Tooltip title={"Remove Item"}>
-
 					<HiTrash
 						className="text-danger text-center ms-2"
 						onClick={() => handleDeleteItemSet(params.id)}
 					/>
-
 				</Tooltip>
 			),
 		},
@@ -493,10 +609,10 @@ const ManagePR = ({ claimType }) => {
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
 		},
 		{
-			field: "lineItemNo",
-			headerName: "Item",
+			field: "itemName",
+			headerName: "Item / Service",
 			flex: 1,
-			minWidth: 80,
+			minWidth: 120,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
 		},
 		{
@@ -506,20 +622,6 @@ const ManagePR = ({ claimType }) => {
 			minWidth: 120,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
 		},
-		// {
-		// 	field: "materialDesc",
-		// 	headerName: "Material/Activity Desc",
-		// 	flex: 2,
-		// 	minWidth: 200,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
-		// {
-		// 	field: "materialGrpDesc",
-		// 	headerName: "Material/Activity Grp & Desc",
-		// 	flex: 2,
-		// 	minWidth: 200,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
 		{
 			field: "itemDesc",
 			headerName: "Description",
@@ -544,7 +646,7 @@ const ManagePR = ({ claimType }) => {
 		},
 		{
 			field: "targetPrice",
-			headerName: "Target Price",
+			headerName: "Target Budget Price",
 			flex: 1,
 			minWidth: 100,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
@@ -557,20 +659,6 @@ const ManagePR = ({ claimType }) => {
 			renderCell: (params) => <div className="content-text">{params?.formattedValue ? formatDateViaLocale(params?.formattedValue, userDetail) : ""}</div>,
 		},
 		{
-			field: "glAccount",
-			headerName: "GL Account",
-			flex: 1,
-			minWidth: 100,
-			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		},
-		// {
-		// 	field: "prOrder",
-		// 	headerName: "PR Order",
-		// 	flex: 1,
-		// 	minWidth: 100,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
-		{
 			field: "remarks",
 			headerName: "Remarks",
 			flex: 1,
@@ -582,8 +670,8 @@ const ManagePR = ({ claimType }) => {
 			),
 		},
 		{
-			field: "wbsElement",
-			headerName: "WBS Element",
+			field: "itemType",
+			headerName: "Item Type",
 			flex: 1,
 			minWidth: 100,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
@@ -597,16 +685,20 @@ const ManagePR = ({ claimType }) => {
 		},
 		{
 			field: "eventType",
-			headerName: "Event Type",
+			headerName: "Event Type/ID",
 			flex: 1,
-			minWidth: 100,
-			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
+			minWidth: 130,
+			renderCell: (params) => (
+				<div className="content-text">
+					{params?.row?.eventType}{params?.row?.eventId ? `(${params?.row?.eventId})` : ""}
+				</div>
+			),
 		},
 		{
-			field: "eventId",
-			headerName: "Event ID",
+			field: "refEventCode",
+			headerName: "Ref Event Code",
 			flex: 1,
-			minWidth: 100,
+			minWidth: 120,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
 		},
 		{
@@ -627,13 +719,17 @@ const ManagePR = ({ claimType }) => {
 				</Tooltip>
 			),
 		},
-		// {
-		// 	field: "poText",
-		// 	headerName: "PO Text",
-		// 	flex: 1,
-		// 	minWidth: 120,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
+		{
+			field: "itemStatus",
+			headerName: "Item Status",
+			flex: 1,
+			minWidth: 120,
+			renderCell: (params) => (
+				<Tooltip title={params?.formattedValue || ""}>
+					<div className="content-text">{params?.formattedValue}</div>
+				</Tooltip>
+			),
+		},
 		{
 			field: "poVendorName",
 			headerName: "POVendorName",
@@ -669,20 +765,6 @@ const ManagePR = ({ claimType }) => {
 			minWidth: 120,
 			renderCell: (params) => <div className="content-text">{params?.formattedValue ? formatDateViaLocale(params?.formattedValue, userDetail) : ""}</div>,
 		},
-		// {
-		// 	field: "trackingNumber",
-		// 	headerName: "Tracking Number",
-		// 	flex: 1,
-		// 	minWidth: 150,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
-		// {
-		// 	field: "purchGroup",
-		// 	headerName: "Purchase Group",
-		// 	flex: 1,
-		// 	minWidth: 150,
-		// 	renderCell: (params) => <div className="content-text">{params?.formattedValue}</div>,
-		// },
 		action && {
 			field: "Action",
 			headerName: "Action",
@@ -690,50 +772,15 @@ const ManagePR = ({ claimType }) => {
 			minWidth: 120,
 			renderCell: (params) => (
 				<Tooltip title={"Remove Item"}>
-
 					<HiTrash
 						className="text-danger text-center ms-2"
 						onClick={() => handleDeleteItemSet(params.id)}
 					/>
-
 				</Tooltip>
 			),
 		},
 	];
 
-	const handleApiCall = (id, field, value) => {
-		if (!value || isNaN(value)) {
-			alert("Please enter a valid number");
-			return;
-		}
-
-		// Example API call
-		fetch(`/api/updateItem`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				itemId: id,
-				fieldName: field,
-				fieldValue: parseFloat(value), // Convert to number
-			}),
-		})
-			.then((response) => {
-				if (!response.ok) {
-					throw new Error("Failed to update value");
-				}
-				return response.json();
-			})
-			.then((data) => {
-				console.log("Update successful:", data);
-				alert("Value updated successfully");
-			})
-			.catch((error) => {
-				console.error("Error updating value:", error);
-				alert("Error updating value");
-			});
-	};
 
 	const [itemCatAllList, setItemCatAllList] = useState([]);
 	const [plantAllList, setPlantAllList] = useState([]);
@@ -848,8 +895,7 @@ const ManagePR = ({ claimType }) => {
 				setSearchDataLoaded(true);
 			}
 			if (res?.result && res?.result?.length > 0) {
-				// Filter out 'Cancel' stage by default
-				setRecorddata(res.result.filter((item) => item.stage !== 'Cancel'));
+				setRecorddata(res.result);
 			} else {
 				setRecorddata([]);
 				setTotalCount(0);
@@ -889,49 +935,11 @@ const ManagePR = ({ claimType }) => {
 
 	const [selectedItems, setSelectedItems] = useState([]); // State to store selected items
 
-	const handleItemCheckboxChange = (itemId) => {
-		// Toggle the selection state of the item
-		setSelectedItems((prevSelectedItems) => {
-			if (prevSelectedItems.includes(itemId)) {
-				return prevSelectedItems.filter((id) => id !== itemId); // Deselect item
-			} else {
-				return [...prevSelectedItems, itemId]; // Select item
-			}
-		});
-	};
-
-	const handleSelectSinglePRRFQ = (itemid, boolean) => {
-		const updatedList = selectedItems.map((x) => {
-			if (x.id === itemid) {
-				return {
-					...x,
-					isSelected: boolean,
-				};
-			}
-			return x;
-		});
-		setSelectedItems(updatedList);
-	};
-
-	const handleSelectAllPRRFQ = (boolean) => {
-		const updatedList = selectedItems.map((x) => ({
-			...x,
-			isSelected: boolean,
-		}));
-		setSelectedItems(updatedList);
-	};
-
-	const handleToggleDetails = (itemId) => {
-		// Toggle showDetails state for the specific item ID
-		setShowDetails((prevShowDetails) => ({
-			...prevShowDetails,
-			[itemId]: !prevShowDetails[itemId],
-		}));
-	};
 	const handleAddNewClick = () => {
-		navigate("/configuration/manage-pr/add");
+		setValue("new");
+		setSelectedTemplate(null);
+		OpenModal();
 	};
-	const isItemDetailsVisible = (itemId) => showDetails[itemId];
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 10;
 	const [currentItems, setCurrentItems] = useState([]);
@@ -948,6 +956,7 @@ const ManagePR = ({ claimType }) => {
 			PRSubject: "",
 			PRNumber: "",
 			PRItems_ItemName: "",
+			CreatedByName: "",
 			stage: "",
 			PRItems_Plant: "",
 			PRItems_ItemCategory: "",
@@ -964,17 +973,20 @@ const ManagePR = ({ claimType }) => {
 				PurchOrgId,
 				PurchGrpId,
 				...restValues,
-				//AccessLevel: listaccessLevel,
+				fromDate: filterFromDayjs ? filterFromDayjs.toISOString() : null,
+				toDate: filterToDayjs ? filterToDayjs.toISOString() : null,
 			};
+			setFilterSearchParams(searchParams);
+			setLastSearchParams(searchParams);
+			setFilterMode(true);
 
 			getPRAdvanceFind(searchParams, atoken).then((responseData) => {
 				setPrLoading(false);
-				// Only show Cancel stage if user explicitly searched for it
-				const shouldShowCancel = values?.stage === 'Cancel';
-				if (!shouldShowCancel) {
-					setRecorddata((responseData || []).filter((item) => item.stage !== 'Cancel'));
+				const allData = responseData || [];
+				if (filterFromDayjs || filterToDayjs) {
+					setRecorddata(applyDateRangeFilter(allData, filterFromDayjs, filterToDayjs));
 				} else {
-					setRecorddata(responseData || []);
+					setRecorddata(allData);
 				}
 			});
 		},
@@ -982,6 +994,11 @@ const ManagePR = ({ claimType }) => {
 
 	const handleReset = () => {
 		formik.resetForm();
+		setFilterFromDayjs(null);
+		setFilterToDayjs(null);
+		setFilterMode(false);
+		setFilterSearchParams(null);
+		setLastSearchParams(null);
 		pullPRManageFind();
 	};
 	const [showConfirmationModal, setShowConfirmationModal] = useState(false);
@@ -1118,7 +1135,13 @@ const ManagePR = ({ claimType }) => {
 
 	const handleClosePRSubmit = async () => {
 		if (!closePRFormData.closeDate || !closePRFormData.reason.trim()) {
-			toast.error('Please fill all required fields.');
+			toast.error('Please fill Close Date and Reason.');
+			return;
+		}
+		const poFields = [closePRFormData.poNumber, closePRFormData.vendorName, closePRFormData.poValue, closePRFormData.unitRate, closePRFormData.poDate];
+		const anyPOFilled = poFields.some(f => f !== '' && f != null);
+		if (anyPOFilled && poFields.some(f => f === '' || f == null)) {
+			toast.error('If any PO field is filled, all PO fields (PO Number, Vendor Name, PO Value, Unit Rate, PO Date) are required.');
 			return;
 		}
 		setClosePRLoading(true);
@@ -1165,7 +1188,7 @@ const ManagePR = ({ claimType }) => {
 				toast.error('Failed to close PR items.');
 			}
 		} catch (err) {
-			toast.error('Failed to close PR items.');
+			toast.error(getApiErrorMessage(err));
 		} finally {
 			setClosePRLoading(false);
 		}
@@ -1417,7 +1440,46 @@ const ManagePR = ({ claimType }) => {
 	const closeDivVisibility = () => {
 		setDivVisible(false);
 	};
-	const CustomToolbar = React.useCallback(({ onFilterClick }) => {
+	const handleExportToExcel = async () => {
+		setIsExporting(true);
+		try {
+			const payload = {
+				prId: parseInt(formik.values.Id) || 0,
+				eventCode: formik.values.PRNumber || '',
+				subject: formik.values.PRSubject || '',
+				purchOrgId: formik.values.purchOrgId?.id || 0,
+				purchGrpId: formik.values.purchGrpId?.id || 0,
+				status: formik.values.stage || '',
+				plant: formik.values.PRItems_Plant || '',
+			};
+			const res = await apiClient.api.post('/api/PRManage/ExportPRExcel', payload, {
+				headers: { Authorization: `Bearer ${atoken}` },
+				responseType: 'blob',
+			});
+			if (res?.data) {
+				const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/octet-stream' }));
+				const link = document.createElement('a');
+				link.href = url;
+				const contentDisposition = res.headers?.['content-disposition'];
+				let fileName = `PR_Export_${new Date().toISOString().split('T')[0]}.xlsx`;
+				if (contentDisposition) {
+					const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+					if (match && match[1]) fileName = match[1].replace(/['"]/g, '');
+				}
+				link.setAttribute('download', fileName);
+				document.body.appendChild(link);
+				link.click();
+				link.remove();
+				window.URL.revokeObjectURL(url);
+			}
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: 'handleExportToExcel_error' });
+		} finally {
+			setIsExporting(false);
+		}
+	};
+
+	const CustomToolbar = React.useCallback(({ onFilterClick, onExportClick, exporting }) => {
 		return (
 			<GridToolbarContainer className="row">
 				<div className="d-flex justify-content-between mt-2 ">
@@ -1426,6 +1488,16 @@ const ManagePR = ({ claimType }) => {
 						<GridToolbarColumnsButton />
 						<GridToolbarFilterButton className="ms-2" />
 						<GridToolbarExport className="ms-2" />
+						<Button
+							variant="text"
+							size="small"
+							className="ms-2 text-capitalize"
+							startIcon={<HiDownload />}
+							onClick={onExportClick}
+							disabled={exporting}
+						>
+							{exporting ? 'Exporting...' : 'Export PR'}
+						</Button>
 					</div>
 					<div className="d-flex align-items-center gap-2">
 						<GridToolbarQuickFilter />
@@ -1620,6 +1692,8 @@ const ManagePR = ({ claimType }) => {
 									slotProps={{
 										toolbar: {
 											onFilterClick: toggleDivVisibility,
+											onExportClick: handleExportToExcel,
+											exporting: isExporting,
 											showQuickFilter: true,
 											quickFilterProps: {
 												debounceMs: 400,
@@ -1693,6 +1767,20 @@ const ManagePR = ({ claimType }) => {
 													value={formik?.values?.PRNumber}
 													onChange={(e) => {
 														formik?.setFieldValue("PRNumber", e?.target?.value);
+													}}
+												/>
+											</div>
+
+											<div className="col-12 mb-3">
+												<TextFieldCell
+													id="CreatedByName"
+													name="CreatedByName"
+													label="Created By Name"
+													placeholder=""
+													className="textDefault text-dark-blue"
+													value={formik?.values?.CreatedByName}
+													onChange={(e) => {
+														formik?.setFieldValue("CreatedByName", e.target?.value);
 													}}
 												/>
 											</div>
@@ -1862,6 +1950,28 @@ const ManagePR = ({ claimType }) => {
 											</div>
 
 											<div className="col-12 mb-4">
+												<LocalizationProvider dateAdapter={AdapterDayjs}>
+													<DatePicker
+														label="Created From"
+														value={filterFromDayjs}
+														onChange={(val) => setFilterFromDayjs(val)}
+														slotProps={{ textField: { size: 'small', fullWidth: true, variant: 'outlined' } }}
+													/>
+												</LocalizationProvider>
+											</div>
+
+											<div className="col-12 mb-4">
+												<LocalizationProvider dateAdapter={AdapterDayjs}>
+													<DatePicker
+														label="Created To"
+														value={filterToDayjs}
+														onChange={(val) => setFilterToDayjs(val)}
+														slotProps={{ textField: { size: 'small', fullWidth: true, variant: 'outlined' } }}
+													/>
+												</LocalizationProvider>
+											</div>
+
+											<div className="col-12 mb-4">
 												<FormControl fullWidth className="textDefault text-dark-blue">
 													<InputLabel id="Status" className="textDefault text-dark-blue">Status</InputLabel>
 													<Select
@@ -1991,19 +2101,41 @@ const ManagePR = ({ claimType }) => {
 											control={<Radio />}
 											label="Create a New PR"
 										/>
+										{templatelist?.length > 0 && (
+											<FormControlLabel
+												value="template"
+												control={<Radio />}
+												label="Create from Template"
+											/>
+										)}
 									</RadioGroup>
 								</FormControl>
 							</div>
 
+							{value === 'template' && templatelist?.length > 0 && (
+								<div className="col-12 mt-2">
+									<Autocomplete
+										size="small"
+										options={templatelist}
+										getOptionLabel={(opt) => opt?.templateName || opt?.name || ''}
+										value={selectedTemplate}
+										onChange={(_, newVal) => setSelectedTemplate(newVal)}
+										renderInput={(params) => (
+											<TextField {...params} label="Select Template" variant="outlined" />
+										)}
+									/>
+								</div>
+							)}
+
 							<div className="col-12 mt-4 text-end">
 								<LoadingButton
 									variant="outlined"
-									onClick={() => navigate("/configuration/manage-pr/add")}
+									onClick={handleTemplateNavigation}
 									color="primary"
 									className="text-capitalize"
 									size="small"
 								>
-									Continue
+									Proceed
 								</LoadingButton>
 							</div>
 						</div>

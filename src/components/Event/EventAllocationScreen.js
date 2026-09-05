@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { actionTypes, useStateValue } from "../../store";
 import { Autocomplete, Box, Button, Table, IconButton, Checkbox, Stack, TableHead, TableBody, TableRow, TableCell, Pagination, TextField, MenuItem, Select, FormControl, InputLabel, Grid, Alert } from '@mui/material';
+import { PEPagination } from '../RFQ/PEPagination';
+import { PETableSimple } from '../RFQ/PETable';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { checkUTC, buildQueryParams, VendorfilterOptions } from "../../utils/common/utility";
 import { api, ApiClient } from '../../Apiclient';
-import Drawer from "@mui/material/Drawer";
+import CommonBottomDrawer from "../CommonBottomDrawer";
 import { HiOutlineX, HiPlusSm, HiOutlineUserAdd, HiPencilAlt, HiOutlineInformationCircle } from "react-icons/hi";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import { Badge } from "react-bootstrap";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import { LoadingButton } from "@mui/lab";
 import { toast } from "react-toastify";
 // Permission Management Imports
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../utils/permissionManager';
@@ -22,26 +22,26 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
     const { permissionManager, canRead, canEdit, canCreate, canRemove } = props;
 
     // Permission checks for Event Details
-    
+
     // const eventDetailsCanRead = permissionManager?.hasPermission(CLAIM_TYPES.EVENT_DETAILS, ACTIONS.READ) ?? true;
     // const eventDetailsCanEdit = permissionManager?.hasPermission(CLAIM_TYPES.EVENT_DETAILS, ACTIONS.EDIT) ?? true;
     // const eventDetailsCanCreate = permissionManager?.hasPermission(CLAIM_TYPES.EVENT_DETAILS, ACTIONS.CREATE) ?? true;
     // const eventDetailsCanRemove = permissionManager?.hasPermission(CLAIM_TYPES.EVENT_DETAILS, ACTIONS.REMOVE) ?? true;
-    
-    const eventDetailsCanRead =  true;
-    const eventDetailsCanEdit =  true;
-    const eventDetailsCanCreate =  true;
-    const eventDetailsCanRemove =  true;
 
-    
+    const eventDetailsCanRead = true;
+    const eventDetailsCanEdit = true;
+    const eventDetailsCanCreate = true;
+    const eventDetailsCanRemove = true;
+
+
     // Check if current stage is Draft - only allow edits in Draft stage
     const isDraftStage = props.currentStage?.trim() == "Allocation";
 
     const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
     const checkedIcon = <CheckBoxIcon fontSize="small" />;
-    const [basisOf, setBasisOf] = useState(""); // Dropdown state for "Basis of"
-    const [valueType, setValueType] = useState(""); // State for value type dropdown
-    const [page, setPage] = useState(0);
+    const [basisOf, setBasisOf] = useState("package"); // Dropdown state for "Basis of"
+    const [valueType, setValueType] = useState("percentage"); // State for value type dropdown
+    const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [value, setValue] = useState('0')
     const [eventHeaderDetails, setEventHeaderDetails] = useState(null)
@@ -72,7 +72,7 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
         Math.ceil(newSupplier / pageCount)
     );
     const [loading, setLoading] = useState(false)
-    const [expandedItems, setExpandedItems] = useState({}); // Track expanded items
+    const [supplierSearchText, setSupplierSearchText] = useState('')
 
     const handlePaginationTS = (event, value) => {
         if (value) {
@@ -101,36 +101,36 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
     // Function to save SOB details
     useImperativeHandle(NFASOBRFQRef, () => ({
         saveSOBDetails: async () => {
-                const data = vendorPackages.map((vendor, index) => ({
-                    id: 0,
-                    vendorId: vendor.vendorId,
-                    companyName: vendor.companyName,
-                    initialPrice: vendor.initialPrice ?? 0, // to be filled later
-                    finalPrice: vendor.finalPrice != '' ? parseFloat(vendor.finalPrice) : 0,
-                    nfaEventId: props.nfaEventId,
-                    nfaEventType: props.nfaEventType,
-                    packageRank: vendor.packageRank,
-                    allocation: parseFloat(vendor.allocation || 0),
-                    newVendor: vendor.newVendor,
-                    nfaId: props.eventId,
-                    // For item-wise view, use the actual itemId; for package-wise, use 0
-                    itemId: basisOf === 'item' ? (vendor.itemId || 0) : 0,
-                    customerId: customerid,
-                    version: props.Version,
-                    allocationOn: basisOf,
-                    valueType: valueType,
-                    totalPrice: parseFloat(vendor.totalPrice || 0)
-                }));
-                const res = await apiClient.postres(`/api/NFASOBDetails/${props.nfaEventId}/Add?EventType=${props.nfaEventType}`, data, atoken);
-                if (res) {
-                    toast.success("Allocation Saved Successfully", {
-                        toastId: "QS"
-                    })
-                    return true
-                }
-                else {
-                    return false
-                }
+            const data = vendorPackages.map((vendor, index) => ({
+                id: 0,
+                vendorId: vendor.vendorId,
+                companyName: vendor.companyName,
+                initialPrice: vendor.initialPrice ?? 0, // to be filled later
+                finalPrice: vendor.finalPrice != '' ? parseFloat(vendor.finalPrice) : 0,
+                nfaEventId: props.nfaEventId,
+                nfaEventType: props.nfaEventType,
+                packageRank: vendor.packageRank,
+                allocation: parseFloat(vendor.allocation || 0),
+                newVendor: vendor.newVendor,
+                nfaId: props.eventId,
+                // For item-wise view, use the actual itemId; for package-wise, use 0
+                itemId: basisOf === 'item' ? (vendor.itemId || 0) : 0,
+                customerId: customerid,
+                version: props.Version,
+                allocationOn: basisOf,
+                valueType: valueType,
+                totalPrice: parseFloat(vendor.totalPrice || 0)
+            }));
+            const res = await apiClient.postres(`/api/NFASOBDetails/${props.nfaEventId}/Add?EventType=${props.nfaEventType}`, data, atoken);
+            if (res) {
+                toast.success("Allocation Saved Successfully", {
+                    toastId: "QS"
+                })
+                return true
+            }
+            else {
+                return false
+            }
         },
         isAllocationSubmitted: () => {
             if (Array.isArray(vendorPackages) && vendorPackages.length > 0) {
@@ -206,7 +206,7 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
 
     useEffect(() => {
         if (Array.isArray(vendorPackages) && vendorPackages.length > 0) {
-            
+
             if (vendorPackages[0]?.allocationOn) {
                 setBasisOf(vendorPackages[0]?.allocationOn);
             }
@@ -350,7 +350,7 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
     }
 
     const handleBasisOfChange = async (event) => {
-        
+
         setBasisOf(event.target.value);
         setVendorPackages([]); // reset old data
         setItems([]);
@@ -364,13 +364,7 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
         setValueType(event.target.value);
     };
 
-    // Handle expand/collapse for items
-    const handleItemExpand = (itemId) => {
-        setExpandedItems(prev => ({
-            ...prev,
-            [itemId]: !prev[itemId]
-        }));
-    };
+    ;
 
     const handleApprover = (booleanvalue) => {
         setApproverShow(booleanvalue)
@@ -385,17 +379,17 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
         // }
     }
 
- const getCategorylist = async () => {
+    const getCategorylist = async () => {
         const obj = {
             CustomerId: customerid,
         }
         const queryParams = buildQueryParams(obj);
- 
+
         const res = await apiClient.getres(
             `/api/ItemCategory/Find?${queryParams}`,
             atoken
         );
-        
+
         if (res) {
             setCategoryList(res?.data?.result || []);
         }
@@ -523,41 +517,41 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
         setLoading(true)
 
         if (basisOf === 'package') {
-            // For package-wise, add suppliers as before
-            const updated = newSupplier.map((vendor, index) => ({
-                vendorId: vendor.vendorId,
+            const updated = newSupplier.map((vendor) => ({
+                vendorId: vendor.vendorId ?? vendor.contactId,
                 companyName: vendor.companyName,
-                initialPrice: 0, // to be filled later
+                initialPrice: 0,
                 finalPrice: '',
                 priceReduction: '',
-                packageRank: `NA`,
+                packageRank: 'NA',
                 allocation: '',
-                total: '',
+                totalPrice: '',
                 newVendor: true
             }));
             setVendorPackages(prev => [...prev, ...updated]);
         } else {
-            // For item-wise, add suppliers to ALL items
             const updated = [];
             items.forEach(item => {
                 newSupplier.forEach(vendor => {
                     updated.push({
-                        vendorId: vendor.vendorId,
+                        vendorId: vendor.vendorId ?? vendor.contactId,
                         companyName: vendor.companyName,
-                        initialPrice: 0, // to be filled later
+                        initialPrice: 0,
                         finalPrice: '',
                         priceReduction: '',
-                        packageRank: `NA`,
+                        packageRank: 'NA',
                         allocation: '',
                         totalPrice: '',
                         newVendor: true,
-                        itemId: item.id // Associate with specific item
+                        itemId: item.id
                     });
                 });
             });
             setVendorPackages(prev => [...prev, ...updated]);
         }
 
+        setNewSupplier([]);
+        setSupplierSearchText('');
         setLoading(false)
         toggleDrawer("addsupplier", false)
     };
@@ -573,696 +567,285 @@ const EventAllocationScreen = forwardRef(({ props }, NFASOBRFQRef) => {
         );
     }
 
-    return (
-        <div className="p-3 pe-2 ps-2 custom-fix">
-            <Grid container spacing={2}>
-                {/* Basis of dropdown */}
-                <Grid item xs={12} md={6}>
-                    <Box mb={2}>
-                        <FormControl fullWidth size="small">
-                            <InputLabel id="basis-of-label">Basis of</InputLabel>
-                            <Select
-                                labelId="basis-of-label"
-                                id="basis-of-select"
-                                value={basisOf}
-                                onChange={handleBasisOfChange}
-                                label="Basis of"
-                                disabled={!isDraftStage}
-                            >
-                                <MenuItem value="package">Package</MenuItem>
-                                <MenuItem value="item">Item</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Box>
-                </Grid>
+    const TH = { borderBottom: '1px solid #e5e7eb', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f9fafb', whiteSpace: 'nowrap' };
+    const TD = { padding: '8px 12px', borderBottom: '1px solid #f3f4f6', fontSize: 13, color: '#1f2937' };
+    const totalRows = basisOf === 'item' ? items.length : vendorPackages.length;
 
-                {/* Value Type dropdown */}
-                <Grid item xs={12} md={6}>
-                    <Box mb={2}>
-                        <FormControl fullWidth size="small">
-                            <InputLabel id="value-type-label">Value Type</InputLabel>
-                            <Select
-                                labelId="value-type-label"
-                                id="value-type-select"
-                                value={valueType}
-                                onChange={handleValueTypeChange}
-                                label="Value Type"
-                                disabled={!isDraftStage || !eventDetailsCanEdit || basisOf == 'package' ? true : false}
-                            >
-                                <MenuItem value="absolute">Absolute</MenuItem>
-                                <MenuItem value="percentage">Percentage</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Box>
-                </Grid>
-            </Grid>
-            <Box display="flex" justifyContent="flex-end" mb={2}>
-                <Button
-                    variant="text"
-                    size="small"
-                    startIcon={<HiPlusSm />}
-                    className="text-capitalize blue-text font-normal"
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden', padding: '16px 20px' }}>
+            {/* ── Controls row ── */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexShrink: 0, marginBottom: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Basis of</label>
+                    <Select
+                        autoWidth
+                        value={basisOf}
+                        onChange={handleBasisOfChange}
+                        size="small"
+                        displayEmpty
+                        disabled={!isDraftStage}
+                        sx={{ width: 220, fontSize: 13 }}
+                        MenuProps={{ PaperProps: { sx: { width: '220px !important', minWidth: '220px !important' } } }}
+                    >
+                        <MenuItem value="package">Package</MenuItem>
+                        <MenuItem value="item">Item</MenuItem>
+                    </Select>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Value Type</label>
+                    <Select
+                        value={valueType}
+                        onChange={handleValueTypeChange}
+                        size="small"
+                        displayEmpty
+                        disabled={!isDraftStage || !eventDetailsCanEdit || basisOf === 'package'}
+                        sx={{ width: 220, fontSize: 13 }}
+                        MenuProps={{ PaperProps: { sx: { width: '220px !important', minWidth: '220px !important' } } }}
+                    >
+                        <MenuItem value="absolute">Absolute</MenuItem>
+                        <MenuItem value="percentage">Percentage</MenuItem>
+                    </Select>
+                </div>
+
+                <div style={{ flex: 1 }} />
+
+                <button
+                    className="pe-btn pe-btn--secondary"
                     onClick={() => toggleDrawer("addsupplier", true)}
                     disabled={!isDraftStage || !eventDetailsCanCreate}
                 >
+                    <HiPlusSm style={{ marginRight: 4, fontSize: 15 }} />
                     Add More Suppliers
-                </Button>
-            </Box>
-            {basisOf == 'item' &&
-
-                (
-                    <div className="table-responsive item-Table"
-                        style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '70vh' }}>
-                        <Table
-                            className="stripped"
-                            style={{
-                                backgroundColor: 'white',
-                                color: 'black',
-                                borderCollapse: 'collapse',
-                                width: '100%',
-                            }}
-                        >
-                            <thead>
-                                <tr style={{ color: 'black' }}>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>S.No</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Item Code</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Item / Service</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Quantity</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Target Price</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>UOM</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Plant</th>
-                                    <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {items && items.length > 0 ? items
-                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                    .map((item, index) => [
-                                        <tr
-                                            key={item.id}
-                                            style={{
-                                                backgroundColor: '#ffffff',
-                                                color: 'black',
-                                            }}
-                                        >
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
-                                                {page * rowsPerPage + index + 1}
-                                            </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
-                                                {item.itemCode || '-'}
-                                            </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
-                                                {item.itemName}
-                                            </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
-                                                {item.quantity} {item.uom && `(${item.uom})`}
-                                            </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
-                                                {item.targetPrice || 0}
-                                            </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
-                                                {item.uom}
-                                            </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
-                                                {item.plant}
-                                            </td>
-                                            <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => handleItemExpand(item.id)}
-                                                    disabled={!eventDetailsCanRead}
-                                                    style={{
-                                                        transform: expandedItems[item.id] ? 'rotate(180deg)' : 'rotate(0deg)',
-                                                        transition: 'transform 0.3s ease'
-                                                    }}
-                                                >
-                                                    <ExpandMoreIcon />
-                                                </IconButton>
-                                            </td>
-                                        </tr>,
-                                        expandedItems[item.id] && (
-                                            <tr key={`${item.id}-expanded`}>
-                                                <td colSpan="8" style={{ padding: '0', backgroundColor: '#f8f9fa' }}>
-                                                    <Box sx={{ backgroundColor: '#f8f9fa' }}>
-
-
-                                                        {/* Vendor details table with full functionality */}
-                                                        <div className="table-responsive"
-                                                            style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '40vh' }}>
-                                                            <Table
-                                                                className="stripped"
-                                                                style={{
-                                                                    backgroundColor: '#f8f9fa',
-                                                                    color: 'black',
-                                                                    borderCollapse: 'collapse',
-                                                                    width: '100%',
-                                                                    tableLayout: 'fixed',
-                                                                    minWidth: '1100px'
-                                                                }}
-                                                            >
-                                                                <thead>
-                                                                    <tr style={{ color: 'black' }}>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '60px', minWidth: '60px' }}></th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '250px', minWidth: '250px' }}>VENDOR DETAILS</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Item Rank</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Initial Price</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Final Price</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '130px', minWidth: '130px' }}>Price Reduction</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Allocation</th>
-                                                                        <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Total</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {vendorPackages && vendorPackages.filter(vp => vp.itemId === item.id).length > 0 ? (
-                                                                        vendorPackages
-                                                                            .filter(vp => vp.itemId === item.id)
-                                                                            .map((vendorItem, vendorIndex) => (
-                                                                                <tr
-                                                                                    key={vendorItem.vendorId}
-                                                                                    style={{
-                                                                                        backgroundColor: '#f8f9fa',
-                                                                                        color: 'black',
-                                                                                    }}
-                                                                                >
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '60px', minWidth: '60px' }}>
-                                                                                        {vendorIndex + 1}
-                                                                                    </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '250px', minWidth: '250px', wordWrap: 'break-word' }}>
-                                                                                        {vendorItem.companyName}
-                                                                                    </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
-                                                                                        {vendorItem.packageRank}
-                                                                                    </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
-                                                                                        {vendorItem.initialPrice !== 0 ? vendorItem.initialPrice : 'Not Quoted'}
-                                                                                    </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
-                                                                                        {!vendorItem.newVendor ? (
-                                                                                            vendorItem.finalPrice !== 0 ? (
-                                                                                                vendorItem.finalPrice
-                                                                                            ) : (
-                                                                                                'Not Quoted'
-                                                                                            )
-                                                                                        ) : (
-                                                                                            <TextField
-                                                                                                InputLabelProps={{ shrink: true }}
-                                                                                                fullWidth
-                                                                                                variant="outlined"
-                                                                                                size="small"
-                                                                                                className="f14"
-                                                                                                id={`finalPrice-${vendorItem.vendorId}-${item.id}`}
-                                                                                                name="finalPrice"
-                                                                                                type="number"
-                                                                                                inputProps={{
-                                                                                                    inputMode: 'decimal',
-                                                                                                    pattern: '[0-9]*[.]?[0-9]*',
-                                                                                                }}
-                                                                                                value={
-                                                                                                    vendorItem.finalPrice !== undefined && vendorItem.finalPrice !== null
-                                                                                                        ? vendorItem.finalPrice
-                                                                                                        : ''
-                                                                                                }
-                                                                                                onChange={(e) =>
-                                                                                                    handleNewSupplierPrice(vendorItem.vendorId, e.target.value, item.id)
-                                                                                                }
-                                                                                                disabled={!isDraftStage || !eventDetailsCanEdit}
-                                                                                            />
-                                                                                        )}
-                                                                                    </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '130px', minWidth: '130px' }}>
-                                                                                        {vendorItem.priceReduction || ''}
-                                                                                    </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
-                                                                                        <TextField
-                                                                                            InputLabelProps={{ shrink: true }}
-                                                                                            fullWidth
-                                                                                            variant="outlined"
-                                                                                            size="small"
-                                                                                            className="f14"
-                                                                                            id={`allocation-${vendorItem.vendorId}-${item.id}`}
-                                                                                            name="allocation"
-                                                                                            type="number"
-                                                                                            inputProps={{
-                                                                                                inputMode: 'decimal',
-                                                                                                pattern: '[0-9]*[.]?[0-9]*',
-                                                                                            }}
-                                                                                            value={
-                                                                                                vendorItem.allocation !== undefined && vendorItem.allocation !== null
-                                                                                                    ? vendorItem.allocation
-                                                                                                    : ''
-                                                                                            }
-                                                                                            onChange={(e) =>
-                                                                                                handleAllocationChangeItem(item.id, vendorItem.vendorId, e.target.value)
-                                                                                            }
-                                                                                            error={Boolean(allocationErrors[`${vendorItem.vendorId}-${item.id}`])}
-                                                                                            helperText={allocationErrors[`${vendorItem.vendorId}-${item.id}`]}
-                                                                                            disabled={!isDraftStage || !eventDetailsCanEdit}
-                                                                                        />
-                                                                                    </td>
-                                                                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px', wordWrap: 'break-word' }}>
-                                                                                        {vendorItem.totalPrice || ''}
-                                                                                    </td>
-                                                                                </tr>
-                                                                            ))
-                                                                    ) : (
-                                                                        <tr>
-                                                                            <td colSpan="8" style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                                                                                No vendor quotes available for this item
-                                                                            </td>
-                                                                        </tr>
-                                                                    )}
-                                                                </tbody>
-                                                            </Table>
-                                                        </div>
-
-                                                    </Box>
-                                                </td>
-                                            </tr>
-                                        )
-                                    ]).flat() : (
-                                    <tr>
-                                        <td colSpan="8" style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                                            No items available
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
+                </button>
+            </div>
+            {/* ── Table area (fixed height, internal scroll) ── */}
+            <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                {!basisOf && (
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 13 }}>
+                        Select a "Basis of" option to view allocation data
                     </div>
                 )}
-            {basisOf == 'package' && (
-                <div
-                    className="table-responsive item-Table"
-                    style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '70vh' }}
-                >
-                    <Table
-                        className="stripped"
-                        style={{
-                            backgroundColor: 'white',
-                            color: 'black',
-                            borderCollapse: 'collapse',
-                            width: '100%',
-                            tableLayout: 'fixed',
-                            minWidth: '1100px'
-                        }}
-                    >
-                        <thead>
-                            <tr style={{ color: 'black' }}>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '60px', minWidth: '60px' }}>S.No</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '250px', minWidth: '250px' }}>VENDOR DETAILS</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Package Rank</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Initial Price</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Final Price</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '130px', minWidth: '130px' }}>Price Reduction</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Allocation</th>
-                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400, width: '120px', minWidth: '120px' }}>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {vendorPackages
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((item, index) => (
-                                    <tr
-                                        key={item.vendorId}
-                                        style={{
-                                            backgroundColor: index % 2 === 0 ? '#ffffff' : '#ffffff',
-                                            color: 'black',
-                                        }}
-                                    >
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '60px', minWidth: '60px' }}>
-                                            {page * rowsPerPage + index + 1}
-                                        </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '250px', minWidth: '250px', wordWrap: 'break-word' }}>
-                                            {item.companyName}
-                                        </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
-                                            {item.packageRank}
-                                        </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
-                                            {item.initialPrice !== 0 ? item.initialPrice : 'Not Quoted'}
-                                        </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
-                                            {!item.newVendor ? (
-                                                item.finalPrice !== 0 ? (
-                                                    item.finalPrice
-                                                ) : (
-                                                    'Not Quoted'
-                                                )
-                                            ) : (
-                                                <TextField
-                                                    InputLabelProps={{ shrink: true }}
-                                                    fullWidth
-                                                    variant="outlined"
-                                                    size="small"
-                                                    className="f14"
-                                                    id={`finalPrice-${item.vendorId}`}
-                                                    name="finalPrice"
-                                                    type="number"
-                                                    inputProps={{
-                                                        inputMode: 'decimal',
-                                                        pattern: '[0-9]*[.]?[0-9]*',
-                                                    }}
-                                                    value={
-                                                        item.finalPrice !== undefined && item.finalPrice !== null
-                                                            ? item.finalPrice
-                                                            : ''
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleNewSupplierPrice(item.vendorId, e.target.value)
-                                                    }
-                                                    disabled={!isDraftStage || !eventDetailsCanEdit}
-                                                />
-                                            )}
-                                        </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '130px', minWidth: '130px' }}>
-                                            {item.priceReduction}
-                                        </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
-                                            <TextField
-                                                InputLabelProps={{ shrink: true }}
-                                                fullWidth
-                                                variant="outlined"
-                                                size="small"
-                                                className="f14"
-                                                id={`allocation-${item.vendorId}`}
-                                                name="allocation"
-                                                type="number"
-                                                inputProps={{
-                                                    inputMode: 'decimal',
-                                                    pattern: '[0-9]*[.]?[0-9]*',
-                                                }}
-                                                value={
-                                                    item.allocation !== undefined && item.allocation !== null
-                                                        ? item.allocation
-                                                        : ''
-                                                }
-                                                onChange={(e) =>
-                                                    handleAllocationChangePackage(item.vendorId, e.target.value)
-                                                }
-                                                error={Boolean(allocationErrors[item.vendorId])}
-                                                helperText={allocationErrors[item.vendorId]}
-                                                disabled={!isDraftStage || !eventDetailsCanEdit}
-                                            />
-                                        </td>
-                                        <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px', wordWrap: 'break-word' }}>
-                                            {item.totalPrice}
-                                        </td>
-                                    </tr>
-                                ))}
-                        </tbody>
-                    </Table>
-                </div>
-            )}
 
+                {basisOf === 'item' && (
+                    <PETableSimple
+                        rows={items.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
+                        getRowKey={(row) => row.id}
+                        wrapperStyle={{ border: 'none', borderRadius: 0 }}
+                        columns={[
+                            { key: 'sno', label: 'S.No', width: 52, renderCell: (_, row, i) => (page - 1) * rowsPerPage + i + 1 },
+                            { key: 'itemCode', label: 'Item Code', renderCell: (v) => v || '-' },
+                            { key: 'itemName', label: 'Item / Service' },
+                            { key: 'quantity', label: 'Quantity', renderCell: (v, row) => `${v}${row.uom ? ` (${row.uom})` : ''}` },
+                            { key: 'targetPrice', label: 'Target Price', renderCell: (v) => v || 0 },
+                            { key: 'uom', label: 'UOM' },
+                            { key: 'plant', label: 'Plant' },
+                        ]}
+                        getExpandContent={(item) => (
+                            <PETableSimple
+                                rows={vendorPackages.filter(vp => vp.itemId === item.id)}
+                                getRowKey={(row) => row.vendorId}
+                                wrapperStyle={{ border: 'none', borderRadius: 0 }}
+                                columns={[
+                                    { key: 'sno', label: '#', width: 48, renderCell: (_, row, i) => i + 1 },
+                                    { key: 'companyName', label: 'Vendor Details', whiteSpace: 'normal' },
+                                    { key: 'packageRank', label: 'Item Rank', width: 110 },
+                                    { key: 'initialPrice', label: 'Initial Price', width: 120, renderCell: (v) => v !== 0 ? v : 'Not Quoted' },
+                                    {
+                                        key: 'finalPrice', label: 'Final Price', width: 130,
+                                        renderCell: (v, row) => !row.newVendor ? (v !== 0 ? v : 'Not Quoted') : (
+                                            <TextField size="small" variant="outlined" fullWidth type="number"
+                                                inputProps={{ inputMode: 'decimal', pattern: '[0-9]*[.]?[0-9]*' }}
+                                                value={v ?? ''} onChange={(e) => handleNewSupplierPrice(row.vendorId, e.target.value, item.id)}
+                                                disabled={!isDraftStage || !eventDetailsCanEdit} />
+                                        ),
+                                    },
+                                    { key: 'priceReduction', label: 'Price Reduction', width: 120 },
+                                    {
+                                        key: 'allocation', label: 'Allocation', width: 130,
+                                        renderCell: (v, row) => (
+                                            <TextField size="small" variant="outlined" fullWidth type="number"
+                                                inputProps={{ inputMode: 'decimal', pattern: '[0-9]*[.]?[0-9]*' }}
+                                                value={v ?? ''} onChange={(e) => handleAllocationChangeItem(item.id, row.vendorId, e.target.value)}
+                                                error={Boolean(allocationErrors[`${row.vendorId}-${item.id}`])}
+                                                helperText={allocationErrors[`${row.vendorId}-${item.id}`]}
+                                                disabled={!isDraftStage || !eventDetailsCanEdit} />
+                                        ),
+                                    },
+                                    { key: 'totalPrice', label: 'Total', width: 110 },
+                                ]}
+                            />
+                        )}
+                    />
+                )}
 
+                {basisOf === 'package' && (
+                    <PETableSimple
+                        rows={vendorPackages.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
+                        getRowKey={(row) => row.vendorId}
+                        wrapperStyle={{ border: 'none', borderRadius: 0 }}
+                        columns={[
+                            { key: 'sno', label: 'S.No', width: 52, renderCell: (_, row, i) => (page - 1) * rowsPerPage + i + 1 },
+                            { key: 'companyName', label: 'Vendor Details', whiteSpace: 'normal' },
+                            { key: 'packageRank', label: 'Package Rank', width: 110 },
+                            { key: 'initialPrice', label: 'Initial Price', width: 120, renderCell: (v) => v !== 0 ? v : 'Not Quoted' },
+                            {
+                                key: 'finalPrice', label: 'Final Price', width: 130,
+                                renderCell: (v, row) => !row.newVendor ? (v !== 0 ? v : 'Not Quoted') : (
+                                    <TextField size="small" variant="outlined" fullWidth type="number"
+                                        inputProps={{ inputMode: 'decimal', pattern: '[0-9]*[.]?[0-9]*' }}
+                                        value={v ?? ''} onChange={(e) => handleNewSupplierPrice(row.vendorId, e.target.value)}
+                                        disabled={!isDraftStage || !eventDetailsCanEdit} />
+                                ),
+                            },
+                            { key: 'priceReduction', label: 'Price Reduction', width: 120 },
+                            {
+                                key: 'allocation', label: 'Allocation', width: 130,
+                                renderCell: (v, row) => (
+                                    <TextField size="small" variant="outlined" fullWidth type="number"
+                                        inputProps={{ inputMode: 'decimal', pattern: '[0-9]*[.]?[0-9]*' }}
+                                        value={v ?? ''} onChange={(e) => handleAllocationChangePackage(row.vendorId, e.target.value)}
+                                        error={Boolean(allocationErrors[row.vendorId])}
+                                        helperText={allocationErrors[row.vendorId]}
+                                        disabled={!isDraftStage || !eventDetailsCanEdit} />
+                                ),
+                            },
+                            { key: 'totalPrice', label: 'Total', width: 110 },
+                        ]}
+                    />
+                )}
+
+                {/* ── Pagination fixed at bottom ── */}
+                {basisOf && (
+                    <PEPagination
+                        page={page}
+                        pageSize={rowsPerPage}
+                        totalRows={totalRows}
+                        onPageChange={setPage}
+                        onPageSizeChange={(n) => { setRowsPerPage(n); setPage(1); }}
+                    />
+                )}
+            </div>
 
             <React.Fragment key="top">
                 {/* Drawer for Add New Supplier */}
-                <Drawer
-                    anchor="right" // Drawer position (right in this case)
-                    open={openDrawer.addsupplier} // Open this drawer if state is true for 'addsupplier'
-                    onClose={() => toggleDrawer("addsupplier", false)} // Close when clicked outside or on close button
+                <CommonBottomDrawer
+                    open={openDrawer.addsupplier}
+                    onClose={() => { toggleDrawer("addsupplier", false); setSupplierSearchText(''); }}
+                    title="Add New Supplier"
+                    bodyStyle={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden', padding: '16px', gap: '12px' }}
+                    actions={<>
+                        <button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-muted" onClick={() => { toggleDrawer("addsupplier", false); setSupplierSearchText(''); }}>Close</button>
+                        <button type="button" className="pe-btn pe-btn--primary" onClick={handleSaveNewSupplier}>Update</button>
+                    </>}
                 >
-                    <div style={{ width: 600, display: "flex", flexDirection: "column", }}>
-                        <Box className="bgheaderCards">
-                            <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                                <div className="ms-3 text-white">Add New Supplier</div>
-                                <IconButton
-                                    onClick={() => toggleDrawer("addsupplier", false)}
+                    {/* Filters row */}
+                    <div className="rfq-v2-drawer-form" style={{ flexShrink: 0 }}>
+                        <div className="rfq-v2-drawer-grid">
+                            <div className="rfq-v2-drawer-field">
+                                <span className="rfq-v2-drawer-label">Category</span>
+                                <Autocomplete
                                     size="small"
-                                    edge="start"
-                                    sx={{ mr: 1 }}
-                                >
-                                    <HiOutlineX className="f20 text-white" />
-                                </IconButton>
+                                    options={categoryList ?? []}
+                                    fullWidth
+                                    renderInput={(params) => (
+                                        <TextField {...params} placeholder="Select category" />
+                                    )}
+                                    getOptionLabel={(option) => option.itemCategory ?? ""}
+                                    isOptionEqualToValue={(option, value) => option.id === value?.id}
+                                    value={selectedCategory}
+                                    onChange={(e, newvalue) => {
+                                        setSelectedCategory(newvalue);
+                                        setSupplierSearchText('');
+                                        handleSupplierWithCategory(newvalue);
+                                    }}
+                                />
                             </div>
-                        </Box>
-                        <div className="row p-2">
-                            <div className="col-12">
-                                <div className="">
-                                    <div className="row align-items-center">
-                                        <div className="col-12 col-md-12">
-                                            <div className="row mt-2">
-                                                <div className="col-12 col-md-6 col-lg-6 mb-3">
-                                                    <Autocomplete
-                                                        disablePortal
-                                                        id=""
-                                                        size="small"
-                                                        options={categoryList ?? []}
-                                                        fullWidth
-                                                        disabled={!isDraftStage || !eventDetailsCanEdit}
-                                                        renderInput={(params) => (
-                                                            <TextField
-                                                                {...params}
-                                                                InputLabelProps={{
-                                                                    shrink: true,
-                                                                }}
-                                                                label="Category"
-                                                            />
-                                                        )}
-                                                       	onOpen={() => {
-																						// Call API when dropdown opens
-																						if (categoryList.length === 0) {
-																							getCategorylist();
-																						}
-																					}}
-																		getOptionLabel={(option) =>
-																						option.itemCategory ?? ""
-																					}
-                                                        value={selectedCategory}
-                                                        onChange={(e, newvalue) => {
-                                                            setSelectedCategory(newvalue);
-                                                            handleSupplierWithCategory(newvalue);
-                                                        }}
-                                                    />
-                                                </div>
-
-                                                <div className="col-12 col-md-6 col-lg-6 mb-3">
-                                                    <Autocomplete
-                                                        id="searchvendorbyname"
-                                                        options={
-                                                            remainingSupplier ?? []
-                                                        }
-                                                        filterOptions={VendorfilterOptions}
-                                                        getOptionLabel={(option) => ""}
-                                                        disabled={!isDraftStage || !eventDetailsCanCreate}
-                                                        renderOption={(
-                                                            props,
-                                                            option,
-                                                            { selected }
-                                                        ) => (
-                                                            <li {...props}>
-                                                                {<Checkbox
-                                                                    icon={icon}
-                                                                    checkedIcon={checkedIcon}
-                                                                    style={{ marginRight: 8 }}
-                                                                />}
-                                                                {`${option.contactPerson} | ${option.email} | ${option?.companyName}` ??
-                                                                    ""}
-                                                            </li>
-                                                        )}
-                                                        size="small"
-                                                        fullWidth
-                                                        renderInput={(params) => (
-                                                            <TextField
-                                                                {...params}
-                                                                InputLabelProps={{
-                                                                    shrink: true,
-                                                                }}
-                                                                label="Search User from Supplier by Name"
-                                                            />
-                                                        )}
-                                                        onChange={(e, newvalue) => {
-                                                            if (newvalue) {
-
-                                                                handleCheckRemainingSupplier(newvalue)
-                                                            }
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
+                            <div className="rfq-v2-drawer-field">
+                                <span className="rfq-v2-drawer-label">Search Supplier</span>
+                                <TextField
+                                    size="small"
+                                    fullWidth
+                                    placeholder="Search by name or email..."
+                                    value={supplierSearchText}
+                                    onChange={(e) => { setSupplierSearchText(e.target.value); setPageTS(1); }}
+                                />
                             </div>
-                        </div>
-                        <div className="row mt-3">
-                            <div className="col-12 col-md-12 col-lg-6">
-                                <div className="bg-white rounded shadow-sm">
-                                    <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                                        <div className="p-2">
-                                            <div className="d-flex align-items-center">
-                                                Remaining Suppliers{" "}
-                                                <div className="supplierCount">
-                                                    {
-                                                        remainingSupplier
-                                                            ?.length
-                                                    }
-                                                </div>{" "}
-                                                {selectedCategory && (
-                                                    <Badge pill bg="success" text="dark">
-                                                        {selectedCategory?.categoryName}
-                                                    </Badge>
-                                                )}
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                    <hr className="m-0" />
-                                    <div className="row">
-                                        <div className="col-12">
-                                            {remainingSupplier
-
-                                                ?.slice(
-                                                    (pageTS - 1) * pageCount,
-                                                    pageTS * pageCount
-                                                )
-                                                .map((x, i) => (
-                                                    <div
-                                                        className="d-flex border-bottom align-items-center m-0 p-1 pt-0 pb-0"
-                                                        key={i}
-                                                    >
-
-                                                        <div className="flex-grow-1 ms-2 text-truncate">
-
-                                                            <div className="text-truncate f12">
-                                                                <IconButton
-                                                                    size="small"
-                                                                    className="ms-2 me-3"
-                                                                    color="primary"
-                                                                    onClick={() => handleCheckRemainingSupplier(x)}
-                                                                    disabled={!isDraftStage || !eventDetailsCanCreate}
-                                                                >
-                                                                    <HiOutlineUserAdd />
-                                                                </IconButton>
-
-                                                                {`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
-
-                                                            </div>
-                                                        </div>
-
-
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="pagination_wrapper mb-3 mt-3">
-                                    <div className="d-flex align-items-center">
-                                        <div className="flex-grow-1 d-none d-md-block">
-                                        </div>
-                                        <div className="">
-                                            <Stack spacing={2}>
-                                                <Pagination
-                                                    count={totalpageTS}
-                                                    page={pageTS}
-                                                    onChange={handlePaginationTS}
-                                                />
-                                            </Stack>
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                            </div>
-                            {newSupplier && newSupplier.length > 0 && <div className="col-12 col-md-12 col-lg-6 border-start">
-                                <div className="bg-white rounded shadow-sm">
-                                    <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                                        <div className="p-2">
-                                            <div className="d-flex align-items-center">
-                                                New Suppliers{" "}
-                                                <div className="supplierCount">
-                                                    {newSupplier?.length}
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                        <div className="">
-                                            <>
-                                            </>
-                                        </div>
-                                    </div>
-                                    <hr className="m-0" />
-                                    <div className="row">
-                                        <div className="col-12">
-                                            {newSupplier
-                                                .slice(
-                                                    (pageSS - 1) * pageCount,
-                                                    pageSS * pageCount
-                                                )
-                                                .map((x, i) => (
-                                                    <div
-                                                        className="row border-bottom align-items-center m-0 p-1 pt-0 pb-0"
-                                                        key={i}
-                                                    >
-                                                        <div className="col-md-10">
-                                                            <div className="d-flex align-items-center ">
-
-                                                                <div className="text-truncate f12">
-                                                                    <IconButton
-                                                                        size="small"
-                                                                        className="ms-2 me-3"
-                                                                        color="error"
-                                                                        onClick={() => handleClearRemainingSupplier(x)}
-                                                                        disabled={!isDraftStage || !eventDetailsCanRemove}
-                                                                    >
-                                                                        <HiOutlineX />
-                                                                    </IconButton>
-                                                                    {`${x?.contactPerson} | ${x?.email} | ${x?.companyName}`}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-md-2 justify-content-end d-flex align-items-center">
-                                                            <div className="col-md-4  d-flex align-items-center justify-content-end">
-
-
-                                                            </div>
-
-
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="pagination_wrapper mb-3 mt-3">
-                                    <div className="d-flex align-items-center">
-                                        <div className="flex-grow-1 d-none d-md-block">
-
-                                        </div>
-                                        <div className="">
-                                            <Stack spacing={2}>
-                                                <Pagination
-                                                    count={totalpageSS}
-                                                    page={pageSS}
-                                                    onChange={handlePaginationSS}
-                                                />
-                                            </Stack>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>}
-                            {newSupplier && newSupplier.length > 0 && <div className="row">
-                                <div className="col-md-12 text-end">
-                                    <div className="buttonVendor">
-                                        <LoadingButton
-                                            loading={loading}
-                                            variant="contained"
-                                            onClick={handleSaveNewSupplier}
-                                            disabled={!isDraftStage || !eventDetailsCanEdit}
-                                        >
-                                            Update
-                                        </LoadingButton>
-                                    </div>
-
-                                </div>
-                            </div>}
                         </div>
                     </div>
-                </Drawer>
+
+                    {/* Two-column supplier lists */}
+                    {(() => {
+                        const filteredRemaining = (remainingSupplier ?? []).filter(x => {
+                            if (!supplierSearchText) return true;
+                            const q = supplierSearchText.toLowerCase();
+                            return (
+                                (x?.contactPerson ?? '').toLowerCase().includes(q) ||
+                                (x?.email ?? '').toLowerCase().includes(q) ||
+                                (x?.companyName ?? '').toLowerCase().includes(q)
+                            );
+                        });
+                        const pagedRemaining = filteredRemaining.slice((pageTS - 1) * pageCount, pageTS * pageCount);
+                        const pagedNew = (newSupplier ?? []).slice((pageSS - 1) * pageCount, pageSS * pageCount);
+
+                        return (
+                            <div style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0 }}>
+                                {/* Remaining Suppliers */}
+                                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', flexShrink: 0 }}>
+                                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>Remaining Suppliers</span>
+                                        <span style={{ background: '#2A68D3', color: '#fff', borderRadius: '10px', fontSize: '11px', fontWeight: 700, padding: '1px 7px' }}>{filteredRemaining.length}</span>
+                                        {selectedCategory && (
+                                            <span style={{ background: '#d1fae5', color: '#065f46', borderRadius: '10px', fontSize: '11px', fontWeight: 600, padding: '1px 8px' }}>{selectedCategory?.itemCategory}</span>
+                                        )}
+                                    </div>
+                                    <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+                                        {pagedRemaining.length === 0 ? (
+                                            <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>No suppliers found</div>
+                                        ) : pagedRemaining.map((x, i) => (
+                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderBottom: '1px solid #f3f4f6' }}>
+                                                <button type="button" className="pe-icon-btn pe-icon-btn--add" style={{ flexShrink: 0 }} onClick={() => handleCheckRemainingSupplier(x)} disabled={!isDraftStage || !eventDetailsCanCreate}>
+                                                    <HiOutlineUserAdd />
+                                                </button>
+                                                <div style={{ fontSize: '12px', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                                                    <span style={{ fontWeight: 500 }}>{x?.contactPerson}</span>
+                                                    {' | '}{x?.email}
+                                                    {' | '}<span style={{ color: '#6b7280' }}>{x?.companyName}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <PEPagination page={pageTS} pageSize={pageCount} totalRows={filteredRemaining.length} onPageChange={setPageTS} onPageSizeChange={(n) => { setPageCount(n); setPageTS(1); }} />
+                                </div>
+
+                                {/* New Suppliers */}
+                                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', flexShrink: 0 }}>
+                                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>New Suppliers</span>
+                                        <span style={{ background: '#2A68D3', color: '#fff', borderRadius: '10px', fontSize: '11px', fontWeight: 700, padding: '1px 7px' }}>{newSupplier?.length ?? 0}</span>
+                                    </div>
+                                    <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+                                        {pagedNew.length === 0 ? (
+                                            <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>No suppliers added yet</div>
+                                        ) : pagedNew.map((x, i) => (
+                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderBottom: '1px solid #f3f4f6' }}>
+                                                <button type="button" className="pe-icon-btn pe-icon-btn--delete" style={{ flexShrink: 0 }} onClick={() => handleClearRemainingSupplier(x)} disabled={!isDraftStage || !eventDetailsCanRemove}>
+                                                    <HiOutlineX />
+                                                </button>
+                                                <div style={{ fontSize: '12px', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                                                    <span style={{ fontWeight: 500 }}>{x?.contactPerson}</span>
+                                                    {' | '}{x?.email}
+                                                    {' | '}<span style={{ color: '#6b7280' }}>{x?.companyName}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <PEPagination page={pageSS} pageSize={pageCount} totalRows={newSupplier?.length ?? 0} onPageChange={setPageSS} onPageSizeChange={(n) => { setPageCount(n); setPageSS(1); }} />
+                                </div>
+                            </div>
+                        );
+                    })()}
+                </CommonBottomDrawer>
             </React.Fragment>
         </div>
     );

@@ -82,3 +82,480 @@
   background: rgba(255, 255, 255, 0.18);
   margin: 12px 0;
 }
+
+/* ── Global Button System ────────────────────────────────────────────────── */
+/*
+  Usage:
+    Primary   → <button className="pe-btn pe-btn--primary">Label</button>
+    Secondary → <button className="pe-btn pe-btn--secondary">Label</button>
+    Ghost     → <button className="pe-btn pe-btn--ghost">Label</button>
+*/
+
+:root {
+  --pe-btn-blue: #2082db;
+  --pe-btn-blue-hover: #1769bb;
+  --pe-btn-blue-light: #e8f1fb;
+  --pe-btn-muted: #616161;
+  --pe-btn-muted-hover: #616161;
+}
+
+.pe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+  text-decoration: none;
+}
+
+/* Primary */
+.pe-btn--primary {
+  background: var(--pe-btn-blue);
+  color: #fff;
+  border: 1px solid var(--pe-btn-blue);
+}
+.pe-btn--primary:hover:not(:disabled) {
+  background: var(--pe-btn-blue-hover);
+  border-color: var(--pe-btn-blue-hover);
+  color: #fff;
+}
+
+/* Secondary */
+.pe-btn--secondary {
+  background: transparent;
+  color: var(--pe-btn-blue);
+  border: 1px solid var(--pe-btn-blue);
+}
+.pe-btn--secondary:hover:not(:disabled) {
+  background: var(--pe-btn-blue-light);
+  color: var(--pe-btn-blue);
+  border-color: var(--pe-btn-blue);
+}
+
+/* Ghost */
+.pe-btn--ghost {
+  background: #fafafa;
+  color: var(--pe-btn-muted);
+  border: 1px solid transparent;
+}
+.pe-btn--ghost:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: var(--pe-btn-muted-hover);
+  border-color: #d1d5db;
+}
+
+.pe-btn--danger {
+  background: var(--pe-danger, #b8232f);
+  color: #fff;
+  border: 1px solid var(--pe-danger, #b8232f);
+}
+.pe-btn--danger:hover:not(:disabled) {
+  background: #9a1e29;
+  border-color: #9a1e29;
+}
+
+/* Disabled state — applies to all variants */
+.pe-btn:disabled,
+.pe-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   pe-icon-btn  —  Global icon-only button system
+   Base:     <button className="pe-icon-btn pe-icon-btn--{variant}">
+   Variants: --delete  --close  --edit  --add  --download
+             --expand  --reminder  --confirm
+   ───────────────────────────────────────────────────────────────────────── */
+.pe-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #6b7280;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+  font-size: 14px;
+  line-height: 1;
+}
+.pe-icon-btn svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.pe-icon-btn:disabled,
+.pe-icon-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+/* MUI IconButton override when pe-icon-btn is applied to MuiIconButton */
+.MuiIconButton-root.pe-icon-btn {
+  border-radius: 8px !important;
+  padding: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* ── Delete / Remove ── red */
+.pe-icon-btn--delete {
+  color: #ef4444;
+  border-color: #fecaca;
+  background: #fff;
+}
+.pe-icon-btn--delete:hover:not(:disabled) {
+  background: #fff5f5;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+/* ── Close / Dismiss ── gray */
+.pe-icon-btn--close {
+  color: #6b7280;
+  border-color: #e5e7eb;
+  background: #fff;
+}
+.pe-icon-btn--close:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+/* ── Edit / Pencil ── blue tinted */
+.pe-icon-btn--edit {
+  color: #2a68d3;
+  border-color: #bfdbfe;
+  background: #eff4ff;
+}
+.pe-icon-btn--edit:hover:not(:disabled) {
+  background: #dbeafe;
+  border-color: #2a68d3;
+  color: #1d4ed8;
+}
+
+/* ── Add / Plus ── blue tinted */
+.pe-icon-btn--add {
+  color: #2a68d3;
+  border-color: #bfdbfe;
+  background: #eff4ff;
+}
+.pe-icon-btn--add:hover:not(:disabled) {
+  background: #dbeafe;
+  border-color: #2a68d3;
+  color: #1d4ed8;
+}
+
+/* ── Download ── neutral with blue accent */
+.pe-icon-btn--download {
+  color: #2a68d3;
+  border-color: #e5e7eb;
+  background: #fff;
+}
+.pe-icon-btn--download:hover:not(:disabled) {
+  background: #eff4ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+/* ── Expand / Collapse ── neutral */
+.pe-icon-btn--expand {
+  color: #6b7280;
+  border-color: #e5e7eb;
+  background: #fff;
+}
+.pe-icon-btn--expand:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+/* ── Reminder / Notification ── purple */
+.pe-icon-btn--reminder {
+  color: #959595;
+  border-color: #d4d4d4;
+  background: #fff;
+}
+.pe-icon-btn--reminder:hover:not(:disabled) {
+  background: #f4f4f4;
+  border-color: #d4d4d4;
+  color: #959595;
+}
+
+/* ── Confirm / Save / Submit ── green */
+.pe-icon-btn--confirm {
+  color: #16a34a;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+.pe-icon-btn--confirm:hover:not(:disabled) {
+  background: #dcfce7;
+  border-color: #16a34a;
+  color: #15803d;
+}
+
+/* ── Subscribe (no subscription yet) ── muted gray, suggests "add" */
+.pe-icon-btn--subscribe {
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  background: #fff;
+}
+.pe-icon-btn--subscribe:hover:not(:disabled) {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #f87100;
+}
+
+/* ── Subscribed (active subscription) ── soft orange accent */
+.pe-icon-btn--subscribed {
+  color: #f87100;
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+.pe-icon-btn--subscribed:hover:not(:disabled) {
+  background: #ffedd5;
+  border-color: #f87100;
+  color: #ea6500;
+}
+
+/* ── Form field label (label above input — replaces MUI floating label) ── */
+.pe-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: #374151;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+/* ── Shared modal/popup chrome — every dialog in the app renders through
+   <PEModal> (MUI Dialog under the hood; `size` prop = MUI `maxWidth`:
+   xs/sm/md/lg/xl). One set of classes here instead of every page
+   reinventing header/body/footer styling + z-index/scroll handling. ── */
+/* `.MuiDialog-paper` (MUI's own theme class on the same element) sets its
+   own border-radius and otherwise ties with `.pe-modal-paper` on
+   specificity — whichever stylesheet happens to be injected later wins,
+   which was losing here. Chain both classes + !important so this always
+   wins regardless of MUI's emotion injection order. */
+.MuiDialog-paper.pe-modal-paper {
+  border-radius: 8px !important;
+  max-height: calc(100vh - 64px);
+  margin: 32px auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.pe-modal-header {
+  background: #fafcff !important;
+  padding: 10px 20px !important;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.pe-modal-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  margin: 0;
+  color: #101828;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.pe-modal-subtitle {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.pe-modal-body {
+  padding: 16px 20px !important;
+  background: #fff;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.pe-modal-footer {
+  padding: 10px 20px !important;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+/* ── pe-icon-btn variants (view) ── */
+.pe-icon-btn--view {
+  color: #2a68d3;
+  border-color: #e5e7eb;
+  background: #fff;
+}
+.pe-icon-btn--view:hover:not(:disabled) {
+  background: #eff4ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+/* ── pe-btn additional variants ── */
+.pe-btn--outline {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+.pe-btn--outline:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #374151;
+}
+.pe-btn--link {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--pe-btn-blue);
+  height: auto;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+.pe-btn--link:hover:not(:disabled) {
+  background: transparent;
+  color: var(--pe-btn-blue-hover);
+}
+.pe-btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: pe-btn-spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes pe-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Plain form input/textarea (label-above pattern, pairs with .pe-field-label) ── */
+.pe-detail-form-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #101828;
+  background: #fff;
+}
+.pe-detail-form-input:disabled,
+.pe-detail-form-input[readonly] {
+  background: #f8fafc;
+  border-color: #e5e7eb;
+  color: #6b7280;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.pe-detail-form-input:focus {
+  outline: none;
+  border-color: #2082db;
+  box-shadow: 0 0 0 2px rgba(32, 130, 219, 0.12);
+}
+.pe-detail-form-input::placeholder {
+  color: #98a2b3;
+}
+textarea.pe-detail-form-input {
+  min-height: 64px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+/* ── Info card — section card used in dialogs/drawers ── */
+.pe-info-card {
+  height: 100%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+}
+.pe-info-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #101828;
+  margin-bottom: 14px;
+  margin-right: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eeeeee;
+}
+.pe-info-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 14px;
+  column-gap: 16px;
+}
+.pe-info-card-grid--single {
+  grid-template-columns: 1fr;
+}
+
+/* ── Status badge ── */
+.pe-status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: #f3f4f6;
+  color: #374151;
+}
+.pe-status-badge--active,
+.pe-status-badge--approved,
+.pe-status-badge--completed {
+  background: #dcfce7;
+  color: #166534;
+}
+.pe-status-badge--pending,
+.pe-status-badge--under-approval {
+  background: #fef9c3;
+  color: #854d0e;
+}
+.pe-status-badge--rejected,
+.pe-status-badge--cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.pe-status-badge--draft {
+  background: #f3f4f6;
+  color: #6b7280;
+}

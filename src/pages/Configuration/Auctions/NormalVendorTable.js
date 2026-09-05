@@ -1,243 +1,242 @@
-import { Tooltip, TextField, Checkbox, TableHead, TableContainer, TableRow, TableCell, TableBody } from "@mui/material";
-import { Table } from "react-bootstrap";
-import IconButton from "@mui/material/IconButton";
-import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
-import { HiArrowDown, HiArrowUp, HiPencilAlt, HiX } from "react-icons/hi";
-import dayjs from "dayjs";
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import { Tooltip, TextField, Checkbox } from "@mui/material";
+import { HiArrowDown, HiArrowUp, HiPencilAlt, HiX } from 'react-icons/hi';
+import { PETableSimple } from '../../../components/RFQ/PETable';
 
 const NormalVendorTable = ({ auctionItem }) => {
-    return (
-        <TableContainer>
-            <Table className="vendors-table mb-0">
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Suppliers</TableCell>
-                        <TableCell>Rank</TableCell>
-                        <TableCell>Initial Quote</TableCell>
-                        <TableCell align="right">Latest Quote</TableCell>
-                        <TableCell align="right">Bid Value</TableCell>
-                        {auctionItem?.hasLoadingFactor && <TableCell align="right">Loading Factor</TableCell>}
-                        {auctionItem?.hasLoadingFactor && <TableCell align="right">Loaded Amount</TableCell>}
-                        <TableCell align="right">
-                            {auctionItem?.auctionManageData[0]?.bidTypeID === 1 || auctionItem?.auctionManageData[0]?.bidTypeID === 5 ? (
-                                <HiArrowUp className="text-success" />
-                            ) : (
-                                <HiArrowDown className="text-danger" />
-                            )}
-                            Start Price %
-                        </TableCell>
-                        <TableCell align="right">
-                            {auctionItem?.auctionManageData[0]?.bidTypeID === 1 || auctionItem?.auctionManageData[0]?.bidTypeID === 5 ? (
-                                <HiArrowUp className="text-success" />
-                            ) : (
-                                <HiArrowDown className="text-danger" />
-                            )}
-                            Target Price %
-                        </TableCell>
-                        <TableCell align="right">
-                            {auctionItem?.auctionManageData[0]?.bidTypeID === 1 || auctionItem?.auctionManageData[0]?.bidTypeID === 5 ? (
-                                <HiArrowUp className="text-success" />
-                            ) : (
-                                <HiArrowDown className="text-danger" />
-                            )}
-                            Last Invoice Price %
-                        </TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {auctionItem?.allVendorParticipationDetails
-                        ?.filter(vendor => vendor.bidParameterId === auctionItem?.item.bidParameterId)
-                        ?.sort((a, b) => (a.restrictRemarks && !b.restrictRemarks ? 1 : !a.restrictRemarks && b.restrictRemarks ? -1 : 0))
-                        //?.slice(auctionItem?.page * auctionItem?.rowsPerPage, auctionItem?.page * auctionItem?.rowsPerPage + auctionItem?.rowsPerPage)
-                        ?.map((sq, i2) => {
-                            if (sq?.vendorId) {
-                                return (
-                                    <TableRow key={`supplieritemlist${sq.vendorId}-${i2}`}>
-                                        <TableCell>
+	const upType = auctionItem?.auctionManageData[0]?.bidTypeID === 1 || auctionItem?.auctionManageData[0]?.bidTypeID === 5;
+	const isFreightOrFormula = [3, 4].includes(auctionItem?.auctionManageData[0]?.bidTypeID);
 
-                                            {
-                                                (auctionItem?.auctionManageData[0]?.hideVendor === true && auctionItem?.bidStatus === 'running') ? (
-                                                    <Tooltip title="Vendor Name">{'Anonymous Vendor'}</Tooltip>
-                                                ) : (
-                                                    <Tooltip title="Vendor Name">
-                                                        {sq.companyName}
-                                                        {sq.selectedCurrency && ` (${sq.selectedCurrency})`}
-                                                        {/* {auctionItem?.auctionManageData[0]?.isMultiCurrency && 
-                                                            (() => {
-                                                                const vendorData = auctionItem?.auctionManageData[0]?.bidVendorInvited?.find(v => v.vendorID === sq.vendorId);
-                                                                return vendorData?.currency ? ` (${vendorData.currency})` : '';
-                                                            })()
-                                                        } */}
-                                                    </Tooltip>
-                                                )
-                                            }
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="d-flex align-items-center">
-                                                <Tooltip title="Vendor Rank" style={{ color: auctionItem?.getRankColor(sq.rankValue) }}>
-                                                    {sq.rankValue || "N/A"}
-                                                </Tooltip>
+	// Derive term columns from the first vendor for the current line item
+	const termColumns = (() => {
+		if (!isFreightOrFormula) return [];
+		const firstVendor = auctionItem?.allVendorParticipationDetails?.find(
+			v => v.bidParameterId === auctionItem?.item?.bidParameterId && v.bidParticipationTermsHeader
+		);
+		if (!firstVendor) return [];
+		try {
+			const allTerms = JSON.parse(firstVendor.bidParticipationTermsHeader) || [];
+			const filteredTerms = allTerms.filter(t => !/total/i.test(t.name));
+			const auctionCT = auctionItem?.auctionManageData[0]?.auctionCT || [];
+			const textTermIds = new Set(
+				filteredTerms
+					.filter(term => {
+						const ctEntry = auctionCT.find(ct => ct.id === term.termId);
+						return ctEntry && ctEntry.valuetype !== 'Currency';
+					})
+					.map(t => t.termId)
+			);
+			return [
+				...filteredTerms.filter(t => !textTermIds.has(t.termId)).map(t => ({ ...t, isText: false })),
+				...filteredTerms.filter(t => textTermIds.has(t.termId)).map(t => ({ ...t, isText: true })),
+			];
+		} catch { return []; }
+	})();
 
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Tooltip title="Restrict Vendor to Quote">
-                                                {!(
-                                                    auctionItem?.auctionManageData[0]?.isReOpen === true ||
-                                                    (auctionItem?.auctionManageData[0]?.stage && auctionItem?.auctionManageData[0]?.stage !== "Open") || auctionItem?.bidStatus === "running"
-                                                ) && (
-                                                        <Checkbox
-                                                            size="small"
-                                                            onChange={() => auctionItem?.handleCheckboxRestrict(sq.vendorId, sq.bidParameterId)}
-                                                            checked={
-                                                                (auctionItem?.restrictVendorId === sq.vendorId && auctionItem?.restrictParameterId === sq.bidParameterId) ||
-                                                                !!(auctionItem?.prebidValues.find(item => item.createdById === sq.vendorId && item.bidParameterId === sq.bidParameterId)?.restrictRemarks) ||
-                                                                !!(sq?.restrictRemarks)
-                                                            }
-                                                            disabled={
-                                                                !!(sq?.restrictRemarks) ||
-                                                                (sq.quotedPrice !== undefined && sq.quotedPrice !== null && sq.quotedPrice !== 0) ||
-                                                                auctionItem?.prebidValues.some(
-                                                                    (item) =>
-                                                                        item.createdById === sq.vendorId &&
-                                                                        item.bidParameterId === sq.bidParameterId &&
-                                                                        item.quotedPrice !== undefined &&
-                                                                        item.quotedPrice !== null
-                                                                )
-                                                            }
-                                                        />
-                                                    )}
-                                            </Tooltip>
-                                            {auctionItem?.restrictVendorId === sq.vendorId && auctionItem?.restrictParameterId === sq.bidParameterId ? (
-                                                <TextField
-                                                    value={(() => { const e = auctionItem?.prebidValues.find(item => item.createdById === sq.vendorId && item.bidParameterId === sq.bidParameterId); return e !== undefined ? (e.restrictRemarks ?? '') : (sq?.restrictRemarks ?? ''); })()}
-                                                    onChange={(e) => auctionItem?.handleRestricttChange(e, sq)}
-                                                    onBlur={() => auctionItem?.handleBlur()}
-                                                    type="text"
-                                                    size="small"
-                                                    autoFocus
-                                                />
-                                            ) : (
-                                                <>
-                                                    {auctionItem?.prebidValues.find(item => item.createdById === sq.vendorId && item.bidParameterId === sq.bidParameterId)?.restrictRemarks || sq?.restrictRemarks || (sq?.initialPrice > 0 ? auctionItem?.thousands_separators(sq.initialPrice) : (sq.initialPrice === null && sq.id > 0 ? 'Quoted' : 'Not Participated'))}
-                                                    {(sq?.restrictRemarks) && !((auctionItem?.auctionManageData[0]?.stage && auctionItem?.auctionManageData[0]?.stage !== "Open") || auctionItem?.bidStatus === "running") && (
-                                                        <Tooltip title="Remove Restrict Remark">
-                                                            <span>
-                                                                <HiX
-                                                                    size={16}
-                                                                    className="text-danger"
-                                                                    style={{ cursor: 'pointer', marginLeft: '5px' }}
-                                                                    onClick={() => auctionItem?.handleRemoveRestrictRemarks(sq?.id)}
-                                                                />
-                                                            </span>
-                                                        </Tooltip>
-                                                    )}
-                                                </>
-                                            )}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            {auctionItem?.editingVendorId === sq.vendorId && auctionItem?.editingParameterId === sq.bidParameterId ? (
-                                                <TextField
-                                                    value={(() => { const e = auctionItem?.prebidValues.find(item => item.createdById === sq.vendorId && item.bidParameterId === sq.bidParameterId); return e !== undefined ? (e.quotedPrice ?? '') : (sq.quotedPrice || ''); })()}
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        if (value >= 0 || value === '') {
-                                                            auctionItem?.handlePriceChange(e, sq);
-                                                        }
-                                                    }}
-                                                    onBlur={() => auctionItem?.handleBlur()}
-                                                    type="number"
-                                                    size="small"
-                                                    autoFocus
-                                                />
-                                            ) : (
-                                                <>
-                                                    {auctionItem?.prebidValues.find(item => item.createdById === sq.vendorId && item.bidParameterId === sq.bidParameterId)?.quotedPrice || (sq.quotedPrice && sq.quotedPrice !== 0 ? auctionItem?.thousands_separators(sq.quotedPrice) : (sq.quotedPrice === null && sq.id > 0 ? 'Quoted' : 'Not Participated'))}
-                                                    {sq.rankValue !== null && auctionItem?.bidStatus !== null && !auctionItem?.auctionManageData[0]?.hideVendor && sq.quotedPrice !== null && sq.quotedPrice !== undefined && (
-                                                        <Tooltip title="Remove Quote">
-                                                            <span>
-                                                                <HiX
-                                                                    size={18}
-                                                                    className="text-danger"
-                                                                    style={{ cursor: 'pointer', marginLeft: '5px' }}
-                                                                    onClick={() => auctionItem?.handleOpenModalRemoveQuote(sq?.quotedPrice, sq?.id)}
-                                                                />
-                                                            </span>
-                                                        </Tooltip>
-                                                    )}
-                                                    {!(
-                                                        auctionItem?.auctionManageData[0]?.isReOpen === true ||
-                                                        (auctionItem?.auctionManageData[0]?.stage && auctionItem?.auctionManageData[0]?.stage !== "Open") ||
-                                                        auctionItem?.bidStatus === "running") && (
-                                                            <HiPencilAlt
-                                                                className="text-primary"
-                                                                style={{
-                                                                    marginLeft: '5px',
-                                                                    cursor: sq?.restrictRemarks || auctionItem?.prebidValues?.some(
-                                                                        (item) =>
-                                                                            item.createdById === sq.vendorId &&
-                                                                            item.bidParameterId === sq.bidParameterId &&
-                                                                            item.restrictRemarks
-                                                                    )
-                                                                        ? 'not-allowed'
-                                                                        : 'pointer',
-                                                                    pointerEvents: sq?.restrictRemarks || auctionItem?.prebidValues?.some(
-                                                                        (item) =>
-                                                                            item.createdById === sq.vendorId &&
-                                                                            item.bidParameterId === sq.bidParameterId &&
-                                                                            item.restrictRemarks
-                                                                    )
-                                                                        ? 'none'
-                                                                        : 'auto'
-                                                                }}
-                                                                onClick={() => auctionItem?.handleEditPrice(sq.vendorId, sq.bidParameterId)}
-                                                            />
-                                                        )}
-                                                </>
-                                            )}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            {((sq?.quotedPrice ?? 0) * (auctionItem?.item?.quantity ?? '')) == 0
-                                                //? 'N/A'
-                                                ? 0
-                                                : auctionItem?.thousands_separators((sq?.quotedPrice ?? '') * (auctionItem?.item?.quantity ?? ''))
-                                            }
-                                        </TableCell>
-                                        {auctionItem?.hasLoadingFactor && <TableCell align="right">{auctionItem?.thousands_separators(sq?.loadingFactors) || 0}</TableCell>}
-                                        {auctionItem?.hasLoadingFactor && <TableCell align="right">{auctionItem?.thousands_separators(sq?.loadedPrice) || 0}</TableCell>}
-                                        <TableCell align="right">
-                                            {sq?.percRedStartPrice != null
-                                                ? `${auctionItem?.thousands_separators(Number(sq.percRedStartPrice).toFixed(2))}%`
-                                                : "N/A"}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            {sq?.percRedTargetPrice != null
-                                                ? `${auctionItem?.thousands_separators(Number(sq.percRedTargetPrice).toFixed(2))}%`
-                                                : "N/A"}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            {sq?.percRedLastInvPrice != null
-                                                ? `${auctionItem?.thousands_separators(Number(sq.percRedLastInvPrice).toFixed(2))}%`
-                                                : "N/A"}
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            }
-                            return null;
-                        })}
-                    {auctionItem?.allVendorParticipationDetails?.filter(vendor => vendor.bidParameterId === auctionItem?.item?.bidParameterId)?.length === 0 && (
-                        <TableRow>
-                            <TableCell colSpan={10}>Yet to quote for this line item</TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-        </TableContainer>
-    )
-}
+	const bidSubTypeId = auctionItem?.auctionManageData[0]?.bidSubTypeId;
+	const stage = auctionItem?.auctionManageData[0]?.stage;
+	const showLatestQuoteCol = bidSubTypeId != 82 || ["Close", "Awarded", "Allocation"].includes(stage);
+	const latestQuoteLabel = bidSubTypeId != 82 ? 'Latest Quote' : 'Accepted Price';
 
-export default NormalVendorTable
+	const columns = [
+		{
+			key: 'companyName',
+			label: 'Suppliers',
+			renderCell: (_, sq) => {
+				const invitedVendor = auctionItem?.ManageInvitedVendors?.find(v => v.vendorId === sq.vendorId);
+				const isOnline = invitedVendor?.status === true;
+				if (auctionItem?.auctionManageData[0]?.hideVendor === true && auctionItem?.bidStatus === 'running') {
+					return <Tooltip title="Vendor Name"><span>Anonymous Vendor</span></Tooltip>;
+				}
+				return (
+					<Tooltip title="Vendor Name">
+						<span style={{ display: 'inline-flex', alignItems: 'center' }}>
+							{isOnline && (
+								<>
+									<style>{`@keyframes ripple { 0% { transform: scale(.8); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }`}</style>
+									<span style={{ position: "relative", width: "10px", height: "10px", display: "inline-flex", marginRight: "8px", flexShrink: 0 }}>
+										<span style={{ position: "absolute", width: "100%", height: "100%", borderRadius: "50%", background: "#00c853", animation: "ripple 1.5s infinite" }} />
+										<span style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#00c853", zIndex: 1, boxShadow: "0 0 10px #00c853" }} />
+									</span>
+								</>
+							)}
+							{sq.companyName}{sq.selectedCurrency && ` (${sq.selectedCurrency})`}
+						</span>
+					</Tooltip>
+				);
+			},
+		},
+		{
+			key: 'rankValue',
+			label: 'Rank',
+			renderCell: (_, sq) => (
+				<div className="d-flex align-items-center">
+					<Tooltip title="Vendor Rank" style={{ color: auctionItem?.getRankColor(sq.rankValue) }}>
+						<span>{sq.rankValue || "N/A"}</span>
+					</Tooltip>
+				</div>
+			),
+		},
+		...(bidSubTypeId != 82 ? [{
+			key: 'initialPrice',
+			label: 'Initial Quote',
+			renderCell: (_, sq) => {
+				const isEditing = auctionItem?.restrictVendorId === sq.vendorId && auctionItem?.restrictParameterId === sq.bidParameterId;
+				const canShowCheckbox = !(
+					auctionItem?.auctionManageData[0]?.isReOpen === true ||
+					(auctionItem?.auctionManageData[0]?.stage && auctionItem?.auctionManageData[0]?.stage !== "Open") ||
+					auctionItem?.bidStatus === "running"
+				);
+				return (
+					<div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+						{canShowCheckbox && (
+							<Tooltip title="Restrict Vendor to Quote">
+								<span>
+									<Checkbox
+										size="small"
+										onChange={() => auctionItem?.handleCheckboxRestrict(sq.vendorId, sq.bidParameterId)}
+										checked={
+											isEditing ||
+											!!(auctionItem?.prebidValues.find(i => i.createdById === sq.vendorId && i.bidParameterId === sq.bidParameterId)?.restrictRemarks) ||
+											!!(sq?.restrictRemarks)
+										}
+										disabled={
+											!!(sq?.restrictRemarks) ||
+											(sq.quotedPrice !== undefined && sq.quotedPrice !== null && sq.quotedPrice !== 0) ||
+											auctionItem?.prebidValues.some(i => i.createdById === sq.vendorId && i.bidParameterId === sq.bidParameterId && i.quotedPrice !== undefined && i.quotedPrice !== null)
+										}
+									/>
+								</span>
+							</Tooltip>
+						)}
+						{isEditing ? (
+							<TextField
+								value={(() => { const e = auctionItem?.prebidValues.find(i => i.createdById === sq.vendorId && i.bidParameterId === sq.bidParameterId); return e !== undefined ? (e.restrictRemarks ?? '') : (sq?.restrictRemarks ?? ''); })()}
+								onChange={(e) => auctionItem?.handleRestricttChange(e, sq)}
+								onBlur={() => auctionItem?.handleBlur()}
+								type="text" size="small" autoFocus
+							/>
+						) : (
+							<>
+								<span>
+									{auctionItem?.prebidValues.find(i => i.createdById === sq.vendorId && i.bidParameterId === sq.bidParameterId)?.restrictRemarks
+										|| sq?.restrictRemarks
+										|| (sq?.initialPrice > 0 ? auctionItem?.thousands_separators(sq.initialPrice) : (sq.initialPrice === null && sq.id > 0 ? 'Quoted' : 'Not Participated'))}
+								</span>{" "}
+								{sq?.restrictRemarks && !((auctionItem?.auctionManageData[0]?.stage && auctionItem?.auctionManageData[0]?.stage !== "Open") || auctionItem?.bidStatus === "running") && (
+									<Tooltip title="Remove Restrict Remark">
+										<span>
+											<button className="pe-icon-btn pe-icon-btn--close" onClick={() => auctionItem?.handleRemoveRestrictRemarks(sq?.id)}><HiX className="text-danger" style={{ cursor: 'pointer', marginLeft: 4 }} /></button>
+										</span>
+									</Tooltip>
+								)}
+							</>
+						)}
+					</div>
+				);
+			},
+		}] : []),
+		...(showLatestQuoteCol ? [{
+			key: 'quotedPrice',
+			label: latestQuoteLabel,
+			renderCell: (_, sq) => {
+				const isEditing = auctionItem?.editingVendorId === sq.vendorId && auctionItem?.editingParameterId === sq.bidParameterId;
+				const canEdit = !(
+					auctionItem?.auctionManageData[0]?.isReOpen === true ||
+					(auctionItem?.auctionManageData[0]?.stage && auctionItem?.auctionManageData[0]?.stage !== "Open") ||
+					auctionItem?.bidStatus === "running"
+				);
+				const hasRestrict = sq?.restrictRemarks || auctionItem?.prebidValues?.some(i => i.createdById === sq.vendorId && i.bidParameterId === sq.bidParameterId && i.restrictRemarks);
+				return isEditing ? (
+					<TextField
+						value={(() => { const e = auctionItem?.prebidValues.find(i => i.createdById === sq.vendorId && i.bidParameterId === sq.bidParameterId); return e !== undefined ? (e.quotedPrice ?? '') : (sq.quotedPrice || ''); })()}
+						onChange={(e) => { const value = e.target.value; if (value >= 0 || value === '') auctionItem?.handlePriceChange(e, sq); }}
+						onBlur={() => auctionItem?.handleBlur()}
+						type="number" size="small" autoFocus
+					/>
+				) : (
+					<div style={{ display: 'flex', alignItems: 'center' }}>
+						<span>
+							{auctionItem?.prebidValues.find(i => i.createdById === sq.vendorId && i.bidParameterId === sq.bidParameterId)?.quotedPrice
+								|| (sq.quotedPrice && sq.quotedPrice !== 0 ? auctionItem?.thousands_separators(sq.quotedPrice) : (sq.quotedPrice === null && sq.id > 0 ? 'Quoted' : 'Not Participated'))}
+						</span>
+						{sq.rankValue !== null && auctionItem?.bidStatus !== null && !auctionItem?.auctionManageData[0]?.hideVendor && !auctionItem?.auctionManageData[0]?.groupAuction && sq.quotedPrice !== null && sq.quotedPrice !== undefined && bidSubTypeId != 82 && (
+							<Tooltip title="Remove Quote">
+								<button className="pe-icon-btn pe-icon-btn--close" onClick={() => auctionItem?.handleOpenModalRemoveQuote(sq?.quotedPrice, sq?.id)}><HiX /></button>
+							</Tooltip>
+						)}
+						{canEdit && (
+							<button
+								className="pe-icon-btn pe-icon-btn--edit"
+								style={{ marginLeft: 4, cursor: hasRestrict ? 'not-allowed' : 'pointer', pointerEvents: hasRestrict ? 'none' : 'auto' }}
+								onClick={() => auctionItem?.handleEditPrice(sq.vendorId, sq.bidParameterId)}
+							><HiPencilAlt /></button>
+						)}
+					</div>
+				);
+			},
+		}] : []),
+		...(isFreightOrFormula ? termColumns.map(col => ({
+			key: `term_${col.termId}`,
+			label: col.name,
+			renderCell: (_, sq) => {
+				let terms = [];
+				try { terms = JSON.parse(sq.bidParticipationTermsHeader) || []; } catch { terms = []; }
+				const t = terms.find(t => t.termId === col.termId);
+				return t ? (col.isText ? (t.remarks || 'N/A') : auctionItem?.thousands_separators(t.quotedPrice)) : '-';
+			},
+		})) : []),
+		{
+			key: '_bidValue',
+			label: 'Bid Value',
+			renderCell: (_, sq) => ((sq?.quotedPrice ?? 0) * (auctionItem?.item?.quantity ?? '')) === 0
+				? 0
+				: auctionItem?.thousands_separators((sq?.quotedPrice ?? '') * (auctionItem?.item?.quantity ?? '')),
+		},
+		...(auctionItem?.hasLoadingFactor ? [
+			{
+				key: 'loadingFactors',
+				label: 'Loading Factor',
+				renderCell: (_, sq) => auctionItem?.thousands_separators(sq?.loadingFactors) || 0,
+			},
+			{
+				key: 'loadedPrice',
+				label: 'Loaded Amount',
+				renderCell: (_, sq) => auctionItem?.thousands_separators(sq?.loadedPrice) || 0,
+			},
+		] : []),
+		{
+			key: 'percRedStartPrice',
+			label: 'Start Price %',
+			renderHeader: () => <>{upType ? <HiArrowUp className="text-success" /> : <HiArrowDown className="text-danger" />}{' '}Start Price %</>,
+			renderCell: (_, sq) => sq?.percRedStartPrice != null ? `${auctionItem?.thousands_separators(Number(sq.percRedStartPrice).toFixed(2))}%` : 'N/A',
+		},
+		{
+			key: 'percRedTargetPrice',
+			label: 'Target Price %',
+			renderHeader: () => <>{upType ? <HiArrowUp className="text-success" /> : <HiArrowDown className="text-danger" />}{' '}Target Price %</>,
+			renderCell: (_, sq) => sq?.percRedTargetPrice != null ? `${auctionItem?.thousands_separators(Number(sq.percRedTargetPrice).toFixed(2))}%` : 'N/A',
+		},
+		{
+			key: 'percRedLastInvPrice',
+			label: 'Last Invoice Price %',
+			renderHeader: () => <>{upType ? <HiArrowUp className="text-success" /> : <HiArrowDown className="text-danger" />}{' '}Last Invoice Price %</>,
+			renderCell: (_, sq) => sq?.percRedLastInvPrice != null ? `${auctionItem?.thousands_separators(Number(sq.percRedLastInvPrice).toFixed(2))}%` : 'N/A',
+		},
+	];
+
+	const rows = (auctionItem?.allVendorParticipationDetails
+		?.filter(vendor => vendor.bidParameterId === auctionItem?.item.bidParameterId)
+		?.sort((a, b) => (a.restrictRemarks && !b.restrictRemarks ? 1 : !a.restrictRemarks && b.restrictRemarks ? -1 : 0))
+		?.filter(sq => sq?.vendorId)) ?? [];
+
+	return (
+		<PETableSimple
+			columns={columns}
+			rows={rows}
+			getRowKey={(row, i) => `${row.vendorId}-${i}`}
+			wrapperStyle={{ border: 'none', borderRadius: 0 }}
+		/>
+	);
+};
+
+export default NormalVendorTable;

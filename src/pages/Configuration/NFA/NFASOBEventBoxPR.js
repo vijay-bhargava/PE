@@ -139,7 +139,8 @@ const NFASOBEventBoxPR = forwardRef(({ props }, NFASOBPRRef) => {
                 version: props.Version,
                 allocationOn: basisOf,
                 valueType: valueType,
-                totalPrice: parseFloat(vendor.totalPrice || 0)
+                totalPrice: parseFloat(vendor.totalPrice || 0),
+                remarks: vendor.remarks || ''
             }));
             const res = await apiClient.postres(`/api/NFASOBDetails/${props.eventId}/Add`, data, atoken);
             if (res) {
@@ -235,6 +236,13 @@ const NFASOBEventBoxPR = forwardRef(({ props }, NFASOBPRRef) => {
     }
 
 
+
+    const handleRemarksChange = (vendorId, value) => {
+        const updatedPackages = vendorPackages?.map(pkg =>
+            pkg.vendorId === vendorId ? { ...pkg, remarks: value } : pkg
+        );
+        setVendorPackages(updatedPackages);
+    }
 
     const handleBasisOfChange = (event) => {
         setBasisOf(event.target.value);
@@ -513,6 +521,7 @@ const NFASOBEventBoxPR = forwardRef(({ props }, NFASOBPRRef) => {
                                 <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Price Reduction</th>
                                 <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Allocation</th>
                                 <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Total</th>
+                                <th style={{ borderBottom: '2px solid #dee2e6', padding: '8px', fontSize: '13px', fontWeight: 400 }}>Remarks</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -588,6 +597,28 @@ const NFASOBEventBoxPR = forwardRef(({ props }, NFASOBPRRef) => {
                                         />
                                     </td>
                                     <td style={{ padding: '8px', borderTop: '1px solid #dee2e6' }}>{item.totalPrice}</td>
+                                    <td style={{ padding: '8px', borderTop: '1px solid #dee2e6', width: '120px', minWidth: '120px' }}>
+                                        <TextField
+                                            InputLabelProps={{ shrink: true }}
+                                            fullWidth
+                                            variant="outlined"
+                                            size="small"
+                                            className="f14"
+                                            id={`remarks-${item.vendorId}`}
+                                            name="remarks"
+                                            multiline
+                                            rows={3}
+                                            value={
+                                                item.remarks !== undefined && item.remarks !== null
+                                                    ? item.remarks
+                                                    : ''
+                                            }
+                                            onChange={(e) =>
+                                                handleRemarksChange(item.vendorId, e.target.value)
+                                            }
+                                            disabled={!eventDetailsCanEdit}
+                                        />
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

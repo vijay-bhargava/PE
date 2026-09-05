@@ -1,199 +1,178 @@
-import React, { useState, useMemo } from 'react';
-import { formatDateViaLocale2, formatDateViaTimeZone, formattimeoption } from '../../../utils/common/utility';
+import React, { useMemo, useState } from 'react';
+import IconButton from '@mui/material/IconButton';
+import { ExpandLess, ExpandMore } from '@mui/icons-material';
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { formatDateViaLocale2 } from '../../../utils/common/utility';
 import { useStateValue } from '../../../store';
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  IconButton,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Box
-} from "@mui/material";
-import { ExpandLess, ExpandMore } from "@mui/icons-material";
+
+const stripHtml = (html) => {
+  if (!html) return '';
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  return temp.textContent || '';
+};
+
+const bidTypeMap = {
+  1: 'Forward Auction',
+  2: 'Reverse Auction',
+  3: 'Freight Auction',
+  4: 'Formula Based Auction',
+  5: 'French Forward Auction',
+  6: 'French Reverse Auction',
+};
+const bidSubTypeMap = { 81: 'English', 82: 'Dutch', 83: 'Japanese' };
+
+/**
+ * Read-only "General" tab preview shown once an auction leaves Draft.
+ * Uses the same rfq-dv2-detail-row/label/value + rfq-dv2-text-panel
+ * layout as RFQGeneralPreview.js for visual parity with the RFQ V2
+ * detail page.
+ */
+const SUBJECT_LIMIT = 190;
 
 const BidGeneralPreview = ({ formik, inputList, bidtype, stagearray, currentStage, handletabEdit }) => {
   const [{ userDetail }] = useStateValue();
   const [showTable, setShowTable] = useState(true);
+  const [subjectExpanded, setSubjectExpanded] = useState(false);
 
-  const bidTypeMap = {
-    1: 'Forward Auction',
-    2: 'Reverse Auction',
-    3: 'Freight Auction',
-    4: 'Formula Based Auction',
-    5: 'French Forward Auction',
-    6: 'French Reverse Auction',
-  };
-  const bidSubTypeMap = {
-    81: 'English',
-    82: 'Dutch',
-    83: 'Japanese',
-  };
+  const plainDescription = useMemo(
+    () => stripHtml(formik.values.description),
+    [formik.values.description]
+  );
+  const plainTerms = useMemo(
+    () => stripHtml(formik.values.tnC),
+    [formik.values.tnC]
+  );
+
+  const canEditOverview =
+    (stagearray?.includes(currentStage) || currentStage === 'Under Approval') &&
+    typeof handletabEdit === 'function';
 
   const bidTypeDescription = bidTypeMap[bidtype?.id] || 'Unknown Auction';
   const bidSubTypeDescription = bidSubTypeMap[formik.values.bidSubTypeId] || 'Unknown SubType';
-  const result = `${bidTypeDescription} (${bidSubTypeDescription})`;
+  const bidTypeText = `${bidTypeDescription} (${bidSubTypeDescription})`;
 
   const isForwardOrFrenchForward = bidtype?.id === 1 || bidtype?.id === 5;
-  let rankDisplay = '';
+  let rankDisplay = 'Unknown Ranking Format';
   if (formik?.values?.showRankToVendor === 'Y') {
     rankDisplay = isForwardOrFrenchForward ? 'As H1, H2, H3, etc.' : 'As L1, L2, L3, etc.';
   } else if (formik?.values?.showRankToVendor === 'N') {
     rankDisplay = isForwardOrFrenchForward ? 'As H1 Or Not H1' : 'As L1 Or Not L1';
   } else if (formik?.values?.showRankToVendor === 'T') {
     rankDisplay = 'Traffic Light';
-  } else {
-    rankDisplay = 'Unknown Ranking Format';
+  }
+
+  const subject = formik.values.subject || '-';
+  const subjectLong = subject.length > SUBJECT_LIMIT;
+  const subjectDisplay = subjectLong && !subjectExpanded ? subject.slice(0, SUBJECT_LIMIT) + '…' : subject;
+
+  const rows = [
+    ['Subject:', subject],
+    ['Auction ID:', formik.values.id || '-'],
+    ['Start Time:', formatDateViaLocale2(formik?.values?.bidStDate, userDetail) || '-'],
+    ['End Time:', formatDateViaLocale2(formik?.values?.bidEndDate, userDetail) || '-'],
+    ['Bid Type:', bidTypeText],
+    ['Display Vendors Rank:', rankDisplay],
+    ['Maximum Extensions:', formik.values.maximumExtension === -1 ? 'Unlimited' : formik.values.maximumExtension],
+    ['Mask Participants:', formik.values.hideVendor ? 'Yes' : 'No'],
+    ['Mask Quote:', formik.values.hideQuote ? 'Yes' : 'No'],
+  ];
+
+  if (formik.values.groupAuction) {
+    rows.push(['Group Auction:', 'Yes']);
+    rows.push([
+      bidtype?.id === 1 ? 'Show H1 Package Price:' : 'Show L1 Package Price:',
+      formik.values.showL1BidValue ? 'Yes' : 'No',
+    ]);
+    if (formik.values.showL1BidValue === true) {
+      rows.push([
+        bidtype?.id === 1 ? 'Extension On H1 Package Breach:' : 'Extension On L1 Package Breach:',
+        formik.values.PkgBreachExt ? 'Yes' : 'No',
+      ]);
+    }
+  }
+  if (formik.values.prebid && formik.values.preBidStDate) {
+    rows.push(['Pre Bid Start Date:', formatDateViaLocale2(formik?.values?.preBidStDate, userDetail) || '-']);
+  }
+  if (formik.values.prebid && formik.values.preBidEndDate) {
+    rows.push(['Pre Bid End Date:', formatDateViaLocale2(formik?.values?.preBidEndDate, userDetail) || '-']);
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Card sx={{ mb: 3, boxShadow: 2 }}>
-        <CardHeader
-          title=""
-          sx={{ backgroundColor: '#ffffff', py: 1.5 }}
-          titleTypographyProps={{ fontSize: '14px', fontWeight: 400 }}
-          action={
-            (stagearray?.includes(currentStage) || currentStage === 'Under Approval') && (
-              <IconButton size="small" onClick={() => handletabEdit(1)}>
-                <span style={{ fontSize: '18px', color: '#1976d2' }}>✏️</span>
-              </IconButton>
-            )
-          }
-        />
-        <CardContent>
-          <div className="row">
+    <Box>
+      <div className="rfq-dv2-overview">
 
-            {/* Subject */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Subject</strong></Typography>
-              <Typography variant="body1">{formik.values.subject || '—'}</Typography>
-            </div>
-
-            {/* Auction ID */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Auction ID</strong></Typography>
-              <Typography variant="body1">{formik.values.id || '—'}</Typography>
-            </div>
-
-            {/* Start Time */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Start Time</strong></Typography>
-              <Typography variant="body1">{formatDateViaLocale2(formik?.values?.bidStDate, userDetail) || '—'}</Typography>
-            </div>
-
-            {/* End Time */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>End Time</strong></Typography>
-              <Typography variant="body1">{formatDateViaLocale2(formik?.values?.bidEndDate, userDetail) || '—'}</Typography>
-            </div>
-
-            {/* Bid Type */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Bid Type</strong></Typography>
-              <Typography variant="body1">{result}</Typography>
-            </div>
-
-            {/* Display Rank */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Display Vendors Rank</strong></Typography>
-              <Typography variant="body1">{rankDisplay}</Typography>
-            </div>
-
-            {/* Maximum Extensions */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Maximum Extensions</strong></Typography>
-              <Typography variant="body1">
-                {formik.values.maximumExtension === -1 ? 'Unlimited' : formik.values.maximumExtension}
-              </Typography>
-            </div>
-
-            {/* Hide Vendor */}
-            <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Mask Participants</strong></Typography>
-              <Typography variant="body1">{formik.values.hideVendor ? 'Yes' : 'No'}</Typography>
-            </div>
-
-             <div className="col-md-6 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Mask Quote</strong></Typography>
-              <Typography variant="body1">{formik.values.hideQuote ? 'Yes' : 'No'}</Typography>
-            </div>
-
-            {/* Pre Bid Start Date */}
-            {formik.values.prebid && formik.values.preBidStDate && (
-              <div className="col-md-6 mb-3">
-                <Typography variant="body2" color="textSecondary"><strong>Pre Bid Start Date</strong></Typography>
-                <Typography variant="body1">{formatDateViaLocale2(formik?.values?.preBidStDate, userDetail) || '—'}</Typography>
+        {rows.map(([label, detail]) => (
+          <div className="rfq-dv2-detail-row" key={label}>
+            <div className="rfq-dv2-detail-label">{label}</div>
+            {label === 'Subject:' ? (
+              <div className="rfq-dv2-detail-value">
+                {subjectDisplay}
+                {subjectLong && (
+                  <button
+                    type="button"
+                    onClick={() => setSubjectExpanded(v => !v)}
+                    style={{ background: 'none', border: 'none', color: 'var(--pe-primary, #1976d2)', cursor: 'pointer', fontSize: '12px', padding: '0 4px' }}
+                  >
+                    {subjectExpanded ? 'Show less' : 'Read more'}
+                  </button>
+                )}
               </div>
+            ) : (
+              <div className="rfq-dv2-detail-value">{detail}</div>
             )}
+          </div>
+        ))}
 
-            {/* Pre Bid End Date */}
-            {formik.values.prebid && formik.values.preBidEndDate && (
-              <div className="col-md-6 mb-3">
-                <Typography variant="body2" color="textSecondary"><strong>Pre Bid End Date</strong></Typography>
-                <Typography variant="body1">{formatDateViaLocale2(formik?.values?.preBidEndDate, userDetail) || '—'}</Typography>
-              </div>
-            )}
-
-            {/* Multi-Currency Table */}
-            {formik.values.isMultiCurrency && (
-              <div className="col-12 mb-3">
-                <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}><strong>Currency Mode</strong></Typography>
-                <Typography variant="body1" sx={{ display: 'inline', mr: 1 }}>Multi Currency</Typography>
-                <IconButton onClick={() => setShowTable(!showTable)} size="small">
-                  {showTable ? <ExpandLess /> : <ExpandMore />}
+        {formik.values.isMultiCurrency && (
+          <>
+            <div className="rfq-dv2-detail-row">
+              <div className="rfq-dv2-detail-label">Currency Mode:</div>
+              <div className="rfq-dv2-detail-value" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Multi Currency
+                <IconButton onClick={() => setShowTable(!showTable)} size="small" className="p-0">
+                  {showTable ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
                 </IconButton>
-                {showTable && (
-                  <TableContainer>
-                    <Table size="small">
+              </div>
+            </div>
+            {showTable && inputList?.length > 0 && (
+              <div className="rfq-dv2-detail-row">
+                <div className="rfq-dv2-detail-label" />
+                <div className="rfq-dv2-detail-value" style={{ padding: 0 }}>
+                  <TableContainer style={{ maxWidth: 320 }}>
+                    <Table size="small" aria-label="currency table">
                       <TableHead>
-                        <TableRow>
-                          <TableCell>Currency</TableCell>
-                          <TableCell align="right">Conversion Factor</TableCell>
+                        <TableRow sx={{ backgroundColor: '#F9FAFB' }}>
+                          <TableCell sx={{ pl: 1, fontSize: '12px', fontWeight: 600, borderBottom: 'none' }}>Currency</TableCell>
+                          <TableCell sx={{ pr: 1, fontSize: '12px', fontWeight: 600, borderBottom: 'none' }}>Conversion Factor</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {inputList.map((row, index) => (
                           <TableRow key={index}>
-                            <TableCell>{row.baseCurrency}</TableCell>
-                            <TableCell align="right">{row.currencyConversion}</TableCell>
+                            <TableCell sx={{ pl: 1, fontSize: '13px', borderBottom: '1px solid #e5e7eb' }}>{row.baseCurrency}</TableCell>
+                            <TableCell sx={{ pr: 1, fontSize: '13px', borderBottom: '1px solid #e5e7eb' }}>{row.currencyConversion}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
                   </TableContainer>
-                )}
+                </div>
               </div>
             )}
+          </>
+        )}
 
-            {/* Description */}
-            <div className="col-12 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Description</strong></Typography>
-              <Box
-                sx={{ border: '1px solid #e0e0e0', borderRadius: '4px', p: 1, fontSize: '14px' }}
-                className="ql-editor"
-                dangerouslySetInnerHTML={{ __html: formik.values.description || '—' }}
-              />
-            </div>
+        <div className="rfq-dv2-detail-row rfq-dv2-detail-row-text">
+          <div className="rfq-dv2-detail-label">Description:</div>
+          <div className="rfq-dv2-text-panel">{plainDescription || '-'}</div>
+        </div>
 
-            {/* Terms & Conditions */}
-            <div className="col-12 mb-3">
-              <Typography variant="body2" color="textSecondary"><strong>Terms & Conditions</strong></Typography>
-              <Box
-                sx={{ border: '1px solid #e0e0e0', borderRadius: '4px', p: 1, fontSize: '14px' }}
-                className="ql-editor"
-                dangerouslySetInnerHTML={{ __html: formik.values.tnC || '—' }}
-              />
-            </div>
-
-          </div>
-        </CardContent>
-      </Card>
+        <div className="rfq-dv2-detail-row rfq-dv2-detail-row-text">
+          <div className="rfq-dv2-detail-label">Terms & Conditions:</div>
+          <div className="rfq-dv2-text-panel">{plainTerms || '-'}</div>
+        </div>
+      </div>
     </Box>
   );
 };

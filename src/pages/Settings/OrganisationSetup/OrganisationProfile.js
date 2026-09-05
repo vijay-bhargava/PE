@@ -74,7 +74,7 @@ import {
 } from "../../../utils/apiConstants";
 import { ApiClient } from "../../../Apiclient";
 import { toast } from "react-toastify";
-import { getCountry, getTimeZone, removeNonNumeric, toastoption } from "../../../utils/common";
+import { getApiErrorMessage, getCountry, getTimeZone, removeNonNumeric, toastoption } from "../../../utils/common";
 import TextFieldCell from "../../BaseCells/TextFieldCell";
 import { BackButton } from "../../../utils/common/component";
 import { filteroptionDialingCode } from "../../../utils/common/utility";
@@ -153,33 +153,29 @@ const OrganisationProfile = () => {
     const [dialingCode, setDialingCode] = useState(userdialingcode);
     const [DialCodeList, setDialCodeList] = useState([]);
 
-    const pullDialCodeList = () => {
-      
+    const pullDialCodeList = async () => {
       setLoading(true);
-      getCountry(atoken)
-        .then((res) => {
-          if (res && res?.length > 0) {
-            setDialCodeList(res);
-          }
-          setLoading(false);
-        })
-        .catch(error => {
-          console.error("Error fetching user list:", error);
-          setLoading(false);
-        });
+      try {
+        const res = await getCountry(atoken);
+        if (res && res?.length > 0) {
+          setDialCodeList(res);
+        }
+      } catch (error) {
+        toast.error(getApiErrorMessage(error), { toastId: "dialcode_error" });
+      } finally {
+        setLoading(false);
+      }
     };
 
 
     const [TimezoneList, setTimezoneList] = useState([]);
-    const PullTimezone = () => {
-      var data = {
-        CustomerId: customerid
-      };
-  
-      getTimeZone(atoken).then((res) => {
-        // console.log(res);
+    const PullTimezone = async () => {
+      try {
+        const res = await getTimeZone(atoken);
         setTimezoneList(res);
-      });
+      } catch (error) {
+        toast.error(getApiErrorMessage(error), { toastId: "timezone_error" });
+      }
     };
 	  const [timeLocalelist,setTimeLocaleList]= useState(null);
 	  //pull timelocale data 
@@ -187,13 +183,16 @@ const OrganisationProfile = () => {
 		getTimeLocale()
 	  },[])
 	
-	  const getTimeLocale=async ()=>{
-			 ;
-			 const res =await  apiClient.getres(`/api/TimeLocale/FindAll`,atoken)
-			 if(res){
-			  setTimeLocaleList(res?.data)
-			 }
-	  }
+	  const getTimeLocale = async () => {
+		try {
+		  const res = await apiClient.getres(`/api/TimeLocale/FindAll`, atoken);
+		  if (res) {
+			setTimeLocaleList(res?.data);
+		  }
+		} catch (error) {
+		  toast.error(getApiErrorMessage(error), { toastId: "timelocale_error" });
+		}
+	  };
 	const [show, setShow] = useState(false);
 
 	const handleClose = () => {
@@ -243,22 +242,19 @@ const OrganisationProfile = () => {
 	};
 
 	const [userList, setUserList] = useState([]);
-	const pullUsersList = () => {
-		var data = {
-			Id: userDetail?.id,
-			//EditYN : "Y"
-			// managerId:managerId
-		};
-		
+	const pullUsersList = async () => {
+		const data = { Id: userDetail?.id };
 		setLoading(true);
-		FindUser(data, atoken).then((res) => {
-			console.log(res);
-               
+		try {
+			const res = await FindUser(data, atoken);
 			if (res != "" && res != undefined) {
 				setUserList(res);
 			}
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: "userlist_error" });
+		} finally {
 			setLoading(false);
-		});
+		}
 	};
 	const firstCharacter = userDetail?.name?.charAt(0);
 	useEffect(() => {
@@ -383,29 +379,19 @@ const OrganisationProfile = () => {
 			userType: Data?.userType,
 			stages: Data?.stages,
 		};
-
-		const res = await apiclient.putres(
-			`/api/auth/changepassword`,
-			data,
-			atoken
-		);
-
-		if (res) {
-			toast.success(`Password changed successfully`, {
-			 toastId: "selectPassword"
-			});
-			logout();
-			clearData();
-		} else {
-			toast.error(
-				`Failed to change password. Please check your  password and try again.`,
-				{
-					 toastId: "checkPassword"
-				}
-			);
+		try {
+			const res = await apiclient.putres(`/api/auth/changepassword`, data, atoken);
+			if (res) {
+				toast.success(`Password changed successfully`, { toastId: "selectPassword" });
+				logout();
+				clearData();
+			} else {
+				toast.error(`Failed to change password. Please check your password and try again.`, { toastId: "checkPassword" });
+				handleClose();
+			}
+		} catch (error) {
+			toast.error(getApiErrorMessage(error), { toastId: "changepassword_error" });
 			handleClose();
-			// Optionally, return something or handle this case further
-			return;
 		}
 	};
 
@@ -559,7 +545,7 @@ const handleDialChange = (e, value) => {
 	  setDialingCode(value.dialingCode);
 	}
   };
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
 	if (!phoneNumber || phoneNumber.trim() === '') {
         toast.error("Please fill the phone number before updating!", {
             toastId: "checkPasswordfill"
@@ -614,23 +600,19 @@ const handleDialChange = (e, value) => {
 
     if (userDetail?.id > 0) {
         // Assuming UpdateUser is an asynchronous function that updates user data
-        UpdateProfile(data, userDetail?.id, atoken)
-            .then((res) => {
-                setLoading(false);
-				setphoneNumber(res?.data?.phoneNumber); 
-				 dispatch({ type: actionTypes.SET_MSGALERTTYPE, value: "success" });
-                dispatch({ type: actionTypes.SET_MSGALERTDATA, value: res?.data?.message });
-                dispatch({ type: actionTypes.SET_MSGALERT, value: true });
-                pullUsersList();
-                toast.success("User updated successfully!", {
-                    toastId: "Userchecktime"
-                });
-            })
-            .catch((error) => {
-                setLoading(false);
-                console.error("Error updating user:", error);
-                // Handle error if necessary
-            });
+        try {
+            const res = await UpdateProfile(data, userDetail?.id, atoken);
+            setphoneNumber(res?.data?.phoneNumber);
+            dispatch({ type: actionTypes.SET_MSGALERTTYPE, value: "success" });
+            dispatch({ type: actionTypes.SET_MSGALERTDATA, value: res?.data?.message });
+            dispatch({ type: actionTypes.SET_MSGALERT, value: true });
+            pullUsersList();
+            toast.success("User updated successfully!", { toastId: "Userchecktime" });
+        } catch (error) {
+            toast.error(getApiErrorMessage(error), { toastId: "updateprofile_error" });
+        } finally {
+            setLoading(false);
+        }
     }
 };
 const getTimePatternFormat = (userTimePattern, timeLocalelist) => {

@@ -6,7 +6,7 @@ import ERFQComparative from "../RequestForQuotation/ERFQComparative";
 import { api, ApiClient } from '../../../Apiclient';
 import { sumArray } from "../../../utils/common";
 import Drawer from "@mui/material/Drawer";
-import { HiOutlineX, HiPlusSm, HiOutlineUserAdd, HiPencilAlt, HiOutlineInformationCircle } from "react-icons/hi";
+import { HiOutlineX, HiPlusSm, HiOutlineUserAdd, HiPencilAlt, HiOutlineInformationCircle, HiTrash } from "react-icons/hi";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import { Badge } from "react-bootstrap";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
@@ -36,6 +36,7 @@ const NFASOBItemWise = ({ props }) => {
     const [items, setItems] = useState([]);
     const [packageWiseData, setPackageWiseData] = useState([]);
     const [expandedItems, setExpandedItems] = useState({});
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     // Load data on component mount
     useEffect(() => {
@@ -43,6 +44,34 @@ const NFASOBItemWise = ({ props }) => {
         setItems(NFASobData.items);
         setPackageWiseData(NFASobData.packageWiseData);
     }, []);
+
+    const handleDeleteItem = async (itemId, event) => {
+        if (event) event.stopPropagation();
+        if (!window.confirm('Are you sure you want to delete this item?')) return;
+        setDeleteLoading(true);
+        try {
+            const response = await apiClient.deleteres(
+                `/api/NFAItemService/${itemId}/DeleteAll`,
+                atoken
+            );
+            if (response?.status === 200 || response?.data?.success === true || response?.data?.isSuccess === true) {
+                setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+                setPackageWiseData(prevData => prevData.filter(data => data.itemId !== itemId));
+                setExpandedItems(prev => {
+                    const newState = { ...prev };
+                    delete newState[itemId];
+                    return newState;
+                });
+                toast.success('Item deleted successfully');
+            } else {
+                toast.error(response?.data?.message || response?.data?.error || 'Failed to delete item');
+            }
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error?.message || 'Error deleting item. Please try again.');
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
 
     // Toggle expansion for an item
     const handleToggleExpand = (itemId) => {
@@ -83,9 +112,25 @@ const NFASOBItemWise = ({ props }) => {
                     <TableCell>{item.targetPrice}</TableCell>
                     <TableCell>{item.plant}</TableCell>
                     <TableCell>{item.itemDesc}</TableCell>
+                    <TableCell align="center" sx={{ minWidth: '120px', padding: '8px', overflow: 'visible' }}>
+                        <IconButton
+                            size="small"
+                            onClick={(e) => handleDeleteItem(item.id, e)}
+                            disabled={deleteLoading}
+                            sx={{
+                                color: '#f44336',
+                                padding: '8px',
+                                display: 'inline-flex',
+                                '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.15)', color: '#d32f2f' },
+                            }}
+                            title="Delete this item"
+                        >
+                            <HiTrash size={20} />
+                        </IconButton>
+                    </TableCell>
                 </TableRow>
                 <TableRow>
-                    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
+                    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={9}>
                         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                             <Box sx={{ margin: 1 }}>
                                 <Table size="small" aria-label="vendor-details">
@@ -146,6 +191,7 @@ const NFASOBItemWise = ({ props }) => {
                             <TableCell><strong>Target Price</strong></TableCell>
                             <TableCell><strong>Plant</strong></TableCell>
                             <TableCell><strong>Description</strong></TableCell>
+                            <TableCell><strong>Actions</strong></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>

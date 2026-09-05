@@ -5,6 +5,8 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/inter": "^5.2.8",
     "@fontsource/roboto": "^5.0.5",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
@@ -23,9 +25,10 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/quill": "^2.0.14",
     "axios": "^1.4.0",
+    "baseline-browser-mapping": "^2.11.17",
     "bootstrap": "^5.3.0",
     "buffer": "^6.0.3",
-    "caniuse-lite": "^1.0.30001757",
+    "caniuse-lite": "^1.0.30001809",
     "ckeditor4-react": "^5.2.1",
     "ckeditor5": "^44.1.0",
     "crypto-js": "^4.1.1",
@@ -114,5 +117,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   }
 }

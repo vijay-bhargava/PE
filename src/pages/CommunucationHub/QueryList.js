@@ -1,279 +1,243 @@
-import { ExpandMore } from '@mui/icons-material';
-import { IconButton, InputAdornment, MenuItem, TextField, Tooltip ,Alert} from '@mui/material';
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import React, { forwardRef, useEffect, useImperativeHandle } from 'react';
+import { Alert } from '@mui/material';
+import { PETable } from '../../components/RFQ/PETable';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { BackButton } from '../../utils/common/component';
 import { actionTypes, useStateValue } from '../../store';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { HiArrowRight, HiClock, HiFilter, HiOutlineSearch, HiOutlineX } from 'react-icons/hi';
-import DropdownButton from 'react-bootstrap/DropdownButton';
-import Dropdown from 'react-bootstrap/Dropdown';
-
+import { HiOutlineX } from 'react-icons/hi';
+import { PETableToolbar } from '../../components/RFQ/PETableToolbar';
 import { buildQueryParams, formatDateViaLocale } from '../../utils/common/utility';
 import { ApiClient } from '../../Apiclient';
 import { CLAIM_TYPES, ACTIONS } from '../../utils/permissionManager';
-// const QueryList = forwardRef(({props},Queryref) => {
-const QueryList = forwardRef(({ fromEventPage = false, EventId, EventType,permissionManager }, Queryref) => {
 
-  const [{ atoken, customerid, userDetail, customersuffix, NotificationlistRaiseQuery }, dispatch] = useStateValue();
-  const apiClient = new ApiClient(customersuffix);
-
-
-  const location = useLocation();
-  const queryparams = new URLSearchParams(location.search);
-  useEffect(() => {
-
-    if (fromEventPage) {
-      pullMessageList(EventId, EventType);
-    } else {
-      pullMessageList();
-    }
-  }, [EventType, EventId]);
-
-  const pullMessageList = async (EventId = null, EventType = null) => {
-    const data = {
-      CustomerId: customerid,
-      SortingColumn: "Id",
-      //CommDetails_CommParticipantUser_UserId: userDetail?.id,
-    };
-
-    if (fromEventPage) {
-      data.EventId = EventId;
-      data.EventType = EventType;
-    }
-    const queryParams = buildQueryParams(data);
-    const res = await apiClient.getres(`api/Communication/FindByCommId?${queryParams}`, atoken);
-    if (res) {
-      const data = res?.data?.result;
-      dispatch({ type: actionTypes.SET_NotificationlistRaiseQuery, value: data });
-    }
-  };
-
-
-  useImperativeHandle(Queryref, () => ({
-    handleDrawer: () => {
-
-    }
-  }))
-
-  useEffect(() => {
-
-    const data = queryparams.get("CommId")?.trim();
-    if (data) {
-      dispatch({ type: actionTypes.SET_CommId, value: parseInt(data) });
-    }
-  }, [location.search]);
-
-  const navigate = useNavigate();
-
-  const handleClick = (row) => {
-    
-    const CommId = row?.commDetails[0]?.commId;
-
-    const data = {
-      CommId: CommId
-    }
-    const queryParams = buildQueryParams(data)
-    const targetPath = `/${row.urllink}`;
-    const targetFullPath = `${targetPath}${queryParams ? `?${queryParams}` : ''}`;
-    // Compare current location with target
-    const currentPath = location.pathname;
-    const currentSearch = location.search.replace(/^\?/, ''); // remove "?" for comparison
-    dispatch({ type: actionTypes.SET_NotificationDrawer, value: false });
-    
-    // Set a flag to indicate source is from QueryList
-    dispatch({ type: actionTypes.SET_MessageSource, value: 'querylist' });
-
-    if (currentSearch == queryParams) {
-
-      dispatch({ type: actionTypes.SET_Opendrawer, value: true });
-
-
-    }
-    else {
-
-      if (queryParams)
-        //navigate(`/${row.urllink}?${queryParams}`);
-
-        navigate(`/${row.urllink}`);
-
-      // Redirect to the URL
-      else
-        navigate(`/${row.urllink}`);
-    }
-  };
-  // Define columns for the DataGrid
-  const columns = [
-  {
-    field: 'eventId',
-    headerName: 'ID',
-    width: 100,
-    renderCell: (params) => (
-      <div
-        onClick={() => handleClick(params.row)}
-        className="custom-link textDefault text-dark-blue"
-        style={{ cursor: 'pointer' }}
-      >
-        {params.row.eventCode || params.row.eventId}
-      </div>
-    ),
-  },
-  {
-    field: 'queryText',
-    headerName: 'Query Description',
-    width: 400,
-    renderCell: (params) => {
-      const fullQueryText = params.row.commDetails[0]?.queryText?.replace(/<\/?[^>]+(>|$)/g, "") || '';
-      const truncatedText = fullQueryText?.length > 50
-        ? fullQueryText.slice(0, 50) + '...'
-        : fullQueryText;
-
-      return (
-        <div
-          onClick={() => handleClick(params.row)}
-          className="custom-link textDefault text-dark-blue"
-          title={fullQueryText}
-          style={{ cursor: 'pointer' }}
-        >
-          {truncatedText}
-        </div>
-      );
-    },
-  },
-  {
-    field: 'eventType',
-    headerName: 'Event Type',
-    width: 150,
-    renderCell: (params) => {
-      const eventType = params.value?.toLowerCase();
-      let displayValue = params.value;
-
-      if (eventType === 'vq') {
-        displayValue = 'Supplier Qualification';
-      } else if (eventType === 'qr') {
-        displayValue = 'Supplier Registration';
-      }
-
-      return (
-        <div
-          onClick={() => handleClick(params.row)}
-          className="custom-link textDefault text-dark-blue"
-          style={{ cursor: 'pointer' }}
-        >
-          {displayValue}
-        </div>
-      );
-    },
-  },
-  {
-    field: 'userName',
-    headerName: 'Initiator',
-    width: 150,
-    renderCell: (params) => {
-      const initiatorName = params.row.commDetails[0]?.createdByName || 'Unknown';
-      return (
-        <div
-          onClick={() => handleClick(params.row)}
-          className="custom-link textDefault text-dark-blue"
-          style={{ cursor: 'pointer' }}
-        >
-          {initiatorName}
-        </div>
-      );
-    },
-  },
-  {
-    field: 'initiationTime',
-    headerName: 'Initiation Time',
-    width: 180,
-    valueGetter: (params) => params.row.createdOn,
-    renderCell: (params) => (
-      <div
-        onClick={() => handleClick(params.row)}
-        className="custom-link textDefault text-dark-blue"
-        style={{ cursor: 'pointer' }}
-      >
-        {params.formattedValue
-          ? formatDateViaLocale(params.formattedValue, userDetail)
-          : ""}
-      </div>
-    ),
-  },
+const FILTER_COLUMNS = [
+  { field: 'eventType', label: 'Event Type' },
+  { field: 'initiator', label: 'Initiator' },
+  { field: 'queryText', label: 'Query Description' },
+];
+const EXPORT_COLS = [
+  { field: 'eventId', label: 'ID', get: (r) => r.eventCode || r.eventId || '' },
+  { field: 'queryText', label: 'Query Description', get: (r) => r.commDetails?.[0]?.queryText?.replace(/<\/?[^>]+(>|$)/g, '') || '' },
+  { field: 'eventType', label: 'Event Type', get: (r) => r.eventType || '' },
+  { field: 'userName', label: 'Initiator', get: (r) => r.commDetails?.[0]?.createdByName || '' },
+  { field: 'initiationTime', label: 'Initiation Time', get: (r) => r.createdOn || '' },
+];
+const COL_DEFS = [
+  { field: 'eventId', label: 'ID' },
+  { field: 'queryText', label: 'Query Description' },
+  { field: 'eventType', label: 'Event Type' },
+  { field: 'userName', label: 'Initiator' },
+  { field: 'initiationTime', label: 'Initiation Time' },
+];
+const DENSITY_OPTIONS = [
+  { key: 'compact', label: 'Compact', height: 36 },
+  { key: 'standard', label: 'Standard', height: 48 },
+  { key: 'comfortable', label: 'Comfortable', height: 60 },
 ];
 
+const QueryList = forwardRef(({ fromEventPage = false, EventId, EventType, permissionManager }, Queryref) => {
+  const [{ atoken, customerid, userDetail, customersuffix, NotificationlistRaiseQuery }, dispatch] = useStateValue();
+  const apiClient = new ApiClient(customersuffix);
+  const location = useLocation();
+  const queryparams = new URLSearchParams(location.search);
+  const navigate = useNavigate();
 
+  // toolbar state
+  const [searchText, setSearchText] = useState('');
+  const [filterModel, setFilterModel] = useState({ items: [] });
+  const [columnVisibility, setColumnVisibility] = useState({ eventId: true, queryText: true, eventType: true, userName: true, initiationTime: true });
+  const [density, setDensity] = useState('standard');
+
+  const pullMessageList = async (eid = null, etype = null) => {
+    const data = { CustomerId: customerid, SortingColumn: 'Id' };
+    if (fromEventPage) { data.EventId = eid; data.EventType = etype; }
+    const qp = buildQueryParams(data);
+    const res = await apiClient.getres(`api/Communication/FindByCommId?${qp}`, atoken);
+    if (res) dispatch({ type: actionTypes.SET_NotificationlistRaiseQuery, value: res?.data?.result });
+  };
+
+  useEffect(() => {
+    if (fromEventPage) pullMessageList(EventId, EventType); else pullMessageList();
+    return () => dispatch({ type: actionTypes.SET_NotificationlistRaiseQuery, value: [] });
+  }, [EventType, EventId]);
+
+  useImperativeHandle(Queryref, () => ({ handleDrawer: () => { } }));
+
+  useEffect(() => {
+    const data = queryparams.get('CommId')?.trim();
+    if (data) dispatch({ type: actionTypes.SET_CommId, value: parseInt(data) });
+  }, [location.search]);
+
+  const handleClick = (row) => {
+    const CommId = row?.commDetails[0]?.commId;
+    const qp = buildQueryParams({ CommId });
+    const currentSearch = location.search.replace(/^\?/, '');
+    dispatch({ type: actionTypes.SET_NotificationDrawer, value: false });
+    dispatch({ type: actionTypes.SET_MessageSource, value: 'querylist' });
+    if (currentSearch === qp) dispatch({ type: actionTypes.SET_Opendrawer, value: true });
+    else navigate(`/${row.urllink}`);
+  };
+
+  // client-side filtering
+  const matchesFilter = (row, f) => {
+    let val = '';
+    if (f.field === 'eventType') val = (row.eventType || '').toLowerCase();
+    else if (f.field === 'initiator') val = (row.commDetails?.[0]?.createdByName || '').toLowerCase();
+    else if (f.field === 'queryText') val = (row.commDetails?.[0]?.queryText?.replace(/<\/?[^>]+(>|$)/g, '') || '').toLowerCase();
+    const fv = (f.value || '').toLowerCase();
+    if (f.operator === 'contains') return val.includes(fv);
+    if (f.operator === 'equals') return val === fv;
+    if (f.operator === 'startsWith') return val.startsWith(fv);
+    if (f.operator === 'endsWith') return val.endsWith(fv);
+    if (f.operator === 'isEmpty') return !val;
+    if (f.operator === 'isNotEmpty') return !!val;
+    return true;
+  };
+
+  const seenCommIds = new Set();
+  const deduped = (NotificationlistRaiseQuery || []).filter((row) => {
+    const commId = row.commDetails?.[0]?.commId ?? row.id;
+    if (commId == null || seenCommIds.has(commId)) return false;
+    seenCommIds.add(commId);
+    return true;
+  });
+
+  const filteredData = deduped.filter((row) => {
+    const s = searchText.toLowerCase();
+    const matchesSearch = !s || [
+      row.eventCode, String(row.eventId), row.eventType,
+      row.commDetails?.[0]?.createdByName,
+      row.commDetails?.[0]?.queryText?.replace(/<\/?[^>]+(>|$)/g, ''),
+    ].some(v => (v || '').toLowerCase().includes(s));
+    const matchesAll = filterModel.items.every(f => matchesFilter(row, f));
+    return matchesSearch && matchesAll;
+  });
+
+  const handleExport = () => {
+    if (!filteredData.length) return;
+    const visibleCols = EXPORT_COLS.filter(c => columnVisibility[c.field] !== false);
+    const header = visibleCols.map(c => c.label).join(',');
+    const rows = filteredData.map(r => visibleCols.map(c => `"${String(c.get(r)).replace(/"/g, '""')}"`).join(','));
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'queries.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const rowHeight = DENSITY_OPTIONS.find(d => d.key === density)?.height ?? 48;
+  const QUERY_FILTER_COLS = FILTER_COLUMNS;
+  const QUERY_COLUMNS_DEF = COL_DEFS.map(c => ({ field: c.field, headerName: c.label }));
+
+  const columns = [
+    {
+      field: 'eventId', headerName: 'ID', width: 100,
+      renderCell: (params) => (
+        <div onClick={() => handleClick(params.row)} className="custom-link textDefault text-dark-blue" style={{ cursor: 'pointer' }}>
+          {params.row.eventCode || params.row.eventId}
+        </div>
+      ),
+    },
+    {
+      field: 'queryText', headerName: 'Query Description', flex: 1, minWidth: 300,
+      renderCell: (params) => {
+        const full = params.row.commDetails?.[0]?.queryText?.replace(/<\/?[^>]+(>|$)/g, '') || '';
+        const truncated = full.length > 50 ? full.slice(0, 50) + '...' : full;
+        return (
+          <div onClick={() => handleClick(params.row)} className="custom-link textDefault text-dark-blue" title={full} style={{ cursor: 'pointer' }}>
+            {truncated}
+          </div>
+        );
+      },
+    },
+    {
+      field: 'eventType', headerName: 'Event Type', width: 150,
+      renderCell: (params) => {
+        const t = params.value?.toLowerCase();
+        const display = t === 'vq' ? 'Supplier Qualification' : t === 'qr' ? 'Supplier Registration' : params.value;
+        return <div onClick={() => handleClick(params.row)} className="custom-link textDefault text-dark-blue" style={{ cursor: 'pointer' }}>{display}</div>;
+      },
+    },
+    {
+      field: 'userName', headerName: 'Initiator', width: 160,
+      renderCell: (params) => (
+        <div onClick={() => handleClick(params.row)} className="custom-link textDefault text-dark-blue" style={{ cursor: 'pointer' }}>
+          {params.row.commDetails?.[0]?.createdByName || 'Unknown'}
+        </div>
+      ),
+    },
+    {
+      field: 'initiationTime', headerName: 'Initiation Time', width: 180,
+      valueGetter: (params) => params.row.createdOn,
+      renderCell: (params) => (
+        <div onClick={() => handleClick(params.row)} className="custom-link textDefault text-dark-blue" style={{ cursor: 'pointer' }}>
+          {params.formattedValue ? formatDateViaLocale(params.formattedValue, userDetail) : ''}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <>
-
       {!fromEventPage && (
         <div className='d-flex justify-content-between minh50px align-items-center p-1 bg-grey'>
           <BackButton title="Help & Support" />
         </div>
       )}
+
       <div className="query-list-container">
-        <div>
-          <div>
+        {(() => {
+          const canRead = permissionManager?.hasPermission(CLAIM_TYPES.QUERIES, ACTIONS.READ) ?? false;
+          if (!canRead) {
+            return (
+              <div className="p-4">
+                <Alert severity="error">
+                  <div className="d-flex align-items-center">
+                    <HiOutlineX className="me-2 f18" />
+                    Access Denied: You don't have permission to view Queries.
+                  </div>
+                </Alert>
+              </div>
+            );
+          }
 
-            {(() => {
-												const canRead = permissionManager?.hasPermission(CLAIM_TYPES.QUERIES, ACTIONS.READ) ?? false;
-												const canEdit = permissionManager?.hasPermission(CLAIM_TYPES.QUERIES, ACTIONS.EDIT) ?? false;
-												const canCreate = permissionManager?.hasPermission(CLAIM_TYPES.QUERIES, ACTIONS.CREATE) ?? false;
-												const canRemove = permissionManager?.hasPermission(CLAIM_TYPES.QUERIES, ACTIONS.REMOVE) ?? false;
+          return (
+            <>
+              {/* ── Toolbar ── */}
+              <PETableToolbar
+                searchText={searchText}
+                onSearchChange={setSearchText}
+                searchPlaceholder="Search queries..."
+                showFilter
+                filterColumns={QUERY_FILTER_COLS}
+                filterModel={filterModel}
+                onFilterModelChange={setFilterModel}
+                showColumns
+                columns={QUERY_COLUMNS_DEF}
+                columnVisibilityModel={columnVisibility}
+                onColumnVisibilityChange={setColumnVisibility}
+                onColumnVisibilityReset={() => setColumnVisibility({ eventId: true, queryText: true, eventType: true, userName: true, initiationTime: true })}
+                showDensity
+                density={density}
+                onDensityChange={setDensity}
+                showExport
+                onExport={handleExport}
+              />
 
-												// If no read permission, deny access completely
-												if (!canRead) {
-													return (
-														<div className="p-4">
-															<Alert severity="error">
-																<div className="d-flex align-items-center">
-																	<HiOutlineX className="me-2 f18" />
-																	Access Denied: You don't have permission to view Queries.
-																</div>
-															</Alert>
-														</div>
-													);
-												}
-
-												return (
-                          <div className='mt-2'>
-                            {NotificationlistRaiseQuery && NotificationlistRaiseQuery?.length > 0 ? (
-                              <DataGrid
-                                rows={NotificationlistRaiseQuery}
-                                columns={columns}
-                                rowHeight={45}
-                                columnHeaderHeight={40}
-                                className="f13 bg-white data-grid-scrollable"
-                                disableSelectionOnClick
-                                slots={{ toolbar: GridToolbar }}
-                                slotProps={{
-                                  toolbar: {
-                                    showQuickFilter: true,
-                                  },
-                                }}
-                              />
-                            ) : (
-                              <div style={{
-                                textAlign: 'center',
-                                padding: '2rem',
-                                color: '#555',
-                                fontSize: '16px',
-                                fontWeight: '500',
-                                userSelect: 'none',
-                              }}>
-                              
-                                <div>
-                                  No queries found.<br />
-                                  Feel free to <strong>raise a query</strong> to get started!
-                                </div>
-                              </div>
-
-                            )}
-                          </div>
-												);
-            })()}
-          </div>
-        </div>
+              {/* ── Table ── */}
+              <div className="rfq-v2-table-wrapper">
+                <PETable
+                  rows={filteredData}
+                  columns={columns}
+                  getRowId={(row) => row.id ?? row.eventId}
+                  rowHeight={rowHeight}
+                  columnVisibilityModel={columnVisibility}
+                  disableColumnResize
+                />
+              </div>
+            </>
+          );
+        })()}
       </div>
     </>
   );

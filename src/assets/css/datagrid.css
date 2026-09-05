@@ -481,3 +481,46 @@
     /* adjust based on your layout */
     overflow: hidden;
 }
+
+/* ── Status badges for table cells ──────────────────────────────── */
+.badge-status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.badge-active {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.badge-inactive {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+/* ── consistent-datagrid shared table style ──────────────────────── */
+.consistent-datagrid .MuiDataGrid-columnHeaders {
+  background: #f8fafc;
+  border-bottom: 1px solid var(--pe-border);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--pe-muted, #6b7280);
+  text-transform: capitalize;
+  letter-spacing: 0.2px;
+}
+.consistent-datagrid .MuiDataGrid-row.even {
+  background: #fff;
+}
+.consistent-datagrid .MuiDataGrid-row.odd {
+  background: #f8fafc;
+}
+.consistent-datagrid .MuiDataGrid-row:hover {
+  background: #f3f4f6 !important;
+}
+.consistent-datagrid .MuiDataGrid-cell {
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  color: var(--pe-text, #1f2937);
+}

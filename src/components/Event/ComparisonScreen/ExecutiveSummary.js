@@ -1,24 +1,13 @@
 import React from 'react';
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Chip,
-  Grid
-} from '@mui/material';
+import { Card, CardContent, Typography, Chip, Grid } from '@mui/material';
 import {
   Person as PersonIcon,
   CalendarToday as CalendarIcon,
   Description as DescriptionIcon,
   ChecklistRtl as ChecklistIcon,
-  Groups as GroupsIcon,
-  TrendingDown as TrendingDownIcon,
-  AttachMoney as AttachMoneyIcon
 } from '@mui/icons-material';
 import { useStateValue } from '../../../store';
 import { formatDateViaLocale } from '../../../utils/common/utility';
-import PriceTrendChart from './PriceTrendChart';
 import InvitedParticipatedChart from './InvitedParticipatedChart';
 import SavingsLineChart from './SavingsLineChart';
 import HighestLowestPriceChart from './HighestLowestPriceChart';
@@ -26,26 +15,17 @@ import SupplierPriceChart from './SupplierPriceChart';
 import styles from './ExecutiveSummary.module.css';
 
 const ExecutiveSummary = ({ data }) => {
-  const [{ atoken, rtoken, customerid, roleClaims, customersuffix, userDetail, eventType, eventId, eventCode }, dispatch] =
-      useStateValue();
-  // Updated to use rfqSummaryData structure instead of executiveSummaryData
-  // Currently only displaying rfqInfo section as requested
+  const [{ userDetail }] = useStateValue();
   const rfqInfo = data?.rfqInfo || {};
-  
 
-  const renderInfoItem = (icon, label, value) => (
-    <div className={styles.infoItem}>
+  const renderMetaItem = (icon, label, value) => (
+    <div className={styles.metaItem}>
       {icon}
-      <div className={styles.infoContent}>
-        <Typography className={styles.infoLabel}>{label}</Typography>
-        <Typography className={styles.infoValue}>{value}</Typography>
-      </div>
+      <span className={styles.metaLabel}>{label}:</span>
+      <span className={styles.metaValue}>{value || 'N/A'}</span>
     </div>
   );
 
-
-
-  // Handle case when no data is provided
   if (!data || Object.keys(data).length === 0) {
     return (
       <div className={styles.executiveSummary}>
@@ -62,75 +42,81 @@ const ExecutiveSummary = ({ data }) => {
 
   return (
     <div className={styles.executiveSummary}>
-      {/* Header Section - Using rfqSummaryData structure */}
+      {/* Header Card */}
       <Card className={styles.headerSection}>
-        <CardContent>
-          <div className={styles.rfqHeader}>
-            <div>
+        <CardContent className={styles.headerContent}>
+          {/* Row 1: RFQ code + subject (truncated) + status chip right */}
+          <div className={styles.titleRow}>
+            <div className={styles.titleLeft}>
               <Typography className={styles.rfqTitle}>
                 {rfqInfo.rfqCode || 'N/A'}
               </Typography>
-              <Typography className={styles.rfqSubtitle}>
-                {rfqInfo.subject || 'N/A'}
+              <Typography className={styles.rfqSubtitle} noWrap title={rfqInfo.subject}>
+                {rfqInfo.subject || ''}
               </Typography>
             </div>
-            <Chip 
-              label={rfqInfo.stage || 'N/A'} 
-              className={styles.statusBadge}
-            />
           </div>
-          
-          <div className={styles.headerInfo}>
-            {renderInfoItem(
-              <PersonIcon className={styles.infoIcon} />,
+
+          {/* Row 2: meta items — fixed horizontal row */}
+          <div className={styles.metaRow}>
+            {renderMetaItem(
+              <PersonIcon className={styles.metaIcon} />,
               'Requisitioner',
-              rfqInfo.requisitioner || 'N/A'
+              rfqInfo.requisitioner
             )}
-            {renderInfoItem(
-              <CalendarIcon className={styles.infoIcon} />,
-              'Start Date',
-              formatDateViaLocale(rfqInfo.startDate, userDetail) || 'N/A'
+            <span className={styles.metaDivider} />
+            {renderMetaItem(
+              <CalendarIcon className={styles.metaIcon} />,
+              'Start',
+              formatDateViaLocale(rfqInfo.startDate, userDetail)
             )}
-            {renderInfoItem(
-              <CalendarIcon className={styles.infoIcon} />,
-              'End Date',  
-              formatDateViaLocale(rfqInfo.endDate, userDetail) || 'N/A'
+            <span className={styles.metaDivider} />
+            {renderMetaItem(
+              <CalendarIcon className={styles.metaIcon} />,
+              'End',
+              formatDateViaLocale(rfqInfo.endDate, userDetail)
             )}
-            {renderInfoItem(
-              <DescriptionIcon className={styles.infoIcon} />,
+            <span className={styles.metaDivider} />
+            {renderMetaItem(
+              <DescriptionIcon className={styles.metaIcon} />,
               'Versions',
-              rfqInfo.version?.toString() || 'N/A'
+              rfqInfo.version?.toString()
             )}
-            {renderInfoItem(
-              <ChecklistIcon className={styles.infoIcon} />,
+            <span className={styles.metaDivider} />
+            {renderMetaItem(
+              <ChecklistIcon className={styles.metaIcon} />,
               'Items',
-              rfqInfo.items?.toString() || 'N/A'
+              rfqInfo.items?.toString()
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Mini Charts Section - 2x2 Grid Layout */}
+      {/* Charts — 2×2 grid of white cards on grey background */}
       <div className={styles.chartsSection}>
-        <Grid container spacing={2}>
-          {/* First Row */}
+        <Grid container spacing={1.5}>
           <Grid item xs={12} md={6}>
-            <InvitedParticipatedChart data={data} />
+            <Card className={styles.chartCard}>
+              <InvitedParticipatedChart data={data} />
+            </Card>
           </Grid>
           <Grid item xs={12} md={6}>
-            <SavingsLineChart data={data} />
-          </Grid>
-          
-          {/* Second Row */}
-          <Grid item xs={12} md={6}>
-            <HighestLowestPriceChart data={data} />
+            <Card className={styles.chartCard}>
+              <SavingsLineChart data={data} />
+            </Card>
           </Grid>
           <Grid item xs={12} md={6}>
-            <SupplierPriceChart data={data} />
+            <Card className={styles.chartCard}>
+              <HighestLowestPriceChart data={data} />
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card className={styles.chartCard}>
+              <SupplierPriceChart data={data} />
+            </Card>
           </Grid>
         </Grid>
       </div>
-
     </div>
   );
 };

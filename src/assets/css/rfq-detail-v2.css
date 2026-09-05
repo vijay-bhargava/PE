@@ -1,0 +1,4771 @@
+/* RFQ Detail Page V2 - Figma detail state */
+.rfq-detail-v2-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  height: calc(100vh - 60px);
+  min-height: 0;
+  padding: 20px 20px;
+  box-sizing: border-box;
+  background: #f5f5f5;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+.rfq-dv2-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 6px;
+  color: #8b93a1;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.rfq-dv2-breadcrumb-link {
+  color: #8b93a1;
+  cursor: pointer;
+}
+
+.rfq-dv2-breadcrumb-link:hover {
+  color: #2388d9;
+}
+
+.rfq-dv2-sep {
+  width: 14px;
+  height: 14px;
+  color: transparent;
+  font-size: 0;
+  position: relative;
+}
+
+.rfq-dv2-sep::before {
+  position: absolute;
+  top: 1px;
+  left: 6px;
+  width: 1px;
+  height: 13px;
+  background: #b8c0cc;
+  content: "";
+  transform: rotate(42deg);
+}
+
+.rfq-dv2-breadcrumb-current {
+  color: #475467;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.rfq-detail-v2-shell .mainContainer.rfq-modern-shell,
+.rfq-detail-v2-shell .mainContainer {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 16px !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  overflow: hidden !important;
+  background: #f5f5f5 !important;
+}
+
+.rfq-detail-v2-shell .leftContent {
+  flex: 1 1 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .rightContent {
+  /* display: block !important; */
+  flex: 0 0 340px !important;
+  width: 340px !important;
+  min-width: 340px !important;
+  max-width: 340px !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .leftContent > .bg-white {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-page-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 !important;
+  padding: 6px 0 8px !important;
+  border: 0 !important;
+}
+
+/* ── Row 1: breadcrumb left, action buttons right ── */
+.rfq-dv2-head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 28px;
+}
+
+/* Stage flow — hidden in v2 shell (shown in old layout only) */
+.rfq-detail-v2-shell .rfq-dv2-stage-flow-wrap {
+  display: none !important;
+}
+
+/* ── Row 2: meta info ── */
+.rfq-dv2-head-bottom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Action buttons row ── */
+.rfq-dv2-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* rfq-dv2-action-btn → aliases pe-btn system */
+.rfq-dv2-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+  line-height: 1;
+  gap: 6px;
+}
+
+.rfq-dv2-action-btn--primary {
+  background: var(--pe-btn-blue, #2082db);
+  color: #fff;
+  border: 1px solid var(--pe-btn-blue, #2082db);
+}
+.rfq-dv2-action-btn--primary:hover:not(:disabled) {
+  background: var(--pe-btn-blue-hover, #1769bb);
+  border-color: var(--pe-btn-blue-hover, #1769bb);
+  color: #fff;
+}
+
+.rfq-dv2-action-btn--secondary {
+  background: transparent;
+  color: var(--pe-btn-blue, #2082db);
+  border: 1px solid var(--pe-btn-blue, #2082db);
+}
+.rfq-dv2-action-btn--secondary:hover:not(:disabled) {
+  background: var(--pe-btn-blue-light, #e8f1fb);
+  color: var(--pe-btn-blue, #2082db);
+  border-color: var(--pe-btn-blue, #2082db);
+}
+
+.rfq-dv2-action-btn--ghost {
+  background: #fff;
+  color: var(--pe-btn-muted, #616161);
+  border: 1px solid #fff;
+}
+.rfq-dv2-action-btn--ghost:hover:not(:disabled) {
+  background: #fff;
+  color: var(--pe-btn-muted-hover, #424242);
+  border-color: var(--pe-btn-muted-hover, #424242);
+}
+
+.rfq-dv2-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-title-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+} */
+
+.rfq-detail-v2-shell .rfq-dv2-tab-save-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  margin-left: 12px;
+  margin-right: 8px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-save-continue-btn {
+  height: 32px !important;
+  min-width: 128px !important;
+  padding: 0 16px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: #2a68d3 !important;
+  color: #ffffff !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-save-continue-btn:hover {
+  background: #1d5bbf !important;
+  box-shadow: 0 2px 8px rgba(42, 104, 211, 0.22) !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-save-continue-btn.Mui-disabled {
+  background: #bfd3f5 !important;
+  color: #ffffff !important;
+  cursor: not-allowed !important;
+}
+
+.rfq-dv2-meta-row {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  color: #667085;
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.rfq-dv2-meta-label {
+  color: #667085;
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.rfq-dv2-meta-value {
+  color: #1d2939;
+  font-weight: 600;
+}
+
+.rfq-dv2-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 22px;
+  padding: 0 15px 0 10px;
+  border: 0;
+  border-radius: 5px;
+  background: #d7ebfc;
+  color: #1f2a37;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.rfq-dv2-status-pill::after {
+  width: 0;
+  height: 0;
+  margin-left: 4px;
+  border-top: 4px solid #667085;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  content: "";
+}
+
+.rfq-dv2-status-pill:hover {
+  background: #cbe5fb;
+}
+
+.rfq-dv2-status-pill.is-draft {
+  background: #fff1bf;
+}
+
+.rfq-dv2-status-pill.is-draft:hover {
+  background: #ffe9a3;
+}
+
+.rfq-dv2-status-pill.is-draft .rfq-dv2-status-dot {
+  background: #e0ac16;
+}
+
+.rfq-dv2-status-pill:focus-visible {
+  outline: 2px solid rgba(35, 136, 217, 0.35);
+  outline-offset: 2px;
+}
+
+.rfq-dv2-status-menu-paper.MuiMenu-paper,
+.rfq-dv2-status-menu-paper {
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+  margin-top: 10px;
+  overflow: hidden !important;
+  border: 1px solid #e6e9ee;
+  border-radius: 8px !important;
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.22) !important;
+}
+
+.rfq-dv2-status-menu-paper .MuiList-root {
+  width: 280px !important;
+  max-width: 280px !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.rfq-dv2-status-menu {
+  padding: 22px 24px 24px;
+  background: #ffffff;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.rfq-dv2-status-menu-title {
+  margin-bottom: 26px;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.rfq-dv2-status-menu-list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.rfq-dv2-status-menu-list::before {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 10px;
+  width: 1px;
+  background: #e5e7eb;
+  content: "";
+}
+
+.rfq-dv2-status-step {
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 20px;
+  color: #047329;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.rfq-dv2-status-step-icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border-radius: 999px;
+  background: #19c850;
+}
+
+.rfq-dv2-status-step-icon::after {
+  width: 8px;
+  height: 5px;
+  margin-top: -1px;
+  border-bottom: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  content: "";
+  transform: rotate(-45deg);
+}
+
+.rfq-dv2-status-step.is-current {
+  color: #0d376c;
+}
+
+.rfq-dv2-status-step.is-current .rfq-dv2-status-step-icon {
+  background: #2585d8;
+}
+
+.rfq-dv2-status-step.is-future {
+  color: #8b93a1;
+}
+
+.rfq-dv2-status-step.is-future .rfq-dv2-status-step-icon {
+  background: #e2e5e8;
+}
+
+.rfq-dv2-status-step.is-future .rfq-dv2-status-step-icon::after {
+  border-color: #9aa3af;
+}
+
+.rfq-dv2-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1688d8;
+}
+
+.rfq-detail-v2-shell
+  .leftContent
+  .bg-white
+  > .d-flex.border-bottom:nth-of-type(2) {
+  min-height: 48px !important;
+  max-height: 48px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+  border: 1px solid #e0e0e0 !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+  border-radius: 16px 16px 0 0 !important;
+  border-top: 1px solid #e0e0e0 !important;
+  background: #f5f5f5 !important;
+}
+
+.rfq-detail-v2-shell
+  .leftContent
+  .bg-white
+  > .d-flex.border-bottom:nth-of-type(2)
+  > .d-flex.align-items-center {
+  display: none !important;
+  flex: 0 0 auto;
+  gap: 6px !important;
+  margin-left: 12px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-tab-actions {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell
+  .leftContent
+  .bg-white
+  > .d-flex.border-bottom:nth-of-type(2)
+  .MuiIconButton-root {
+  width: 26px !important;
+  height: 26px !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+}
+
+.rfq-detail-v2-shell
+  .leftContent
+  .bg-white
+  > .d-flex.border-bottom:nth-of-type(2)
+  .approverCircle {
+  width: 24px !important;
+  height: 24px !important;
+  border: 1px solid #dbe7f5 !important;
+  border-radius: 6px !important;
+  background: #eff7ff !important;
+  box-shadow: none !important;
+}
+
+.rfq-detail-v2-shell
+  .leftContent
+  .bg-white
+  > .d-flex.border-bottom:nth-of-type(2)
+  .approverCircle
+  svg {
+  width: 15px !important;
+  height: 15px !important;
+  color: #2388d9 !important;
+}
+
+/* Tab bar wrapper — grey background matching RFQ style */
+.rfq-detail-v2-shell .po-tab-bar {
+  background-color: #FAFAFA !important;
+  border-bottom: none !important;
+  border-radius: 8px 8px 0 0 !important;
+  padding: 0 8px !important;
+}
+
+.tabstheme,
+.tabstheme .MuiTabs-root,
+.rfq-detail-v2-shell .tabstheme,
+.rfq-detail-v2-shell .tabstheme .MuiTabs-root {
+  min-height: 48px !important;
+  background-color: transparent !important;
+}
+
+.tabstheme .MuiTabs-scroller,
+.tabstheme .MuiTabs-flexContainer,
+.rfq-detail-v2-shell .tabstheme .MuiTabs-scroller,
+.rfq-detail-v2-shell .tabstheme .MuiTabs-flexContainer {
+  min-height: 48px !important;
+}
+
+.tabstheme .MuiTab-root,
+.rfq-detail-v2-shell .tabstheme .MuiTab-root {
+  min-width: 0 !important;
+  min-height: 48px !important;
+  margin-right: 13px !important;
+  padding: 0px !important;
+  color: #101828 !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  line-height: 48px !important;
+  text-transform: none !important;
+}
+
+.tabstheme .MuiTab-root.Mui-selected,
+.rfq-detail-v2-shell .tabstheme .MuiTab-root.Mui-selected {
+  color: #2388d9 !important;
+}
+
+.tabstheme .MuiTabs-indicator,
+.rfq-detail-v2-shell .tabstheme .MuiTabs-indicator {
+  height: 3px !important;
+  border-radius: 0 !important;
+  background-color: #2388d9 !important;
+  bottom: 0 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .section-heading {
+  color: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+.rfq-detail-v2-shell .leftContent .bg-white > .flex-grow-1 {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  border-right: 1px solid #dfe4ea !important;
+  border-bottom: 1px solid #dfe4ea !important;
+  border-left: 1px solid #dfe4ea !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+}
+
+/* Higher specificity to override the auto !important above for tabs that need flex-based scroll */
+/* UNUSED .rfq-detail-v2-shell .leftContent .bg-white > .flex-grow-1.rfq-tab-no-scroll {
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+} */
+
+/* RFQ V2 header layout fixes only */
+.rfq-detail-v2-shell .leftContent > .bg-white {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.rfq-detail-v2-shell .leftContent > .bg-white::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-title-wrap .rfq-dv2-breadcrumb {
+  flex: 0 0 auto;
+  min-height: 18px;
+  padding-top: 0;
+  padding-left: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-meta-row {
+  height: auto;
+  min-height: 22px;
+  overflow: visible;
+  align-items: center;
+}
+
+.rfq-dv2-overview {
+  position: relative;
+  max-width: none;
+  padding: 0 !important;
+  color: #101828;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.rfq-dv2-overview-edit {
+  display: none;
+}
+
+.rfq-dv2-detail-row {
+  display: grid;
+  grid-template-columns: 185px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  margin: 0 0 17px;
+}
+
+.rfq-dv2-detail-label {
+  color: #101828;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.rfq-dv2-detail-value {
+  color: #05070b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  word-break: break-all;
+}
+
+.rfq-dv2-detail-row-text {
+  margin-top: 6px;
+  margin-bottom: 16px;
+}
+
+.rfq-dv2-text-panel {
+  min-height: 160px;
+  padding: 14px 16px;
+  border: 1px solid #d6dce4;
+  border-radius: 7px;
+  background: #fff;
+  color: #101828;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 17px;
+  white-space: pre-wrap;
+}
+
+.rfq-dv2-detail-row-text:last-child .rfq-dv2-text-panel {
+  min-height: 158px;
+}
+
+.rfq-detail-v2-shell .rightContent > .bg-white,
+.rfq-detail-v2-shell .rightContent > .bg-white.approver-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: calc(100vh - 116px) !important;
+  max-height: calc(100vh - 116px) !important;
+  margin-left: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid #dfe4ea !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08) !important;
+}
+
+.rfq-detail-v2-shell .rightContent .bg-white > .d-flex.border-bottom {
+  min-height: 34px !important;
+  max-height: 34px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-items: stretch !important;
+  border-bottom: 1px solid #e9edf2 !important;
+  background: #ffffff !important;
+}
+
+.rfq-dv2-workflow-tabs {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rfq-dv2-workflow-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  height: 36px;
+  padding: 0 5px;
+  border-right: 1px solid #eef1f5;
+  border-top: none;
+  border-left: none;
+  border-bottom: none;
+  color: #101828;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  background: #ffffff;
+  position: relative;
+  transition: color 0.2s, background 0.2s;
+}
+
+.rfq-dv2-workflow-tab:hover {
+  color: #374151;
+  background: #f9fafb;
+}
+
+.rfq-dv2-workflow-tab.active {
+  position: relative;
+  color: #2388d9;
+  background: #eef7ff;
+}
+
+.rfq-dv2-workflow-tab.active::after {
+  position: absolute;
+  right: 7px;
+  bottom: 0;
+  left: 7px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: #2388d9;
+  content: "";
+}
+
+.rfq-detail-v2-shell .rightContent .bg-white > .flex-grow-1 {
+  padding: 8px 9px 14px !important;
+  overflow-y: auto !important;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .approvalCard {
+  position: relative;
+  margin: 0 0 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rfq-detail-v2-shell .approvalCard::before {
+  position: absolute;
+  top: 26px;
+  bottom: -12px;
+  left: 10px;
+  width: 1px;
+  background: #d9dde3;
+  content: "";
+}
+
+.rfq-detail-v2-shell .approvalCard:last-child::before {
+  display: none;
+}
+
+.rfq-detail-v2-shell .approvalAcordion {
+  position: relative;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .MuiAccordionSummary-root {
+  min-height: 47px !important;
+  padding: 0 6px 0 0 !important;
+  border-left: 3px solid transparent;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell
+  .approvalCard.is-active-stage
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  border-left-color: #2a68d3;
+  background: #eff6ff !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .MuiAccordionSummary-content {
+  margin: 0 !important;
+  align-items: center;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .MuiAccordionSummary-expandIconWrapper {
+  color: #9aa3af;
+  transform: scale(0.82);
+}
+
+.rfq-detail-v2-shell .approvalAcordion .row {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .col-md-10 {
+  position: relative;
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  width: calc(100% - 34px);
+  max-width: calc(100% - 34px);
+  padding-left: 28px !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .col-md-10::before {
+  position: absolute;
+  top: 50%;
+  left: 7px;
+  z-index: 1;
+  width: 15px;
+  height: 15px;
+  border: 2px solid #2a68d3;
+  border-radius: 50%;
+  background: #ffffff;
+  content: "";
+  transform: translateY(-50%);
+}
+
+.rfq-detail-v2-shell
+  .approvalCard.is-future-stage
+  .approvalAcordion
+  .col-md-10::before {
+  border-color: #d6dbe1;
+  background: #f1f3f5;
+}
+
+.rfq-detail-v2-shell .approval-stage-title {
+  color: #2a68d3 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 16px !important;
+}
+
+.rfq-detail-v2-shell .approvalCard.is-future-stage .approval-stage-title {
+  color: #9aa3af !important;
+}
+
+.rfq-detail-v2-shell .approval-stage-subtitle {
+  color: #667085 !important;
+  font-size: 10px !important;
+  line-height: 14px !important;
+}
+
+.rfq-detail-v2-shell .approvalCard.is-future-stage .approval-stage-subtitle {
+  color: #b8bec7 !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordionDetails {
+  padding: 0 0 10px 28px !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordionDetails > .rounded {
+  margin-bottom: 6px !important;
+}
+
+.rfq-detail-v2-shell
+  .approvalAcordionDetails
+  .MuiAutocomplete-root
+  .MuiOutlinedInput-root,
+.rfq-detail-v2-shell
+  .approvalAcordionDetails
+  .MuiTextField-root
+  .MuiOutlinedInput-root {
+  min-height: 30px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordionDetails .customButton {
+  min-width: 28px !important;
+  height: 28px !important;
+  border-radius: 7px !important;
+}
+
+.rfq-detail-v2-shell .custom-table {
+  width: 100%;
+}
+
+.rfq-detail-v2-shell .custom-table .table-body,
+.rfq-detail-v2-shell .custom-table .table-row {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.rfq-detail-v2-shell .custom-table .cell-content {
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .custom-table .approver-name > .col-12 > div > .d-flex {
+  position: relative;
+  margin: 0 0 8px !important;
+  padding: 10px 10px 10px 35px;
+  gap: 8px !important;
+  border: 1px solid #dfe6ef;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell
+  .custom-table
+  .approver-name
+  > .col-12
+  > div
+  > .d-flex::before {
+  position: absolute;
+  top: 11px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #d8ecff;
+  color: #2388d9;
+  content: "RC";
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.rfq-detail-v2-shell .custom-table .approver-name span {
+  color: #101828;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+.rfq-detail-v2-shell .custom-table .approver-name [style*="Designation"] {
+  color: #98a2b3 !important;
+}
+
+.rfq-detail-v2-shell .approverAction {
+  border-radius: 999px !important;
+  padding: 2px 7px !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.rfq-detail-v2-shell .approverAction.Approved,
+.rfq-detail-v2-shell .approverAction.Pending,
+.rfq-detail-v2-shell .approverAction.Rejected,
+.rfq-detail-v2-shell .approverAction.Completed {
+  background: #dbeafe !important;
+  color: #1d55b3 !important;
+}
+
+.rfq-detail-v2-shell .delete-button {
+  width: 22px !important;
+  height: 22px !important;
+  border: 1px solid #fecaca !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  color: #ef4444 !important;
+}
+
+/* Right workflow sidebar - Figma tab states */
+.rfq-detail-v2-shell
+  .rightContent
+  .bg-white
+  > .d-flex.border-bottom
+  .MuiIconButton-root {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab {
+  border: 0;
+  border-right: 1px solid #eef1f5;
+  background: transparent;
+  cursor: pointer;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab:last-child {
+  border-right: 0;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-action-panel {
+  flex: 0 0 auto;
+  padding: 12px 13px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 13px;
+  color: #9a3f00;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 18px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  border-radius: 3px;
+  background: #f28c18;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  transform: rotate(45deg);
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::first-letter {
+  transform: rotate(-45deg);
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon {
+  text-indent: -1px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::after {
+  content: "!";
+  transform: rotate(-45deg);
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon {
+  font-size: 0;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Equal-width base for all action buttons */
+.rfq-detail-v2-shell .rfq-dv2-workflow-btn {
+  flex: 1 1 0;
+  height: 34px;
+  padding: 0;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
+}
+.rfq-detail-v2-shell .rfq-dv2-workflow-btn:hover {
+  opacity: 0.88;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-approve {
+  border: 1px solid #2a68d3;
+  background: #2a68d3;
+  color: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-reject {
+  border: 1px solid #ef3434;
+  background: #ffffff;
+  color: #d90000;
+}
+
+.rfq-detail-v2-shell .approvalCard {
+  margin: 0 0 4px !important;
+}
+
+.rfq-detail-v2-shell .approvalCard::before {
+  top: 29px !important;
+  bottom: -12px !important;
+  left: 10px !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion::before {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .MuiAccordionSummary-root {
+  min-height: 42px !important;
+  max-height: 42px !important;
+}
+
+.rfq-detail-v2-shell
+  .approvalCard.is-future-stage
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell
+  .approvalAcordion
+  .MuiAccordionSummary-expandIconWrapper.Mui-expanded {
+  transform: rotate(180deg) scale(0.82);
+}
+
+.rfq-detail-v2-shell .approvalAcordion .col-md-10 {
+  padding-left: 31px !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .col-md-2 {
+  width: 24px !important;
+  max-width: 24px !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordion .col-md-10::before {
+  left: 8px !important;
+}
+
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-summary-add {
+  display: none !important;
+} */
+
+.rfq-detail-v2-shell .rfq-dv2-stage-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.rfq-detail-v2-shell .approval-stage-title {
+  font-size: 11px !important;
+  line-height: 14px !important;
+  min-width: 0;
+  color: #374151 !important;
+}
+
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-stage-count {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  flex: 0 0 auto;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #2a68d3;
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+} */
+
+.rfq-detail-v2-shell .approval-stage-subtitle {
+  margin-top: 1px !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  line-height: 12px !important;
+}
+
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-stage-waiting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: #374151;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 13px;
+} */
+
+.rfq-detail-v2-shell .approvalCard.is-future-stage .rfq-dv2-stage-waiting,
+.rfq-detail-v2-shell .approvalCard.is-future-stage .approval-stage-title {
+  color: #9aa3af !important;
+}
+
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-mini-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  border-radius: 999px;
+  background: #d8ecff;
+  color: #2388d9;
+  font-size: 7px;
+  font-weight: 900;
+  line-height: 1;
+} */
+
+.rfq-detail-v2-shell .approvalAcordionDetails {
+  padding: 7px 0 9px 31px !important;
+}
+
+.rfq-detail-v2-shell .custom-table .approver-name > .col-12 > div > .d-flex {
+  width: calc(100% - 2px);
+  min-height: 58px;
+  padding: 8px !important;
+  border-color: #d8dee8 !important;
+  border-radius: 9px !important;
+}
+
+.rfq-detail-v2-shell
+  .custom-table
+  .approver-name
+  > .col-12
+  > div
+  > .d-flex::before {
+  display: none !important;
+}
+
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-approver-item {
+  width: 100%;
+} */
+
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-approver-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: #d8ecff;
+  color: #2388d9 !important;
+  font-size: 7px !important;
+  font-weight: 800 !important;
+  line-height: 1;
+  text-transform: uppercase;
+} */
+
+.rfq-detail-v2-shell .custom-table .approver-name span {
+  font-size: 10px !important;
+}
+
+.rfq-detail-v2-shell
+  .custom-table
+  .approver-name
+  .rfq-dv2-approver-item
+  > div
+  > div:first-child {
+  gap: 6px !important;
+  margin-bottom: 2px !important;
+}
+
+.rfq-detail-v2-shell
+  .custom-table
+  .approver-name
+  .rfq-dv2-approver-item
+  > div
+  > div:first-child
+  > span:first-child {
+  max-width: 116px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rfq-detail-v2-shell .custom-table .approver-name .cell-text,
+.rfq-detail-v2-shell
+  .custom-table
+  .approver-name
+  .rfq-dv2-approver-item
+  > div
+  > div:not(:first-child) {
+  color: #8b93a1 !important;
+  font-size: 9px !important;
+  line-height: 13px !important;
+}
+
+.rfq-detail-v2-shell .approverAction {
+  padding: 2px 7px !important;
+  font-size: 7px !important;
+}
+
+.rfq-detail-v2-shell .delete-button {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.rfq-detail-v2-shell .delete-button svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.rfq-detail-v2-shell .approvalAcordionDetails .MuiBox-root {
+  width: 100%;
+}
+
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-add-approver-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 2px);
+  height: 29px;
+  margin-top: -1px;
+  border: 1px dashed #c8cdd5;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+} */
+
+.rfq-detail-v2-shell .rfq-dv2-add-approver-inline svg {
+  width: 15px;
+  height: 15px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-add-approver-inline:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rfq-dv2-history-track {
+  display: flex;
+  gap: 8px;
+  min-width: max-content;
+  padding: 2px 0 0;
+  height: 100%;
+}
+
+/* UNUSED .rfq-dv2-history-card {
+  width: 108px;
+  min-height: 74px;
+  padding: 8px;
+  border: 1px dashed #d9dde5;
+  border-radius: 7px;
+  background: #ffffff;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+} */
+
+/* UNUSED .rfq-dv2-history-status {
+  display: inline-flex;
+  align-items: center;
+  height: 14px;
+  margin-bottom: 8px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #dff3df;
+  color: #268343;
+  font-size: 7px;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+} */
+
+.rfq-dv2-history-card strong,
+.rfq-dv2-history-card small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rfq-dv2-history-card strong {
+  color: #111827;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.rfq-dv2-history-card small {
+  color: #8b93a1;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+/* Panel wrapper */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attachments-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 10px 14px;
+  width: 100%;
+  background: #ffffff;
+}
+
+/* Loading / empty states */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-panel-loading,
+.rfq-detail-v2-shell .rightContent .rfq-dv2-panel-empty {
+  padding: 24px 0;
+  text-align: center;
+  color: #9aa4b2;
+  font-size: 12px;
+}
+
+/* â”€â”€ Add section card â”€â”€ */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-add-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e9edf2;
+}
+
+/* Description textarea */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #101828;
+  background: #ffffff;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input:focus {
+  border-color: #2388d9;
+  box-shadow: 0 0 0 2px rgba(35, 136, 217, 0.12);
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-desc-input::placeholder {
+  color: #b0b8c8;
+}
+
+/* Dashed file-pick zone */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 64px;
+  border: 1.5px dashed #c8d0dc;
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-zone:hover {
+  border-color: #2388d9;
+  background: #eef7ff;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-zone-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* gap: 2px; */
+  /* padding: 10px 0; */
+  color: #9aa4b2;
+  font-size: 11px;
+  font-weight: 500;
+  pointer-events: none;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-zone-icon {
+  font-size: 18px;
+  color: #2388d9;
+  margin-bottom: 2px;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-zone-hint {
+  font-size: 10px;
+  font-weight: 400;
+  color: #b0b8c8;
+}
+
+/* File chip (file selected state) */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  pointer-events: none;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-chip-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: #2388d9;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-chip-name {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: #101828;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-chip-clear {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: #fee4e2;
+  color: #d92d20;
+  font-size: 14px;
+  cursor: pointer;
+  pointer-events: all;
+  transition: background 0.15s;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-chip-clear:hover {
+  background: #fda29b;
+}
+
+/* Add Attachment button */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  width: 100% !important;
+  height: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid #000000;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  color: #000000 !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  transition: background 0.15s !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn:hover:not(:disabled) {
+  background: #e9ebeb !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-file-btn:disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+}
+
+/* Error message */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-error {
+  font-size: 11px;
+  color: #d92d20;
+  padding: 0 2px;
+}
+
+/* â”€â”€ File list â”€â”€ */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* row: [checkbox 28px] [meta 1fr] [download 28px] [delete 28px] */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-row {
+  display: grid !important;
+  grid-template-columns: 28px 1fr 28px 28px !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 8px 4px !important;
+  min-height: unset !important;
+  border-bottom: 1px solid #f0f2f5 !important;
+  background: transparent !important;
+  transition: background 0.1s;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-row:last-child {
+  border-bottom: none !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-row:hover {
+  background: #f8fafc !important;
+}
+
+/* T&C MUI checkbox */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-tc {
+  padding: 2px !important;
+}
+
+/* Description + filename stacked */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta .rfq-dv2-file-desc-text {
+  display: block !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #101828 !important;
+  line-height: 1.4 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-meta .rfq-dv2-file-name-text {
+  display: block !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  color: #667085 !important;
+  line-height: 1.3 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Download button */
+/* UNUSED .rfq-detail-v2-shell .rightContent .rfq-dv2-file-dl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid #d0d5dd;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #2388d9;
+  cursor: pointer;
+  font-size: 12px;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+} */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-dl-btn:hover {
+  background: #eef7ff;
+  border-color: #2388d9;
+}
+
+/* Delete button */
+/* UNUSED .rfq-detail-v2-shell .rightContent .rfq-dv2-file-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid #fda29b;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #d92d20;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s;
+} */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-file-delete-btn:hover {
+  background: #fef2f2;
+}
+
+/* Update button row */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-update-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 4px 0;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-update-btn {
+  height: 30px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #ffffff;
+  background: #2388d9;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.rfq-detail-v2-shell
+  .rightContent
+  .rfq-dv2-attach-update-btn:hover:not(:disabled) {
+  background: #1a70b8;
+}
+.rfq-detail-v2-shell .rightContent .rfq-dv2-attach-update-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* RFQ detail right workflow panel - Figma precision pass */
+.rfq-detail-v2-shell .rightContent {
+  flex: 0 0 286px !important;
+  width: 286px !important;
+  min-width: 286px !important;
+  max-width: 286px !important;
+}
+
+.rfq-detail-v2-shell .rightContent > .bg-white.approver-panel {
+  height: calc(100vh - 104px) !important;
+  max-height: calc(100vh - 104px) !important;
+  border: 1px solid #dfe6ee !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16) !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-head {
+  min-height: 35px !important;
+  max-height: 35px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border-bottom: 1px solid #d8dee8 !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tabs {
+  height: 35px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab {
+  height: 35px;
+  padding: 0 4px;
+  border-right: 1px solid #e4e8ef;
+  color: #111827;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 35px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab.active {
+  background: #eef7ff;
+  color: #1685db;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab.active::after {
+  right: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 0;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-action-panel {
+  padding: 12px 12px 10px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert {
+  margin-bottom: 12px;
+  gap: 8px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 18px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-approve,
+.rfq-detail-v2-shell .rfq-dv2-workflow-reject {
+  height: 32px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.rfq-detail-v2-shell .rightContent .bg-white > .flex-grow-1 {
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalCard {
+  margin: 0 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion {
+  margin: 0 !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalCard.is-active-stage
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  min-height: 62px !important;
+  max-height: 62px !important;
+  border-left: 3px solid #2a68d3 !important;
+  background: #eff6ff !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalCard:not(.is-active-stage)
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  min-height: 48px !important;
+  max-height: 48px !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion .col-md-10 {
+  padding-left: 36px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion .col-md-10::before {
+  top: 50% !important;
+  left: 12px !important;
+  width: 16px !important;
+  height: 16px !important;
+  transform: translateY(-50%) !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalCard.is-active-stage
+  .approvalAcordion
+  .col-md-10::before {
+  border-color: #2a68d3 !important;
+  box-shadow: inset 0 0 0 3px #ffffff;
+  background: #2a68d3 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalCard::before {
+  top: 45px !important;
+  bottom: -16px !important;
+  left: 20px !important;
+  background: #d6dbe2 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approval-stage-title {
+  color: #374151 !important;
+  font-size: 12px !important;
+  line-height: 15px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approval-stage-subtitle {
+  margin-top: 3px !important;
+  color: #374151 !important;
+  font-size: 10px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordionDetails {
+  /* padding: 8px 9px 9px 40px !important; */
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .custom-table
+  .approver-name
+  > .col-12
+  > div
+  > .d-flex {
+  min-height: 66px;
+  margin-bottom: 8px !important;
+  padding: 10px 9px 9px 34px !important;
+  border: 1px solid #d5dde8 !important;
+  border-radius: 9px !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .custom-table
+  .approver-name
+  > .col-12
+  > div
+  > .d-flex::after {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #d8ecff;
+  color: #2388d9;
+  content: "RC";
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.rfq-detail-v2-shell .rightContent .custom-table .approver-name span {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approverAction {
+  padding: 2px 8px !important;
+  border-radius: 999px !important;
+  font-size: 7px !important;
+  font-weight: 900 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-add-approver-inline {
+  height: 29px;
+  margin-top: 0;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-history-track {
+  width: 100%;
+  min-width: 100%;
+  padding: 12px 9px 16px;
+  overflow-x: auto;
+  border-top: 1px dashed #d9dde5;
+  border-bottom: 1px dashed #d9dde5;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-history-card {
+  width: 104px;
+  flex: 0 0 104px;
+  min-height: 74px;
+  border-style: dashed;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-history-card + .rfq-dv2-history-card {
+  position: relative;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-history-card + .rfq-dv2-history-card::before {
+  position: absolute;
+  top: 28px;
+  left: -12px;
+  color: #9aa3af;
+  content: ">";
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-history-status.is-open {
+  background: #dff3df;
+  color: #268343;
+}
+
+/* Figma-aligned View History tab strip */
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-track {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  padding: 16px 14px 14px !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 1px solid #d4d4d4 !important;
+  border-left: 0 !important;
+  background: #ffffff !important;
+  scrollbar-width: none;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-track::-webkit-scrollbar {
+  display: none;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-card {
+  position: relative;
+  display: flex;
+  flex: 0 0 116px !important;
+  flex-direction: column;
+  width: 116px !important;
+  min-width: 116px !important;
+  height: 74px;
+  min-height: 74px !important;
+  padding: 9px 10px 8px !important;
+  border: 1px dashed #d9dde5 !important;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .rfq-dv2-history-card
+  + .rfq-dv2-history-card::before {
+  top: 33px !important;
+  left: -16px !important;
+  width: 16px;
+  height: 1px;
+  background: #a3abb6;
+  color: transparent !important;
+  content: "" !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .rfq-dv2-history-card
+  + .rfq-dv2-history-card::after {
+  position: absolute;
+  top: 28px;
+  left: -8px;
+  width: 8px;
+  height: 8px;
+  border-top: 1.5px solid #a3abb6;
+  border-right: 1.5px solid #a3abb6;
+  content: "";
+  transform: rotate(45deg);
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-status {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+  height: 16px;
+  margin: 0 0 8px;
+  padding: 0 8px 0 6px;
+  border-radius: 4px;
+  background: #dff3df;
+  color: #2f7d32;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-status::before {
+  display: inline-block;
+  width: 8px;
+  height: 4px;
+  border-bottom: 1.5px solid currentColor;
+  border-left: 1.5px solid currentColor;
+  content: "";
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-card strong {
+  display: block;
+  max-width: 100%;
+  margin: 0 0 2px;
+  color: #111827;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 13px;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-card small {
+  display: block;
+  color: #8b93a1;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 11px;
+}
+
+/* Figma-aligned Attachments tab */
+
+/* Center approval/rejection confirmation modal */
+.MuiDialog-root .rfq-dv2-approval-modal {
+  width: min(520px, calc(100vw - 32px));
+  max-width: min(520px, calc(100vw - 32px));
+  overflow: hidden;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.24);
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.MuiBackdrop-root.rfq-dv2-approval-backdrop {
+  background-color: rgba(0, 0, 0, 0.54) !important;
+}
+
+.rfq-dv2-approval-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+  padding: 0 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rfq-dv2-approval-modal-head h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 22px;
+}
+
+/* UNUSED .rfq-dv2-approval-close {
+  width: 30px !important;
+  height: 30px !important;
+  color: #9ca3af !important;
+} */
+
+.rfq-dv2-approval-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.rfq-dv2-approval-modal-body {
+  padding: 18px 22px 0;
+}
+
+.rfq-dv2-approval-message {
+  padding: 13px 16px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #2a68d3;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.rfq-dv2-approval-message strong {
+  color: #1d4ed8;
+  font-weight: 900;
+}
+
+.rfq-dv2-approval-message.is-reject {
+  border-color: #fecaca;
+  background: #fff5f5;
+  color: #b42318;
+}
+
+.rfq-dv2-approval-message.is-reject strong {
+  color: #991b1b;
+}
+
+.rfq-dv2-approval-field {
+  margin-top: 18px;
+}
+
+.rfq-dv2-approval-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 14px;
+  text-transform: uppercase;
+}
+
+.rfq-dv2-approval-field .MuiOutlinedInput-root {
+  align-items: flex-start;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.rfq-dv2-approval-field .MuiOutlinedInput-notchedOutline {
+  border-color: #cfd8e3;
+}
+
+.rfq-dv2-approval-field
+  .MuiOutlinedInput-root:hover
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #b8c4d4;
+}
+
+.rfq-dv2-approval-field
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-width: 1px;
+  border-color: #9db7d7;
+}
+
+.rfq-dv2-approval-field textarea {
+  min-height: 84px !important;
+}
+
+.rfq-dv2-approval-field p {
+  margin: 10px 0 0;
+  color: #7a8798;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
+}
+
+.rfq-dv2-approval-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 22px 20px;
+}
+
+/* UNUSED .rfq-dv2-approval-cancel,
+.rfq-dv2-approval-submit {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border-radius: 999px !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+} */
+
+.rfq-dv2-approval-cancel {
+  min-width: 82px;
+  padding: 0 18px;
+  border: 1px solid #d9e0ea;
+  background: #ffffff;
+  color: #475467;
+}
+
+.rfq-dv2-approval-submit {
+  min-width: 142px !important;
+  padding: 0 20px !important;
+  border: 0 !important;
+  background: #2a68d3 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.rfq-dv2-approval-submit::before {
+  margin-right: 7px;
+  color: currentColor;
+  content: "\2713";
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.rfq-dv2-approval-submit.is-reject {
+  background: #2a68d3 !important;
+}
+
+.rfq-dv2-approval-submit.is-reject::before {
+  content: "!";
+}
+
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-file-action svg {
+  width: 13px;
+  height: 13px;
+  font-size: 13px;
+} */
+
+/* RFQ workflow panel final Figma sizing/state */
+.rfq-detail-v2-shell .rightContent {
+  flex: 0 0 340px !important;
+  width: 340px !important;
+  min-width: 340px !important;
+  max-width: 340px !important;
+}
+
+.rfq-detail-v2-shell .rightContent > .bg-white.approver-panel {
+  height: calc(100vh - 100px) !important;
+  max-height: calc(100vh - 100px) !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 16px !important;
+  background: #f5f5f5 !important;
+  box-shadow: 0 1px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-head {
+  min-height: 39px !important;
+  max-height: 39px !important;
+  border-radius: 16px 16px 0 0 !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tabs,
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab {
+  height: 39px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-tab {
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 39px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-action-panel {
+  padding: 13px 14px 11px;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert {
+  margin-bottom: 14px;
+  font-size: 15px;
+  line-height: 19px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-approve,
+.rfq-detail-v2-shell .rfq-dv2-workflow-reject {
+  height: 36px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalCard.is-active-stage
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  /* min-height: 76px !important; */
+  /* max-height: 76px !important; */
+  border-left-width: 3px !important;
+  background: #eff6ff !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalCard:not(.is-active-stage)
+  .approvalAcordion
+  .MuiAccordionSummary-root {
+  min-height: 56px !important;
+  max-height: 56px !important;
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion .col-md-10 {
+  width: calc(100% - 30px);
+  max-width: calc(100% - 30px);
+  padding-left: 42px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion .col-md-2 {
+  width: 30px !important;
+  max-width: 30px !important;
+}
+
+.rfq-detail-v2-shell
+  .rightContent
+  .approvalAcordion
+  .col-md-2
+  .MuiIconButton-root {
+  display: none !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordion .col-md-10::before {
+  /* top: 17px !important; */
+  left: 16px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalCard::before {
+  top: 50px !important;
+  left: 24px !important;
+}
+
+.rfq-detail-v2-shell .rightContent .approval-stage-title {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-stage-count {
+  height: 20px;
+  padding: 0 8px;
+  font-size: 9px;
+}
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-stage-waiting {
+  margin-top: 8px;
+  gap: 7px;
+  font-size: 11px;
+}
+
+.rfq-detail-v2-shell .rightContent .approvalAcordionDetails {
+  /* padding: 10px 9px 10px 46px !important; */
+  background: #ffffff !important;
+}
+
+.rfq-detail-v2-shell .custom-table.is-rfq-sidebar,
+.rfq-detail-v2-shell .custom-table.is-rfq-sidebar .table-body,
+.rfq-detail-v2-shell .custom-table.is-rfq-sidebar .table-row,
+.rfq-detail-v2-shell .custom-table.is-rfq-sidebar .cell-content,
+.rfq-detail-v2-shell .custom-table.is-rfq-sidebar .approver-name {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 8px !important;
+  padding: 10px;
+  border: 1px solid #d6dde8;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-card.is-pending {
+  background: #eef5ff;
+}
+
+/* UNUSED .rfq-detail-v2-shell .rfq-sidebar-approver-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #d8ecff;
+  color: #2388d9;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+} */
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-name {
+  max-width: 100%;
+  overflow: hidden;
+  color: #101828;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-status {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  flex: 0 0 auto;
+  padding: 0 8px !important;
+  border-radius: 999px !important;
+  font-size: 8px !important;
+  font-weight: 900 !important;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-status.Approved,
+.rfq-detail-v2-shell .rfq-sidebar-status.Pending,
+.rfq-detail-v2-shell .rfq-sidebar-status.Rejected,
+.rfq-detail-v2-shell .rfq-sidebar-status.Completed {
+  background: #dbeafe !important;
+  color: #1d55b3 !important;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-role,
+.rfq-detail-v2-shell .rfq-sidebar-approver-date {
+  overflow: hidden;
+  color: #8b93a1;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-role {
+  margin-top: 2px;
+}
+
+/* UNUSED .rfq-detail-v2-shell .rfq-sidebar-approver-reminder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #959595;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #959595;
+  cursor: pointer;
+  margin-bottom: 3px;
+} */
+
+/* UNUSED .rfq-detail-v2-shell .rfq-sidebar-approver-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-top: -2px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #ef4444;
+} */
+
+.rfq-detail-v2-shell .rfq-sidebar-approver-remove svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Approval confirmation modal */
+.rfq-dv2-approval-backdrop {
+  background-color: rgba(0, 0, 0, 0.54) !important;
+  backdrop-filter: none;
+}
+
+/* UNUSED .rfq-dv2-approval-dialog {
+  width: 560px !important;
+  max-width: calc(100vw - 32px) !important;
+  overflow: hidden !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22) !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+} */
+
+.rfq-dv2-approval-modal {
+  width: 100%;
+  background: #ffffff;
+}
+
+.rfq-dv2-approval-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 16px 0 18px;
+  border-bottom: 1px solid #d9dde5;
+}
+
+.rfq-dv2-approval-modal-head h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.rfq-dv2-approval-close {
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  color: #9aa3af !important;
+}
+
+.rfq-dv2-approval-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.rfq-dv2-approval-modal-body {
+  padding: 20px 26px 24px;
+}
+
+/* UNUSED .rfq-dv2-approval-note {
+  min-height: 48px;
+  margin-bottom: 17px;
+  padding: 13px 15px;
+  border: 1px solid #b9e9c2;
+  border-radius: 7px;
+  background: #f1fff4;
+  color: #4d8f58;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+} */
+
+.rfq-dv2-approval-note strong {
+  color: #2b7e36;
+  font-weight: 900;
+}
+
+.rfq-dv2-approval-note.is-reject {
+  border-color: #fecaca;
+  background: #fff5f5;
+  color: #b42318;
+}
+
+.rfq-dv2-approval-note.is-reject strong {
+  color: #9f1239;
+}
+
+/* UNUSED .rfq-dv2-approval-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #596273;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+} */
+
+.rfq-dv2-approval-comment .MuiOutlinedInput-root {
+  min-height: 88px;
+  padding: 0 !important;
+  border-radius: 7px !important;
+  background: #ffffff;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+}
+
+.rfq-dv2-approval-comment .MuiOutlinedInput-notchedOutline {
+  border-color: #cbd6e3 !important;
+}
+
+.rfq-dv2-approval-comment
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #9db8db !important;
+  border-width: 1px !important;
+}
+
+.rfq-dv2-approval-comment textarea {
+  padding: 12px 14px !important;
+  color: #344054 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 18px !important;
+}
+
+.rfq-dv2-approval-comment textarea::placeholder {
+  color: #667085 !important;
+  opacity: 1;
+}
+
+/* UNUSED .rfq-dv2-approval-footnote {
+  margin-top: 12px;
+  color: #667085;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+} */
+
+/* UNUSED .rfq-dv2-approval-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+} */
+
+.rfq-dv2-approval-cancel,
+.rfq-dv2-approval-submit {
+  height: 34px !important;
+  min-width: 86px !important;
+  padding: 0 18px !important;
+  border-radius: 999px !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+}
+
+.rfq-dv2-approval-cancel {
+  border: 1px solid #d6dde8;
+  background: #ffffff;
+  color: #596273;
+}
+
+.rfq-dv2-approval-submit {
+  border: 1px solid #2a68d3 !important;
+  background: #2a68d3 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.rfq-dv2-approval-submit:hover {
+  background: #1d55b3 !important;
+}
+
+.rfq-dv2-approval-submit.is-reject {
+  border-color: #2a68d3 !important;
+  background: #2a68d3 !important;
+}
+
+.rfq-dv2-approval-submit.is-reject:hover {
+  background: #1d55b3 !important;
+}
+
+@media (max-width: 640px) {
+  .rfq-dv2-approval-dialog {
+    width: calc(100vw - 24px) !important;
+  }
+
+  .rfq-dv2-approval-modal-body {
+    padding: 16px;
+  }
+
+  .rfq-dv2-approval-actions {
+    justify-content: stretch;
+  }
+
+  .rfq-dv2-approval-cancel,
+  .rfq-dv2-approval-submit {
+    flex: 1 1 0;
+  }
+}
+
+.rfq-detail-v2-shell .MuiTextField-root .MuiInputLabel-root,
+.rfq-detail-v2-shell .f12.text-muted {
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 12px !important;
+}
+
+.rfq-detail-v2-shell .ql-toolbar {
+  border-color: #d6dce4 !important;
+  border-radius: 7px 7px 0 0 !important;
+}
+
+.rfq-detail-v2-shell .ql-container {
+  border-color: #d6dce4 !important;
+  border-radius: 0 0 7px 7px !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+  font-size: 12px !important;
+}
+
+@media (max-width: 768px) {
+  .rfq-detail-v2-shell {
+    padding: 10px;
+  }
+
+  .rfq-detail-v2-shell .leftContent > .bg-white {
+    height: auto !important;
+    min-height: calc(100vh - 100px) !important;
+  }
+
+  .rfq-detail-v2-shell .rfq-dv2-page-head {
+    max-height: none !important;
+    min-height: 78px !important;
+  }
+
+  .rfq-dv2-detail-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
+    margin-bottom: 14px;
+  }
+
+  .rfq-dv2-text-panel {
+    min-height: 120px;
+  }
+}
+
+/* Final RFQ workflow polish: modal, alert icon, attachments alignment */
+.MuiDialog-root .rfq-dv2-approval-modal,
+.rfq-dv2-approval-dialog {
+  width: 655px !important;
+  max-width: calc(100vw - 40px) !important;
+  min-height: 475px !important;
+  overflow: hidden !important;
+  border: 1px solid #d4d4d4 !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.26) !important;
+}
+
+.rfq-dv2-approval-modal-head {
+  height: 64px !important;
+  padding: 0 24px !important;
+  border-bottom: 1px solid #d4d4d4 !important;
+}
+
+.rfq-dv2-approval-modal-head h3 {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  line-height: 28px !important;
+}
+
+.rfq-dv2-approval-close {
+  color: #9b9b9b !important;
+}
+
+.rfq-dv2-approval-close svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.rfq-dv2-approval-modal-body {
+  padding: 28px 32px 0 !important;
+}
+
+.rfq-dv2-approval-message {
+  min-height: 74px;
+  padding: 17px 20px !important;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 24px !important;
+}
+
+.rfq-dv2-approval-field {
+  margin-top: 22px !important;
+}
+
+.rfq-dv2-approval-field label {
+  margin-bottom: 10px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.rfq-dv2-approval-field .MuiOutlinedInput-root {
+  min-height: 122px;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+}
+
+.rfq-dv2-approval-field textarea {
+  min-height: 104px !important;
+}
+
+.rfq-dv2-approval-field p {
+  margin-top: 14px !important;
+  font-size: 12px !important;
+  line-height: 16px !important;
+}
+
+.rfq-dv2-approval-modal-actions {
+  padding: 24px 32px 26px !important;
+}
+
+.rfq-dv2-approval-cancel,
+.rfq-dv2-approval-submit {
+  height: 44px !important;
+  font-size: 15px !important;
+}
+
+.rfq-dv2-approval-cancel {
+  min-width: 100px !important;
+}
+
+.rfq-dv2-approval-submit {
+  min-width: 174px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert {
+  align-items: center !important;
+  gap: 10px !important;
+  margin-bottom: 12px !important;
+  color: #374151 !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  line-height: 20px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon {
+  position: relative !important;
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 3px !important;
+  background: #2a68d3 !important;
+  color: #ffffff !important;
+  transform: rotate(45deg) !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::before,
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::after {
+  position: absolute !important;
+  left: 50% !important;
+  display: block !important;
+  border: 0 !important;
+  background: #ffffff !important;
+  content: "" !important;
+  transform: translateX(-50%) rotate(-45deg) !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::before {
+  top: 4px !important;
+  width: 2px !important;
+  height: 8px !important;
+  border-radius: 2px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::after {
+  top: 13px !important;
+  width: 2px !important;
+  height: 2px !important;
+  border-radius: 50% !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon {
+  flex: 0 0 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #2a68d3 !important;
+  transform: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::before,
+.rfq-detail-v2-shell .rfq-dv2-workflow-alert-icon::after {
+  display: none !important;
+  content: none !important;
+}
+
+@media (max-width: 700px) {
+  .MuiDialog-root .rfq-dv2-approval-modal,
+  .rfq-dv2-approval-dialog {
+    width: calc(100vw - 24px) !important;
+    min-height: auto !important;
+  }
+
+  .rfq-dv2-approval-modal-head {
+    height: 56px !important;
+    padding: 0 18px !important;
+  }
+
+  .rfq-dv2-approval-modal-body {
+    padding: 20px 18px 0 !important;
+  }
+
+  .rfq-dv2-approval-modal-actions {
+    padding: 20px 18px !important;
+  }
+}
+
+/* Main RFQ tabs final alignment: no hidden scroll spacer, no active radius */
+.rfq-detail-v2-shell .tabstheme .MuiTabs-scrollButtons,
+.rfq-detail-v2-shell .tabstheme .MuiTabs-scrollButtons.Mui-disabled {
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTabs-scroller {
+  margin-left: 0 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTabs-flexContainer {
+  gap: 0 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTab-root {
+  border-radius: 0 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTab-root.Mui-selected {
+  border-radius: 0 !important;
+}
+
+.rfq-detail-v2-shell .tabstheme .MuiTabs-indicator {
+  bottom: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* View history connector uses a real icon, not pseudo arrows */
+.rfq-detail-v2-shell
+  .rightContent
+  .rfq-dv2-history-card
+  + .rfq-dv2-history-card::before,
+.rfq-detail-v2-shell
+  .rightContent
+  .rfq-dv2-history-card
+  + .rfq-dv2-history-card::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* UNUSED .rfq-detail-v2-shell .rightContent .rfq-dv2-history-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 74px;
+  margin: 0 -8px;
+  color: #9aa3af;
+} */
+
+.rfq-detail-v2-shell .rightContent .rfq-dv2-history-arrow svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
+}
+
+/* â”€â”€ Right panel: shared loading / empty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.rfq-detail-v2-shell .rfq-dv2-panel-loading,
+.rfq-detail-v2-shell .rfq-dv2-panel-empty {
+  padding: 24px 16px;
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+/* â”€â”€ History tab: state graph â€” HORIZONTAL layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph {
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* vertically center nodes + arrows */
+  gap: 0;
+  padding: 16px 14px;
+  overflow-x: auto;
+  overflow-y: visible;
+  border-bottom: 1px solid #f3f4f6;
+  /* nice scroll on mobile */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+/* item wrapper no longer used (React.Fragment), keep for safety */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-stage-graph-item {
+  display: contents;
+} */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-arrow {
+  flex-shrink: 0;
+  width: 22px; /* horizontal connector line */
+  height: 2px;
+  background: #93c5fd; /* lighter blue */
+  margin: 0 2px;
+  position: relative;
+  align-self: center; /* stays at mid-height regardless of node height */
+}
+/* arrowhead on right end */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-arrow::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid #93c5fd;
+}
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-node {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f0f4ff;
+  border-left: 3px solid #2a68d3;
+  width: 90px; /* fixed width â€” consistent columns */
+  box-sizing: border-box;
+}
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2a68d3;
+  word-break: break-word;
+}
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-user {
+  font-size: 11px;
+  color: #374151;
+  word-break: break-all;
+}
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-date {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+/* History tab */
+.rfq-detail-v2-shell .rfq-dv2-history-list {
+  padding: 8px 0;
+}
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-list-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  padding: 6px 16px 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.1s;
+} */
+.rfq-detail-v2-shell .rfq-dv2-history-item:hover,
+.rfq-detail-v2-shell .rfq-dv2-history-item.is-selected {
+  background: #f0f4ff;
+}
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-content {
+  flex: 1;
+  min-width: 0;
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-item-text {
+  font-size: 12px;
+  color: #111827;
+  font-weight: 500;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-item-date {
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 2px;
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-detail {
+  margin: 0 12px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 8px 12px;
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-detail-row {
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  padding: 3px 0;
+  border-bottom: 1px solid #f3f4f6;
+} */
+.rfq-detail-v2-shell .rfq-dv2-history-detail-row:last-child {
+  border-bottom: none;
+}
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-prop {
+  font-weight: 600;
+  color: #374151;
+  min-width: 60px;
+  flex-shrink: 0;
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-old {
+  text-decoration: line-through;
+  color: #9ca3af;
+} */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-history-new {
+  color: #111827;
+  font-weight: 500;
+} */
+.rfq-detail-v2-shell .rfq-dv2-history-arrow-txt {
+  color: #6b7280;
+}
+
+/* ── View History: stage graph boxes (final override) ───────────────── */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0 !important;
+  padding: 16px 14px !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  border-bottom: 1px solid #f3f4f6 !important;
+  scrollbar-width: thin !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* Node box — white card with border */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-node {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  border: 1.5px solid #e5e7eb !important;
+  width: 120px !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Green badge: ✓ DRAFT */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  background: #dcfce7 !important;
+  color: #1d55b3 !important;
+  border-radius: 20px !important;
+  padding: 2px 8px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  width: fit-content !important;
+  word-break: normal !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+/* ✓ checkmark inside badge */
+.rfq-detail-v2-shell .rfq-dv2-stage-check {
+  font-size: 9px !important;
+  font-weight: 900 !important;
+  color: #16a34a !important;
+  flex-shrink: 0 !important;
+}
+
+/* Name */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-user {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  line-height: 1.3 !important;
+  word-break: break-word !important;
+  white-space: normal !important;
+}
+
+/* Date */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-date {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  line-height: 1.2 !important;
+  word-break: break-word !important;
+}
+
+/* → arrow connector */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-arrow {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: auto !important;
+  background: none !important;
+  opacity: 1 !important;
+}
+.rfq-detail-v2-shell .rfq-dv2-stage-arrow-icon {
+  font-size: 16px !important;
+  color: #9ca3af !important;
+  line-height: 1 !important;
+}
+/* remove old ::after arrowhead */
+.rfq-detail-v2-shell .rfq-dv2-stage-graph-arrow::after {
+  display: none !important;
+}
+
+/* Create RFQ form */
+/* UNUSED .rfq-detail-v2-shell .rfq-dv2-create-form {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  padding: 18px 24px 32px !important;
+} */
+
+.rfq-detail-v2-shell .rfq-dv2-create-form > div {
+  display: flex;
+  flex-direction: column;
+  max-width: 720px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .row {
+  --bs-gutter-x: 16px;
+  width: 100%;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .row.mb-3,
+.rfq-detail-v2-shell .rfq-dv2-create-form .row.mt-4 {
+  margin-bottom: 14px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .row.mt-4 {
+  margin-top: 12px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .col-12,
+.rfq-detail-v2-shell .rfq-dv2-create-form [class*="col-"] {
+  margin-bottom: 10px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-start-field {
+  order: 1;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-end-field {
+  order: 2;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-requisitioner-field {
+  order: 3;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-purchase-group-field {
+  order: 1;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-purchase-org-field {
+  order: 2;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-toggle-section {
+  order: 6;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-toggle-section > div {
+  width: 100% !important;
+  max-width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-terms-field {
+  order: 7;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-toggle-section .MuiFormControlLabel-root {
+  margin: 0 !important;
+}
+
+/* Required asterisk */
+.rfq-detail-v2-shell .rfq-required-star {
+  color: #d32f2f;
+  margin-left: 2px;
+}
+
+/* Inline field error — used below Quill editors and custom fields */
+.rfq-detail-v2-shell .rfq-field-error {
+  display: block;
+  font-size: 12px;
+  color: #d32f2f;
+  margin-top: 4px;
+  margin-left: 0;
+}
+
+/* Quill field error border */
+.rfq-detail-v2-shell .rfq-dv2-quill-error .ql-container,
+.rfq-detail-v2-shell .rfq-dv2-quill-error .ql-toolbar {
+  border-color: #d32f2f !important;
+}
+
+/* MUI helperText alignment — remove default 14px left margin so it aligns with label */
+.rfq-detail-v2-shell .MuiFormHelperText-root {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiFormLabel-root {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 20px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiTextField-root,
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiFormControl-root,
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiAutocomplete-root {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiInputLabel-root {
+  position: static !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiInputLabel-shrink {
+  transform: none !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiInputBase-root {
+  height: 32px !important;
+  min-height: 32px !important;
+  border-radius: 6px !important;
+  background: #ffffff;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiOutlinedInput-notchedOutline {
+  border-color: #d0d5dd !important;
+}
+
+.rfq-detail-v2-shell
+  .rfq-dv2-create-form
+  .MuiOutlinedInput-notchedOutline
+  legend {
+  width: 0 !important;
+  max-width: 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiInputBase-input {
+  font-size: 13px !important;
+  height: 32px !important;
+  box-sizing: border-box !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+.rfq-detail-v2-shell
+  .rfq-dv2-create-form
+  .MuiAutocomplete-root
+  .MuiOutlinedInput-root {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-radius: 6px !important;
+}
+
+.rfq-detail-v2-shell
+  .rfq-dv2-create-form
+  .MuiAutocomplete-root
+  .MuiInputBase-input {
+  height: 30px !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-quill-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-quill-field > span {
+  display: block;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .rfq-dv2-quill-field-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #374151;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .ql-container.ql-snow {
+  min-height: 150px;
+  border: 1px solid #d0d5dd !important;
+  border-radius: 6px !important;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .ql-editor {
+  min-height: 150px;
+  padding: 10px 12px !important;
+  color: #111827;
+  font-size: 13px;
+  font-style: normal;
+  line-height: 20px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .ql-editor.ql-blank::before {
+  left: 12px;
+  right: 12px;
+  color: #98a2b3;
+  font-size: 13px;
+  font-style: normal;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form #termandcondition + .ql-container,
+.rfq-detail-v2-shell .rfq-dv2-create-form #termandcondition .ql-container {
+  min-height: 86px;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiRadio-root,
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiCheckbox-root {
+  padding: 2px 6px 2px 0 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiFormControlLabel-root {
+  margin-left: 0 !important;
+  margin-right: 22px !important;
+  align-items: flex-start !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiFormControlLabel-label {
+  color: #344054 !important;
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+}
+
+.rfq-detail-v2-shell .rfq-dv2-create-form .MuiFormControlLabel-label::after {
+  content: "Description";
+  display: block;
+  color: #98a2b3;
+  font-size: 11px;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+/* ── Items & Services toolbar ── */
+.rfq-items-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 10px 0 12px;
+  flex-shrink: 0;
+  overflow-x: hidden;
+}
+
+.rfq-items-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* UNUSED .rfq-items-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+  line-height: 1;
+} */
+
+/* UNUSED .rfq-items-btn--primary {
+  background: #ffffff;
+  color: #2082db;
+  border: 1px solid #2082db;
+} */
+.rfq-items-btn--primary:hover:not(:disabled) {
+  background: #eff6ff;
+}
+
+.rfq-items-divider {
+  display: inline-block;
+  width: 1px;
+  height: 20px;
+  background: #d1d5db;
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+/* UNUSED .rfq-items-btn--with-chevron {
+  gap: 6px;
+  padding-right: 0;
+} */
+
+/* UNUSED .rfq-items-btn--secondary {
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #bdbdbd;
+} */
+.rfq-items-btn--secondary:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #9e9e9e;
+}
+
+/* UNUSED .rfq-items-btn--ghost {
+  background: #ffffff;
+  color: #b8232f;
+  border: 1px solid #bdbdbd;
+  padding: 0 14px;
+} */
+.rfq-items-btn--ghost:hover:not(:disabled) {
+  background: #fff1f2;
+}
+
+.rfq-items-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Items tab height fill ── */
+.rfq-items-tab-content {
+  overflow: hidden;
+}
+
+/* ── Commercial Terms ── */
+.comm-required-chip {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #f9e692;
+  color: #864721;
+  margin-left: 5px;
+}
+
+.comm-uom-update-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1976d2;
+  cursor: pointer;
+  text-decoration: underline;
+  line-height: 1;
+}
+.comm-uom-update-btn:hover {
+  color: #1558a8;
+}
+
+.comm-currency-modal {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.comm-currency-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.comm-currency-modal-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+.comm-currency-modal-body {
+  padding: 18px 18px 8px;
+}
+.comm-currency-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px 14px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ── Question tab view-mode tabs ── */
+.eq-view-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  width: fit-content;
+  min-height: 36px;
+  padding: 5px;
+  border-radius: 5px;
+  background: #f1f5f9;
+}
+.eq-view-tab {
+  min-height: 26px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #0f172a;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 16px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.eq-view-tab:hover:not(.eq-view-tab--active) {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.65);
+}
+.eq-view-tab--active {
+  color: #0f172a;
+  font-weight: 600;
+  background: #ddefff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+/* ── Questions toolbar controls ── */
+.rfq-question-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+  /* margin-left: 10px; */
+}
+
+.rfq-question-toolbar-left {
+  flex: 0 1 340px;
+  min-width: 0;
+}
+
+.rfq-question-library-field {
+  width: 100%;
+  max-width: 340px;
+}
+
+.rfq-question-library-select .MuiOutlinedInput-root {
+  height: 32px;
+  padding: 0 8px !important;
+  border-radius: 6px !important;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+}
+
+.rfq-question-library-select .MuiOutlinedInput-notchedOutline {
+  border-color: #d0d7de !important;
+}
+
+.rfq-question-library-select
+  .MuiOutlinedInput-root:hover
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #b8c1cc !important;
+}
+
+.rfq-question-library-select
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #1e88e5 !important;
+  border-width: 1px !important;
+}
+
+.rfq-question-library-select .MuiAutocomplete-input {
+  height: 30px !important;
+  padding: 0 4px !important;
+  font-size: 13px;
+  color: #334155;
+}
+
+.rfq-question-library-select .MuiAutocomplete-input::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}
+
+.rfq-question-toolbar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+/* UNUSED .rfq-question-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+} */
+
+.rfq-question-action-btn svg {
+  font-size: 15px;
+}
+
+.rfq-question-action-btn:hover {
+  border-color: #1e88e5;
+  background: #f8fbff;
+  color: #1976d2;
+}
+
+/* UNUSED .rfq-question-action-btn--dropdown {
+  gap: 6px;
+  padding-right: 0;
+} */
+
+.rfq-question-action-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  min-width: 30px;
+  margin-left: 2px;
+  border-left: 1px solid #d0d7de;
+  color: #334155;
+}
+
+.rfq-items-btn--with-chevron .rfq-question-action-chevron {
+  margin-left: 4px;
+}
+
+@media (max-width: 768px) {
+  .rfq-question-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rfq-question-library-field {
+    max-width: none;
+  }
+
+  .rfq-question-toolbar-right {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Question card metadata vertical divider ── */
+.eq-meta-divider {
+  display: inline-block;
+  color: #d1d5db;
+  padding: 0 6px;
+  font-size: 12px;
+  line-height: 1;
+  user-select: none;
+}
+
+/* ── Question wise cards ── */
+/* Override datagrid.css .item-Table which sets height: 70vh — creates dead space in the tab scroll container */
+.mt-2.item-Table.eq-question-list,
+div.item-Table.eq-question-list {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.eq-question-list {
+  margin-top: 8px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.eq-question-card {
+  margin-bottom: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.eq-question-card-body {
+  display: flex;
+  align-items: center;
+  min-height: 58px;
+  padding: 10px 12px;
+}
+
+.eq-question-card-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-right: 12px;
+  gap: 10px;
+}
+
+.eq-question-title {
+  margin: 0 0 6px !important;
+  color: #111827;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 18px !important;
+}
+
+.eq-question-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.eq-question-meta .MuiTypography-root {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.eq-question-meta strong {
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.eq-question-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding-left: 8px;
+}
+
+.eq-question-icon-btn.MuiIconButton-root {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.eq-question-icon-btn.MuiIconButton-root:hover {
+  background: #f8fafc;
+  border-color: #d1d5db;
+}
+
+.eq-question-icon-btn--delete.MuiIconButton-root {
+  color: #ef4444;
+}
+
+.eq-question-icon-btn--delete.MuiIconButton-root:hover {
+  color: #dc2626;
+  background: #fff5f5;
+  border-color: #fecaca;
+}
+
+.eq-question-options-wrap {
+  padding: 0 10px 10px 12px;
+}
+
+.eq-question-options-table-container.MuiPaper-root {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-shadow: none;
+  background: #ffffff;
+}
+
+.eq-question-options-table.MuiTable-root {
+  min-width: 650px;
+  table-layout: fixed;
+  background: #ffffff;
+}
+
+.eq-question-options-table .MuiTableHead-root .MuiTableRow-root {
+  height: 34px;
+  background: #f8fafc;
+}
+
+.eq-question-options-table .MuiTableCell-head {
+  height: 34px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  background: #f8fafc;
+}
+
+.eq-question-options-table .MuiTableBody-root .MuiTableRow-root {
+  height: 34px;
+}
+
+.eq-question-options-table .MuiTableBody-root .MuiTableRow-root:hover {
+  background: #f9fafb;
+}
+
+.eq-question-options-table .MuiTableCell-body {
+  height: 34px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #eef2f6;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.eq-question-options-table
+  .MuiTableBody-root
+  .MuiTableRow-root:last-child
+  .MuiTableCell-body {
+  border-bottom: 0;
+}
+
+/* ── Category wise question table ── */
+.eq-category-table-paper.MuiPaper-root {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: none !important;
+  overflow-x: auto;
+  overflow-y: visible;
+  background: #ffffff;
+}
+
+.eq-category-table-container {
+  border-radius: 8px;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+}
+
+.eq-category-table-paper .MuiTable-root {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.eq-category-expand-cell.MuiTableCell-root {
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  padding: 0 6px !important;
+  overflow: visible !important;
+  text-align: center;
+  position: relative;
+}
+
+.eq-category-expand-cell .MuiBox-root,
+.eq-category-expand-cell .Mui-TableHeadCell-Content,
+.eq-category-expand-cell .Mui-TableBodyCell-DetailPanel {
+  overflow: visible !important;
+}
+
+.eq-category-expand-cell .MuiIconButton-root {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+
+.eq-category-expand-cell .MuiIconButton-root svg {
+  width: 16px !important;
+  height: 16px !important;
+  overflow: visible;
+}
+
+.eq-category-head-cell.MuiTableCell-root {
+  height: 36px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.eq-category-body-cell.MuiTableCell-root {
+  min-height: 48px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eef2f6;
+  color: #111827;
+  font-size: 12px;
+  line-height: 18px;
+  vertical-align: middle;
+}
+
+.eq-category-row.MuiTableRow-root:hover
+  .eq-category-body-cell.MuiTableCell-root {
+  background: #f3f4f6;
+}
+
+.eq-category-row--category.MuiTableRow-root:hover
+  .eq-category-body-cell.MuiTableCell-root {
+  background: #e9eaec;
+}
+
+/* ── NFA / RFQ Question Tab — pe-question-* ── */
+.pe-question-category {
+  margin-bottom: 16px;
+}
+.pe-question-category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+.pe-question-category-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #101828;
+}
+.pe-question-category-body {
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pe-question-card {
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+.pe-question-title {
+  font-size: 14px;
+  color: #101828;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.pe-question-number {
+  font-weight: 600;
+  margin-right: 4px;
+}
+.pe-question-required {
+  color: #d32f2f;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 6px;
+}
+.pe-question-refdoc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 10px;
+}
+.pe-question-refdoc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #2082db;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+}
+.pe-question-refdoc-link:hover {
+  color: #1769bb;
+  text-decoration: underline;
+}
+.pe-question-requirement {
+  background: #eff6ff;
+  border-left: 3px solid #2082db;
+  padding: 10px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #374151;
+}
+.pe-question-requirement-label {
+  font-weight: 600;
+  color: #1769bb;
+  margin-right: 6px;
+}
+.pe-question-upload-row {
+  display: flex;
+  gap: 20px;
+  margin-top: 14px;
+  padding: 14px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+.pe-question-upload-left {
+  flex: 1;
+  min-width: 220px;
+  border-right: 1px solid #e5e7eb;
+}
+.pe-question-upload-right {
+  flex: 1;
+  min-width: 220px;
+}
+.pe-question-upload-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #101828;
+  margin-bottom: 6px;
+}
+.pe-question-upload-hint {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 6px;
+}
+.pe-question-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+.pe-question-file-link {
+  color: #2082db;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pe-question-file-link:hover {
+  color: #1769bb;
+  text-decoration: underline;
+}
+
+/* ── Plain form textarea (pairs with pe-question-card answer area) ── */
+.pe-detail-form-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #101828;
+  background: #fff;
+}
+.pe-detail-form-input:disabled,
+.pe-detail-form-input[readonly] {
+  background: #f8fafc;
+  border-color: #e5e7eb;
+  color: #6b7280;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.pe-detail-form-input:focus {
+  outline: none;
+  border-color: #2082db;
+  box-shadow: 0 0 0 2px rgba(32, 130, 219, 0.12);
+}
+.pe-detail-form-input::placeholder {
+  color: #98a2b3;
+}
+textarea.pe-detail-form-input {
+  min-height: 64px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.eq-category-row--category .eq-category-body-cell.MuiTableCell-root {
+  min-height: 48px;
+  background: #f3f4f6;
+  border-bottom-color: #e5e7eb;
+}
+
+.eq-category-row--category .MuiTypography-root {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.eq-category-row--subcategory .eq-category-body-cell.MuiTableCell-root {
+  min-height: 48px;
+  background: #fbfdff;
+}
+
+.eq-category-row--subcategory .MuiTypography-root {
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.eq-category-row--question .eq-category-body-cell.MuiTableCell-root {
+  background: #ffffff;
+}
+
+.eq-category-row--question .MuiTypography-root {
+  color: #111827;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.eq-category-row--question.Mui-selected
+  .eq-category-body-cell.MuiTableCell-root,
+.eq-category-row--question.Mui-selected:hover
+  .eq-category-body-cell.MuiTableCell-root {
+  background: #f1f5f9;
+}
+
+.eq-category-table-paper .MuiIconButton-root:not(.eq-question-icon-btn) {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: #64748b;
+  border-radius: 6px;
+}
+
+.eq-category-table-paper .MuiIconButton-root:not(.eq-question-icon-btn):hover {
+  background: #eef6ff;
+  color: #1976d2;
+}
+
+.eq-category-detail-panel {
+  padding: 12px 18px 16px 48px;
+  background: #fbfdff;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.eq-category-detail-title.MuiTypography-root {
+  margin-bottom: 8px;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.eq-category-options-table-container.MuiPaper-root {
+  max-width: 560px;
+}
+
+@media (max-width: 768px) {
+  .eq-question-card-body {
+    align-items: flex-start;
+  }
+
+  .eq-question-actions {
+    gap: 6px;
+    padding-left: 6px;
+  }
+
+  .eq-question-icon-btn.MuiIconButton-root {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* ── Supplier Tab 2-column layout ─────────────────────── */
+.sup-two-col {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  margin: 0;
+  min-height: 0;
+  height: calc(100vh - 260px);
+  background: #fff;
+}
+
+.sup-col-left,
+.sup-col-right {
+  width: calc(50% - 6px);
+  max-width: calc(50% - 6px);
+  flex: 0 0 calc(50% - 6px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #dfe3e8;
+  border-radius: 6px;
+}
+
+.sup-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 9px 12px;
+  flex-shrink: 0;
+}
+
+.sup-col-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.sup-col-count {
+  color: #7b8492;
+  font-size: 10px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.sup-filters {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+  flex-shrink: 0;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sup-filter-field {
+  width: 50%;
+  min-width: 0;
+}
+
+.sup-filter-control .MuiOutlinedInput-root {
+  min-height: 36px;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.sup-filter-control .MuiOutlinedInput-input {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+.sup-filter-control .MuiInputBase-input::placeholder {
+  color: #737373;
+  opacity: 1;
+}
+
+.sup-search-listbox
+  .sup-search-option.MuiAutocomplete-option
+
+.sup-search-listbox .sup-search-option.MuiAutocomplete-option:hover,
+.sup-search-listbox .sup-search-option.Mui-focused {
+  background: #f5f9ff;
+}
+
+.sup-list {
+  flex: 1 1 0;
+  overflow-y: auto;
+  min-height: 0;
+  background: #fff;
+}
+
+.sup-list-item {
+  display: flex;
+  align-items: center;
+  min-height: 58px;
+  padding: 12px;
+  border-bottom: 1px solid #edf0f2;
+  gap: 10px;
+}
+
+.sup-list-item:hover {
+  background: #f8fafc;
+}
+
+.sup-row-checkbox.MuiCheckbox-root {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 2px;
+  color: #9aa4b2;
+}
+
+.sup-row-checkbox.Mui-checked {
+  color: #1976d2;
+}
+
+.sup-row-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: wrap;
+}
+
+.sup-row-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.sup-row-actions .MuiIconButton-root {
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  border: 1px solid #e2e6ea;
+  border-radius: 6px;
+}
+
+.sup-row-actions .supplieraccmenu .dropdown-toggle {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.sup-clear-button.MuiButton-root {
+  min-width: auto;
+  padding: 2px 5px;
+  color: #b7791f;
+  font-size: 10px;
+  line-height: 1;
+  text-transform: none;
+}
+
+.sup-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  flex-shrink: 0;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+@media (max-width: 575px) {
+  .sup-two-col {
+    flex-wrap: wrap;
+  }
+
+  .sup-col-left,
+  .sup-col-right {
+    width: 100%;
+    max-width: 100%;
+    flex-basis: 100%;
+    min-height: 280px;
+  }
+
+  .sup-filters {
+    flex-direction: column;
+  }
+
+  .sup-filter-field {
+    width: 100%;
+  }
+}
+
+/* Supplier action buttons */
+.sup-action-btn.MuiIconButton-root {
+  width: 28px;
+  height: 28px;
+  background: transparent !important;
+  border: 1px solid #e2e6ea !important;
+  border-radius: 6px !important;
+  padding: 4px !important;
+}
+
+.sup-action-btn.MuiIconButton-root:hover {
+  background: #f1f1f1 !important;
+  border-color: #d1d5db !important;
+}
+
+.sup-action-btn > .btn {
+  background: #f3f4f6 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  box-shadow: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sup-action-btn > .btn::after {
+  display: none !important;
+}
+
+/* UNUSED .sup-delete-btn.MuiIconButton-root {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px;
+  padding: 4px;
+} */
+
+.sup-delete-btn.MuiIconButton-root:hover {
+  background: #fbf1f1;
+  border: 1px solid #f9dedd;
+}
+
+.sup-clear-button {
+  background: none;
+  border: 1px solid #d92d20;
+  border-radius: 6px;
+  color: #d92d20;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sup-clear-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sup-filters-right {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* ── Add Question form ──────────────────────────────────── */
+#add-question-form .MuiFormHelperText-root {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* ── RFQ Actions dropdown button — matches Version button style ── */
+/* UNUSED .rfq-actions-dropdown > .btn {
+  color: #374151 !important;
+  background-color: transparent !important;
+  border-color: #d1d5db !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  padding: 4.4px 10px !important;
+  border-radius: 4px !important;
+  line-height: 1.5 !important;
+} */
+.rfq-actions-dropdown > .btn:hover,
+.rfq-actions-dropdown > .btn:focus,
+.rfq-actions-dropdown > .btn:active,
+.rfq-actions-dropdown > .btn.show,
+.rfq-actions-dropdown.show > .btn {
+  color: #374151 !important;
+  background-color: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  box-shadow: none !important;
+}
+/* hide default Bootstrap caret — we use our own chevron icon */
+.rfq-actions-dropdown > .btn::after {
+  display: none !important;
+}
+
+/* ── Preview tab — section cards ────────────────────────────────────────── */
+.rfq-preview-section-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+.rfq-preview-card-body {
+  padding: 16px !important;
+}
+
+/* ── Preview tab — section headings ─────────────────────────────────────── */
+.rfq-preview-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+.rfq-preview-section-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: #6b7280 !important;
+}
+
+.css-3dzjca-MuiPaper-root-MuiPopover-paper-MuiMenu-paper {
+  max-width: 260px !important;
+}
+/* Preview tab scroll area — natural height, no forced 55vh */
+.rfq-preview-scroll-area {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 230px);
+  padding-bottom: 16px;
+}
+.rfq-preview-scroll-area::-webkit-scrollbar {
+  width: 6px;
+}
+.rfq-preview-scroll-area::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+/* NFA Allocations tab table */
+.nfa-alloc-table {
+  background: #fff;
+  color: #1f2937;
+  border-collapse: collapse;
+  width: 100%;
+}
+.nfa-alloc-table th {
+  border-bottom: 2px solid #e5e7eb;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f9fafb;
+  white-space: nowrap;
+}
+.nfa-alloc-table td {
+  padding: 8px 10px;
+  border-top: 1px solid #f3f4f6;
+  font-size: 13px;
+  color: #1f2937;
+  vertical-align: middle;
+}
+.nfa-alloc-table tbody tr:hover {
+  background: #f9fafb;
+}
+.nfa-alloc-expanded-table {
+  background: #f8f9fa;
+  color: #1f2937;
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  min-width: 1100px;
+}
+.nfa-alloc-expanded-table th {
+  border-bottom: 2px solid #e5e7eb;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f0f2f5;
+  white-space: nowrap;
+}
+.nfa-alloc-expanded-table td {
+  padding: 8px 10px;
+  border-top: 1px solid #e9ecef;
+  font-size: 13px;
+  vertical-align: middle;
+}
+.nfa-alloc-wrap {
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.nfa-alloc-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 70vh;
+}
+.nfa-alloc-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.nfa-alloc-summary-field {
+  flex: 1;
+  min-width: 140px;
+}
+/* Drawer header for right-side drawers */
+.nfa-right-drawer-header {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: #fafcff;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+.nfa-right-drawer-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+.nfa-right-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+.nfa-right-drawer-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
