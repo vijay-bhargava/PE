@@ -1,36 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-	Box,
-	Button,
 	Checkbox,
-	Drawer,
-	FormControl,
 	FormControlLabel,
-	FormGroup,
-	IconButton,
-	InputLabel,
 	MenuItem,
 	Select,
 	TextField,
-	Autocomplete,
 	Typography,
 	InputAdornment,
 } from "@mui/material";
-import { Modal } from "react-bootstrap";
 import TextFieldCell from "../../BaseCells/TextFieldCell";
-import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import AddQuestionCategory from "./AddQuestionCategory";
-import { Form } from "react-bootstrap";
 import AddQuestionSubCategory from "./AddQuestionSubCategory";
-import { LoadingButton } from "@mui/lab";
+import PEModal from "../../../components/PEModal";
 import "../../../assets/css/base.css";
-//import EditIcon from '@mui/icons-material/Edit';
-//import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
+import "../../../assets/css/design-system.css";
+import "../../../assets/css/rfq-detail-v2.css";
 import {
-	HiOutlinePencilAlt,
-	HiOutlineTrash,
 	HiOutlineX,
-	HiPencilAlt,
+	HiDownload,
 } from "react-icons/hi";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -66,7 +53,7 @@ const AddUpdateQuestion = ({
 	purchaseOrgList,
 	catList,
 	editRecordData,
-	pullQuestionList,setquestionunsavedChanges,handleReflectedData
+	pullQuestionList, setquestionunsavedChanges, handleReflectedData
 }) => {
 	const [loading, setLoading] = useState(false);
 	const [{ atoken, rtoken, customerid }, dispatch] = useStateValue();
@@ -84,7 +71,7 @@ const AddUpdateQuestion = ({
 
 	const [attachement, setattachement] = useState(false);
 	const [autoCalculated, setautoCalculated] = useState(false);
-	
+
 	const [optiontype, setoptiontype] = useState(false);
 	const [mandatory, setmandatory] = useState(false);
 	const [isMultipleChoice, setisMultipleChoice] = useState(false);
@@ -159,7 +146,7 @@ const AddUpdateQuestion = ({
 		var data = {
 			CustomerId: customerid,
 			questioncategoryid: valueId,
-			
+
 			// questioncategory:valueId,
 			// questionsubcategory: "",
 			IsActive: "true",
@@ -343,51 +330,51 @@ const AddUpdateQuestion = ({
 			libraryid: editRecordData?.libraryId ? editRecordData?.libraryId : 0,
 			questioncategoryid: editRecordData?.questionCategoryId
 				? catList[
-						catList?.findIndex(
-							(obj) => obj.id == editRecordData?.questionCategoryId
-						)
-				  ]
+				catList?.findIndex(
+					(obj) => obj.id == editRecordData?.questionCategoryId
+				)
+				]
 				: 0,
 			questionCategory: editRecordData?.questionCategory
 				? editRecordData?.questionCategory
 				: questionCategory,
 			questionsubcategoryid: editRecordData?.questionSubcategoryId
 				? subCatList[
-						subCatList?.findIndex(
-							(obj) => obj.id == editRecordData?.questionSubcategoryId
-						)
-				  ]
+				subCatList?.findIndex(
+					(obj) => obj.id == editRecordData?.questionSubcategoryId
+				)
+				]
 				: 0,
-				questionSubCategory:editRecordData?.questionSubCategory
+			questionSubCategory: editRecordData?.questionSubCategory
 				? editRecordData?.questionSubCategory
 				: questionSubCategory,
 			questiondescription: editRecordData?.questionDescription
 				? `${editRecordData?.questionDescription}`
 				: "",
-				questionRequirement: editRecordData?.questionRequirement
+			questionRequirement: editRecordData?.questionRequirement
 				? `${editRecordData?.questionRequirement}`
 				: "",
 			// applyeventtype: editRecordData?.applyeventtype
 			//   ? editRecordData?.applyeventtype
 			//   : applyeventtype,
-			eventType  :editRecordData?.eventType ?? eventType,
+			eventType: editRecordData?.eventType ?? eventType,
 			attachedFileName: editRecordData?.attachedFileName
 				? `${editRecordData?.attachedFileName}`
 				: attachedFileName,
 			attachement: editRecordData?.attachement
 				? `${editRecordData?.attachement}`
 				: false,
-				autoCalculated: editRecordData?.autoCalculated
+			autoCalculated: editRecordData?.autoCalculated
 				? `${editRecordData?.autoCalculated}`
 				: false,
-				isMultipleChoice: editRecordData?.isMultipleChoice
+			isMultipleChoice: editRecordData?.isMultipleChoice
 				? `${editRecordData?.isMultipleChoice}`
 				: false,
 			// filepath: editRecordData?.filepath ? `${editRecordData?.filepath}` : "",
 			weightage: editRecordData?.weightage,
 			optiontype: editRecordData?.optionType ? true : false,
 			mandatory: editRecordData?.mandatory ? true : false,
-			
+
 			purchaseorggrp: inputOrgGrpList,
 			isActive: editRecordData?.isActive ? editRecordData?.isActive : true,
 			createdby: 1,
@@ -400,14 +387,14 @@ const AddUpdateQuestion = ({
 			if (!values.questiondescription) {
 				setLoading(false); // Stop loading
 				toast.error("Question Description is required!", {
-					toastId:"descques"
+					toastId: "descques"
 				});
-				return; 
+				return;
 			}
 			setLoading(true);
-			
-			
-		
+
+
+
 			var filepathreturn = "";
 
 			var datapost = {
@@ -418,25 +405,25 @@ const AddUpdateQuestion = ({
 				questioncategoryid: catId,
 				questionCategory: questionCategory,
 				questionsubcategoryid: subCatId,
-				questionSubCategory:questionSubCategory,
+				questionSubCategory: questionSubCategory,
 				questiondescription: questiondescription,
-				questionRequirement:questionRequirement,
+				questionRequirement: questionRequirement,
 				eventType: values.eventType,
 				attachedFileName: attachedFileName,
 				weightage: weightage,
 				purchaseorggrp: inputOrgGrpList,
 				attachement: attachement == undefined ? 0 : attachement,
 				autoCalculated: autoCalculated,
-				optiontype: (optiontype || isMultipleChoice) ? true:false,
-				isMultipleChoice:isMultipleChoice?false:true,
-				
+				optiontype: (optiontype || isMultipleChoice) ? true : false,
+				isMultipleChoice: isMultipleChoice ? false : true,
+
 				mandatory: mandatory,
 				isActive: isActive,
 			};
 			if (editRecordData?.id > 0) {
-				
+
 				if (fileList) {
-					
+
 					var Data = {
 						RequestedBy: "customer",
 						CustomerId: customerid,
@@ -452,11 +439,11 @@ const AddUpdateQuestion = ({
 							libraryEntity: libraryEntity,
 							questioncategoryid: catId, // catId == undefined ? 0 : catId,
 							questionCategory: questionCategory,
-							questionsubcategoryid: subCatId, 
+							questionsubcategoryid: subCatId,
 							questionSubCategory: questionSubCategory,
 							//subCatId == undefined ? 0 : subCatId,
 							questiondescription: questiondescription,
-							questionRequirement:questionRequirement,
+							questionRequirement: questionRequirement,
 							eventType: eventType,
 							attachedFileName: filepathreturn
 								? filepathreturn
@@ -465,9 +452,9 @@ const AddUpdateQuestion = ({
 							weightage: weightage,
 							purchaseorggrp: inputOrgGrpList, //?.map(t => t.id).toString(),  // values?.purchaseorg,
 							attachement: attachement == undefined ? 0 : attachement,
-							autoCalculated:  autoCalculated,
-							optiontype: (optiontype || isMultipleChoice) ? true:false,
-				isMultipleChoice:isMultipleChoice?false:true,
+							autoCalculated: autoCalculated,
+							optiontype: (optiontype || isMultipleChoice) ? true : false,
+							isMultipleChoice: isMultipleChoice ? false : true,
 							mandatory: mandatory,
 							isActive: isActive,
 						};
@@ -528,9 +515,9 @@ const AddUpdateQuestion = ({
 							questioncategoryid: catId,
 							questionCategory: questionCategory,
 							questionsubcategoryid: subCatId,
-							questionSubCategory:questionSubCategory,
+							questionSubCategory: questionSubCategory,
 							questiondescription: questiondescription,
-							questionRequirement:questionRequirement,
+							questionRequirement: questionRequirement,
 							eventType: eventType,
 
 							attachedFileName: filepathreturn
@@ -539,9 +526,9 @@ const AddUpdateQuestion = ({
 							weightage: weightage,
 							purchaseorggrp: inputOrgGrpList, //?.map(t => t.id).toString(),  // values?.purchaseorg,
 							attachement: attachement == undefined ? 0 : attachement,
-							autoCalculated : autoCalculated,
-							optiontype: (optiontype || isMultipleChoice) ? true:false,
-				            isMultipleChoice:isMultipleChoice ? false:true,						
+							autoCalculated: autoCalculated,
+							optiontype: (optiontype || isMultipleChoice) ? true : false,
+							isMultipleChoice: isMultipleChoice ? false : true,
 							mandatory: mandatory,
 							isActive: isActive,
 						};
@@ -594,19 +581,19 @@ const AddUpdateQuestion = ({
 		setapplyeventtype(editRecordData?.applyeventtype);
 		setlibraryEntity(editRecordData?.libraryEntity);
 		setlibraryid(editRecordData?.libraryId);
-		if(editRecordData?.optionType && editRecordData?.isMultipleChoice){
-            setoptiontype(true);
+		if (editRecordData?.optionType && editRecordData?.isMultipleChoice) {
+			setoptiontype(true);
 		}
-		
-		else if(editRecordData?.optionType && !editRecordData?.isMultipleChoice){
-            setisMultipleChoice(true);
+
+		else if (editRecordData?.optionType && !editRecordData?.isMultipleChoice) {
+			setisMultipleChoice(true);
 		}
-		else{
+		else {
 			setoptiontype(false);
 			setisMultipleChoice(false);
 		}
-		
-        //setisMultipleChoice(editRecordData?.isMultipleChoice);
+
+		//setisMultipleChoice(editRecordData?.isMultipleChoice);
 		if (editRecordData?.questioncategoryId > 0) {
 			setCatId(editRecordData?.questioncategoryId);
 
@@ -630,13 +617,13 @@ const AddUpdateQuestion = ({
 			const fileName = attachedFileName.split("/").pop();
 			setdisplayAttachedName(fileName);
 		}
-		
+
 		setmandatory(editRecordData?.mandatory);
 		setisActive(editRecordData?.isActive);
 	};
 
 	const clearedForm = () => {
-		
+
 		setapplyeventtype("");
 		SetquestionCategory("");
 
@@ -659,7 +646,7 @@ const AddUpdateQuestion = ({
 		if (fileInputRef.current) {
 			fileInputRef.current.value = null;
 		}
-		
+
 	};
 
 	const [editorState, setEditorState] = useState("");
@@ -692,13 +679,13 @@ const AddUpdateQuestion = ({
 
 	const CloseLibraryModal = () => {
 		setLibraryModal(false);
-		
+
 		// Set id of the last library
 		const lastlibid = AllLibraryList[AllLibraryList.length - 1]?.id;
-	
+
 		if (!editRecordData && lastlibid) {
 			const lastLibrary = AllLibraryList.find(library => library.id === lastlibid);
-			
+
 			if (lastLibrary) {
 				setlibraryid(lastlibid);
 
@@ -709,7 +696,7 @@ const AddUpdateQuestion = ({
 				seteventType(lastLibrary.eventType);
 			}
 		}
-	
+
 		console.log("AllLibraryList", AllLibraryList);
 	};
 	const updateFolup = (value) => {
@@ -782,8 +769,8 @@ const AddUpdateQuestion = ({
 	const onchangeEventType = (event, newValue) => {
 		setapplyeventtype(event.target.value);
 	};
-	
-	
+
+
 	function handleFileChange(event) {
 		if (event) {
 			if (validateFileSize(event)) {
@@ -805,15 +792,15 @@ const AddUpdateQuestion = ({
 				setFileList(event.target.files[0]);
 				setquestionunsavedChanges(true);
 			}
-			else{
+			else {
 				setPostFileName("");
-	
-				
-	
-					if (fileInputRef.current) {
-						fileInputRef.current.value = "";
-					}
-					return;
+
+
+
+				if (fileInputRef.current) {
+					fileInputRef.current.value = "";
+				}
+				return;
 			}
 		}
 	}
@@ -864,7 +851,7 @@ const AddUpdateQuestion = ({
 		setquestionunsavedChanges(true);
 	};
 	const handleLibraryEntityChange = (e) => {
-		
+
 		const selectedValue = e.target.value;
 		if (selectedValue === "Add NEW Library") {
 			openAddLibraryModal();
@@ -884,7 +871,7 @@ const AddUpdateQuestion = ({
 			}
 			setquestionunsavedChanges(true);
 		}
-		
+
 	};
 	const handleCategoryChange = (e) => {
 		;
@@ -920,574 +907,252 @@ const AddUpdateQuestion = ({
 	};
 	const handleSubCatChange = (e) => {
 		const selectedValue = e?.target?.value;
-	  
+
 		if (selectedValue === "new") {
-		  openAddSubCategoryModal();
+			openAddSubCategoryModal();
 		} else {
-		  const selectedSubCategory = subCatList.find(option => option.id === selectedValue)?.questionsubcategory;
-	  
-		  setSubCatId(selectedValue);
-		  SetquestionSubCategory(selectedSubCategory); 
-		  setquestionunsavedChanges(true);
+			const selectedSubCategory = subCatList.find(option => option.id === selectedValue)?.questionsubcategory;
+
+			setSubCatId(selectedValue);
+			SetquestionSubCategory(selectedSubCategory);
+			setquestionunsavedChanges(true);
 		}
-	  };
-	  
+	};
+
 	return (
-		<form onSubmit={formik.handleSubmit} autoComplete="off">
-			<div className="row">
-				<div className="col-12 col-md-6 mb-2">
-					<FormControl fullWidth>
-						<InputLabel id="library">Library *</InputLabel>
+		<>
+			<form id="add-question-form" onSubmit={formik.handleSubmit} autoComplete="off">
+				<div className="row g-3">
+
+					{/* Library */}
+					<div className="col-12 col-md-6">
+						<label className="pe-field-label">Library <span className="rfq-required-star">*</span></label>
 						<Select
-							labelId="event"
-							InputLabelProps={{
-								shrink: true,
-							}}
+							fullWidth
 							variant="outlined"
 							size="small"
 							id="libraryid"
 							name="libraryid"
 							value={libraryid}
-							label="Question Library *"
 							onChange={handleLibraryEntityChange}
+							className="f13"
 						>
+							<MenuItem value={"Add NEW Library"} className="dropdown-add-new f13">
+								ADD NEW
+							</MenuItem>
 							{AllLibraryList?.map((option, i) => (
-								<MenuItem key={i} value={option?.id}>
-									
+								<MenuItem key={i} value={option?.id} className="f13">
 									{`${option?.libraryEntity} - ${option?.eventType}`}
 								</MenuItem>
 							))}
-							<MenuItem
-								value={"Add NEW Library"}
-								className="bggray"
-								style={{
-									color: "blue",
-									fontSize: "13px",
-									fontStyle: "italic",
-									textDecoration: "underline",
-									cursor: "pointer",
-								}}
-								
-							>
-								<ins>ADD NEW</ins>
-							</MenuItem>
 						</Select>
 						{formik.errors.libraryEntity && formik.touched.libraryEntity && (
-							<div className="error error-red" style={{ fontSize: "9px" }}>
-								{formik.errors.libraryEntity}
-							</div>
+							<div className="f11" style={{ color: 'var(--pe-danger)' }}>{formik.errors.libraryEntity}</div>
 						)}
-					</FormControl>
-				</div>
-				<div className="col-6  focus">
-					<FormControl fullWidth className="form-control">
-						<TextFieldCell
+					</div>
+
+					{/* Weightage */}
+					<div className="col-12 col-md-6">
+						<label className="pe-field-label">Question Weightage (%)</label>
+						<TextField
+							fullWidth
+							variant="outlined"
+							size="small"
 							id="weightage"
 							name="weightage"
-							label="Question Weightage(In Percentage)"
-							maxLength={3}
+							className="f13"
 							inputProps={{ maxLength: 5 }}
-							onInput={(e) => onlyNumberwithdecimal(e)}
 							value={weightage}
-							//onChange={formik.handleChange}
+							onInput={(e) => onlyNumberwithdecimal(e)}
 							onChange={(e) => {
-								const newValue = onlyNumberwithdecimal(e); // Apply your function here
-								if (newValue !== undefined) {
-									setweightage(newValue);
-								}
+								const newValue = onlyNumberwithdecimal(e);
+								if (newValue !== undefined) setweightage(newValue);
 							}}
-							error={
-								formik.touched.weightage && Boolean(formik.errors.weightage)
-							}
-							helperText={formik.touched.weightage && formik.errors.weightage}
 						/>
-					</FormControl>
-				</div>
-				<div className="col-12 col-md-6 mb-2 mt-2 ">
-					<FormControl fullWidth>
-						<InputLabel id="category">Category</InputLabel>
+					</div>
+
+					{/* Category */}
+					<div className="col-12 col-md-6">
+						<label className="pe-field-label">Category</label>
 						<Select
-							labelId="questioncategoryid"
-							InputLabelProps={{
-								shrink: true,
-							}}
-							label="Category "
+							fullWidth
+							variant="outlined"
+							size="small"
 							id="questioncategoryid"
 							name="questioncategoryid"
-							variant="outlined"
-							value={catId} //{formik.values.questioncategoryid}
-							size="small"
+							value={catId}
 							onChange={handleCategoryChange}
-							//defaultValue='0168'
-							// onChange={(e) => {
-							//   setCatId(e?.target?.value);
-							//   PullSubCategoryFindAll(e?.target?.value);
-							//   //formik.setFieldValue("questioncategoryid", e?.target?.value);
-							// }}
-
-							// onChange={(e) => {
-							//   const selectedValue = e?.target?.value;
-
-							//   if (selectedValue === "new") {
-							//     openAddCategoryModal();
-							//   } else {
-							//     setCatId(selectedValue);
-							//     const selectedCategory = catList.find(cat => cat.id === selectedValue);
-							//     SetquestionCategory(selectedCategory?.questioncategory);
-							//     PullSubCategoryFindAll(selectedValue);
-
-							//   }
-							// }}
-							error={
-								formik.touched.questioncategoryid &&
-								Boolean(formik.errors.questioncategoryid)
-							}
-							helperText={
-								formik.touched.questioncategoryid &&
-								formik.errors.questioncategoryid
-							}
+							className="f13"
 						>
-							{catList?.map((option, i) => (
-								<MenuItem key={i} value={option?.id}>
-									{option?.questioncategory}
-								</MenuItem>
-							))}
-							<MenuItem
-								value={"new"}
-								className="bggray"
-								style={{
-									color: "blue", // Change link color
-									fontStyle: "italic",
-									textDecoration: "underline", // Underline the link
-									cursor: "pointer", // Change cursor to pointer on hover
-								}}
-								onClick={openAddCategoryModal}
-							>
-								<ins>ADD NEW</ins>
+							<MenuItem value={"new"} className="dropdown-add-new f13" onClick={openAddCategoryModal}>
+								ADD NEW
 							</MenuItem>
+							{catList?.map((option, i) => (
+								<MenuItem key={i} value={option?.id} className="f13">{option?.questioncategory}</MenuItem>
+							))}
 						</Select>
-					</FormControl>
-				</div>
+					</div>
 
-				<div className="col-12 col-md-6 mb-3 mt-2">
-					<FormControl fullWidth>
-						<InputLabel id="subcategory">Sub Category</InputLabel>
+					{/* Sub Category */}
+					<div className="col-12 col-md-6">
+						<label className="pe-field-label">Sub Category</label>
 						<Select
-							labelId="questionsubcategoryid"
-							InputLabelProps={{
-								shrink: true,
-							}}
-							label="Category "
+							fullWidth
+							variant="outlined"
+							size="small"
 							id="questionsubcategoryid"
 							name="questionsubcategoryid"
-							variant="outlined"
-							value={subCatId} //{formik.values.questionsubcategoryid}
-							size="small"
-							// onChange={(e) => {
-							//   setSubCatId(e?.target?.value);
-							//   // formik.setFieldValue("questionsubcategoryid", e?.target?.value);
-							// }}
+							value={subCatId}
 							onChange={handleSubCatChange}
-							// onChange={(e) => {
-								
-							// 	const selectedValue = e?.target?.value;
-
-							// 	if (selectedValue === "new") {
-							// 		openAddSubCategoryModal();
-							// 	} else {
-							// 		setSubCatId(selectedValue);
-							// 	}
-							// }}
-							error={
-								formik.touched.questionsubcategoryid &&
-								Boolean(formik.errors.questionsubcategoryid)
-							}
-							helperText={
-								formik.touched.questionsubcategoryid &&
-								formik.errors.questionsubcategoryid
-							}
+							className="f13"
 						>
-							{subCatList?.map((option, i) => (
-								<MenuItem key={i} value={option?.id}>
-									{option?.questionsubcategory}
-								</MenuItem>
-							))}
-							<MenuItem
-								value={"new"}
-								className="bggray"
-								style={{
-									color: "blue", // Change link color
-									fontStyle: "italic",
-									textDecoration: "underline", // Underline the link
-									cursor: "pointer", // Change cursor to pointer on hover
-								}}
-								onClick={openAddSubCategoryModal}
-							>
-								<ins>ADD NEW</ins>
+							<MenuItem value={"new"} className="dropdown-add-new f13" onClick={openAddSubCategoryModal}>
+								ADD NEW
 							</MenuItem>
+							{subCatList?.map((option, i) => (
+								<MenuItem key={i} value={option?.id} className="f13">{option?.questionsubcategory}</MenuItem>
+							))}
 						</Select>
-					</FormControl>
-				</div>
+					</div>
 
-				<div className="col-12 mb-2 pb-0">
-					<Box
-						component="form"
-						sx={{
-							"& .MuiTextField-root": { m: 0, width: "25ch" },
-						}}
-						noValidate
-						autoComplete="off"
-					>
+					{/* Question */}
+					<div className="col-12 col-md-6">
+						<label className="pe-field-label">Question <span className="rfq-required-star">*</span></label>
 						<TextField
-							className="pb-0 mb-0 w-100"
+							fullWidth
 							variant="outlined"
-							//id="questiondescription"
-							name="questiondescription"
-							label="Question *"
+							size="small"
 							id="questiondescription"
+							name="questiondescription"
 							multiline
+							minRows={2}
 							maxRows={4}
+							className="f13"
 							value={questiondescription}
 							onChange={handlequesdescChange}
 							inputProps={{ maxLength: 2000 }}
 							InputProps={{
 								endAdornment: questiondescription && (
-								  <InputAdornment position="end">
-									<Typography variant="body2" color="textSecondary">
-									  {questiondescription?.length}/2000
-									</Typography>
-								  </InputAdornment>
+									<InputAdornment position="end">
+										<Typography variant="body2" color="textSecondary" style={{ fontSize: 11 }}>
+											{questiondescription?.length}/2000
+										</Typography>
+									</InputAdornment>
 								),
-							  }}
-							// error={
-							//   formik.touched.questiondescription &&
-							//   Boolean(formik.errors.questiondescription)
-							// }
-							// helperText={
-							//   formik.touched.questiondescription &&
-							//   formik.errors.questiondescription
-							// }
-						/>{" "}
-						{/* <div style={{ fontSize: "0.8em", color: "blue" }}>
-							{questiondescription.length}/2000
-						</div> */}
-						{formik.errors.questiondescription &&
-							formik.touched.questiondescription && (
-								<div className="error error-red" style={{ fontSize: "9px" }}>
-									{formik.errors.questiondescription}
-								</div>
-							)}
-					</Box>
-				</div>
-				<div className='col-12 col-md-12 mb-2 mt-2'>
-                        <TextFieldCell
-                            id="questionRequirement"
-                            name="questionRequirement"
-                            label="Your Requirement"
-                            multiline
-                            rows={2}
-                            placeholder=''
-                            value={questionRequirement}
+							}}
+						/>
+						{formik.errors.questiondescription && formik.touched.questiondescription && (
+							<div className="f11" style={{ color: 'var(--pe-danger)' }}>{formik.errors.questiondescription}</div>
+						)}
+					</div>
+
+					{/* Your Requirement */}
+					<div className="col-12 col-md-6">
+						<label className="pe-field-label">Your Requirement</label>
+						<TextField
+							fullWidth
+							variant="outlined"
+							size="small"
+							id="questionRequirement"
+							name="questionRequirement"
+							multiline
+							rows={2}
+							className="f13"
+							value={questionRequirement}
 							onChange={handlequesreqChange}
-                            maxLength={200}
-                            InputProps={{
-								endAdornment: formik.values.questionRequirement && (
-								  <InputAdornment position="end">
-									<Typography variant="body2" color="textSecondary">
-									  {formik.values.questionRequirement.length}/200
-									</Typography>
-								  </InputAdornment>
+							inputProps={{ maxLength: 200 }}
+							InputProps={{
+								endAdornment: questionRequirement && (
+									<InputAdornment position="end">
+										<Typography variant="body2" color="textSecondary" style={{ fontSize: 11 }}>
+											{questionRequirement?.length}/200
+										</Typography>
+									</InputAdornment>
 								),
-							  }}
-                            error={formik.touched.questionRequirement && Boolean(formik.errors.questionRequirement)}
-                            helperText={formik.touched.questionRequirement && formik.errors.questionRequirement}
-                        />
-                    </div>
+							}}
+						/>
+					</div>
 
+					{/* Checkboxes */}
+					<div className="col-12">
+						<div className="d-flex flex-wrap" style={{ gap: '4px 24px' }}>
+							{[
+								{ label: 'Multi Choice', checked: optiontype, onChange: (e) => { setoptiontype(e.target.checked); if (e.target.checked) setisMultipleChoice(false); } },
+								{ label: 'Single Choice', checked: isMultipleChoice, onChange: (e) => { setisMultipleChoice(e.target.checked); if (e.target.checked) setoptiontype(false); } },
+								{ label: 'Attachment', checked: attachement, onChange: (e) => setattachement(e.target.checked) },
+								{ label: 'Mandatory', checked: mandatory, onChange: (e) => setmandatory(e.target.checked) },
+								{ label: 'Auto Calculated', checked: autoCalculated, onChange: (e) => setautoCalculated(e.target.checked) },
+								{ label: 'Active', checked: isActive, onChange: (e) => setisActive(e.target.checked) },
+							].map(({ label, checked, onChange }) => (
+								<FormControlLabel
+									key={label}
+									label={<span className="f13" style={{ color: 'var(--pe-text)' }}>{label}</span>}
+									control={<Checkbox size="small" checked={checked} onChange={onChange} />}
+									style={{ margin: 0 }}
+								/>
+							))}
+						</div>
+					</div>
 
-				<div className="row">
-					<div className="col-12 col-lg-4">
-					<FormControlLabel
-						control={
-							<Checkbox
-								name="optiontype"
-								id="optiontype"
-								checked={optiontype} 
-								onChange={(e) => {
-									const isChecked = e.target.checked;
-									setoptiontype(isChecked);
-									if (isChecked) {
-										setisMultipleChoice(false); 
-									}
-								}}
-							/>
-						}
-						label="Multi choice"
-					/>
-					
-					
-				
-					</div>
-					<div className="col-12 col-lg-4">
-					<FormControlLabel
-						control={
-							<Checkbox
-								name="attachement"
-								id="attachement"
-								checked={attachement}
-								onChange={(e) => {
-									setattachement(e?.target?.checked);
-								}}
-							/>
-						}
-						label="Attachment"
-					/>
-						
-					
-				</div>
-				<div className="col-12 col-lg-4">
-					<FormControlLabel
-						control={
-							<Checkbox
-								name="autoCalculated"
-								id="autoCalculated"
-								checked={autoCalculated}
-								onChange={(e) => {
-									setautoCalculated(e?.target?.checked);
-								}}
-							/>
-						}
-						label="Auto Calculated"
-					/>
-				</div>
-					<div className="col-12 col-lg-4">
-					<FormControlLabel
-						control={
-							<Checkbox
-								name="isMultipleChoice"
-								id="isMultipleChoice"
-								checked={isMultipleChoice}
-								onChange={(e) => {
-									const isChecked = e.target.checked;
-									setisMultipleChoice(isChecked);
-									if (isChecked) {
-										setoptiontype(false); // Set Option Type to true when Single Choice is checked
-									}
-								}}
-							
-							/>
-						}
-						label="Single Choice"
-					/>
-
-					</div>
-					<div className="col-12 col-lg-4">
-						<FormGroup className="">
-							<FormControlLabel
-								control={
-									<Checkbox
-										name="mandatory"
-										id="mandatory"
-										checked={mandatory} //{formik.values.mandatory}
-										// onChange={formik.handleChange}
-										onChange={(e) => {
-											setmandatory(e?.target?.checked);
-										}}
-										//defaultChecked = {editRecordData?.mandatory!='' ? true : false}
-									/>
-								}
-								label="Mandatory"
-							/>
-						</FormGroup>
-					</div>
-					<div className="col-12 col-lg-4">
-						<FormGroup className="">
-							<FormControlLabel
-								control={
-									<Checkbox
-										name="isActive"
-										id="isActive"
-										checked={isActive}
-										onChange={(e) => {
-											setisActive(e?.target?.checked);
-										}}
-									/>
-								}
-								label="Active"
-							/>
-						</FormGroup>
-					</div>
-				</div>
-				
-				
-				<div className="col-12 col-md-8 mt-2">
-					<Form.Group controlId="formFile" className="">
-						<Form.Control
+					{/* File attachment */}
+					<div className="col-12">
+						<label className="pe-field-label">Attachment</label>
+						<input
 							type="file"
-							size="sm"
+							className="f13"
 							accept=".docx,.doc,image/jpeg,image/gif,image/png,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 							onChange={handleFileChange}
 							ref={fileInputRef}
+							style={{
+								display: 'block', width: '100%', padding: '5px 8px',
+								border: '1px solid #d1d5db', borderRadius: 6,
+								fontSize: 13, color: 'var(--pe-text)', background: '#fff',
+							}}
 						/>
-					</Form.Group>
-					<div
-						className="col-12 col-md-8 mb-5 mt-6"
-						style={{ color: "blue", fontStyle: "italic" }}
-					>
-						<div id="attachedFileName">
-						
-								 {attachedFileName?.length > 0 && (
-								<div className="d-flex align-items-center justify-content-between mt-2">
-									<Button
-										variant="text"
-										size="small"
-										className="attached-file-name"
-										onClick={handleDownload}
-									>
-										{displayAttachedName}
-									</Button>
-									{/* {attachedFileName && <div>{attachedFileName}</div>} */}
-									{/* <div className="attached-file-name">{attachedFileName}</div> */}
-									<div>
-										<IconButton
-											size="medium"
-											className="bg-white ml-2"
-											onClick={handleRemoveattachmentClick}
-										>
-											<HiOutlineX className="f16 text-danger" />
-										</IconButton>
-									</div>
-								</div>
-							)}
-						</div>
+						{attachedFileName?.length > 0 && (
+							<div className="d-flex align-items-center gap-2 mt-2">
+								<button type="button" className="pe-btn pe-btn--ghost" style={{ fontSize: 12, padding: '2px 8px' }} onClick={handleDownload}>
+									<HiDownload style={{ fontSize: 13 }} /> {displayAttachedName}
+								</button>
+								<button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={handleRemoveattachmentClick}>
+									<HiOutlineX />
+								</button>
+							</div>
+						)}
 					</div>
-				</div>
-				<div className="col-12 text-end">
-					{/* <hr /> */}
-					<LoadingButton
-						variant="text"
-						color="primary"
-						className="me-3 text-capitalize"
-						size="small"
-						onClick={clearedForm}
-					>
-						Reset
-					</LoadingButton>
-					{!loading ? (
-						<Button
-							
-							color="primary"
-							variant="outlined"
-							size="small"
-							type="submit"
-						>
-							Submit
-						</Button>
-					) : (
-						<LoadingButton className="" loading variant="contained">
-							Submit ...
-						</LoadingButton>
-					)}
-				</div>
-			</div>
-			<Modal
-				size="lg"
-				show={modal}
-				backdrop="static"
-				keyboard={false}
-				value={"Add NEW CATEGORY"}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={() => CloseModal()}
-			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-							Manage Category
-						</div>
-					</Modal.Title>
-					<IconButton onClick={() => CloseModal()} size="small" edge="start">
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<AddQuestionCategory
-							selectedCat={PullCategoryFindAll}
-							libraryid={libraryid}
-						/>
-					</div>
-				</Modal.Body>
-			</Modal>
 
-			<Modal
-				size="lg"
-				show={subModal}
-				backdrop="static"
-				keyboard={false}
-				value={"Add NEW SUB CATEGORY"}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={() => CloseSubModal()}
-			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-							Manage SubCategory
-						</div>
-					</Modal.Title>
-					<IconButton onClick={() => CloseSubModal()} size="small" edge="start">
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<AddQuestionSubCategory catId={catId} selectedSubCat={PullSubCategoryFindAll} />
-					</div>
-				</Modal.Body>
-			</Modal>
+				</div>
+			</form>
 
-			{/* Library added shivangi*/}
-			<Modal
-				size="lg"
-				show={LibraryModal}
-				backdrop="static"
-				keyboard={false}
-				value={"Add NEW Library"}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={() => CloseLibraryModal()}
+			{/* Manage Category Modal */}
+			<PEModal
+				open={modal} onClose={CloseModal}
+				title="Manage Category" size="lg"
+				bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+				bodyClassName="d-flex flex-column"
 			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-							Manage Library
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={() => CloseLibraryModal()}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<AddComLibrary
-							selectedLib={PullLibraryAll}
-							libraryType={libraryType}
-						/>
-					</div>
-				</Modal.Body>
-			</Modal>
-		</form>
+				<AddQuestionCategory selectedCat={PullCategoryFindAll} libraryid={libraryid} />
+			</PEModal>
+
+			{/* Manage Sub Category Modal */}
+			<PEModal open={subModal}
+				onClose={CloseSubModal} title="Manage Sub Category"
+				size="lg" bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+				bodyClassName="d-flex flex-column"
+			>
+				<AddQuestionSubCategory catId={catId} selectedSubCat={PullSubCategoryFindAll} />
+			</PEModal>
+
+			{/* Manage Library Modal */}
+			<PEModal open={LibraryModal}
+				onClose={CloseLibraryModal}
+				title="Manage Library" size="lg"
+				bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+				bodyClassName="d-flex flex-column"
+			>
+				<AddComLibrary selectedLib={PullLibraryAll} libraryType={libraryType} />
+			</PEModal>
+		</>
 	);
 };
 
