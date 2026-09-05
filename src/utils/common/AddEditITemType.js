@@ -142,7 +142,7 @@ const AddEditItemType = ({ handleItemTypeList, isModal = false }) => {
 
 	return (
 		<div
-			className={`bg-white rounded-default w-100 d-flex flex-column ${!isModal ? "p-3 shadow-sm" : "p-0"}`}
+			className={`bg-white rounded-default w-100 d-flex flex-column ${!isModal ? "" : "p-0"}`}
 			style={!isModal ? { height: "90vh" } : { height: "100%" }}
 		>
 			<div className="flex-grow-1" style={{ minHeight: 0 }}>

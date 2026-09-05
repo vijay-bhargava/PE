@@ -2,45 +2,53 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import IconButton from '@mui/material/IconButton';
-import { HiOutlineX, HiPlusSm, HiOutlineDotsHorizontal, HiPencilAlt } from "react-icons/hi";
-import { Autocomplete, Alert, Button, ButtonGroup, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, FormHelperText, InputAdornment, Menu, MenuItem, TextField, Tooltip, Typography, Checkbox, FormControlLabel, FormGroup } from '@mui/material';
-import Drawer from '@mui/material/Drawer';
+import { HiOutlineX, HiPlusSm, HiDownload } from "react-icons/hi";
+import {
+  InputAdornment, Menu, MenuItem,
+  TextField, Tooltip, Typography
+} from '@mui/material';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
-import { Card, CardContent, CardHeader, } from "@mui/material";
 import TextFieldCell from '../../BaseCells/TextFieldCell';
-import LoadingButton from '@mui/lab/LoadingButton';
 import HistoryCell from '../../BaseCells/HistoryCell';
-import ReactQuill from 'react-quill';
 import "react-quill/dist/quill.snow.css";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { actionTypes, useStateValue } from '../../../store';
-import { extractTextFromHTML, checkUTC } from '../../../utils/common/utility';
-import AddProductsCell from './AddProductsCell';
+import { extractTextFromHTML, formatDateViaLocale } from '../../../utils/common/utility';
 import { OrgGroupMasterList, getPurchaseOrgList } from '../../../utils/commerciallibrary';
-import { PRFinalSubmit, PRItemServiceDelete, PRManageAdd, PRManageUpdate, buildQueryParams, getPRItemServiceFind, getPRManageFind } from '../../../utils/purchaseRequest';
+import {
+  PRFinalSubmit, PRItemServiceDelete, PRManageAdd,
+  PRManageUpdate, buildQueryParams, getPRItemServiceFind,
+  getPRManageFind, PRAttachementAdd, uploadFilesOnAzurePR
+} from '../../../utils/purchaseRequest';
 import { toast } from 'react-toastify';
-import { findObjByValueFromArray, findObjListByValueFromArray, findStringByValueFromArray, handlesaveAttachment, downloadExcelTemplate, getApiErrorMessage } from '../../../utils/common';
-import { BackButton, MemoizedEventStageFlow } from '../../../utils/common/component';
-import { Dropdown, Modal } from 'react-bootstrap';
+import {
+  findObjByValueFromArray, findObjListByValueFromArray,
+  handlesaveAttachment, downloadExcelTemplate, getApiErrorMessage,
+  validateFileSize, downloadFilesOnAzure, getFileName,
+  attachmentmodalforevent, filequeryparam
+} from '../../../utils/common';
+import { MemoizedEventStageFlow } from '../../../utils/common/component';
 import AttachmentWorkFlow from '../../BaseCells/attachmentworkflow';
 import EventApprovalBox from '../../BaseCells/eventapprovalbox';
-import ProductitemCell from '../RequestForQuotation/ProductitemCell';
 import ListSkeleton from '../../../components/Skeleton/listSkeleton';
+import PEModal from '../../../components/PEModal';
+import CommonBottomDrawer from '../../../components/CommonBottomDrawer';
+import PRGeneralTab from './PRGeneralTab';
+import PRPreviewTab from './PRPreviewTab';
+import PRItemsTab from './PRItemsTab';
 import PurchaseOrgGrp from '../../../utils/common/PurchaseOrgGrp';
 import PurchaseOrg from '../../../utils/common/PurchaseOrg';
 import GridSkeleton from '../../../components/Skeleton/gridSkeleton';
 import { api, ApiClient } from '../../../Apiclient';
-import { ExpandMore } from '@mui/icons-material';
 import { FastApiClient } from '../../../FastApiClient';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import QueryList from '../../CommunucationHub/QueryList';
 import { PermissionManager, CLAIM_TYPES, ACTIONS } from '../../../utils/permissionManager';
 import AddItemProductsCell from './AddItemProductsCell';
-import BoqScreen from '../RequestForQuotation/BoqScreen';
 
-const PurchaseRequest = ({ claimType }) => {
+const PurchaseRequest = ({ claimType, breadcrumb }) => {
   const apiClient = new ApiClient(api);
   const [{ atoken, customerid, userDetail, roleClaims }, dispatch] = useStateValue();
   const [loading, setLoading] = useState(false);
@@ -72,6 +80,23 @@ const PurchaseRequest = ({ claimType }) => {
   };
 
   const attachmentdrawerref = useRef();
+
+  // Right workflow panel tabs
+  const [workflowPanelTab, setWorkflowPanelTab] = useState('workflow');
+  // History tab state
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyGraph, setHistoryGraph] = useState([]);
+  const [historyAudit, setHistoryAudit] = useState([]);
+  // Panel attachment state
+  const [panelAttachLoading, setPanelAttachLoading] = useState(false);
+  const [panelSavedAttach, setPanelSavedAttach] = useState([]);
+  const [panelAttachDesc, setPanelAttachDesc] = useState('');
+  const [panelAttachFile, setPanelAttachFile] = useState(null);
+  const [panelAttachError, setPanelAttachError] = useState('');
+  const [panelHasCheckboxChanged, setPanelHasCheckboxChanged] = useState(false);
+  const [panelAttachAdding, setPanelAttachAdding] = useState(false);
+  const panelFileInputRef = useRef();
+
   const [searchParams, setSearchParams] = useSearchParams()
   const [prItemsList, setprItemsList] = useState([]);
   const [idFromURL, setIdFromURL] = useState(null)
@@ -137,7 +162,6 @@ const PurchaseRequest = ({ claimType }) => {
     }
   };
 
-
   const PullUserDesignation = async () => {
     if (requisitionerListLoaded || loadRequisitioner) {
       return; // Don't fetch if already loaded or currently loading
@@ -161,9 +185,9 @@ const PurchaseRequest = ({ claimType }) => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
-    if (newValue == "3") {
+    if (newValue === "3") {
       setSelectedMenuItem("Submit")
-      if (newValue == "3" && stagelist?.some(item => item.currentStage == "Under Approval")) {
+      if (newValue === "3" && stagelist?.some(item => item.currentStage === "Under Approval")) {
         setApproverShow(true)
       }
     }
@@ -240,7 +264,6 @@ const PurchaseRequest = ({ claimType }) => {
       purchOrgId: "",
       purchGrpId: "",
       isBoq: false,
-
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
@@ -256,8 +279,8 @@ const PurchaseRequest = ({ claimType }) => {
         prDescription: values.prDescription,
         requisitioner: values.requisitioner,
         prNumber: values.prNumber,
-        purchOrgId: values.purchOrgId?.id != "" ? values.purchOrgId?.id : 0,
-        purchGrpId: values.purchGrpId?.id != "" ? values.purchGrpId?.id : 0,
+        purchOrgId: values.purchOrgId?.id !== "" ? values.purchOrgId?.id : 0,
+        purchGrpId: values.purchGrpId?.id !== "" ? values.purchGrpId?.id : 0,
         boqReq: values.isBoq,  // Send API parameter name 'boqReq' instead of 'isBoq'
         stage: currentStage
       };
@@ -265,7 +288,7 @@ const PurchaseRequest = ({ claimType }) => {
       if (data?.id > 0) {
         try {
           PRManageUpdate(data, currentStage, stagelist, atoken).then((res) => {
-            if (res.StatusCode == 500 && res.Message == 'Duplicate Record Found!') {
+            if (res.StatusCode === 500 && res.Message === 'Duplicate Record Found!') {
               toast.error(`PR number ${data?.prNumber} already exists. Please use a unique PR Number.`, {
                 position: toast.POSITION.TOP_CENTER,
                 autoClose: 2000,
@@ -291,7 +314,7 @@ const PurchaseRequest = ({ claimType }) => {
       else {
         PRManageAdd(data, currentStage, stagelist, atoken).then((res) => {
 
-          if (res.StatusCode == 500 && res.Message == 'Duplicate Record Found!') {
+          if (res.StatusCode === 500 && res.Message === 'Duplicate Record Found!') {
             toast.error(`PR number ${data?.prNumber} already exists. Please use a unique PR Number.`, {
               position: toast.POSITION.TOP_CENTER,
               autoClose: 2000,
@@ -299,7 +322,6 @@ const PurchaseRequest = ({ claimType }) => {
             setLoading(false)
           }
           else {
-
             if (res) {
               setIdFromURL(res);
               navigate(`/configuration/manage-pr/${res}?tab=item`)
@@ -328,7 +350,6 @@ const PurchaseRequest = ({ claimType }) => {
           }
         });
       }
-
     }
   });
 
@@ -382,9 +403,7 @@ const PurchaseRequest = ({ claimType }) => {
           const userAccess = result?.[0]?.userAccess.map(x => {
             return ({ ...x, claimValue: JSON.parse(x.claimValue) })
           })
-
           setAccessLevel(userAccess)
-
           // Initialize Permission Manager with user access data
           const permManager = new PermissionManager(result?.[0]?.userAccess);
           setPermissionManager(permManager);
@@ -395,6 +414,7 @@ const PurchaseRequest = ({ claimType }) => {
 
   const [activityId, setActvityId] = useState(0);
   const [actionType, setActionType] = useState("");
+
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
     const actionType = params.get("ActionType");
@@ -409,16 +429,8 @@ const PurchaseRequest = ({ claimType }) => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (idFromURL == null) {
-      setApproverShow(false);
-    } else if (currentStage === "Under Approval") {
-      setApproverShow(true);
-    } else if (value == 3 && stagelist?.some(item => item.currentStage == "Under Approval")) {
-      setApproverShow(true);
-    } else {
-      setApproverShow(false);
-    }
-  }, [value, idFromURL, currentStage, stagelist]);
+    setApproverShow(true);
+  }, [value, idFromURL, currentStage, stagelist, breadcrumb]);
 
   useEffect(() => {
     const urlparams = {
@@ -454,7 +466,6 @@ const PurchaseRequest = ({ claimType }) => {
     if (res?.data?.result.length > 0) {
       const result = res?.data?.result?.filter((item) => item.stageSeq > 0)
       setStageList(result);
-      const stagesarray = result?.map((item) => item.currentStage);
     }
   }
 
@@ -496,11 +507,9 @@ const PurchaseRequest = ({ claimType }) => {
   };
 
   const handleClearAllItems = (value) => {
-
     if (value) {
       //handleClearAll()
       handleClearAllPrList()
-
     } else {
       setConfirmClearAllItems(false);
     }
@@ -569,12 +578,13 @@ const PurchaseRequest = ({ claimType }) => {
 
   useEffect(() => {
     if (idFromURL && idFromURL > 0) {
-      pullgetPRManageFind(idFromURL)
+      pullgetPRManageFind(idFromURL);
+      pullPRtemServiceFind(idFromURL);
     }
   }, [idFromURL]);
 
   const handleSaveContinue = () => {
-    if (value == 1) {
+    if (value === 1) {
       if (formik?.values?.purchOrgId?.id > 0 && !formik?.values?.purchGrpId?.id) {
         toast.error("Please fill Purchase Group.", {
           position: toast.POSITION.TOP_CENTER,
@@ -585,7 +595,7 @@ const PurchaseRequest = ({ claimType }) => {
       formik.handleSubmit()
     }
 
-    if (value == 2) {
+    if (value === 2) {
       if (prItemsList?.length < 1) {
         toast.error("please add items to continue", {
           toastId: "PRadditem_error"
@@ -596,7 +606,7 @@ const PurchaseRequest = ({ claimType }) => {
       setSelectedMenuItem("Submit")
     }
 
-    if (value == 3) {
+    if (value === 3) {
       setLoading(true);
       const isApprovers = checkApprovers();
       if (!isApprovers) {
@@ -650,7 +660,6 @@ const PurchaseRequest = ({ claimType }) => {
   }
 
   const handleCancelPRModal = async (confirm) => {
-
     if (confirm) {
       if (!cancelReason.trim()) {
         setPrError("This field is required.");
@@ -684,14 +693,11 @@ const PurchaseRequest = ({ claimType }) => {
   };
 
   //pr cancel end
-
   useEffect(() => {
-    if (value == 2) {
-
+    if (value === 2) {
       pullPRtemServiceFind(idFromURL)
     }
-    if (value == 3) {
-
+    if (value === 3) {
       pullPRtemServiceFind(idFromURL)
       pullgetPRManageFind(idFromURL);
     }
@@ -741,16 +747,7 @@ const PurchaseRequest = ({ claimType }) => {
     },
     validationSchema: validationSchemaApprover,
     onSubmit: async (values) => {
-
       setLoading(true)
-      const bidStDate = checkUTC(tempDataEditData[0].bidStDate);
-      const currentDate = new Date();
-      const isCurrentAfterBid = currentDate > new Date(bidStDate);
-      // if (isCurrentAfterBid && values?.IsApproved == true) {
-      //     toast.info("Start date of auction is passsed.Please revert to send back to creator for edit pr.");
-      //     setLoading(false);
-      //     return;
-      // }
       const actionData = {
         customerId: parseInt(customerid),
         eventId: parseInt(idFromURL),
@@ -768,6 +765,7 @@ const PurchaseRequest = ({ claimType }) => {
       );
       if (res) {
         toast.success(`Action Taken Successfully.`);
+        setApproveRejectModal(false);
         navigate(`/app`);
       }
       setLoading(false)
@@ -780,20 +778,18 @@ const PurchaseRequest = ({ claimType }) => {
   const hasAnyApproval = eventAppList?.some(x => x.approved === true);
   const [approverInWorkflow, setApproverInWorkflow] = useState([]);
   const [wfupdate, setwfUpdate] = useState([false]);
+  const [wfFetched, setWfFetched] = useState(false);
   const handleEventAppList = useCallback((arr, updatedvalue) => {
     setEventAppList(arr);
     setApproverInWorkflow(updatedvalue);
+    setWfFetched(true);
   }, []);
 
   const checkApprovers = () => {
-
     const isStageRequired = stagelist?.filter((x) => x.wfname)
-
     for (const stage of isStageRequired) {
-
       const matchingWorkflow = approverInWorkflow.find(workflow => workflow.stage === stage.wfname);
-
-      if (matchingWorkflow && matchingWorkflow.approvers.length == 0) {
+      if (matchingWorkflow && matchingWorkflow.approvers.length === 0) {
         toast.error(`Error: The mandatory  workflow "${stage.wfname}" has no approvers.`);
         return false;
       }
@@ -808,9 +804,79 @@ const PurchaseRequest = ({ claimType }) => {
     setAttachmentforEvent(data);
   }, []);
 
+  const fetchPanelHistory = async (id) => {
+    if (!id) return;
+    setHistoryLoading(true);
+    try {
+      const params = buildQueryParams({ CustomerId: customerid, EventType: 'PR', EventId: id });
+      const res = await apiClient.getres(`api/ReportConfig/AuditReport?${params}`, atoken);
+      if (res?.data) {
+        const audit = res.data?.changeAudit || [];
+        const graph = res.data?.stategraph || [];
+        setHistoryAudit(audit);
+        setHistoryGraph(graph);
+      }
+    } catch (e) {
+      // leave arrays empty so empty state renders
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const fetchPanelAttachments = async (id) => {
+    if (!id) return;
+    setPanelAttachLoading(true);
+    setPanelHasCheckboxChanged(false);
+    const params = buildQueryParams({ EventType: 'PR', EventId: id, VendorId: 0 });
+    const res = await apiClient.getres(`/api/eventattachment/Find?${params}`, atoken);
+    const resData = res?.data?.result || [];
+    if (resData.length > 0) {
+      const mapped = attachmentmodalforevent(resData, id, 'PR');
+      setPanelSavedAttach(mapped);
+    } else {
+      setPanelSavedAttach([]);
+    }
+    setPanelAttachLoading(false);
+  };
+
+  const addPanelAttachment = async () => {
+    const descToUse = panelAttachDesc.trim();
+    if (!descToUse) { setPanelAttachError('Please enter a description for the attachment.'); return; }
+    if (!panelAttachFile?.file) { setPanelAttachError('Please choose a file to upload.'); return; }
+    setPanelAttachError('');
+    setPanelAttachAdding(true);
+    try {
+      const filedata = filequeryparam({ EventType: 'PR', EventId: idFromURL, Description: 'General', CustomerId: customerid });
+      const path = await uploadFilesOnAzurePR(filedata, panelAttachFile.file, atoken);
+      if (!path) { setPanelAttachAdding(false); return; }
+      await PRAttachementAdd({
+        prId: idFromURL,
+        fileNamePath: path,
+        attachmentDescription: descToUse,
+        createdById: userDetail?.id,
+      }, atoken);
+      setPanelAttachDesc('');
+      setPanelAttachFile(null);
+      if (panelFileInputRef.current) panelFileInputRef.current.value = '';
+      fetchPanelAttachments(idFromURL);
+    } catch (e) { setPanelAttachError('Upload failed. Please try again.'); }
+    setPanelAttachAdding(false);
+  };
+
+  const deletePanelAttachment = async (idx, id) => {
+    await apiClient.postres(`/api/eventattachment/${id}/Delete`, null, atoken);
+    fetchPanelAttachments(idFromURL);
+  };
+
   useEffect(() => {
     PullPurchaseOrgAll();
   }, [atoken, customerid]);
+
+  useEffect(() => {
+    if (!idFromURL) return;
+    if (workflowPanelTab === 'history') fetchPanelHistory(idFromURL);
+    if (workflowPanelTab === 'attachments') fetchPanelAttachments(idFromURL);
+  }, [workflowPanelTab, idFromURL]);
 
   useEffect(() => {
     if (formik.values.purchOrgId?.id) {
@@ -864,7 +930,7 @@ const PurchaseRequest = ({ claimType }) => {
       IsActive: 'true'
     };
     OrgGroupMasterList(data, atoken).then((res) => {
-      if (res != "" && res != undefined) {
+      if (res !== "" && res !== undefined) {
         setPurchaseGroupAllList(res);
         // Auto-select purchase group if only one group is available
         if (res.length === 1) {
@@ -879,14 +945,12 @@ const PurchaseRequest = ({ claimType }) => {
 
   //to update purchOrgId
   useEffect(() => {
-
     if (purchaseAllList && purchaseAllList.length > 0 && OrgId) {
       const updatedvalue = findObjByValueFromArray(purchaseAllList, OrgId, 'id')
       formik.setFieldValue("purchOrgId", updatedvalue);
     }
-
     //to set default purchase group when purchase group length is 1 
-    if (!idFromURL && purchaseAllList && purchaseAllList.length == 1) {
+    if (!idFromURL && purchaseAllList && purchaseAllList.length === 1) {
       formik.setFieldValue("purchOrgId", purchaseAllList[0])
     }
 
@@ -904,16 +968,17 @@ const PurchaseRequest = ({ claimType }) => {
       formik.setFieldValue("purchGrpId", null);
     }
     //to set default purchase group when purchase group length is 1 
-    if (!idFromURL && purchaseGroupAllList && purchaseGroupAllList.length == 1) {
+    if (!idFromURL && purchaseGroupAllList && purchaseGroupAllList.length === 1) {
       formik.setFieldValue("purchGrpId", purchaseGroupAllList[0])
     }
 
   }, [OrgGroupId, purchaseGroupAllList])
 
+  const [approveRejectModal, setApproveRejectModal] = useState(false);
+
   //to update purchGrpId
   const [approvershow, setApproverShow] = useState(true)
   const handleApprover = (booleanvalue) => {
-
     setApproverShow(booleanvalue)
   }
   useEffect(() => {
@@ -927,15 +992,14 @@ const PurchaseRequest = ({ claimType }) => {
   const handletabEdit = (value) => {
     setPreview(true);
     setValue(value);
-    if (value == "3") {
-      setSelectedMenuItem("Submit")
-    }
-    else {
-      setSelectedMenuItem("Save & Continue")
-
-    }
+    if (value === "3") { setSelectedMenuItem("Submit") }
+    else { setSelectedMenuItem("Save & Continue") }
   };
+
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [statusAnchorEl, setStatusAnchorEl] = React.useState(null);
+  const handleStatusMenuOpen = (e) => setStatusAnchorEl(e.currentTarget);
+  const handleStatusMenuClose = () => setStatusAnchorEl(null);
   const [recallConfirmOpen, setRecallConfirmOpen] = useState(false);
   const [excelMenuAnchor, setExcelMenuAnchor] = useState(null);
   const [downloadingPRReport, setDownloadingPRReport] = useState(false);
@@ -1051,15 +1115,9 @@ const PurchaseRequest = ({ claimType }) => {
     }
   };
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
   const [selectedMenuItem, setSelectedMenuItem] = useState("Save & Continue");
   const [isUploading, setIsUploading] = useState(false);
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+
   const [purchaseOrgModal, setPurchaseOrgModal] = useState(false);
   const [purchaseOrgGrpModal, setPurchaseOrgGrpModal] = useState(false);
   const ClosePurcgaseOrgModal = () => setPurchaseOrgModal(false);
@@ -1165,142 +1223,136 @@ const PurchaseRequest = ({ claimType }) => {
       }
     }
     catch (error) {
-      console.error("Upload error", error);
       toast.error(getApiErrorMessage(error));
     }
     finally {
-
       setIsUploading(false); // Stop loader
     }
   }
 
-  //##
+  // Status popover steps
+  const prStatusSteps = Array.isArray(stagelist) && stagelist.length > 0
+    ? stagelist.map(s => s.stageName || s.currentStage).filter(Boolean)
+    : ['Draft'];
+  const normalizedCurrentStage = (currentStage || 'Draft').trim();
+  const currentStatusIndex = Math.max(0, prStatusSteps.findIndex(
+    s => s.toLowerCase() === normalizedCurrentStage.toLowerCase()
+  ));
+
   return (
     <>
-      {/* Main content container with left/right layout like ManagePR */}
-      <div className="mainContainer d-flex" style={{ height: '100vh', overflow: 'hidden' }}>
-        <div className={`leftContent ${approvershow ? "col-9" : "col-12"}`} style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div className="bg-white rounded-default shadow-sm p-3" style={{ height: 'calc(100vh - 90px)', margin: '10px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            {/* Header with BackButton, Stage Flow, and Action Buttons */}
-            <div className="d-flex justify-content-between align-items-center border-bottom mb-3" style={{ flexShrink: 0 }}>
-              <div className="d-flex align-items-center">
-                <BackButton
-                  title={
-                    tempDataEditData?.[0].eventCode
-                      ? <span className="page-heading">{tempDataEditData[0].eventCode}</span>
-                      : idFromURL
-                        ? <span className="page-heading">Purchase Request (PR-{idFromURL})</span>
-                        : <span className="page-heading">Purchase Request</span>
-                  }
-                  modal={currentStage === "Draft"}
-                />
-              </div>
+      {/* Main content container */}
+      <div className="mainContainer d-flex rfq-modern-shell">
+        <div className="leftContent d-flex flex-column">
+          <div className="bg-white rounded-default shadow-sm p-3 w-100 flex-grow-1 d-flex flex-column" style={{ overflow: 'hidden', minHeight: 0 }}>
 
-              {/* Stage Flow - centered between title and buttons */}
-              <div className="d-flex justify-content-center flex-grow-1">
-                <MemoizedEventStageFlow
-                  stagelist={stagelist}
-                  currentStage={currentStage}
-                />
-              </div>
+            {/* ── Page head ── */}
+            <div className="rfq-dv2-page-head border-bottom mb-3" style={{ flexShrink: 0 }}>
 
-              {/* Action Buttons */}
-              <div className="d-flex align-items-center gap-2">
-                {!loading ? (
-                  actionType && activityId ? (
-                    <Button
-                      type="button"
-                      size="small"
-                      className="button-text text-white"
-                      variant="contained"
-                      onClick={toggleDrawer("openInvoiceApproved", true)}
-                    >
-                      Action
-                    </Button>
-                  ) : (
-                    <ButtonGroup variant="contained">
-                      <Button
-                        variant="contained"
-                        className="p-2 pt-1 pb-1"
-                        onClick={handleButtonGroup}
-                        sx={{ padding: '2px 8px', minHeight: '28px', lineHeight: '1' }}
-                        disabled={
-                          selectedMenuItem === "Save & Continue"
-                            ? !["Draft", "Under Approval"].includes(currentStage)
-                            : !stagearray.includes(currentStage)
-                        }
-                      >
-                        <span className="text-capitalize">{selectedMenuItem}</span>
-                      </Button>
-                      <Button
-                        variant="contained"
-                        className={`button-text text-white ${!stagearray.includes(currentStage) ? 'dropBtn' : ''}`}
-                        onClick={handleMenuOpen}
-                        sx={{ padding: '2px 8px', minHeight: '28px', lineHeight: '1' }}
-                      >
-                        <ExpandMore />
-                      </Button>
-                      <Menu
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl)}
-                        onClose={handleMenuClose}
-                      >
-                        {value == "3" &&
-                          <MenuItem
-                            onClick={() => handleMenuClick('Save & Continue')}
-                            disabled={!["Draft", "Under Approval"].includes(currentStage)}
-                          >
-                            <div>
-                              <span className="text-capitalize">Save & Continue</span>
-                            </div>
-                          </MenuItem>
-                        }
-                        {value != "3" &&
-                          <MenuItem onClick={() => handleMenuClick('Save & Continue')}>
-                            <div>
-                              <span className="text-capitalize">{value == 3 ? "Submit" : "Save & Continue"}</span>
-                            </div>
-                          </MenuItem>
-                        }
-                        {idFromURL &&
-                          <MenuItem onClick={() => handleMenuClick('Save as Templates')}>
-                            <div>
-                              <span className="text-capitalize">Save as Templates</span>
-                            </div>
-                          </MenuItem>
-                        }
-                        {idFromURL && currentStage === 'Under Approval' && !hasAnyApproval &&
-                          <MenuItem onClick={() => handleMenuClick('Recall PR')}>
-                            <div>
-                              <span className="text-capitalize">Recall PR</span>
-                            </div>
-                          </MenuItem>
-                        }
-                        {idFromURL && (currentStage === 'Close' || currentStage === 'Consumed') && (
-                          <MenuItem onClick={(e) => { setAnchorEl(null); setExcelMenuAnchor(e.currentTarget); }}>
-                            <div>
-                              <span className="text-capitalize">Download Report</span>
-                            </div>
-                          </MenuItem>
+              {/* Row 1: breadcrumb + action buttons */}
+              <div className="rfq-dv2-head-top">
+                {breadcrumb}
+
+                {/* Action buttons */}
+                <div className="rfq-dv2-actions">
+                  {!loading ? (
+                    actionType && activityId ? null : (
+                      <>
+                        <button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--ghost" onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
+                          Cancel
+                        </button>
+                        {idFromURL && (
+                          <button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Save as Templates')}>
+                            Save as Template
+                          </button>
                         )}
-                        <MenuItem onClick={() => handleMenuClick('Cancel')} disabled={!pageSlug}>
-                          <div>
-                            <span className="text-capitalize">Cancel</span>
+                        {idFromURL && currentStage === 'Under Approval' && !hasAnyApproval && (
+                          <button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={() => handleMenuClick('Recall PR')}>
+                            Recall PR
+                          </button>
+                        )}
+                        {idFromURL && (currentStage === 'Close' || currentStage === 'Consumed') && (
+                          <button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--secondary" onClick={(e) => setExcelMenuAnchor(e.currentTarget)}>
+                            Download Report
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="rfq-dv2-action-btn rfq-dv2-action-btn--primary"
+                          onClick={handleButtonGroup}
+                          disabled={
+                            selectedMenuItem === "Save & Continue"
+                              ? !["Draft", "Under Approval"].includes(currentStage)
+                              : !stagearray.includes(currentStage)
+                          }
+                        >
+                          {selectedMenuItem}
+                        </button>
+                      </>
+                    )
+                  ) : (
+                    <button type="button" className="rfq-dv2-action-btn rfq-dv2-action-btn--primary" disabled>
+                      Saving...
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Stage flow — hidden via CSS in v2 shell */}
+              <div className="rfq-dv2-stage-flow-wrap">
+                <MemoizedEventStageFlow stagelist={stagelist} currentStage={currentStage} />
+              </div>
+
+              {/* Row 2: meta info */}
+              <div className="rfq-dv2-head-bottom">
+                <div className="rfq-dv2-meta-row">
+                  <span className="rfq-dv2-meta-item">
+                    <span className="rfq-dv2-meta-label">Status</span>
+                    <button
+                      type="button"
+                      className={`rfq-dv2-status-pill${normalizedCurrentStage.toLowerCase() === 'draft' ? ' is-draft' : ''}`}
+                      onClick={handleStatusMenuOpen}
+                    >
+                      <span className="rfq-dv2-status-dot" />
+                      {normalizedCurrentStage}
+                    </button>
+                  </span>
+                  {tempDataEditData?.[0]?.prNumber && (
+                    <span className="rfq-dv2-meta-item">
+                      <span className="rfq-dv2-meta-label">PR Number:</span>{' '}
+                      <span className="rfq-dv2-meta-value">{tempDataEditData[0].prNumber}</span>
+                    </span>
+                  )}
+                </div>
+                <Menu
+                  anchorEl={statusAnchorEl}
+                  open={Boolean(statusAnchorEl)}
+                  onClose={handleStatusMenuClose}
+                  classes={{ paper: 'rfq-dv2-status-menu-paper' }}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                  PaperProps={{ style: { width: 280, minWidth: 280, maxWidth: 280, overflow: 'hidden' } }}
+                >
+                  <div className="rfq-dv2-status-menu">
+                    <div className="rfq-dv2-status-menu-title">PR Status</div>
+                    <div className="rfq-dv2-status-menu-list">
+                      {prStatusSteps.map((step, index) => {
+                        const stepClass = index < currentStatusIndex ? '' : index === currentStatusIndex ? 'is-current' : 'is-future';
+                        return (
+                          <div key={step} className={`rfq-dv2-status-step ${stepClass}`}>
+                            <span className="rfq-dv2-status-step-icon" />
+                            <span>{step}</span>
                           </div>
-                        </MenuItem>
-                      </Menu>
-                    </ButtonGroup>
-                  )
-                ) : (
-                  <Button className="button-text text-white">
-                    {value == 3 ? "Submit..." : "Save & Continue..."}
-                  </Button>
-                )}
+                        );
+                      })}
+                    </div>
+                  </div>
+                </Menu>
               </div>
             </div>
 
             {/* Tab Navigation and Icons Header */}
-            <div className="d-flex justify-content-between align-items-center border-bottom mb-3" style={{ flexShrink: 0 }}>
+            <div className="d-flex justify-content-between align-items-center border-bottom mb-3 bg-grey" style={{ flexShrink: 0 }}>
               {/* Tab Navigation */}
               <Box sx={{
                 flexGrow: 1,
@@ -1370,595 +1422,75 @@ const PurchaseRequest = ({ claimType }) => {
             </div>
 
             {/* Tab Content */}
-            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
-              {/* <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}> */}
+            <div className="flex-grow-1 hidden-scrollbar" style={{ padding: "20px" }} >
               {loadingPermissions ? (
                 <div className="p-3 d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
                   <GridSkeleton />
                 </div>
-              ) : value == 1 ? (
-                <>
-                  {(() => {
-                    const hasReadPermission = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false;
-                    const hasEditPermission = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false;
-                    const hasCreatePermission = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.CREATE) ?? false;
-                    const hasRemovePermission = permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.REMOVE) ?? false;
-
-                    if (!hasReadPermission) {
-                      return (
-                        <div className="p-3">
-                          <Alert severity="warning">
-                            You don't have permission to view General data.
-                          </Alert>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <>
-                        <div className='p-3 pe-2 ps-2' style={{ overflow: 'visible' }}>
-                          <form onSubmit={formik.handleSubmit} autoComplete="off">
-                            <div className='row mt-2'>
-                              <div className='col-12 col-md-6 col-lg-6 mb-3'>
-                                <TextFieldCell
-                                  id="prSubject"
-                                  name="prSubject"
-                                  label="PR Subject *"
-                                  placeholder=''
-                                  maxLength={100}
-                                  disabled={!hasEditPermission}
-                                  InputProps={{
-                                    endAdornment: (
-                                      <InputAdornment position="end">
-                                        <Typography variant="body2" color="textSecondary">
-                                          {formik?.values?.prSubject?.length}/100
-                                        </Typography>
-                                      </InputAdornment>
-                                    ),
-                                  }}
-                                  value={formik?.values?.prSubject}
-                                  onChange={(e) => {
-                                    formik.setFieldValue("prSubject", e.target?.value);
-                                  }}
-                                  error={formik.touched.prSubject && Boolean(formik.errors.prSubject)}
-                                  helperText={formik.touched.prSubject && formik.errors.prSubject}
-                                />
-                              </div>
-
-                              <div className='col-12 col-md-6 col-lg-6 mb-3'>
-                                <TextFieldCell
-                                  id="prNumber"
-                                  name="prNumber"
-                                  label="PR Number"
-                                  className="content-text"
-                                  placeholder=''
-                                  maxLength={20}
-                                  disabled={!hasEditPermission}
-                                  InputProps={{
-                                    endAdornment: (
-                                      <InputAdornment position="end">
-                                        <Typography variant="body2" color="textSecondary">
-                                          {formik?.values?.prNumber?.length}/20
-                                        </Typography>
-                                      </InputAdornment>
-                                    ),
-                                  }}
-                                  value={formik.values?.prNumber}
-                                  onChange={(e) => {
-                                    formik.setFieldValue("prNumber", e.target?.value);
-                                  }}
-                                  error={formik.touched?.prNumber && Boolean(formik.errors?.prNumber)}
-                                  helperText={formik.touched?.prNumber && formik.errors?.prNumber}
-                                />
-                              </div>
-
-                              <div className='col-12 mb-3'>
-                                <div className='content-text fw-medium mb-2'>PR Description *</div>
-                                <ReactQuill
-                                  theme="snow"
-                                  preserveWhitespace
-                                  className=""
-                                  readOnly={!hasEditPermission}
-                                  value={formik.values.prDescription}
-                                  onChange={(value) => {
-                                    const prDescription = extractTextFromHTML(value);
-                                    const length = prDescription.length;
-                                    if (length <= 2000) {
-                                      formik.setFieldValue("prDescription", value);
-                                    } else {
-                                      formik.setFieldValue("prDescription", formik?.values?.prDescription);
-                                      toast.error('Description greater than 2000 character is not allowed', {
-                                        toastId: "descerr"
-                                      });
-                                    }
-                                  }}
-                                />
-                                {formik.values.prDescription !== undefined && (
-                                  <div
-                                    style={{
-                                      fontSize: "0.8em",
-                                      color: "grey",
-                                      textAlign: "end",
-                                    }}
-                                  >
-                                    {`${extractTextFromHTML(formik.values.prDescription).length}/2000`}
-                                  </div>
-                                )}
-                                {formik?.touched?.prDescription && Boolean(formik?.errors?.prDescription) && (
-                                  <FormHelperText className="text-danger">
-                                    {formik?.errors?.prDescription}
-                                  </FormHelperText>
-                                )}
-                              </div>
-                              <div className="col-12 col-md-6 col-lg-3">
-
-                                <Autocomplete
-                                  id="requisitioner"
-                                  name="requisitioner"
-                                  size="small"
-                                  className="w-100 content-text"
-                                  loading={loadRequisitioner}
-                                  options={requisitionerList ? requisitionerList.map(item => item.name) : []}
-                                  getOptionLabel={(option) => option}
-                                  value={formik.values.requisitioner || ''}
-                                  disabled={!hasEditPermission}
-                                  onChange={(event, value) => handleRequisitionerChange(value)}
-                                  onOpen={() => {
-                                    PullUserDesignation();
-                                  }}
-                                  renderInput={(params) => (
-                                    <TextField
-                                      {...params}
-                                      label="Requisitioner"
-                                      variant="outlined"
-                                      shrink={true}
-                                      error={formik.touched.requisitioner && Boolean(formik.errors.requisitioner)}
-                                      helperText={formik.touched.requisitioner && formik.errors.requisitioner}
-                                      InputLabelProps={{
-                                        shrink: true,
-                                      }}
-                                    />
-                                  )}
-                                />
-
-                              </div>
-
-                              {purchaseAllList && <div className="col-12 col-md-6 col-lg-3 mb-2">
-                                <Autocomplete
-                                  id="purchOrgId"
-                                  name="purchOrgId"
-                                  size="small"
-                                  className="w-100 content-text"
-                                  sx={{ width: "100%" }}
-                                  options={(() => {
-                                    if (userDetail?.roleId !== 1 && userDetail?.purchOrgId) {
-                                      const userOrg = purchaseAllList.find(org => org.id === userDetail.purchOrgId);
-                                      return userOrg ? [userOrg] : [];
-                                    }
-                                    return [{ id: "new", orgName: "Add New" }, ...purchaseAllList];
-                                  })()}
-                                  value={formik.values.purchOrgId}
-                                  disabled={!hasEditPermission}
-                                  getOptionLabel={(option) => option.orgName ?? ""}
-                                  onChange={(e, value) => {
-
-                                    if (value?.id === "new") {
-                                      setPurchaseOrgModal(true);
-                                      formik.setFieldValue("purchGrpId", null);
-                                      return
-                                    }
-                                    if (value) {
-
-
-                                      formik.setFieldValue(
-                                        "purchOrgId",
-                                        value
-                                      );
-
-                                      formik.setFieldValue("purchGrpId", null);
-                                      setOrgGroupId(0);
-
-                                    }
-                                    else {
-                                      formik.setFieldValue("purchOrgId", null);
-
-                                      formik.setFieldValue("purchGrpId", null);
-                                      setPurchaseGroupAllList([]);
-                                      setOrgGroupId(0);
-                                    }
-
-                                  }}
-
-                                  renderOption={(props, option) => (
-                                    <Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
-                                      {option.orgName}
-                                    </Box>
-                                  )}
-                                  renderInput={(params) => (
-                                    <TextField
-                                      variant="outlined"
-                                      {...params}
-                                      label="Purchase Org"
-                                      shrink={true}
-                                      InputLabelProps={{
-                                        shrink: true,
-                                      }}
-                                    />
-                                  )}
-                                />
-                              </div>}
-
-
-                              {purchaseGroupAllList && <div className="col-12 col-md-6 col-lg-3 mb-2">
-                                <Autocomplete
-
-                                  id="purchGrpId"
-                                  name="purchGrpId"
-                                  className="w-100 content-text"
-                                  sx={{ width: "100%" }}
-                                  options={[
-                                    { id: "new", groupName: "Add New" },
-                                    ...purchaseGroupAllList,
-                                  ]}
-                                  getOptionLabel={(option) => option?.groupName ?? ""}
-                                  value={formik.values?.purchGrpId}
-                                  disabled={!hasEditPermission}
-                                  onChange={(e, value) => {
-
-                                    if (value?.id === "new") {
-                                      setPurchaseOrgGrpModal(true);
-                                      return
-                                    }
-                                    formik.setFieldValue(
-                                      "purchGrpId",
-                                      value
-                                    );
-                                    setOrgGroupId(value?.id || 0);
-                                  }}
-
-
-                                  renderOption={(props, option) => (
-                                    <Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
-                                      {option.groupName}
-                                    </Box>
-                                  )}
-                                  renderInput={(params, data) => (
-                                    <TextField
-                                      {...params}
-                                      variant="outlined"
-                                      size="small"
-                                      placeholder=""
-                                      label="Purchase Group"
-                                      shrink={true}
-                                      InputLabelProps={{
-                                        shrink: true,
-                                      }}
-                                    />
-                                  )}
-                                />
-                              </div>}
-
-                              <div className="col-12 col-md-6 col-lg-3 mb-2">
-                                <FormGroup>
-                                  <FormControlLabel
-                                    control={
-                                      <Checkbox
-                                        checked={formik.values.isBoq === true}
-                                      />
-                                    }
-                                    id="isBoq"
-                                    label={<span className="f14 muted">BOQ</span>}
-                                    labelPlacement={"end"}
-                                    name="isBoq"
-                                    disabled={!hasEditPermission}
-                                    onChange={(e) => formik.setFieldValue("isBoq", e.target.checked)}
-                                    sx={{ alignItems: 'center', height: '100%' }}
-                                  />
-                                </FormGroup>
-                              </div>
-                            </div>
-                          </form>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </>
+              ) : value === 1 ? (
+                <PRGeneralTab
+                  canRead={permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.READ) ?? false}
+                  canEdit={permissionManager?.hasPermission(CLAIM_TYPES.GENERAL, ACTIONS.EDIT) ?? false}
+                  formik={formik}
+                  loadRequisitioner={loadRequisitioner}
+                  requisitionerList={requisitionerList}
+                  purchaseAllList={purchaseAllList}
+                  purchaseGroupAllList={purchaseGroupAllList}
+                  setPurchaseGroupAllList={setPurchaseGroupAllList}
+                  userDetail={userDetail}
+                  handleRequisitionerChange={handleRequisitionerChange}
+                  PullUserDesignation={PullUserDesignation}
+                  setPurchaseOrgModal={setPurchaseOrgModal}
+                  setPurchaseOrgGrpModal={setPurchaseOrgGrpModal}
+                  setOrgGroupId={setOrgGroupId}
+                />
               ) : null}
               {loadingPermissions ? (
                 <div className="p-3 d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
                   <GridSkeleton />
                 </div>
               ) : value === 2 ? (
-                <>
-                  {(() => {
-                    const hasReadPermission = permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false;
-                    const hasEditPermission = permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.EDIT) ?? false;
-                    const hasCreatePermission = permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.CREATE) ?? false;
-                    const hasRemovePermission = permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.REMOVE) ?? false;
-
-                    if (!hasReadPermission) {
-                      return (
-                        <div className="p-3">
-                          <Alert severity="warning">
-                            You don't have permission to view the Items/Services tab.
-                          </Alert>
-                        </div>
-                      );
-                    }
-
-                    // If BOQ is enabled, show BOQ screen instead of normal items
-                    if (formik.values.isBoq === true) {
-                      return (
-                        <BoqScreen
-                          idFromURL={idFromURL}
-                          readOnly={!hasEditPermission}
-                          eventType="PR"
-                          CurrentVersion={1}
-                          stage={currentStage}
-                          boqReq={formik.values.isBoq}
-                          onUploadSuccess={() => {
-                            pullPRtemServiceFind(idFromURL);
-                          }}
-                        />
-                      );
-                    }
-
-                    return (
-                      <>
-                        <div className="p-3 pt-0">
-                          {hasCreatePermission && accessLevel?.itemservice?.created !== "None" && (
-                            <div className="text-end">
-                              <Button
-                                variant="text"
-                                size="small"
-                                startIcon={<HiPlusSm />}
-                                className="text-capitalize blue-text font-normal"
-                                onClick={toggleDrawer("addProductDrawer", true)}
-                                disabled={
-                                  !(
-                                    stagearray.includes(currentStage) ||
-                                    currentStage === "Under Approval"
-                                  ) || !hasEditPermission
-                                }
-                              >
-                                Add Item
-                              </Button>
-
-                              {prItemsList.length > 0 && hasRemovePermission && (
-                                <Tooltip title="Clear All">
-                                  <span>
-                                    <button
-                                      type="button"
-                                      className="pe-icon-btn pe-icon-btn--delete ms-2 me-3"
-                                      //onClick={handleClearAllPrList}
-                                      onClick={() => setConfirmClearAllItems(true)}
-                                      disabled={
-                                        !(
-                                          stagearray.includes(currentStage) ||
-                                          currentStage === "Under Approval"
-                                        ) || !hasRemovePermission
-                                      }
-                                    >
-                                      <HiOutlineX />
-                                    </button>
-                                  </span>
-                                </Tooltip>
-                              )}
-
-                              <Dropdown align="end" className="d-inline-block">
-                                <Dropdown.Toggle
-                                  as="div"
-                                  id="gt"
-                                  className="round-edit remove-tringle"
-                                  role="button"
-                                >
-                                  <IconButton
-                                    size="medium"
-                                    className="shadow-sm"
-                                    disabled={!stagearray.includes(currentStage) || !hasEditPermission}
-                                  >
-                                    <HiOutlineDotsHorizontal className="text-dark-blue" />
-                                  </IconButton>
-                                </Dropdown.Toggle>
-
-                                <Dropdown.Menu className="ddl-menu">
-                                  <MenuItem
-                                    className="content-text text-dark-blue"
-                                    disabled={!stagearray.includes(currentStage) || !hasCreatePermission}
-                                    onClick={() =>
-                                      document.querySelector('input[type="file"]').click()
-                                    }
-                                  >
-                                    Excel Upload
-                                  </MenuItem>
-                                  <Divider />
-                                  <MenuItem
-                                    className="content-text text-dark-blue"
-                                    disabled={!stagearray.includes(currentStage) || !hasReadPermission}
-                                    onClick={downloadPRExcel}
-                                  >
-                                    Excel Template
-                                  </MenuItem>
-                                </Dropdown.Menu>
-                              </Dropdown>
-                            </div>
-                          )}
-
-                          <div>
-                            <ProductitemCell
-                              action={stagearray.includes(currentStage) && hasEditPermission}
-                              itemsList={prItemsList}
-                              handleEditItem={hasEditPermission ? handleEditItem : () => { }}
-                              handleDeleteItem={hasRemovePermission ? handleDeleteItem : () => { }}
-                              eventType="PR"
-                              readOnly={!hasEditPermission}
-                              showEditButton={hasEditPermission}
-                              showDeleteButton={hasRemovePermission}
-                            />
-                          </div>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </>
+                <PRItemsTab
+                  loadingPermissions={loadingPermissions}
+                  canRead={permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.READ) ?? false}
+                  canEdit={permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.EDIT) ?? false}
+                  canCreate={permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.CREATE) ?? false}
+                  canRemove={permissionManager?.hasPermission(CLAIM_TYPES.ITEM_SERVICE, ACTIONS.REMOVE) ?? false}
+                  stagearray={stagearray}
+                  currentStage={currentStage}
+                  prItemsList={prItemsList}
+                  isBoq={formik.values.isBoq}
+                  idFromURL={idFromURL}
+                  toggleDrawer={toggleDrawer}
+                  handleEditItem={handleEditItem}
+                  handleDeleteItem={handleDeleteItem}
+                  pullPRtemServiceFind={pullPRtemServiceFind}
+                  setConfirmClearAllItems={setConfirmClearAllItems}
+                  downloadPRExcel={downloadPRExcel}
+                  handleItemsExcelUpload={() => fileInputRef.current?.click()}
+                />
               ) : null}
 
               {preview && value === 3 && (
-                <>
-                  {loading ? (
-                    <ListSkeleton />
-                  ) : (
-                    <Box sx={{ p: 3 }}>
-                      {/* PR General Details */}
-                      <Card sx={{ mb: 3, boxShadow: 2 }}>
-                        <CardHeader
-                          title={
-                            <Typography
-                              sx={{
-                                color: "#1976d2",
-                                fontWeight: 400,
-                                fontSize: "14px",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "6px"
-                              }}
-                            >
-                              📝 PR General Details
-                            </Typography>
-                          }
-                          action={
-                            stagearray.includes(currentStage) && (
-                              <button
-                                type="button"
-                                className="pe-icon-btn pe-icon-btn--edit"
-                                onClick={() => handletabEdit(1)}
-                              >
-                                <HiPencilAlt className="f17 text-primary" />
-                              </button>
-                            )
-                          }
-                          sx={{ backgroundColor: "#fff", py: 1.5 }}
-                        />
-                        <CardContent>
-                          <div className="row">
-                            <div className="col-md-6 mb-3">
-                              <Typography variant="body2" color="textSecondary">
-                                <strong>PR Subject:</strong>
-                              </Typography>
-                              <Typography variant="body1">{formik.values.prSubject || 'Not specified'}</Typography>
-                            </div>
-
-                            <div className="col-md-6 mb-3">
-                              <Typography variant="body2" color="textSecondary">
-                                <strong>PR Number:</strong>
-                              </Typography>
-                              <Typography variant="body1">{formik?.values?.prNumber || '-'}</Typography>
-                            </div>
-
-                            <div className="col-md-6 mb-3">
-                              <Typography variant="body2" color="textSecondary">
-                                <strong>Purchase Org:</strong>
-                              </Typography>
-                              <Typography variant="body1">
-                                {findStringByValueFromArray(purchaseAllList, formik.values?.purchOrgId?.id, "id", "orgName") || '-'}
-                              </Typography>
-                            </div>
-
-                            <div className="col-md-6 mb-3">
-                              <Typography variant="body2" color="textSecondary">
-                                <strong>Purchase Group:</strong>
-                              </Typography>
-                              <Typography variant="body1">
-                                {findStringByValueFromArray(purchaseGroupAllList, formik.values?.purchGrpId?.id, "id", "groupName") || '-'}
-                              </Typography>
-                            </div>
-
-                            <div className="col-md-6 mb-3">
-                              <Typography variant="body2" color="textSecondary">
-                                <strong>BOQ:</strong>
-                              </Typography>
-                              <Typography variant="body1">
-                                {formik.values.isBoq ? 'Yes' : 'No'}
-                              </Typography>
-                            </div>
-
-                            <div className="col-12">
-                              <Typography variant="body2" color="textSecondary">
-                                <strong>PR Description:</strong>
-                              </Typography>
-                              <Box
-                                sx={{ border: '1px solid #e0e0e0', borderRadius: '4px', p: 1, fontSize: '14px' }}
-                                className="ql-editor"
-                                dangerouslySetInnerHTML={{ __html: formik.values.prDescription || '<p>No description provided</p>' }}
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* PR Items Details */}
-                      <Card sx={{ mb: 3, boxShadow: 2 }}>
-                        <CardHeader
-                          title={
-                            <Typography
-                              sx={{
-                                color: "#1976d2",
-                                fontWeight: 400,
-                                fontSize: "14px",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "6px"
-                              }}
-                            >
-                              📝 PR Items Details
-                            </Typography>
-                          }
-                          action={
-                            stagearray.includes(currentStage) && (
-                              <button
-                                type="button"
-                                className="pe-icon-btn pe-icon-btn--edit"
-                                onClick={() => handletabEdit(2)}
-                              >
-                                <HiPencilAlt className="f17 text-primary" />
-                              </button>
-                            )
-                          }
-                          sx={{ backgroundColor: "#fff", py: 1.5 }}
-                        />
-                        <CardContent sx={{ p: 0 }}>
-                          {formik.values.isBoq === true ? (
-                            <BoqScreen
-                              idFromURL={idFromURL}
-                              readOnly={true}
-                              eventType="PR"
-                              CurrentVersion={1}
-                              onUploadSuccess={() => {
-                                pullPRtemServiceFind(idFromURL);
-                              }}
-                            />
-                          ) : (
-                            <Box sx={{ p: 3 }}>
-                              <ProductitemCell
-                                action={false}
-                                itemsList={prItemsList}
-                                handleEditItem={handleEditItem}
-                                handleDeleteItem={handleDeleteItem}
-                                eventType="PR"
-                                accessLevel={accessLevel}
-                              />
-                            </Box>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Box>
-                  )}
-                </>
+                loading ? <ListSkeleton /> : (
+                  <PRPreviewTab
+                    idFromURL={idFromURL}
+                    formik={formik}
+                    purchaseAllList={purchaseAllList}
+                    purchaseGroupAllList={purchaseGroupAllList}
+                    stagearray={stagearray}
+                    currentStage={currentStage}
+                    prItemsList={prItemsList}
+                    handletabEdit={handletabEdit}
+                    handleEditItem={handleEditItem}
+                    handleDeleteItem={handleDeleteItem}
+                    pullPRtemServiceFind={pullPRtemServiceFind}
+                    accessLevel={accessLevel}
+                  />
+                )
               )}
 
-
-
-              {value == 4 &&
+              {value === 4 &&
                 <QueryList
                   pageSlug={pageSlug}
                   key={"QueryList"}
@@ -1973,273 +1505,348 @@ const PurchaseRequest = ({ claimType }) => {
           </div>
         </div>
 
-        {/* Right content-Approval */}
-        <div className={`rightContent ${approvershow ? "col-3" : "d-none"}`}>
-          <div className="bg-white shadow-sm rounded-default p-3 d-flex flex-column ms-3" style={{ border: "1px solid #ddd", borderTop: "none", height: 'calc(108vh - 120px)' }}>
-            <div className="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2">
-              <div className="section-heading mb-0 pb-4">Approval Workflow</div>
-              <button
-                type="button"
-                className="pe-icon-btn pe-icon-btn--close"
-                onClick={() => handleApprover(false)}
-              >
-                <HiOutlineX className="f16" />
-              </button>
+        {/* Right panel — Workflow / History / Attachments */}
+        <div className={`rightContent${approvershow ? '' : ' d-none'}`}>
+          <div className="bg-white approver-panel d-flex flex-column">
+            <div className="rfq-dv2-workflow-head">
+              <div className="rfq-dv2-workflow-tabs">
+                <button type="button" className={`rfq-dv2-workflow-tab${workflowPanelTab === 'workflow' ? ' active' : ''}`} onClick={() => setWorkflowPanelTab('workflow')}>
+                  Approval Workflow
+                </button>
+                <button type="button" className={`rfq-dv2-workflow-tab${workflowPanelTab === 'history' ? ' active' : ''}`} onClick={() => setWorkflowPanelTab('history')}>
+                  View History
+                </button>
+                <button type="button" className={`rfq-dv2-workflow-tab${workflowPanelTab === 'attachments' ? ' active' : ''}`} onClick={() => setWorkflowPanelTab('attachments')}>
+                  Attachments
+                </button>
+              </div>
             </div>
+            {/* Approve / Reject action panel */}
+            {workflowPanelTab === 'workflow' && actionType === 'approval' && activityId && (
+              <div className="rfq-dv2-workflow-action-panel">
+                <div className="rfq-dv2-workflow-alert">
+                  <span>{normalizedCurrentStage || currentStage} required for You</span>
+                </div>
+                <div className="rfq-dv2-workflow-actions">
+                  <button
+                    type="button"
+                    className="rfq-dv2-workflow-btn rfq-dv2-workflow-approve"
+                    onClick={() => {
+                      formik_PRApproveReject.setFieldValue('IsApproved', true);
+                      setApproveRejectModal(true);
+                    }}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    className="rfq-dv2-workflow-btn rfq-dv2-workflow-reject"
+                    onClick={() => {
+                      formik_PRApproveReject.setFieldValue('IsApproved', false);
+                      setApproveRejectModal(true);
+                    }}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
-              {approvershow && (
-                <EventApprovalBox
-                  requestCell={requestCell}
-                  handleEventAppList={handleEventAppList}
-                  wfupdate={wfupdate}
-                  action={stagearray.includes(currentStage)}
-                  stagelist={stagelist}
-                  //accessLevel={accessLevel}
-                  permissionManager={permissionManager}
-                  eventCode={tempDataEditData?.[0]?.eventCode}
-                  eventSubject={tempDataEditData?.[0]?.prSubject}
-                  startDate={null}
-                  endDate={null}
-                />
+              {/* Workflow tab */}
+              {approvershow && workflowPanelTab === 'workflow' && (
+                <>
+                  <EventApprovalBox
+                    requestCell={requestCell}
+                    handleEventAppList={handleEventAppList}
+                    wfupdate={wfupdate}
+                    action={stagearray.includes(currentStage)}
+                    stagelist={stagelist}
+                    permissionManager={permissionManager}
+                    eventCode={tempDataEditData?.[0]?.eventCode}
+                    eventSubject={tempDataEditData?.[0]?.prSubject}
+                    startDate={null}
+                    endDate={null}
+                  />
+                  {(requestCell?.EventId === 0 || (wfFetched && eventAppList.length === 0)) && (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 24px', textAlign: 'center' }}>
+                      <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2C9.24 2 7 4.24 7 7v2H5c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-9c0-1.1-.9-2-2-2h-2V7c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3v2H9V7c0-1.66 1.34-3 3-3zm0 9c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z" fill="#9ca3af" />
+                        </svg>
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: '#111827', marginBottom: 6 }}>No Approvers Configured</div>
+                      <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>No approval workflow has been set up for this event.</div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* History tab */}
+              {workflowPanelTab === 'history' && (
+                <div className="rfq-dv2-history-track">
+                  {historyLoading ? (
+                    <div className="rfq-dv2-panel-loading">Loading history…</div>
+                  ) : historyGraph.length === 0 && historyAudit.length === 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 24px', textAlign: 'center' }}>
+                      <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7V3zm8 0v5h-5l1.85-1.85A7.003 7.003 0 0 0 13 5V3a9.003 9.003 0 0 1 5.65 2L21 3z" fill="#9ca3af" />
+                          <path d="M12 8v4l3 3-1.41 1.41L10 13V8h2z" fill="#9ca3af" />
+                        </svg>
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: '#111827', marginBottom: 6 }}>No History Available</div>
+                      <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>No activity has been recorded for this purchase request yet.</div>
+                    </div>
+                  ) : (
+                    historyGraph.length > 0 && (
+                      <div className="rfq-dv2-stage-graph">
+                        {historyGraph.map((stage, i) => {
+                          const name = stage.approverName ?? stage.modifiedByName ?? 'Unknown';
+                          const date = stage.stageDone
+                            ? formatDateViaLocale(stage.stageDone, userDetail)
+                            : formatDateViaLocale(stage.modifiedOn, userDetail);
+                          return (
+                            <React.Fragment key={i}>
+                              {i > 0 && (
+                                <div className="rfq-dv2-stage-graph-arrow">
+                                  <span className="rfq-dv2-stage-arrow-icon">→</span>
+                                </div>
+                              )}
+                              <div className="rfq-dv2-stage-graph-node">
+                                <span className="rfq-dv2-stage-graph-badge">
+                                  <span className="rfq-dv2-stage-check">✓</span>
+                                  {stage.currentStage?.toUpperCase()}
+                                </span>
+                                <span className="rfq-dv2-stage-graph-user">{name}</span>
+                                <span className="rfq-dv2-stage-graph-date">{date}</span>
+                              </div>
+                            </React.Fragment>
+                          );
+                        })}
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
+
+              {/* Attachments tab */}
+              {workflowPanelTab === 'attachments' && (
+                <div className="rfq-dv2-attachments-panel">
+                  {panelAttachLoading ? (
+                    <div className="rfq-dv2-panel-loading">Loading attachments…</div>
+                  ) : (
+                    <>
+                      {stagearray.includes(currentStage) && (
+                        <div className="rfq-dv2-attach-add-section">
+                          <textarea
+                            className="rfq-dv2-attach-desc-input"
+                            placeholder="Attachment Description"
+                            rows={4}
+                            value={panelAttachDesc}
+                            onChange={e => {
+                              setPanelAttachDesc(e.target.value.replace(/'/g, ''));
+                              if (panelAttachError) setPanelAttachError('');
+                            }}
+                          />
+                          <label className="rfq-dv2-file-zone">
+                            <input
+                              type="file"
+                              ref={panelFileInputRef}
+                              style={{ display: 'none' }}
+                              accept=".docx,.doc,.jpeg,.jpg,.gif,.png,.pdf,.xlsx"
+                              onChange={e => {
+                                if (validateFileSize(e)) {
+                                  setPanelAttachFile({ file: e.target.files[0] });
+                                  if (panelAttachError) setPanelAttachError('');
+                                } else {
+                                  setPanelAttachFile(null);
+                                }
+                              }}
+                            />
+                            {panelAttachFile ? (
+                              <div className="rfq-dv2-file-chip">
+                                <HiDownload className="rfq-dv2-file-chip-icon" />
+                                <span className="rfq-dv2-file-chip-name">{panelAttachFile.file.name}</span>
+                                <button
+                                  type="button"
+                                  className="rfq-dv2-file-chip-clear"
+                                  onClick={e => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setPanelAttachFile(null);
+                                    if (panelFileInputRef.current) panelFileInputRef.current.value = '';
+                                  }}
+                                >
+                                  <HiOutlineX />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="rfq-dv2-file-zone-empty">
+                                <HiPlusSm className="rfq-dv2-file-zone-icon" />
+                                <span>Click to choose file</span>
+                                <span className="rfq-dv2-file-zone-hint">pdf, doc, xlsx, png…</span>
+                              </div>
+                            )}
+                          </label>
+                          {panelAttachError && (
+                            <div className="rfq-dv2-attach-error">{panelAttachError}</div>
+                          )}
+                          <button
+                            type="button"
+                            className="rfq-dv2-add-file-btn"
+                            onClick={addPanelAttachment}
+                            disabled={panelAttachAdding}
+                          >
+                            <HiPlusSm />
+                            {panelAttachAdding ? 'Adding…' : 'Add new file'}
+                          </button>
+                        </div>
+                      )}
+                      {panelSavedAttach.length === 0 ? (
+                        <div className="rfq-dv2-panel-empty">No attachments yet.</div>
+                      ) : (
+                        <div className="rfq-dv2-attach-list">
+                          {panelSavedAttach.map((item, i) => (
+                            <div key={i} className="rfq-dv2-file-row">
+                              <span />
+                              <div className="rfq-dv2-file-meta">
+                                <span className="rfq-dv2-file-desc-text" title={item.attachmentDescription}>
+                                  {item.attachmentDescription || '—'}
+                                </span>
+                                <span className="rfq-dv2-file-name-text" title={getFileName(item.fileNamePath)}>
+                                  {getFileName(item.fileNamePath)}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                className="pe-icon-btn pe-icon-btn--download"
+                                aria-label="Download"
+                                onClick={() => downloadFilesOnAzure(item.fileNamePath, getFileName(item.fileNamePath), atoken)}
+                              >
+                                <HiDownload />
+                              </button>
+                              {stagearray.includes(currentStage) ? (
+                                <button
+                                  type="button"
+                                  className="pe-icon-btn pe-icon-btn--delete"
+                                  aria-label="Delete"
+                                  onClick={() => deletePanelAttachment(i, item.id)}
+                                >
+                                  <HiOutlineX />
+                                </button>
+                              ) : <span />}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      <React.Fragment key='topaddProduct'  >
-        <Drawer
-          anchor='right'
-          open={state['addProductDrawer']}
-        >
-          <Box sx={{ width: { xs: 280, sm: 480, md: 1000 }, }} >
-            <div className='flex flex-col'>
-              <Box className='bgheaderCards'>
-                <div className='d-flex align-items-center justify-content-between pt-2 pb-2'>
-                  <div className='ms-3 text-white'>
-                    Add Product
-                  </div>
-                  <div>
-                    <IconButton
-                      onClick={toggleDrawer('addProductDrawer', false)}
-                      size="small"
-                      edge="start"
-                      sx={{ mr: 1 }}
-                    >
-                      <HiOutlineX className='f20 text-white' />
-                    </IconButton>
-                  </div>
-                </div>
-              </Box>
-              <div className='h50px'></div>
-              <Box sx={{ flexGrow: 1, p: 2, mt: 2 }} >
-                <AddItemProductsCell
-                  idFromURL={idFromURL}
-                  callbackItemAdd={callbackItemAdd}
-                  itemEditTempData={itemEditTempData}
-                  action={stagearray.includes(currentStage) || currentStage === 'Under Approval'}
-                />
-              </Box>
+      <CommonBottomDrawer
+        open={state['addProductDrawer']}
+        onClose={toggleDrawer('addProductDrawer', false)}
+        title={itemEditTempData?.id > 0 ? 'Edit Product / Service' : 'Add Product / Service'}
+        bodyStyle={{ overflowY: 'auto' }}
+        actions={
+          <>
+            <button type="button" className="rfq-v2-event-btn rfq-v2-event-btn-ghost" onClick={toggleDrawer('addProductDrawer', false)}>Cancel</button>
+            {(stagearray.includes(currentStage) || currentStage === 'Under Approval') && (
+              <>
+                <button type="reset" form="add-pr-product-form" className="pe-btn pe-btn--secondary">Reset</button>
+                <button type="submit" form="add-pr-product-form" className="pe-btn pe-btn--primary">
+                  {itemEditTempData?.id > 0 ? 'Update' : 'Add'}
+                </button>
+              </>
+            )}
+          </>
+        }
+      >
+        <AddItemProductsCell
+          idFromURL={idFromURL}
+          callbackItemAdd={callbackItemAdd}
+          itemEditTempData={itemEditTempData}
+          action={stagearray.includes(currentStage) || currentStage === 'Under Approval'}
+        />
+      </CommonBottomDrawer>
+
+      {/* Surrogate RFQ Drawer */}
+      <CommonBottomDrawer
+        open={state['surrogateDrawer']}
+        onClose={toggleDrawer('surrogateDrawer', false)}
+        title="Configure Surrogate RFQ"
+        actions={
+          <>
+            <button type="reset" form="surrogate-form" className="pe-btn pe-btn--secondary">Reset</button>
+            <button type="submit" form="surrogate-form" className="pe-btn pe-btn--primary">Submit</button>
+          </>
+        }
+      >
+        <form id="surrogate-form" autoComplete="off">
+          <div className='row mt-2'>
+            <div className='col-12 col-md-6 mb-4'>
+              <label className="pe-field-label">Name <span className="rfq-required-star">*</span></label>
+              <TextFieldCell id="surrogate-name" name="surrogate-name" placeholder='' maxLength={100} />
             </div>
-          </Box>
-        </Drawer>
-      </React.Fragment>
-      <React.Fragment key='setSurrogate'  >
-        <Drawer
-          anchor='right'
-          open={state['surrogateDrawer']}
-        >
-          <Box sx={{ width: { xs: 280, sm: 480, md: 720 }, }} >
-            <div className='flex flex-col'>
-
-              <Box className='bgheaderCards'>
-                <div className='d-flex align-items-center justify-content-between pt-2 pb-2'>
-                  <div className='ms-3 text-white'>
-                    Configure Surrogate RFQ
-                  </div>
-                  <div>
-                    <IconButton
-                      onClick={toggleDrawer('surrogateDrawer', false)}
-                      size="small"
-                      edge="start"
-                      sx={{ mr: 1 }}
-                    >
-                      <HiOutlineX className='f20 text-white' />
-                    </IconButton>
-                  </div>
-                </div>
-              </Box>
-              <div className='h50px'></div>
-              <Box sx={{ flexGrow: 1, p: 2, mt: 2 }} >
-                <div className='row mt-2'>
-                  <div className='col-12 col-md-6 mb-4'>
-                    <TextFieldCell
-                      id="password"
-                      name="password"
-                      label="Name *"
-                      placeholder=''
-                      maxLength={100}
-                    />
-                  </div>
-                  <div className='col-12 col-md-6 mb-4'>
-                    <TextFieldCell
-                      id="password"
-                      name="password"
-                      label="Email *"
-                      placeholder=''
-                      maxLength={100}
-                    />
-                  </div>
-                  <div className='col-12 col-md-12 mb-4'>
-                    <TextFieldCell
-                      id="password"
-                      name="password"
-                      multiline={true}
-                      rows={4}
-                      label="Reason *"
-                      placeholder=''
-                      maxLength={100}
-                    />
-                  </div>
-                </div>
-                <hr className='mt-0' />
-
-                <div className='text-end'>
-                  <LoadingButton
-                    variant='outlined'
-                    color='primary'
-                    className='me-3 text-capitalize'
-                    size='small'
-                  >
-                    Reset
-                  </LoadingButton>
-                  <LoadingButton
-                    variant='contained'
-                    color='primary'
-                    className='text-capitalize'
-                    size='small'
-                  >
-                    Submit
-                  </LoadingButton>
-                </div>
-              </Box>
+            <div className='col-12 col-md-6 mb-4'>
+              <label className="pe-field-label">Email <span className="rfq-required-star">*</span></label>
+              <TextFieldCell id="surrogate-email" name="surrogate-email" placeholder='' maxLength={100} />
             </div>
-          </Box>
-        </Drawer>
-      </React.Fragment>
-      <React.Fragment key="approvePR">
-        <Drawer anchor="right" open={state["openInvoiceApproved"]}>
-          <form onSubmit={formik_PRApproveReject.handleSubmit} autoComplete="off">
-            <Box sx={{ width: { xs: 280, sm: 150, md: 150, lg: 380 } }}>
-              <div className="flex flex-col">
-                <Box className="bgheaderCards">
-                  <div className="d-flex align-items-center justify-content-between pt-2 pb-2">
-                    <div className="ms-3 text-white">
-                      Approval Action
-                    </div>
-                    <div>
-                      <IconButton
-                        onClick={toggleDrawer("openInvoiceApproved", false, [])}
-                        size="small"
-                        edge="start"
-                        sx={{ mr: 1 }}
-                      >
-                        <HiOutlineX className="f20 text-white" />
-                      </IconButton>
-                    </div>
-                  </div>
-                </Box>
-                <div className="h50px"></div>
-                <div className="p-3">
-                  <div className="row ">
-                    <div className="col-12 col-md-12 col-lg-12">
-                      <div className="mb-4 textblue f14"></div>
-                      <div className="row">
-                        <div className="col-12 col-md-4 col-lg-12 mb-4">
-                          <TextField
-                            id="IsApproved"
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                            name="IsApproved"
-                            select
-                            className="mb-2"
-                            fullWidth
-                            size="small"
-                            label="Status"
-                            variant="outlined"
-                            value={formik_PRApproveReject.values.IsApproved}
-                            onChange={(e) =>
-                              formik_PRApproveReject.setFieldValue(
-                                "IsApproved",
-                                e.target.value
-                              )
-                            }
-                          >
-                            <MenuItem value={true}>Approve</MenuItem>
-                            <MenuItem value={false}>Reject</MenuItem>
-                          </TextField>
-                        </div>
+            <div className='col-12 mb-4'>
+              <label className="pe-field-label">Reason <span className="rfq-required-star">*</span></label>
+              <TextFieldCell id="surrogate-reason" name="surrogate-reason" multiline={true} rows={4} placeholder='' maxLength={100} />
+            </div>
+          </div>
+        </form>
+      </CommonBottomDrawer>
 
-                        <div className="col-12 col-md-4 col-lg-12 mb-4">
-                          <TextField
-                            id="remarks"
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                            multiline
-                            rows={3}
-                            name="remarks"
-                            className="w-100 f14"
-                            size="small"
-                            label="Comment "
-                            variant="outlined"
-                            inputProps={{ maxLength: 200 }}
-                            value={formik_PRApproveReject?.values?.remarks}
-                            error={formik_PRApproveReject.touched.remarks && Boolean(formik_PRApproveReject.errors.remarks)}
-                            helperText={formik_PRApproveReject.touched.remarks && formik_PRApproveReject.errors.remarks}
-                            onChange={(e) =>
-                              formik_PRApproveReject.setFieldValue(
-                                "remarks",
-                                e.target.value
-                              )
-                            }
-                            InputProps={{
-                              endAdornment: formik_PRApproveReject?.values?.remarks && (
-                                <InputAdornment position="end">
-                                  <Typography variant="body2" color="textSecondary">
-                                    {formik_PRApproveReject?.values?.remarks?.length}/200
-                                  </Typography>
-                                </InputAdornment>
-                              ),
-                            }}
-                          />
-                        </div>
-                      </div>
-
-
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-12 text-end">
-                      <LoadingButton
-                        loading={loading}
-                        color="primary"
-                        size="medium"
-                        className="text-white text-capitalize mb-3 mr-3"
-                        variant="contained"
-                        type="submit"
-                      >
-                        <span>Save</span>
-                      </LoadingButton>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Box>
-          </form>
-        </Drawer>
-      </React.Fragment>
+      {/* Approve / Reject confirmation modal */}
+      <PEModal
+        open={approveRejectModal}
+        onClose={() => !loading && setApproveRejectModal(false)}
+        size="xs"
+        title={formik_PRApproveReject.values.IsApproved ? 'Approve PR' : 'Reject PR'}
+        footer={
+          <>
+            <button type="button" className="pe-btn pe-btn--secondary" onClick={() => setApproveRejectModal(false)} disabled={loading}>Cancel</button>
+            <button type="submit" form="pr-approve-form" className="pe-btn pe-btn--primary" disabled={loading}>
+              {loading ? 'Saving...' : (formik_PRApproveReject.values.IsApproved ? 'Approve' : 'Reject')}
+            </button>
+          </>
+        }
+      >
+        <form id="pr-approve-form" onSubmit={formik_PRApproveReject.handleSubmit} autoComplete="off">
+          <p className="f14 mb-3" style={{ color: 'var(--pe-text)' }}>
+            {formik_PRApproveReject.values.IsApproved
+              ? 'Are you sure you want to approve this PR?'
+              : 'Are you sure you want to reject this PR?'}
+          </p>
+          <label className="pe-field-label">Comment</label>
+          <TextField
+            id="remarks" name="remarks" multiline rows={3} fullWidth size="small" variant="outlined"
+            className="f14" inputProps={{ maxLength: 200 }}
+            value={formik_PRApproveReject?.values?.remarks}
+            error={formik_PRApproveReject.touched.remarks && Boolean(formik_PRApproveReject.errors.remarks)}
+            helperText={formik_PRApproveReject.touched.remarks && formik_PRApproveReject.errors.remarks}
+            onChange={(e) => formik_PRApproveReject.setFieldValue("remarks", e.target.value)}
+            InputProps={{
+              endAdornment: formik_PRApproveReject?.values?.remarks && (
+                <InputAdornment position="end">
+                  <Typography variant="body2" color="textSecondary">
+                    {formik_PRApproveReject?.values?.remarks?.length}/200
+                  </Typography>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </form>
+      </PEModal>
       <>
         <input
           className="d-none"
@@ -2249,97 +1856,100 @@ const PurchaseRequest = ({ claimType }) => {
           ref={fileInputRef}
         />
       </>
-      <Dialog
+      {/* Delete Item confirmation */}
+      <PEModal
         open={confirmDelete}
         onClose={handleCloseDelete}
+        size="xs"
+        title="Delete Item"
+        footer={
+          <>
+            <button type="button" className="pe-btn pe-btn--secondary" onClick={handleCloseDelete}>No</button>
+            <button type="button" className="pe-btn pe-btn--primary" onClick={() => removeItemData(removeItem)}>Yes, Delete</button>
+          </>
+        }
       >
-        <DialogTitle id="">
-          {"Are you sure?"}
-        </DialogTitle>
-        <DialogContent style={{ minWidth: '300px' }}>
-          <DialogContentText id="">
-            You want to delete.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDelete}>No</Button>
-          <Button onClick={() => removeItemData(removeItem)} autoFocus>
-            Yes
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={confirmClearAllItems} onClose={() => handleClearAllItems(false)}>
-        <DialogTitle>{"Are you sure?"}</DialogTitle>
-        <DialogContent style={{ minWidth: "300px" }}>
-          <DialogContentText>
-            Are you sure you want to delete all Items ?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleClearAllItems(false)}>No</Button>
-          <Button onClick={() => handleClearAllItems(true)} autoFocus>
-            Yes
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={modalCancelOpen} onClose={() => handleCancelPRModal(false)}>
-        <DialogTitle>{"Are you sure?"}</DialogTitle>
-        <DialogContent style={{ minWidth: "300px" }}>
-          <DialogContentText>
-            Do you want to cancel this pr? Unsaved changes will be lost.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Enter reason *"
-            type="text"
-            fullWidth
-            value={cancelReason}
-            onChange={handleCancelInputChange}
-            error={Boolean(prerror)} // Show error state
-            helperText={prerror} // Display error message
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleCancelPRModal(false)}>No</Button>
-          <Button onClick={() => handleCancelPRModal(true)} autoFocus>
-            Yes
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <p className="f14 mb-0" style={{ color: 'var(--pe-text)' }}>Are you sure you want to delete this item?</p>
+      </PEModal>
 
-      {/* Recall PR confirmation dialog */}
-      <Dialog open={recallConfirmOpen} onClose={() => setRecallConfirmOpen(false)}>
-        <DialogTitle>Recall PR</DialogTitle>
-        <DialogContent style={{ minWidth: '300px' }}>
-          <DialogContentText>Are you sure you want to recall this PR from approval?</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRecallConfirmOpen(false)}>No</Button>
-          <Button onClick={handleRecall} autoFocus>Yes</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Clear All Items confirmation */}
+      <PEModal
+        open={confirmClearAllItems}
+        onClose={() => handleClearAllItems(false)}
+        size="xs"
+        title="Delete All Items"
+        footer={
+          <>
+            <button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleClearAllItems(false)}>No</button>
+            <button type="button" className="pe-btn pe-btn--primary" onClick={() => handleClearAllItems(true)}>Yes, Delete All</button>
+          </>
+        }
+      >
+        <p className="f14 mb-0" style={{ color: 'var(--pe-text)' }}>Are you sure you want to delete all items?</p>
+      </PEModal>
+
+      {/* Cancel PR confirmation */}
+      <PEModal
+        open={modalCancelOpen}
+        onClose={() => handleCancelPRModal(false)}
+        size="xs"
+        title="Cancel PR"
+        footer={
+          <>
+            <button type="button" className="pe-btn pe-btn--secondary" onClick={() => handleCancelPRModal(false)}>No</button>
+            <button type="button" className="pe-btn pe-btn--primary" onClick={() => handleCancelPRModal(true)}>Yes, Cancel</button>
+          </>
+        }
+      >
+        <p className="f14 mb-2" style={{ color: 'var(--pe-text)' }}>Do you want to cancel this PR? Unsaved changes will be lost.</p>
+        <label className="pe-field-label">Reason <span className="rfq-required-star">*</span></label>
+        <TextField
+          autoFocus fullWidth size="small" variant="outlined" type="text"
+          value={cancelReason} onChange={handleCancelInputChange}
+          error={Boolean(prerror)} helperText={prerror}
+        />
+      </PEModal>
+
+      {/* Recall PR confirmation */}
+      <PEModal
+        open={recallConfirmOpen}
+        onClose={() => setRecallConfirmOpen(false)}
+        size="xs"
+        title="Recall PR"
+        footer={
+          <>
+            <button type="button" className="pe-btn pe-btn--secondary" onClick={() => setRecallConfirmOpen(false)}>No</button>
+            <button type="button" className="pe-btn pe-btn--primary" onClick={handleRecall}>Yes, Recall</button>
+          </>
+        }
+      >
+        <p className="f14 mb-0" style={{ color: 'var(--pe-text)' }}>Are you sure you want to recall this PR from approval?</p>
+      </PEModal>
 
       {/* Save as Template dialog */}
-      <Dialog open={templateDialogOpen} onClose={() => setTemplateDialogOpen(false)}>
-        <DialogTitle>Save as Template</DialogTitle>
-        <DialogContent style={{ minWidth: '340px' }}>
-          <DialogContentText>Enter a name for this template:</DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Template Name *"
-            type="text"
-            fullWidth
-            value={TemplateTitle}
-            onChange={(e) => setTemplateTitle(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setTemplateDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleSaveTemplate} disabled={!idFromURL}>Save</Button>
-        </DialogActions>
-      </Dialog>
+      <PEModal
+        open={templateDialogOpen}
+        onClose={() => setTemplateDialogOpen(false)}
+        size="xs"
+        title="Save as Template"
+        bodyStyle={{ padding: '16px 20px' }}
+        footer={
+          <>
+            <button className="rfq-v2-event-btn rfq-v2-event-btn-ghost" onClick={() => setTemplateDialogOpen(false)}>Cancel</button>
+            <button className="pe-btn pe-btn--primary" onClick={handleSaveTemplate} disabled={!idFromURL}>Save</button>
+          </>
+        }
+      >
+        <label className="pe-field-label">Template Name <span className="rfq-required-star">*</span></label>
+        <TextFieldCell
+          id="pr-template-title"
+          name="pr-template-title"
+          placeholder="Enter template name"
+          value={TemplateTitle}
+          onChange={(e) => setTemplateTitle(e.target.value)}
+          maxLength={100}
+        />
+      </PEModal>
 
       {/* Download Report submenu */}
       <Menu anchorEl={excelMenuAnchor} open={Boolean(excelMenuAnchor)} onClose={() => setExcelMenuAnchor(null)}>
@@ -2351,52 +1961,31 @@ const PurchaseRequest = ({ claimType }) => {
         </MenuItem>
       </Menu>
 
-      <Modal
-        show={purchaseOrgModal}
-        backdrop="static"
-        keyboard={false}
-        className="zindex1280"
-        backdropClassName="zindex1280"
-        centered
-        dialogClassName="modal-custom-mdlg"
-        onHide={() => ClosePurcgaseOrgModal()}
+      {/* Purchase Organisation Modal */}
+      <PEModal
+        open={purchaseOrgModal}
+        onClose={ClosePurcgaseOrgModal}
+        size="lg"
+        title="Purchase Organization"
+        footer={
+          <button type="button" className="pe-btn pe-btn--secondary" onClick={ClosePurcgaseOrgModal}>Close</button>
+        }
       >
-        <Modal.Body className="p-0 d-flex flex-column">
-          <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white flex-shrink-0">
-            <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Organization</span>
-            <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => ClosePurcgaseOrgModal()}>
-              <HiOutlineX className="f20" />
-            </button>
-          </div>
-          <div className="p-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden' }}>
-            <PurchaseOrg isModal={true} handlepurchaseorgList={handlepurchaseorgList} />
-          </div>
-        </Modal.Body>
-      </Modal>
+        <PurchaseOrg isModal={true} handlepurchaseorgList={handlepurchaseorgList} />
+      </PEModal>
 
-      <Modal
-        show={purchaseOrgGrpModal}
-        backdrop="static"
-        keyboard={false}
-        dialogClassName="modal-custom-mdlg"
-        className="zindex1280"
-        backdropClassName="zindex1280"
-        centered
-        contentClassName="border-0"
-        onHide={() => ClosePurcgaseOrgGrpModal()}
+      {/* Purchase Group Modal */}
+      <PEModal
+        open={purchaseOrgGrpModal}
+        onClose={ClosePurcgaseOrgGrpModal}
+        size="lg"
+        title="Purchase Group"
+        footer={
+          <button type="button" className="pe-btn pe-btn--secondary" onClick={ClosePurcgaseOrgGrpModal}>Close</button>
+        }
       >
-        <Modal.Body className="p-0 d-flex flex-column">
-          <div className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-white flex-shrink-0">
-            <span className="f16 fw-bold" style={{ color: 'var(--pe-text, #1f2937)' }}>Purchase Group</span>
-            <button type="button" className="pe-icon-btn pe-icon-btn--close" onClick={() => ClosePurcgaseOrgGrpModal()}>
-              <HiOutlineX className="f20" />
-            </button>
-          </div>
-          <div className="p-3 flex-grow-1" style={{ minHeight: 0, overflow: 'hidden' }}>
-            <PurchaseOrgGrp isModal />
-          </div>
-        </Modal.Body>
-      </Modal>
+        <PurchaseOrgGrp isModal />
+      </PEModal>
       {isUploading && (
         <div style={{
           position: 'fixed',
@@ -2415,7 +2004,6 @@ const PurchaseRequest = ({ claimType }) => {
             <div className="spinner-border text-primary mb-2" role="status" style={{ width: '3rem', height: '3rem' }}></div>
             <div style={{ fontSize: '1.2rem', fontWeight: '500', color: '#333' }}>Please Wait While Uploading...</div>
           </div>
-
         </div>
       )}
     </>

@@ -1672,9 +1672,11 @@ const Auctions = ({ claimType, breadcrumb }) => {
 
 	const [approverInWorkflow, setApproverInWorkflow] = useState([])
 	const [isSuppSave, setIsSuppSave] = useState(false);
+	const [wfFetched, setWfFetched] = useState(false);
 	const handleEventAppList = useCallback((arr, updatedvalue) => {
 		setEventAppList(arr);
-		setApproverInWorkflow(updatedvalue)
+		setApproverInWorkflow(updatedvalue);
+		setWfFetched(true);
 	}, []);
 
 	const checkApprovers = () => {
@@ -3583,6 +3585,8 @@ const Auctions = ({ claimType, breadcrumb }) => {
 					atoken={atoken}
 					fetchPanelHistory={fetchPanelHistory}
 					fetchPanelAttachments={fetchPanelAttachments}
+					wfFetched={wfFetched}
+					eventAppList={eventAppList}
 					historyLoading={historyLoading}
 					historyGraph={historyGraph}
 					panelAttachLoading={panelAttachLoading}

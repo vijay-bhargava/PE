@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react'
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { Modal } from "react-bootstrap";
-
-import TextFieldCell from '../../BaseCells/TextFieldCell'
-import { FormControl, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography, IconButton, Autocomplete, Box, Tooltip } from '@mui/material'
-import { LoadingButton } from '@mui/lab'
+import PEModal from '../../../components/PEModal';
+import {
+	InputAdornment, TextField, IconButton,
+	Autocomplete, Box, Tooltip
+} from '@mui/material'
 import { useStateValue } from '../../../store'
-import { LocalizationProvider, MobileDatePicker, DatePicker } from '@mui/x-date-pickers';
-import { HiOutlineX, HiPencilAlt, HiPlusSm, HiOutlineTrash, HiOutlineSearch } from 'react-icons/hi';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { HiPencilAlt, HiPlusSm, HiOutlineTrash, HiOutlineSearch } from 'react-icons/hi';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { FindItemCategory, FindPlantStorage, PRItemServiceAdd, PRItemServiceUpdate, getItemCategory, getPRManageFind, getPlantStorage } from '../../../utils/purchaseRequest';
+import {
+	FindItemCategory, FindPlantStorage, PRItemServiceAdd,
+	PRItemServiceUpdate, getPRManageFind
+} from '../../../utils/purchaseRequest';
 import { toast } from 'react-toastify';
 import AddUpdateUom from '../../../utils/common/AddUpdateUom';
 import AddPrItemCategory from '../../../utils/common/AddPrItemCategory';
 import AddPrPlant from '../../../utils/common/AddPrPlant';
 import AddEditItemType from '../../../utils/common/AddEditITemType';
-import { api, ApiClient } from "../../../Apiclient";
+import { ApiClient } from "../../../Apiclient";
 import { uploadFilesOnAzureURL } from '../../../utils/manageParticipants';
-import { getFileName, uploadFilesOnAzure2, validateFileSize } from '../../../utils/common';
+import { uploadFilesOnAzure2, validateFileSize } from '../../../utils/common';
 import { UploadOutlined } from '@mui/icons-material';
 import { UOMMasterList } from '../../../utils/commerciallibrary';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
@@ -79,48 +82,43 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 			setIsFromPRItem(false);
 		}
 	}, [itemEditTempData]);
+
 	const [uploadingImage, setUploadingImage] = useState(false);
 	const [uploadingAttachment, setUploadingAttachment] = useState(false);
 	const CloseUomModal = () => setUomModal(false);
 	const CloseCategoryModal = () => setCategoryModal(false);
 	const ClosePlantModal = () => setPlantModal(false);
 	const CloseItemTypeModal = () => setItemTypeModal(false);
-	const PullItemCateogory = () => {
-		var data = {
-			CustomerId: customerid,
-		};
-		FindItemCategory(data, atoken).then((resp) => {
 
+	const PullItemCateogory = () => {
+		var data = { CustomerId: customerid, };
+		FindItemCategory(data, atoken).then((resp) => {
 			setItemCatAllList(resp);
 		});
 	};
+
 	const handleCategoryList = (array) => {
 		setItemCatAllList(array);
 	};
 
 	const pullUOMMasterList = () => {
-		var data = {
-			CustomerId: customerid
-		};
+		var data = { CustomerId: customerid };
 		UOMMasterList(data, atoken).then((res) => {
-
 			setUOMMaster(res);
 		});
 	};
 
 	const PullPlantStorage = () => {
-
-		var data = {
-			CustomerId: customerid,
-		};
+		var data = { CustomerId: customerid, };
 		FindPlantStorage(data, atoken).then((resp) => {
-
 			setPlantAllList(resp);
 		});
 	};
+
 	const handlePlantList = (array) => {
 		setPlantAllList(array);
 	};
+
 	const pullItemTypeList = async () => {
 		try {
 			if (!customerid) return;
@@ -133,10 +131,10 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 				setItemTypeList([]);
 			}
 		} catch (err) {
-			console.error('pullItemTypeList error', err);
 			setItemTypeList([]);
 		}
 	};
+
 	const handleItemTypeList = (array) => {
 		setItemTypeList(array);
 	};
@@ -155,54 +153,19 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 			let apiUrl = `api/ItemMaster/Find?CustomerId=${customerid}&pageNumber=${effectivePageNumber}&pageSize=${effectivePageSize}`;
 			const res = await apiClient.get(apiUrl, atoken);
 
-			if (!isSearch) {
-				setGridloading(false);
-			}
+			if (!isSearch) { setGridloading(false); }
 			setTotalCount(res?.pageMetadata?.totalCount || 0);
-			if (isSearch) {
-				setSearchDataLoaded(true);
-			}
+			if (isSearch) { setSearchDataLoaded(true); }
 
-			if (res && res.result) {
-				setItemList(res.result);
-			} else {
+			if (res && res.result) { setItemList(res.result); }
+			else {
 				setItemList([]);
 				setTotalCount(0);
 			}
 		} catch (err) {
-			console.error('pullItemMaster error', err);
 			setItemList([]);
 			setTotalCount(0);
 			setGridloading(false);
-		}
-	};
-
-	const handleItemSelect = (event) => {
-		const value = event.target.value;
-		formik.setFieldValue('itemCode', value);
-		if (!value) {
-			// clear related fields
-			formik.setFieldValue('itemName', '');
-			formik.setFieldValue('itemCategory', '');
-			formik.setFieldValue('itemDesc', '');
-			formik.setFieldValue('uom', '');
-			formik.setFieldValue('quantity', '');
-			formik.setFieldValue('plant', '');
-			formik.setFieldValue('targetPrice', '');
-			return;
-		}
-
-		const selected = itemList.find((it) => String(it.itemCode) === String(value));
-		if (selected) {
-			formik.setFieldValue('itemName', selected.itemName ?? '');
-			formik.setFieldValue('itemCategory', selected.itemCategory ?? '');
-			formik.setFieldValue('itemDesc', selected.itemDesc ?? '');
-			formik.setFieldValue('uom', selected.uom ?? '');
-			formik.setFieldValue('quantity', selected.quantity ?? '');
-			formik.setFieldValue('plant', selected.plant ?? '');
-			formik.setFieldValue('targetPrice', selected.targetPrice ?? '');
-			formik.setFieldValue('itemImage', selected.itemImage ?? '');
-			formik.setFieldValue('itemFile', selected.itemFile ?? '');
 		}
 	};
 
@@ -362,15 +325,15 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 						itemCategory: values?.itemCategory,
 						plant: values?.plant ?? '',
 						itemDesc: values?.itemDesc,
-						targetPrice: values?.targetPrice != '' ? values?.targetPrice : 0,
-						quantity: values?.quantity != '' ? values?.quantity : 0,
+						targetPrice: values?.targetPrice !== '' ? values?.targetPrice : 0,
+						quantity: values?.quantity !== '' ? values?.quantity : 0,
 						uom: values?.uom,
 						deliveryDate: values?.deliveryDate || null,
 						poNumber: values?.poNumber || '',
 						poVendorName: values?.poVendorName || '',
-						poUnitRate: values?.poUnitRate != '' ? values?.poUnitRate : 0,
+						poUnitRate: values?.poUnitRate !== '' ? values?.poUnitRate : 0,
 						poDate: values?.poDate || null,
-						poValue: values?.poValue != '' ? values?.poValue : 0,
+						poValue: values?.poValue !== '' ? values?.poValue : 0,
 						remarks: values?.remarks || '',
 						itemImage: values?.itemImage || '',
 						itemFile: values?.itemFile || '',
@@ -378,7 +341,7 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 						itemTypeId: values?.itemTypeId ? parseInt(values.itemTypeId) : 0
 					};
 
-					if (data && data?.id == 0) {
+					if (data && data?.id === 0) {
 						const res = await PRItemServiceAdd(data, atoken);
 						setLoadingSubmit(false);
 						if (res && res > 0) {
@@ -447,33 +410,6 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 			}
 		}
 	});
-	// const handleUomChange = (e) => {
-	//     const selectedValue = e.target.value;
-	//     if (selectedValue === "new") {
-	//         setUomModal(true);
-	//     } else {
-	//         const selectedOption = UOMMaster.find(option => option.uom === selectedValue);
-	//         setuom(selectedOption?.uom);
-	//         formik.setFieldValue("uom", selectedOption?.uom)
-	//     }
-	//     formik.setFieldValue(selectedValue);
-	//     setuom(selectedValue);
-	// };
-	// const handleItemCategoryChange = (e) => {
-	//     
-	//     const selectedValue = e.target.value;
-
-	//     if (selectedValue === "new") {
-	//         setCategoryModal(true); // Open the modal or dialog for adding a new category
-	//     } else {
-	//         const selectedOption = itemCatAllList.find(option => option.categoryDescription === selectedValue);
-
-	//         formik.setFieldValue("itemCategory", selectedOption?.categoryDescription);
-	//         setcategory(selectedOption?.categoryDescription);
-	//     }
-
-	//     setcategory(selectedValue);
-	// };
 
 	const handleItemCategoryChange = (event, value) => {
 		if (value && value.id === "new") {
@@ -527,72 +463,14 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 	const handleDateChange = (newValue, formik) => {
 		const currentDate = new Date();
 		currentDate.setHours(0, 0, 0, 0); // Set to the start of the day for comparison
-
 		// Check if the selected date is before today
 		if (newValue < currentDate) {
 			toast.error("You can't select a past date. Please select today or a future date.");
 			return;
 		}
-
 		// Set the field value if the date is valid
 		formik.setFieldValue('deliveryDate', newValue);
 	};
-	// const handleItemPOSearch = async (value) => {
-	//     
-	//     const selectedValue =value
-
-	//     const res = await apiClient.get(
-	//         `api/poconfirm/Find?CustomerId=${parseInt(customerid)}&POCreationDetails_ItemDesc=${selectedValue}`,
-	//         atoken
-	//     );
-
-
-	//    if (res) {
-	//     console.log("poconfirm", res?.result);
-	//     
-
-	//     const lastElement = res?.result[res?.result?.length - 1]; // Get the last element
-	//     formik.setFieldValue("poNumber", lastElement?.poNumber);
-	//     formik.setFieldValue("poVendorName", lastElement?.vendorName);
-	//     formik.setFieldValue("poValue", lastElement?.poAmount)
-	//     formik.setFieldValue("poDate", lastElement?.pO_Date ? new Date(lastElement?.pO_Date) : null);
-	//     const materialPONetPrice = lastElement?.poCreationDetails[0]?.materialPONetPrice;
-	//     formik.setFieldValue("poUnitRate", materialPONetPrice ? parseFloat(materialPONetPrice) : 0);
-
-	// }
-
-	//   };
-	const handleItemPOSearch = async (value) => {
-		try {
-			const selectedValue = value;
-
-			const res = await apiClient.get(
-				`api/poconfirm/Find?CustomerId=${parseInt(customerid)}&POCreationDetails_ItemDesc=${selectedValue}`,
-				atoken
-			);
-
-			// Check if res?.result is defined and is an array
-			if (Array.isArray(res?.result) && res?.result.length > 0) {
-				console.log("poconfirm", res?.result);
-
-
-				const lastElement = res?.result[res?.result?.length - 1]; // Get the last element
-				formik.setFieldValue("poNumber", lastElement?.poNumber);
-				formik.setFieldValue("poVendorName", lastElement?.vendorName);
-				formik.setFieldValue("poValue", lastElement?.poAmount);
-				formik.setFieldValue("poDate", lastElement?.pO_Date ? new Date(lastElement?.pO_Date) : null);
-
-				const materialPONetPrice = lastElement?.poCreationDetails[0]?.materialPONetPrice;
-				formik.setFieldValue("poUnitRate", materialPONetPrice ? parseFloat(materialPONetPrice) : 0);
-			} else {
-				console.warn("No results found or invalid result array");
-			}
-		} catch (error) {
-			console.error("Error during API call or processing:", error);
-		}
-	};
-
-
 
 	//file upload changes
 	const handleItemImageChange = (event) => {
@@ -602,20 +480,13 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 			return;
 		}
 		const file = event.target.files[0];
-		if (file) {
-			UploadItemImage(file);
-		}
+		if (file) { UploadItemImage(file); }
 		event.target.value = ''; // Reset input to allow re-uploading the same file
 	};
 
 	const UploadItemImage = async (file) => {
-
-		if (!file) {
-			return;
-		}
-
+		if (!file) { return; }
 		setUploadingImage(true);
-
 		// Define the data object for upload
 		const data = {
 			RequestedBy: "customer",
@@ -636,7 +507,6 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 		} finally {
 			setUploadingImage(false);
 		}
-
 	}
 	const handleItemAttachmentChange = (event) => {
 		if (!validateFileSize(event)) {
@@ -644,20 +514,13 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 			return;
 		}
 		const file = event.target.files[0];
-		if (file) {
-			UploadItemAttachment(file);
-		}
+		if (file) { UploadItemAttachment(file); }
 		event.target.value = ''; // Reset input to allow re-uploading the same file
 	};
 
 	const UploadItemAttachment = async (file) => {
-
-		if (!file) {
-			return;
-		}
-
+		if (!file) { return; }
 		setUploadingAttachment(true);
-
 		// Define the data object for upload
 		const data = {
 			RequestedBy: "customer",
@@ -678,7 +541,6 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 		} finally {
 			setUploadingAttachment(false);
 		}
-
 	}
 
 	// DataGrid columns configuration
@@ -720,13 +582,12 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 			headerName: "Action",
 			width: 80,
 			renderCell: (params) => (
-				<IconButton
-					size="small"
-					className="bg-white"
+				<button
+					className="pe-icon-btn pe-icon-btn--edit"
 					onClick={() => handleEditItemMaster(params?.row)}
 				>
-					<HiPencilAlt className="f17 text-primary" />
-				</IconButton>
+					<HiPencilAlt />
+				</button>
 			)
 		}
 	];
@@ -740,48 +601,6 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 
 	const getRowId = (row) => {
 		return row.itemCode || row.id;
-	};
-
-	const handleAddSelectedItems = async () => {
-		if (selectedRows.length === 0) {
-			toast.warning('Please select at least one item');
-			return;
-		}
-
-		for (const selectedItemCode of selectedRows) {
-			const selectedItem = itemList.find((it) => String(it.itemCode) === String(selectedItemCode));
-			if (!selectedItem) continue;
-
-			const data = {
-				id: 0,
-				customerId: parseInt(customerid),
-				prId: parseInt(idFromURL),
-				itemName: selectedItem.itemName ?? '',
-				itemCode: selectedItem.itemCode ?? '',
-				erpSourceId: '',
-				itemCategory: selectedItem.itemCategory ?? '',
-				plant: selectedItem.plant ?? '',
-				itemDesc: selectedItem.itemDesc ?? '',
-				targetPrice: selectedItem.targetPrice ?? 0,
-				quantity: selectedItem.quantity ?? 0,
-				uom: selectedItem.uom ?? '',
-				deliveryDate: null,
-				poNumber: selectedItem.poNumber || '',
-				poVendorName: selectedItem.poVendorName || '',
-				poUnitRate: selectedItem.unitRate || 0,
-				poDate: selectedItem.poDate ? new Date(selectedItem.poDate) : null,
-				poValue: selectedItem.poValue || 0,
-				remarks: '',
-				itemImage: selectedItem.itemImage ?? '',
-				itemFile: selectedItem.itemFile ?? ''
-			};
-
-			await PRItemServiceAdd(data, atoken);
-		}
-
-		toast.success(`${selectedRows.length} item(s) added successfully!`);
-		setSelectedRows([]);
-		callbackItemAdd(true);
 	};
 
 	const CloseItemMasterModal = () => {
@@ -841,12 +660,11 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 	// Only treat as PR-item edit (render drawer inline) when the data
 	// originated from the parent PR (itemEditTempData). Edits from the
 	// ItemMaster grid should open the modal instead.
-	const isEditingPRItem = isFromPRItem && editItemMasterData && editItemMasterData?.id > 0;
 
 	// Render the form for editing PR item
 	const renderEditForm = () => (
-		<div className="p-3">
-			<form onSubmit={formik.handleSubmit} autoComplete="off">
+		<div className="">
+			<form id="add-pr-product-form" onSubmit={formik.handleSubmit} autoComplete="off">
 				<input
 					id="itemimagefile_modal"
 					className="d-none"
@@ -862,15 +680,14 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 				/>
 				<div className='row mt-2'>
 					<div className='col-12 col-md-6 mb-4'>
+						<label className="pe-field-label">Item Code</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{ shrink: true }}
 							size="small"
 							className='f14'
 							id="itemCode"
 							name="itemCode"
-							label="Item Code *"
 							inputProps={{ maxLength: 100 }}
 							value={formik.values.itemCode}
 							onChange={formik.handleChange}
@@ -894,15 +711,14 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 						/>
 					</div>
 					<div className='col-12 col-md-6 mb-4'>
+						<label className="pe-field-label">Item / Service Name <span className="rfq-required-star">*</span></label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{ shrink: true }}
 							size="small"
 							className='f14'
 							id="itemName"
 							name="itemName"
-							label="Item/Service Name *"
 							inputProps={{ maxLength: 200 }}
 							value={formik.values.itemName}
 							onChange={formik.handleChange}
@@ -910,20 +726,17 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 							helperText={formik.touched.itemName && formik.errors.itemName}
 						/>
 					</div>
-					<div className='col-12 col-md-12 mb-4'>
+					<div className='col-12 col-md-6 mb-4'>
+						<label className="pe-field-label">Description <span className="rfq-required-star">*</span></label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							multiline={true}
 							rows={3}
 							id="itemDesc"
 							name="itemDesc"
-							label="Description *"
 							inputProps={{ maxLength: 2000 }}
 							value={formik?.values?.itemDesc}
 							onChange={formik.handleChange}
@@ -931,26 +744,24 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 							helperText={formik.touched.itemDesc && formik.errors.itemDesc}
 						/>
 					</div>
-					<div className='col-12 col-md-12 mb-4'>
+					<div className='col-12 col-md-6 mb-4'>
+						<label className="pe-field-label">Remarks</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							multiline={true}
 							rows={3}
 							id="remarks"
 							name="remarks"
-							label="Remarks"
 							inputProps={{ maxLength: 2000 }}
 							value={formik?.values?.remarks}
 							onChange={formik.handleChange}
 						/>
 					</div>
 					<div className='col-12 col-md-6 col-lg-4 mb-3'>
+						<label className="pe-field-label">Item Category</label>
 						<Autocomplete
 							id="itemCategory"
 							name="itemCategory"
@@ -958,8 +769,8 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 							className='w-100 f14'
 							sx={{ width: "100%" }}
 							options={[
-								...itemCatAllList,
 								{ categoryDescription: "ADD NEW", id: "new" },
+								...itemCatAllList,
 							]}
 							value={
 								itemCatAllList.find(
@@ -977,16 +788,7 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 								<Box
 									component="li"
 									{...props}
-									style={
-										option.id === "new"
-											? {
-												fontStyle: "italic",
-												color: "blue",
-												cursor: "pointer",
-												textDecoration: "underline",
-											}
-											: {}
-									}
+									className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}
 								>
 									{option.categoryDescription}
 								</Box>
@@ -995,8 +797,6 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 								<TextField
 									variant="outlined"
 									{...params}
-									label="Item Category *"
-									shrink={true}
 									error={formik.touched.itemCategory && Boolean(formik.errors.itemCategory)}
 									helperText={formik.touched.itemCategory && formik.errors.itemCategory}
 								/>
@@ -1004,6 +804,7 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 						/>
 					</div>
 					<div className='col-12 col-md-6 col-lg-4 mb-3'>
+						<label className="pe-field-label">Delivery Location</label>
 						<Autocomplete
 							id="plant"
 							name="plant"
@@ -1011,24 +812,20 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 							className='w-100 f14'
 							sx={{ width: "100%" }}
 							options={[
+								{ slDesc: "ADD NEW", slCode: "new" },
 								...plantAllList,
-								{ slDesc: "ADD ", slCode: "new" },
 							]}
 							value={
 								(() => {
-									// Clean any trailing dash from stored value
 									const cleanPlantValue = formik.values.plant?.replace(/\s*-\s*$/, "").trim() || "";
-									// Try to find exact match in plantAllList
 									const foundOption = plantAllList.find(option => option.slDesc === cleanPlantValue);
-									// Return found option or create fallback (for manually entered values)
 									return foundOption || (cleanPlantValue ? { slDesc: cleanPlantValue, slCode: "" } : null);
 								})()
 							}
 							getOptionLabel={(option) => {
 								if (!option) return "";
 								const code = option.slCode?.trim();
-								// Only show dash if slCode exists and is not just "null" or "undefined" string
-								if (code && code !== "null" && code !== "undefined") {
+								if (code && code !== "null" && code !== "undefined" && code !== "new") {
 									return `${option.slDesc} - ${code}`;
 								}
 								return option.slDesc || "";
@@ -1041,24 +838,14 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 							onChange={handlePlantChange}
 							renderOption={(props, option) => {
 								const code = option.slCode?.trim();
-								const displayText = code && code !== "null" && code !== "undefined"
+								const displayText = code && code !== "null" && code !== "undefined" && code !== "new"
 									? `${option.slDesc} - ${code}`
 									: option.slDesc;
-
 								return (
 									<Box
 										component="li"
 										{...props}
-										style={
-											option.slCode === "new"
-												? {
-													fontStyle: "italic",
-													color: "blue",
-													cursor: "pointer",
-													textDecoration: "underline",
-												}
-												: {}
-										}
+										className={(props.className || "") + (option.slCode === "new" ? " dropdown-add-new" : "")}
 									>
 										{displayText}
 									</Box>
@@ -1068,24 +855,24 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 								<TextField
 									variant="outlined"
 									{...params}
-									label="Plant"
-									shrink={true}
+									error={formik.touched.plant && Boolean(formik.errors.plant)}
+									helperText={formik.touched.plant && formik.errors.plant}
 								/>
 							)}
 						/>
 					</div>
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">Delivery Date</label>
 						<LocalizationProvider dateAdapter={AdapterDateFns}>
 							<DatePicker
-								label="Delivery Date"
 								value={formik.values.deliveryDate}
 								onChange={(newValue) => handleDateChange(newValue, formik)}
+								className='w-100 f14'
 								renderInput={(params) => (
 									<TextField
 										{...params}
 										fullWidth
 										size="small"
-										InputLabelProps={{ shrink: true }}
 										error={formik.touched.deliveryDate && Boolean(formik.errors.deliveryDate)}
 										helperText={formik.touched.deliveryDate && formik.errors.deliveryDate}
 									/>
@@ -1094,17 +881,14 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 						</LocalizationProvider>
 					</div>
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">Quantity <span className="rfq-required-star">*</span></label>
 						<TextField
-							InputLabelProps={{
-								shrink: true,
-							}}
 							fullWidth
 							variant="outlined"
 							size="small"
 							className='f14'
 							id="quantity"
 							name="quantity"
-							label="Quantity *"
 							value={formik.values.quantity}
 							type="number"
 							onChange={(e) => {
@@ -1122,14 +906,15 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 						/>
 					</div>
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">UOM <span className="rfq-required-star">*</span></label>
 						<Autocomplete
 							id="uom"
 							name="uom"
 							size="small"
 							className='w-100 f14'
 							options={[
-								...UOMMaster,
 								{ uom: "ADD NEW", id: "new" },
+								...UOMMaster,
 							]}
 							value={
 								UOMMaster.find(
@@ -1147,16 +932,7 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 								<Box
 									component="li"
 									{...props}
-									style={
-										option.id === "new"
-											? {
-												fontStyle: "italic",
-												color: "blue",
-												cursor: "pointer",
-												textDecoration: "underline",
-											}
-											: {}
-									}
+									className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}
 								>
 									{option.uom}
 								</Box>
@@ -1165,7 +941,6 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 								<TextField
 									variant="outlined"
 									{...params}
-									label="UOM *"
 									error={formik.touched.uom && Boolean(formik.errors.uom)}
 									helperText={formik.touched.uom && formik.errors.uom}
 								/>
@@ -1173,14 +948,15 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 						/>
 					</div>
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">Item Type</label>
 						<Autocomplete
 							id="itemType"
 							name="itemType"
 							size="small"
 							className='w-100 f14'
 							options={[
-								...itemTypeList,
 								{ itemType: "ADD NEW", id: "new" },
+								...itemTypeList,
 							]}
 							value={
 								itemTypeList.find(
@@ -1198,16 +974,7 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 								<Box
 									component="li"
 									{...props}
-									style={
-										option.id === "new"
-											? {
-												fontStyle: "italic",
-												color: "blue",
-												cursor: "pointer",
-												textDecoration: "underline",
-											}
-											: {}
-									}
+									className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}
 								>
 									{option.itemType}
 								</Box>
@@ -1216,23 +983,19 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 								<TextField
 									variant="outlined"
 									{...params}
-									label="Item Type"
 								/>
 							)}
 						/>
 					</div>
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">Target / Budget Price</label>
 						<TextField
 							id="targetPrice"
 							name="targetPrice"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							fullWidth
 							variant="outlined"
 							size="small"
 							className='f14'
-							label="Target/Budget Price"
 							value={formik.values.targetPrice}
 							type="number"
 							onChange={(e) => {
@@ -1246,15 +1009,12 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 						/>
 					</div>
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">Item Image</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
-							label="Item Image"
 							value={uploadingImage ? 'Uploading...' : (formik.values.itemImage ? formik.values.itemImage.split('/').pop() : '')}
 							placeholder="No file selected"
 							disabled={uploadingImage}
@@ -1292,15 +1052,12 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 						/>
 					</div>
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">Item Attachment</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
-							label="Item Attachment"
 							value={uploadingAttachment ? 'Uploading...' : (formik.values.itemFile ? formik.values.itemFile.split('/').pop() : '')}
 							placeholder="No file selected"
 							disabled={uploadingAttachment}
@@ -1343,114 +1100,78 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 						<h6 className='f14 text-secondary mb-0'>Last PO Details (Optional)</h6>
 					</div>
 					<div className='col-12 col-md-6 mb-4'>
+						<label className="pe-field-label">PO Number</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							id="poNumber"
 							name="poNumber"
-							label="PO Number"
 							inputProps={{ maxLength: 100 }}
 							value={formik.values.poNumber}
 							onChange={formik.handleChange}
 						/>
 					</div>
 					<div className='col-12 col-md-6 mb-4'>
+						<label className="pe-field-label">Supplier Name</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							id="poVendorName"
 							name="poVendorName"
-							label="Supplier Name"
 							inputProps={{ maxLength: 100 }}
 							value={formik.values.poVendorName}
 							onChange={formik.handleChange}
 						/>
 					</div>
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">Unit Rate</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							id="poUnitRate"
 							name="poUnitRate"
-							label="Unit Rate"
 							type="number"
 							value={formik.values.poUnitRate}
 							onChange={formik.handleChange}
 						/>
 					</div>
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">PO Date</label>
 						<LocalizationProvider dateAdapter={AdapterDateFns}>
 							<DatePicker
-								label="PO Date"
 								value={formik.values.poDate}
 								onChange={(newValue) => formik.setFieldValue('poDate', newValue)}
+								className='w-100 f14'
 								renderInput={(params) => (
 									<TextField
 										{...params}
 										fullWidth
 										size="small"
-										InputLabelProps={{ shrink: true }}
 									/>
 								)}
 							/>
 						</LocalizationProvider>
 					</div>
 					<div className='col-12 col-md-4 mb-4'>
+						<label className="pe-field-label">PO Value</label>
 						<TextField
 							fullWidth
 							variant="outlined"
-							InputLabelProps={{
-								shrink: true,
-							}}
 							size="small"
 							className='f14'
 							id="poValue"
 							name="poValue"
-							label="PO Value"
 							type="number"
 							value={formik.values.poValue}
 							onChange={formik.handleChange}
 						/>
 					</div>
-				</div>
-				<div className='text-end mt-3'>
-					<LoadingButton
-						variant='outlined'
-						onClick={() => callbackItemAdd(false)}
-						color='secondary'
-						className='me-3 text-capitalize'
-						size='small'
-					>
-						Cancel
-					</LoadingButton>
-					{action && (
-						<LoadingButton
-							loading={loadingSubmit}
-							variant='contained'
-							type="submit"
-							color='primary'
-							className='text-capitalize'
-							size='small'
-							disabled={loadingSubmit}
-						>
-							{editItemMasterData && editItemMasterData?.id > 0 ? 'Update' : 'Add'}
-						</LoadingButton>
-					)}
 				</div>
 			</form>
 		</div>
@@ -1462,639 +1183,312 @@ const AddItemProductsCell = ({ idFromURL, callbackItemAdd, itemEditTempData, han
 			<div className="col-12 p-0">
 				{renderEditForm()}
 			</div>
-			<Modal
-				size="lg"
-				show={ItemTypeModal}
-				backdrop="static"
-				keyboard={false}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={CloseItemTypeModal}
+			<PEModal
+				open={ItemTypeModal}
+				onClose={CloseItemTypeModal}
+				size="md"
+				title="Item Type"
+				bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+				bodyClassName="d-flex flex-column"
+				footer={
+					<button type="button" className="pe-btn pe-btn--secondary" onClick={CloseItemTypeModal}>Close</button>
+				}
 			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">Item Type</div>
-					</Modal.Title>
-					<IconButton onClick={CloseItemTypeModal} size="small" edge="start">
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<AddEditItemType handleItemTypeList={handleItemTypeList} />
-					</div>
-				</Modal.Body>
-			</Modal>
+				<AddEditItemType handleItemTypeList={handleItemTypeList} />
+			</PEModal>
 
-			<Modal
-				size="xl"
-				show={searchItemModal}
-				backdrop="static"
-				keyboard={false}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={CloseSearchItemModal}
+			{/* Search Item Modal */}
+			<PEModal
+				open={searchItemModal}
+				onClose={CloseSearchItemModal}
+				size="lg"
+				title="Search Item"
+				bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+				bodyClassName="d-flex flex-column"
+				footer={
+					selectedRows.length > 0 ? (
+						<button type="button" className="pe-btn pe-btn--primary" onClick={handleSelectItemFromGrid}>
+							Select Item
+						</button>
+					) : (
+						<button type="button" className="pe-btn pe-btn--secondary" onClick={CloseSearchItemModal}>Close</button>
+					)
+				}
 			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">Search Item</div>
-					</Modal.Title>
-					<IconButton onClick={CloseSearchItemModal} size="small" edge="start">
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<div className="row">
-							<div className="col-12 mb-3">
-								<TextField
-									fullWidth
-									placeholder="Search by Item Code, Name, or Category..."
-									size="small"
-									value={quickFilterValue}
-									onChange={(e) => {
-										setQuickFilterValue(e.target.value);
-										setPage(0);
-									}}
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<HiOutlineSearch className="f14 text-muted" />
-											</InputAdornment>
-										),
-									}}
-								/>
-							</div>
-							<div className="col-12 mb-3 d-flex justify-content-end align-items-center">
-								<LoadingButton
-									variant="text"
-									size="large"
-									color="primary"
-									onClick={() => {
-										setEditItemMasterData(null);
-										setItemMasterModal(true);
-									}}
-									startIcon={<HiPlusSm />}
-									className="text-capitalize blue-text font-normal me-3"
-								>
-									Add New
-								</LoadingButton>
-							</div>
-							<div className="data-grid-wrapper flex-grow-1" style={{ height: '400px', overflow: 'hidden' }}>
-								<DataGrid
-									getRowId={getRowId}
-									rows={itemList}
-									loading={gridloading && !searchMode}
-									columns={itemColumns}
-									pagination
-									paginationMode={searchMode ? "client" : "server"}
-									pageSizeOptions={[10, 25, 50, 100]}
-									rowCount={searchMode ? itemList.length : totalCount}
-									paginationModel={{ page: page, pageSize: pageSize }}
-									onPaginationModelChange={(model) => {
-										if (model.page !== page) {
-											setPage(model.page);
-										}
-										if (model.pageSize !== pageSize) {
-											setPageSize(model.pageSize);
-											setPage(0);
-										}
-										if (!searchMode) {
-											const nextPageNumber = model.pageSize !== pageSize ? 1 : model.page + 1;
-											pullItemMaster(nextPageNumber, model.pageSize, false);
-										}
-									}}
-									filterModel={{
-										items: [],
-										quickFilterValues: quickFilterValue ? [quickFilterValue] : []
-									}}
-									rowHeight={35}
-									columnHeaderHeight={35}
-									style={{ width: '100%', height: '100%', border: 'none' }}
-									className="f13 border-0 consistent-datagrid"
-									disableDensitySelector
-									checkboxSelection
-									disableRowSelectionOnClick={false}
-									rowSelectionModel={selectedRows}
-									onRowSelectionModelChange={(newSelection) => {
-										// Enforce single selection: keep only the most recently selected id
-										try {
-											if (Array.isArray(newSelection)) {
-												if (newSelection.length > 0) {
-													const last = newSelection[newSelection.length - 1];
-													setSelectedRows([last]);
-												} else {
-													setSelectedRows([]);
-												}
-											} else if (newSelection) {
-												setSelectedRows([newSelection]);
-											} else {
-												setSelectedRows([]);
-											}
-										} catch (e) {
-											setSelectedRows([]);
-										}
-									}}
-									slots={{ toolbar: GridToolbar }}
-									slotProps={{
-										toolbar: {
-											showQuickFilter: false,
-										},
-									}}
-								/>
-							</div>
-							<div className="col-12 d-flex justify-content-end mt-3">
-								{selectedRows.length > 0 && (
-									<LoadingButton
-										variant='contained'
-										onClick={handleSelectItemFromGrid}
-										color='primary'
-										className='text-capitalize'
-										size='medium'
-									>
-										Select Item
-									</LoadingButton>
+				<div className="row">
+					<div className="col-12 mb-3">
+						<TextField
+							fullWidth
+							placeholder="Search by Item Code, Name, or Category..."
+							size="small"
+							value={quickFilterValue}
+							onChange={(e) => {
+								setQuickFilterValue(e.target.value);
+								setPage(0);
+							}}
+							InputProps={{
+								startAdornment: (
+									<InputAdornment position="start">
+										<HiOutlineSearch className="f14 text-muted" />
+									</InputAdornment>
+								),
+							}}
+						/>
+					</div>
+					<div className="col-12 mb-3 d-flex justify-content-end align-items-center">
+						<button type="button" className="pe-btn pe-btn--ghost" onClick={() => {
+							setEditItemMasterData(null);
+							setItemMasterModal(true);
+						}}>
+							<HiPlusSm /> Add New
+						</button>
+					</div>
+					<div className="col-12" style={{ height: '400px' }}>
+						<DataGrid
+							getRowId={getRowId}
+							rows={itemList}
+							loading={gridloading && !searchMode}
+							columns={itemColumns}
+							pagination
+							paginationMode={searchMode ? "client" : "server"}
+							pageSizeOptions={[10, 25, 50, 100]}
+							rowCount={searchMode ? itemList.length : totalCount}
+							paginationModel={{ page: page, pageSize: pageSize }}
+							onPaginationModelChange={(model) => {
+								if (model.page !== page) setPage(model.page);
+								if (model.pageSize !== pageSize) { setPageSize(model.pageSize); setPage(0); }
+								if (!searchMode) {
+									const nextPageNumber = model.pageSize !== pageSize ? 1 : model.page + 1;
+									pullItemMaster(nextPageNumber, model.pageSize, false);
+								}
+							}}
+							filterModel={{ items: [], quickFilterValues: quickFilterValue ? [quickFilterValue] : [] }}
+							rowHeight={35}
+							columnHeaderHeight={35}
+							style={{ width: '100%', height: '100%', border: 'none' }}
+							className="f13 border-0 consistent-datagrid"
+							disableDensitySelector
+							checkboxSelection
+							disableRowSelectionOnClick={false}
+							rowSelectionModel={selectedRows}
+							onRowSelectionModelChange={(newSelection) => {
+								try {
+									if (Array.isArray(newSelection)) {
+										setSelectedRows(newSelection.length > 0 ? [newSelection[newSelection.length - 1]] : []);
+									} else if (newSelection) {
+										setSelectedRows([newSelection]);
+									} else {
+										setSelectedRows([]);
+									}
+								} catch (e) {
+									setSelectedRows([]);
+								}
+							}}
+							slots={{ toolbar: GridToolbar }}
+							slotProps={{ toolbar: { showQuickFilter: false } }}
+						/>
+					</div>
+				</div>
+			</PEModal>
+
+			{/* Add/Edit Item Master Modal */}
+			<PEModal
+				open={itemMasterModal}
+				onClose={CloseItemMasterModal}
+				size="md"
+				title={editItemMasterData ? 'Edit Item' : 'Add Item'}
+				bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+				bodyClassName="d-flex flex-column"
+				footer={
+					<>
+						<button type="button" className="pe-btn pe-btn--secondary" onClick={CloseItemMasterModal}>Cancel</button>
+						<button type="submit" form="item-master-form" className="pe-btn pe-btn--primary" disabled={loadingSubmit}>
+							{editItemMasterData?.id > 0 ? 'Update' : 'Add'}
+						</button>
+					</>
+				}
+			>
+				<form id="item-master-form" onSubmit={formik.handleSubmit} autoComplete="off">
+					<div className='row mt-2'>
+						<div className='col-12 col-md-6 mb-4'>
+							<label className="pe-field-label">Item Code</label>
+							<TextField fullWidth variant="outlined" size="small" className='f14'
+								id="itemCode" name="itemCode" inputProps={{ maxLength: 100 }}
+								value={formik.values.itemCode} onChange={formik.handleChange}
+								error={formik.touched.itemCode && Boolean(formik.errors.itemCode)}
+								helperText={formik.touched.itemCode && formik.errors.itemCode}
+							/>
+						</div>
+						<div className='col-12 col-md-6 mb-4'>
+							<label className="pe-field-label">Item / Service Name <span className="rfq-required-star">*</span></label>
+							<TextField fullWidth variant="outlined" size="small" className='f14'
+								id="itemName" name="itemName" inputProps={{ maxLength: 200 }}
+								value={formik.values.itemName} onChange={formik.handleChange}
+								error={formik.touched.itemName && Boolean(formik.errors.itemName)}
+								helperText={formik.touched.itemName && formik.errors.itemName}
+							/>
+						</div>
+						<div className='col-12 col-md-6 mb-4'>
+							<label className="pe-field-label">Description <span className="rfq-required-star">*</span></label>
+							<TextField fullWidth variant="outlined" size="small" className='f14' multiline rows={3}
+								id="itemDesc" name="itemDesc" inputProps={{ maxLength: 2000 }}
+								value={formik?.values?.itemDesc} onChange={formik.handleChange}
+								error={formik.touched.itemDesc && Boolean(formik.errors.itemDesc)}
+								helperText={formik.touched.itemDesc && formik.errors.itemDesc}
+							/>
+						</div>
+						<div className='col-12 col-md-6 col-lg-4 mb-3'>
+							<label className="pe-field-label">Item Category</label>
+							<Autocomplete id="itemCategory" name="itemCategory" size="small" className='w-100 f14'
+								options={[...itemCatAllList, { categoryDescription: "ADD NEW", id: "new" }]}
+								value={itemCatAllList.find(o => o.categoryDescription === formik.values.itemCategory) || { categoryDescription: formik.values.itemCategory }}
+								getOptionLabel={(option) => option.categoryDescription ?? ""}
+								onOpen={() => { if (itemCatAllList.length === 0) PullItemCateogory(); }}
+								onChange={handleItemCategoryChange}
+								renderOption={(props, option) => (
+									<Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
+										{option.categoryDescription}
+									</Box>
 								)}
-							</div>
+								renderInput={(params) => (
+									<TextField variant="outlined" {...params}
+										error={formik.touched.itemCategory && Boolean(formik.errors.itemCategory)}
+										helperText={formik.touched.itemCategory && formik.errors.itemCategory}
+									/>
+								)}
+							/>
+						</div>
+						<div className='col-12 col-md-6 col-lg-4 mb-3'>
+							<label className="pe-field-label">Delivery Location</label>
+							<Autocomplete id="plant" name="plant" size="small" className='w-100 f14'
+								options={[...plantAllList, { slDesc: "ADD NEW", slCode: "new" }]}
+								value={plantAllList.find(o => o.slDesc === formik.values.plant) || { slDesc: formik.values.plant, slCode: "" }}
+								getOptionLabel={(option) => {
+									const code = option.slCode?.trim();
+									return code && code !== "null" && code !== "undefined" && code !== "new" ? `${option.slDesc} - ${code}` : option.slDesc || "";
+								}}
+								onOpen={() => { if (plantAllList.length === 0) PullPlantStorage(); }}
+								onChange={handlePlantChange}
+								renderOption={(props, option) => {
+									const code = option.slCode?.trim();
+									return (
+										<Box component="li" {...props} className={(props.className || "") + (option.slCode === "new" ? " dropdown-add-new" : "")}>
+											{code && code !== "null" && code !== "undefined" && code !== "new" ? `${option.slDesc} - ${code}` : option.slDesc}
+										</Box>
+									);
+								}}
+								renderInput={(params) => <TextField variant="outlined" {...params} />}
+							/>
+						</div>
+						<div className='col-12 col-md-4 mb-4'>
+							<label className="pe-field-label">UOM <span className="rfq-required-star">*</span></label>
+							<Autocomplete id="uom" name="uom" size="small" className='w-100 f14'
+								options={[...UOMMaster, { uom: "ADD NEW", id: "new" }]}
+								value={UOMMaster.find(o => o.uom === formik.values.uom) || { uom: formik.values.uom }}
+								getOptionLabel={(option) => option.uom ?? ""}
+								onOpen={() => { if (UOMMaster.length === 0) pullUOMMasterList(); }}
+								onChange={handleUomChange}
+								renderOption={(props, option) => (
+									<Box component="li" {...props} className={(props.className || "") + (option.id === "new" ? " dropdown-add-new" : "")}>
+										{option.uom}
+									</Box>
+								)}
+								renderInput={(params) => (
+									<TextField variant="outlined" {...params}
+										error={formik.touched.uom && Boolean(formik.errors.uom)}
+										helperText={formik.touched.uom && formik.errors.uom}
+									/>
+								)}
+							/>
+						</div>
+						<div className='col-12 mt-2 mb-3'>
+							<h6 className='f14 text-secondary mb-0'>Last PO Details (Optional)</h6>
+						</div>
+						<div className='col-12 col-md-6 mb-4'>
+							<label className="pe-field-label">PO Number</label>
+							<TextField fullWidth variant="outlined" size="small" className='f14'
+								id="poNumber" name="poNumber" inputProps={{ maxLength: 100 }}
+								value={formik.values.poNumber} onChange={formik.handleChange}
+							/>
+						</div>
+						<div className='col-12 col-md-6 mb-4'>
+							<label className="pe-field-label">Supplier Name</label>
+							<TextField fullWidth variant="outlined" size="small" className='f14'
+								id="poVendorName" name="poVendorName" inputProps={{ maxLength: 100 }}
+								value={formik.values.poVendorName} onChange={formik.handleChange}
+							/>
+						</div>
+						<div className='col-12 col-md-4 mb-4'>
+							<label className="pe-field-label">Unit Rate</label>
+							<TextField fullWidth variant="outlined" size="small" className='f14'
+								id="unitRate" name="unitRate" type="number"
+								value={formik.values.unitRate} onChange={formik.handleChange}
+							/>
+						</div>
+						<div className='col-12 col-md-4 mb-4'>
+							<label className="pe-field-label">PO Date</label>
+							<LocalizationProvider dateAdapter={AdapterDateFns}>
+								<DatePicker value={formik.values.poDate}
+									onChange={(newValue) => formik.setFieldValue('poDate', newValue)}
+									renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+								/>
+							</LocalizationProvider>
+						</div>
+						<div className='col-12 col-md-4 mb-4'>
+							<label className="pe-field-label">PO Value</label>
+							<TextField fullWidth variant="outlined" size="small" className='f14'
+								id="poValue" name="poValue" type="number"
+								value={formik.values.poValue} onChange={formik.handleChange}
+							/>
 						</div>
 					</div>
-				</Modal.Body>
-			</Modal>
-
-			<Modal
-				size="lg"
-				show={itemMasterModal}
-				backdrop="static"
-				keyboard={false}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={CloseItemMasterModal}
-			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title id="modal-heading">
-						<div className="d-flex align-items-center f14 text-white">
-							{editItemMasterData ? 'Edit Item ' : 'Add Item '}
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={CloseItemMasterModal}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3">
-						<form onSubmit={formik.handleSubmit} autoComplete="off">
-							<div className='row mt-2'>
-								<div className='col-12 col-md-6 mb-4'>
-									<TextField
-										fullWidth
-										variant="outlined"
-										InputLabelProps={{ shrink: true }}
-										size="small"
-										className='f14'
-										id="itemCode"
-										name="itemCode"
-										label="Item Code *"
-										inputProps={{ maxLength: 100 }}
-										value={formik.values.itemCode}
-										onChange={formik.handleChange}
-										error={formik.touched.itemCode && Boolean(formik.errors.itemCode)}
-										helperText={formik.touched.itemCode && formik.errors.itemCode}
-									/>
-								</div>
-								<div className='col-12 col-md-6 mb-4'>
-									<TextField
-										fullWidth
-										variant="outlined"
-										InputLabelProps={{ shrink: true }}
-										size="small"
-										className='f14'
-										id="itemName"
-										name="itemName"
-										label="Item/Service Name *"
-										inputProps={{ maxLength: 200 }}
-										value={formik.values.itemName}
-										onChange={formik.handleChange}
-										error={formik.touched.itemName && Boolean(formik.errors.itemName)}
-										helperText={formik.touched.itemName && formik.errors.itemName}
-									/>
-								</div>
-								<div className='col-12 col-md-12 mb-4'>
-									<TextField
-										fullWidth
-										variant="outlined"
-										InputLabelProps={{ shrink: true }}
-										size="small"
-										className='f14'
-										multiline={true}
-										rows={3}
-										id="itemDesc"
-										name="itemDesc"
-										label="Description *"
-										inputProps={{ maxLength: 2000 }}
-										value={formik?.values?.itemDesc}
-										onChange={formik.handleChange}
-										error={formik.touched.itemDesc && Boolean(formik.errors.itemDesc)}
-										helperText={formik.touched.itemDesc && formik.errors.itemDesc}
-									/>
-								</div>
-								<div className='col-12 col-md-6 col-lg-4 mb-3'>
-									<Autocomplete
-										id="itemCategory"
-										name="itemCategory"
-										size="small"
-										className='w-100 f14'
-										sx={{ width: "100%" }}
-										options={[
-											...itemCatAllList,
-											{ categoryDescription: "ADD NEW", id: "new" },
-										]}
-										value={
-											itemCatAllList.find(
-												(option) => option.categoryDescription === formik.values.itemCategory
-											) || { categoryDescription: formik.values.itemCategory }
-										}
-										getOptionLabel={(option) => option.categoryDescription ?? ""}
-										onOpen={() => {
-											if (itemCatAllList.length === 0) {
-												PullItemCateogory();
-											}
-										}}
-										onChange={handleItemCategoryChange}
-										renderOption={(props, option) => (
-											<Box
-												component="li"
-												{...props}
-												style={
-													option.id === "new"
-														? {
-															fontStyle: "italic",
-															color: "blue",
-															cursor: "pointer",
-															textDecoration: "underline",
-														}
-														: {}
-												}
-											>
-												{option.categoryDescription}
-											</Box>
-										)}
-										renderInput={(params) => (
-											<TextField
-												variant="outlined"
-												{...params}
-												label="Item Category *"
-												shrink={true}
-												error={formik.touched.itemCategory && Boolean(formik.errors.itemCategory)}
-												helperText={formik.touched.itemCategory && formik.errors.itemCategory}
-											/>
-										)}
-									/>
-								</div>
-								<div className='col-12 col-md-6 col-lg-4 mb-3'>
-									<Autocomplete
-										id="plant"
-										name="plant"
-										size="small"
-										className='w-100 f14'
-										sx={{ width: "100%" }}
-										options={[
-											...plantAllList,
-											{ slDesc: "ADD", slCode: "new" },
-										]}
-										value={
-											plantAllList.find(option => option.slDesc === formik.values.plant)
-											|| { slDesc: formik.values.plant, slCode: "" }
-										}
-
-										// ✅ FINAL SAFE FIX
-										getOptionLabel={(option) => {
-											const code = option.slCode?.trim();
-											return code && code !== "null" && code !== "undefined"
-												? `${option.slDesc} - ${code}`
-												: option.slDesc;
-										}}
-
-										onOpen={() => {
-											if (plantAllList.length === 0) {
-												PullPlantStorage();
-											}
-										}}
-
-										onChange={handlePlantChange}
-
-										// ✅ SAME SAFE LOGIC HERE
-										renderOption={(props, option) => {
-											const code = option.slCode?.trim();
-
-											return (
-												<Box
-													component="li"
-													{...props}
-													sx={
-														option.slCode === "new"
-															? {
-																fontStyle: "italic",
-																color: "blue",
-																cursor: "pointer",
-																textDecoration: "underline",
-															}
-															: {}
-													}
-												>
-													{code && code !== "null" && code !== "undefined"
-														? `${option.slDesc} - ${code}`
-														: option.slDesc}
-												</Box>
-											);
-										}}
-
-										renderInput={(params) => (
-											<TextField
-												variant="outlined"
-												{...params}
-												label="Plant"
-												InputLabelProps={{ shrink: true }}
-											/>
-										)}
-									/>
-								</div>
-								<div className='col-12 col-md-4 mb-4'>
-									<Autocomplete
-										id="uom"
-										name="uom"
-										size="small"
-										className='w-100 f14'
-										options={[
-											...UOMMaster,
-											{ uom: "ADD NEW", id: "new" },
-										]}
-										value={
-											UOMMaster.find(
-												(option) => option.uom === formik.values.uom
-											) || { uom: formik.values.uom }
-										}
-										getOptionLabel={(option) => option.uom ?? ""}
-										onOpen={() => {
-											if (UOMMaster.length === 0) {
-												pullUOMMasterList();
-											}
-										}}
-										onChange={handleUomChange}
-										renderOption={(props, option) => (
-											<Box
-												component="li"
-												{...props}
-												style={
-													option.id === "new"
-														? {
-															fontStyle: "italic",
-															color: "blue",
-															cursor: "pointer",
-															textDecoration: "underline",
-														}
-														: {}
-												}
-											>
-												{option.uom}
-											</Box>
-										)}
-										renderInput={(params) => (
-											<TextField
-												variant="outlined"
-												{...params}
-												label="UOM *"
-												error={formik.touched.uom && Boolean(formik.errors.uom)}
-												helperText={formik.touched.uom && formik.errors.uom}
-											/>
-										)}
-									/>
-								</div>
-								{/* PO Details Section */}
-								<div className='col-12 mt-4 mb-4'>
-									<h6 className='f14 text-secondary mb-0'>Last PO Details (Optional)</h6>
-								</div>
-								<div className='col-12 col-md-6 mb-4'>
-									<TextField
-										fullWidth
-										variant="outlined"
-										InputLabelProps={{ shrink: true }}
-										size="small"
-										className='f14'
-										id="poNumber"
-										name="poNumber"
-										label="PO Number"
-										inputProps={{ maxLength: 100 }}
-										value={formik.values.poNumber}
-										onChange={formik.handleChange}
-									/>
-								</div>
-								<div className='col-12 col-md-6 mb-4'>
-									<TextField
-										fullWidth
-										variant="outlined"
-										InputLabelProps={{ shrink: true }}
-										size="small"
-										className='f14'
-										id="poVendorName"
-										name="poVendorName"
-										label="Supplier Name"
-										inputProps={{ maxLength: 100 }}
-										value={formik.values.poVendorName}
-										onChange={formik.handleChange}
-									/>
-								</div>
-								<div className='col-12 col-md-4 mb-4'>
-									<TextField
-										fullWidth
-										variant="outlined"
-										InputLabelProps={{ shrink: true }}
-										size="small"
-										className='f14'
-										id="unitRate"
-										name="unitRate"
-										label="Unit Rate"
-										type="number"
-										value={formik.values.unitRate}
-										onChange={formik.handleChange}
-									/>
-								</div>
-								<div className='col-12 col-md-4 mb-4'>
-									<LocalizationProvider dateAdapter={AdapterDateFns}>
-										<DatePicker
-											label="PO Date"
-											value={formik.values.poDate}
-											onChange={(newValue) => formik.setFieldValue('poDate', newValue)}
-											renderInput={(params) => (
-												<TextField
-													{...params}
-													fullWidth
-													size="small"
-													InputLabelProps={{ shrink: true }}
-												/>
-											)}
-										/>
-									</LocalizationProvider>
-								</div>
-								<div className='col-12 col-md-4 mb-4'>
-									<TextField
-										fullWidth
-										variant="outlined"
-										InputLabelProps={{ shrink: true }}
-										size="small"
-										className='f14'
-										id="poValue"
-										name="poValue"
-										label="PO Value"
-										type="number"
-										value={formik.values.poValue}
-										onChange={formik.handleChange}
-									/>
-								</div>
-							</div>
-							<div className='text-end mt-3'>
-								<LoadingButton
-									variant='outlined'
-									onClick={CloseItemMasterModal}
-									color='secondary'
-									className='me-3 text-capitalize'
-									size='small'
-								>
-									Cancel
-								</LoadingButton>
-								<LoadingButton
-									loading={loadingSubmit}
-									variant='contained'
-									type="submit"
-									color='primary'
-									className='text-capitalize'
-									size='small'
-									disabled={loadingSubmit}
-								>
-									{editItemMasterData && editItemMasterData?.id > 0 ? 'Update' : 'Add'}
-								</LoadingButton>
-							</div>
-						</form>
-					</div>
-				</Modal.Body>
-			</Modal>
+				</form>
+			</PEModal>
 
 			{/* Add Category Modal */}
-			<Modal
-				size="xl"
-				show={CategoryModal}
-				backdrop="static"
-				keyboard={false}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={CloseCategoryModal}
+			<PEModal
+				open={CategoryModal}
+				onClose={CloseCategoryModal}
+				size="lg"
+				title="Item Category"
+				bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+				bodyClassName="d-flex flex-column"
+				footer={
+					<button type="button" className="pe-btn pe-btn--secondary" onClick={CloseCategoryModal}>Close</button>
+				}
 			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title>
-						<div className="d-flex align-items-center f14 text-white">
-							Item Category
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={CloseCategoryModal}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3" onClick={(e) => e.stopPropagation()}>
-						<AddPrItemCategory
-							isModal={true}
-							handleCategoryList={handleCategoryList}
-						/>
-					</div>
-				</Modal.Body>
-			</Modal>
+				<AddPrItemCategory isModal={true} handleCategoryList={handleCategoryList} />
+			</PEModal>
 
 			{/* Add Plant Modal */}
-			<Modal
-				size="xl"
-				show={PlantModal}
-				backdrop="static"
-				keyboard={false}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={ClosePlantModal}
+			<PEModal
+				open={PlantModal}
+				onClose={ClosePlantModal}
+				size="lg"
+				title="Delivery Location"
+				bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+				bodyClassName="d-flex flex-column"
+				footer={
+					<button type="button" className="pe-btn pe-btn--secondary" onClick={ClosePlantModal}>Close</button>
+				}
 			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title>
-						<div className="d-flex align-items-center f14 text-white">
-							Plant
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={ClosePlantModal}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0">
-					<div className="p-3" onClick={(e) => e.stopPropagation()}>
-						<AddPrPlant
-							isModal={true}
-							handlePlantList={handlePlantList}
-						/>
-					</div>
-				</Modal.Body>
-			</Modal>
+				<AddPrPlant isModal={true} handlePlantList={handlePlantList} />
+			</PEModal>
 
 			{/* Add UOM Modal */}
-			<Modal
-				size="xl"
-				show={UomModal}
-				backdrop="static"
-				keyboard={false}
-				className="zindex1280"
-				backdropClassName="zindex1280"
-				centered
-				contentClassName="border-0"
-				onHide={CloseUomModal}
+			<PEModal
+				open={UomModal}
+				onClose={CloseUomModal}
+				size="lg"
+				title="UOM"
+				bodyStyle={{ padding: 0, height: '78vh', overflow: 'hidden' }}
+				bodyClassName="d-flex flex-column"
+				footer={
+					<button type="button" className="pe-btn pe-btn--secondary" onClick={CloseUomModal}>Close</button>
+				}
 			>
-				<Modal.Header className="pt-2 pb-2 bgheaderCards">
-					<Modal.Title>
-						<div className="d-flex align-items-center f14 text-white">
-							UOM
-						</div>
-					</Modal.Title>
-					<IconButton
-						onClick={CloseUomModal}
-						size="small"
-						edge="start"
-					>
-						<HiOutlineX className="f20 text-white" />
-					</IconButton>
-				</Modal.Header>
-				<Modal.Body className="p-0" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-					<div className="p-3" onClick={(e) => e.stopPropagation()}>
-						<AddUpdateUom
-							isModal={true}
-							handleUomList={handleUomList || ((list) => setUOMMaster(list))}
-						/>
-					</div>
-				</Modal.Body>
-			</Modal>
+				<AddUpdateUom isModal={true} handleUomList={handleUomList || ((list) => setUOMMaster(list))} />
+			</PEModal>
 		</div>
 	)
 }

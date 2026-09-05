@@ -188,7 +188,7 @@ export const getPRItemServiceFind = async (data, atoken) => {
     };
     const response = await axios.get(ENDPOINT, { headers });
     if (response?.status === 200) {
-      return response?.data?.result;
+      return response?.data;
     }
 
   } catch (error) {

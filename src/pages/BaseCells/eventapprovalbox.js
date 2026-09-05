@@ -86,8 +86,8 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 					return isActive;
 				});
 				setExpandedStages(expanded);
-				handleEventAppList(res, updatedvalue)
 			}
+			handleEventAppList(res, updatedvalue || []);
 		});
 	};
 
@@ -148,8 +148,6 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 		}
 	};
 
-	const [deletedId, setDeletedId] = useState(0);
-
 	const pushDeleteEventApprover = useCallback((objtoremove) => {
 		deleteApproverformEvent(objtoremove)
 	}, [requestCell, approverList]);
@@ -157,8 +155,6 @@ const EventApprovalBox = ({ requestCell, handleEventAppList, wfupdate, action, s
 	const deleteApproverformEvent = async (objtoremove) => {
 
 		try {
-			console.log(`deleteApproverformEvent`);
-
 			const res = await apiClient.postres(`/api/eventapprover/Delete`, objtoremove, atoken);
 			if (!res) {
 				toast.error('Some error occurred while deleting');
